@@ -33,6 +33,12 @@ test('a committed real-time cone still renders after the operator moves away',as
   frame(layer,state,0);assert.equal(layer.slots.length,0);
   frame(layer,state,100);frame(layer,state,660);
   assert.equal(layer.poseFor(unit),null);
+  assert.equal(layer.poseFor(unit,{realtime:true})?.entry.event,event);
+  unit.isMoving=false;
+  const fire=layer.poseFor(unit,{realtime:true}),muzzle=fire.entry.muzzle;
+  assert.equal(fire.atSource,false);
+  layer.captureMuzzle(fire,{origin:new T.Vector3(unit.x+.45,1.17,unit.y)});
+  assert.equal(fire.entry.muzzle,muzzle);
   assert.ok(layer.slots[0].group.visible&&layer.slots[0].sheets.some(mesh=>mesh.visible));
   layer.dispose();
 });

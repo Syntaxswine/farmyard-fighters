@@ -8,6 +8,7 @@ import {createWorkerLocomotion} from '../dist/aft/tactics/worker-locomotion.js';
 import {createBattlePosture} from '../dist/aft/tactics/battle-posture.js';
 import {createFlameOperator} from '../dist/flame-pose.js';
 import {SoloFlameEffects} from '../dist/flame-effects.js';
+import {SoloBurnEffects} from '../dist/burn-effects.js';
 import {FieldView} from '../dist/field-view.js';
 import {ANIMALS,Core,encodeSave} from '../dist/solo-game.js';
 import {flameScenario} from './flame-scenarios.mjs';
@@ -47,7 +48,8 @@ test('the actual field sync captures the model muzzle, never changes simulation,
   const {state,unit,target}=flameScenario(),actor=rig(unit.species),scene=new T.Scene(),camera=new T.OrthographicCamera();camera.position.set(16,18,36);scene.add(actor.root);
   const view=Object.assign(Object.create(FieldView.prototype),{scene,camera,actors:new Map(),samples:new Map(),effects:[],failed:new Set(),pending:new Map(),generation:0,follow:false,focusedId:null,lastRevision:-1,daylight:{update(){}},art:{update(){}},interactionArt:{update(){}},objectivePin:{},extractionPin:{},marker:new T.Mesh(),renderer:{render(){}},actor(){}});
   const record={...actor,equipment:actor.gun,weapon:'flamethrower',flameOperator:actor.operator,paint:{dispose(){}},pick:new T.Mesh(),ring:new T.Mesh(),shadow:new T.Mesh()};view.actors.set(unit.id,record);
-  view.flameEffects=new SoloFlameEffects(scene,{loadTexture:async()=>new T.Texture()});Core.attack(state,unit,target);const before=encodeSave(state);
+  const loadTexture=async()=>new T.Texture();
+  view.flameEffects=new SoloFlameEffects(scene,{loadTexture});view.burnEffects=new SoloBurnEffects(scene,{loadTexture});Core.attack(state,unit,target);const before=encodeSave(state);
   view.sync(state,0);assert.ok(view.flameEffects.queue[0].muzzle.distanceTo(actor.gun.anchors.muzzle.getWorldPosition(V()))<1e-8);await view.flameEffects.pending;
   for(let time=16;time<=3200;time+=40)view.sync(state,time);
   assert.equal(view.flameEffects.queue.length,0);assert.equal(record.hadFlame,false);assert.equal(encodeSave(state),before);

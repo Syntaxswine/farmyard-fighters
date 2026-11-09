@@ -44,6 +44,11 @@ function makeSlot(scene,texture){
   return {group,sheets,plumes,...mask,shared,owner:null,revision:null,muzzle:null,geometryShape:null,dispose(){group.removeFromParent();for(const sheet of sheets){sheet.geometry.dispose();sheet.material.dispose();}for(const plume of plumes)plume.material.dispose();plane.dispose();this.fog.dispose();group.clear();}};
 }
 
+function matchesFiringPose(unit,source){
+  const turn=Math.abs(((unit.heading-source.heading+540)%360)-180);
+  return source.stance===unit.stance&&Math.hypot(unit.x-source.x,unit.y-source.y)<.04&&turn<.1;
+}
+
 // Only the operator's painted discharge is adapted. There are no victim rigs,
 // burn routes, damage callbacks, lights, smoke trails, ash, or body relocation.
 export class SoloFlameEffects {
@@ -84,17 +89,17 @@ export class SoloFlameEffects {
     }
     this.state=state;
   }
-  poseFor(unit,{moving=false}={}){
-    if(unit.hp<=0||unit.weapon!=='flamethrower'||unit.isMoving&&!moving)return null;
+  poseFor(unit,{realtime=false}={}){
+    if(unit.hp<=0||unit.weapon!=='flamethrower'||unit.isMoving&&!realtime)return null;
     const entry=this.queue.find(entry=>{
       const source=entry.shape.source;
-      return source.id===unit.id&&source.stance===unit.stance&&source.species===unit.species&&
-        (moving&&unit.isMoving||Math.hypot(unit.x-source.x,unit.y-source.y)<.04&&Math.abs(((unit.heading-source.heading+540)%360)-180)<.1);
+      return source.id===unit.id&&source.species===unit.species&&(realtime||matchesFiringPose(unit,source));
     });
-    return entry?{entry,seconds:entry.elapsed,reduced:!!this.reducedMotion()}:null;
+    return entry?{entry,seconds:entry.elapsed,reduced:!!this.reducedMotion(),atSource:matchesFiringPose(unit,entry.shape.source)}:null;
   }
   captureMuzzle(fire,result){
     if(!result?.origin||!result.origin.toArray().every(Number.isFinite))return;
+    if(fire.entry.recordedMuzzle&&!fire.atSource)return;
     const source=fire.entry.shape.source;if(!this.queue.includes(fire.entry))return;
     for(const entry of this.queue){const other=entry.shape.source;
       if(other.id===source.id&&other.stance===source.stance&&other.heading===source.heading&&other.x===source.x&&other.y===source.y&&(!entry.muzzle||entry.elapsed<FIRE_TIME.ignite)&&(!entry.recordedMuzzle||flameMuzzleInReach(entry.shape,{x:result.origin.x,y:result.origin.z})))entry.muzzle=result.origin.clone();

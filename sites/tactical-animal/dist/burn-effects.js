@@ -31,7 +31,8 @@ export class SoloBurnEffects{
     Object.assign(this,{scene,loadTexture,reducedMotion,onError,entries:new Map(),sessions:new Map(),failures:new Set(),sequence:0,disposed:false});
   }
   load(){
-    if(this.ready)return;this.ready=Promise.allSettled(Object.values(FIRE_ASSETS).map(path=>this.loadTexture(new URL(path,new URL('./aft/tactics/',import.meta.url)).href))).then(results=>{
+    if(this.ready)return;this.loading=true;this.ready=Promise.allSettled(Object.values(FIRE_ASSETS).map(path=>this.loadTexture(new URL(path,new URL('./aft/tactics/',import.meta.url)).href))).then(results=>{
+      this.loading=false;
       if(results.some(r=>r.status==='rejected')||this.disposed){for(const r of results)if(r.status==='fulfilled')r.value.dispose();if(!this.disposed)this.onError(results.find(r=>r.status==='rejected').reason);return;}
       this.textures=results.map(r=>r.value);for(const t of this.textures)t.colorSpace=T.SRGBColorSpace;
     });
@@ -41,49 +42,77 @@ export class SoloBurnEffects{
     for(const [id]of this.sessions)if(!shown.has(id))this.remove(id);
     for(const event of state.fireAnimations||[]){
       if(event.sequence<=this.sequence)continue;this.sequence=event.sequence;
-      const u=visibleUnits.find(u=>u.id===event.unitId);if(this.reduced||!u||!paintedBurnSupported(u)||event.route.some(p=>!state.visible.has(cell(p))))continue;
+      const u=visibleUnits.find(u=>u.id===event.unitId);if(this.reduced||!u||event.route.some(p=>!state.visible.has(cell(p))))continue;
       try{this.entries.set(u.id,{event,segments:burnSegments(event),start:now,waiting:event.kind!=='panic'});}catch(error){this.onError(error);}
     }
     for(const [id,entry]of this.entries){const u=visibleUnits.find(u=>u.id===id);
-      if(!u||!paintedBurnSupported(u)||entry.event.kind!=='tank'&&u.weapon!==entry.event.weapon||!u.burningTurns&&!u.burnedRemains){this.remove(id);continue;}
+      if(!u||entry.event.kind!=='tank'&&u.weapon!==entry.event.weapon||!u.burningTurns&&!u.burnedRemains){this.remove(id);continue;}
       if(entry.waiting){const start=startFor(entry.event,now);if(start!==null){entry.start=start;entry.waiting=false;}}
     }
-    for(const u of visibleUnits)if(paintedBurnSupported(u)&&(u.burnedRemains||u.hp>0&&u.burningTurns)&&!this.entries.has(u.id)&&!this.failures.has(u.id)){
+    for(const u of visibleUnits)if((u.burnedRemains||u.hp>0&&u.burningTurns)&&!this.entries.has(u.id)&&!this.failures.has(u.id)){
       const event={unitId:u.id,kind:u.burnedRemains?'ash':'ignite',weapon:u.weapon,route:[{x:u.x,y:u.y,heading:u.heading}]};
       this.entries.set(u.id,{event,segments:burnSegments(event),start:now-(u.burnedRemains?5400:1500),waiting:false});
     }
     if(this.entries.size)this.load();
   }
-  session(actor,id){
+  session(actor,id,animate){
     let s=this.sessions.get(id);if(s?.actor===actor)return s;if(s)this.release(id);
-    actor.root.position.set(0,0,0);actor.worker.root.position.set(0,0,0);actor.root.updateMatrixWorld(true);actor.posture?.resetTail();
-    const resumeWalking=!!actor.profile.unarmed;if(resumeWalking){actor.locomotion.dispose();actor.locomotion=null;}
+    const resumeWalking=animate&&!!actor.profile.unarmed;
+    if(animate){
+      actor.root.position.set(0,0,0);actor.worker.root.position.set(0,0,0);actor.root.updateMatrixWorld(true);actor.posture?.resetTail();
+      if(resumeWalking){actor.locomotion.dispose();actor.locomotion=null;}
+    }
     const value={value:0};let motion,restoreSkin;
-    try{motion=createPaintedFireMotion(actor.worker,actor.profile);restoreSkin=dissolveBody(actor.worker,value);}catch(error){motion?.dispose();if(resumeWalking)actor.locomotion=createWorkerLocomotion(actor.worker,actor.profile);throw error;}
+    try{if(animate)motion=createPaintedFireMotion(actor.worker,actor.profile);restoreSkin=dissolveBody(actor.worker,value);}catch(error){motion?.dispose();if(resumeWalking)actor.locomotion=createWorkerLocomotion(actor.worker,actor.profile);throw error;}
     s={actor,motion,value,restoreSkin,resumeWalking};this.sessions.set(id,s);return s;
   }
   equipmentFor(unit){const event=this.entries.get(unit.id)?.event;return event?.kind==='tank'&&event.worn?'flamethrower':unit.weapon;}
   pose(actor,unit,camera){
-    const entry=this.entries.get(unit.id);if(!entry||this.failures.has(unit.id)||!paintedBurnSupported(unit)){this.release(unit.id);return false;}
+    const entry=this.entries.get(unit.id);if(!entry||this.failures.has(unit.id)){this.release(unit.id);return false;}
     try{
-      const s=this.session(actor,unit.id);actor.root.position.set(0,0,0);actor.root.updateMatrixWorld(true);
-      if(s.settledEvent===entry.event){s.effects.group.visible=true;actor.pick.position.set(unit.x,.18,unit.y);actor.ring.position.set(unit.x,.018,unit.y);actor.shadow.position.set(unit.x,.01,unit.y);return true;}
-      if(this.textures&&!s.effects&&!s.loading){s.loading=true;createPaintedFireEffects(this.scene,null,actor.worker,{textures:this.textures,world:true}).then(fx=>{if(s.disposed)fx.dispose();else s.effects=fx;}).catch(e=>this.onError(e));}
+      // The shroud follows the rig in any stance. Only the standing rig uses the authored collapse and panic motion.
+      const s=this.session(actor,unit.id,paintedBurnSupported(unit));
+      if(s.motion){actor.root.position.set(0,0,0);actor.root.updateMatrixWorld(true);}
+      if(s.settledEvent===entry.event){
+        s.effects.group.visible=true;
+        if(s.motion){actor.pick.position.set(unit.x,.18,unit.y);actor.ring.position.set(unit.x,.018,unit.y);actor.shadow.position.set(unit.x,.01,unit.y);}
+        return true;
+      }
+      if(this.textures&&!s.effects&&!s.loading&&!s.loadFailed){
+        s.loading=true;
+        createPaintedFireEffects(this.scene,null,actor.worker,{textures:this.textures,world:true}).then(fx=>{
+          s.loading=false;
+          if(s.disposed)fx.dispose();else{fx.group.visible=false;s.effects=fx;}
+        }).catch(e=>{s.loading=false;s.loadFailed=true;this.onError(e);});
+      }
       if(this.reduced){entry.segments=burnSegments({route:[{x:unit.x,y:unit.y,heading:unit.heading}]});entry.start=this.now-(unit.burnedRemains?5400:1500);entry.waiting=false;}
-      const p=burnPlayback(entry,this.now),waiting=entry.waiting||this.now<entry.start;
+      const waiting=entry.waiting||this.now<entry.start;
+      if(!this.reduced&&!waiting&&entry.event.kind==='ash'&&entry.event.sequence!==undefined){
+        // Keep the initial engulf visible even when the atlases arrive late.
+        const late=(this.loading||s.loading)&&(entry.waitingForShroud||this.now-entry.start>180);
+        if(late||s.effects&&entry.waitingForShroud)entry.start=this.now;
+        entry.waitingForShroud=late;
+      }
+      const p=burnPlayback(entry,this.now);
       const time=waiting?0:p.terminal&&!s.effects?Math.min(p.time,1.84):p.time;
-      let result;
-      if(entry.event.kind==='tank'&&entry.event.worn){
+      let body;
+      if(s.motion&&entry.event.kind==='tank'&&entry.event.worn){
         if(s.tankEvent!==entry.event){s.blast=createTankBlastMotion({worker:actor.worker,motion:s.motion,dissolve:s.value},p.route);s.tankEvent=entry.event;this.tankEffects?.setOrigin(entry.event.sequence,s.blast.origin);}
-        result=s.blast.apply(waiting?0:TANK_TIME.burst+time-FIRE_TIME.hit).body;
-      }else result=s.motion.burn(time,p.route,{terminal:p.terminal});s.value.value=result.state.dissolve;
-      actor.paint.setGripForearm?.(result.state.bodyVisible&&!!actor.worker.weapon?.carry?.handPoses?.support?.gripMesh);
-      if(s.effects)s.effects.update(waiting?0:p.time,{camera,route:p.route,flame:false,terminal:p.terminal,groundPoint:s.motion.groundPoint,body:true});
-      const point=result.state.point;actor.pick.position.set(point.x,unit.hp>0?.9:.18,point.z);actor.ring.position.set(point.x,.018,point.z);actor.shadow.position.set(point.x,.01,point.z);
+        body=s.blast.apply(waiting?0:TANK_TIME.burst+time-FIRE_TIME.hit).body.state;
+      }else body=s.motion?.burn(time,p.route,{terminal:p.terminal}).state??burnState(time,p.route,{terminal:p.terminal});
+      s.value.value=body.dissolve;
+      actor.paint.setGripForearm?.(body.bodyVisible&&!!actor.worker.weapon?.carry?.handPoses?.support?.gripMesh);
+      if(s.effects)s.effects.update(waiting?0:p.time,{camera,route:p.route,flame:false,terminal:p.terminal,groundPoint:s.motion?.groundPoint,body:true});
+      if(s.motion){const point=body.point;actor.pick.position.set(point.x,unit.hp>0?.9:.18,point.z);actor.ring.position.set(point.x,.018,point.z);actor.shadow.position.set(point.x,.01,point.z);}
       actor.root.updateMatrixWorld(true);actor.worker.skeleton.update();if(s.effects&&p.terminal&&p.time>=FIRE_TIME.duration)s.settledEvent=entry.event;return true;
     }catch(error){this.failures.add(unit.id);this.remove(unit.id);actor.root.position.set(unit.x,0,unit.y);this.onError(error);return false;}
   }
-  release(id){const s=this.sessions.get(id);if(!s)return;s.disposed=true;s.motion.dispose();s.restoreSkin();s.effects?.dispose();s.actor.worker.root.position.set(0,0,0);s.actor.worker.root.rotation.set(0,0,0);if(s.resumeWalking)s.actor.locomotion=createWorkerLocomotion(s.actor.worker,s.actor.profile);s.actor.signature=null;this.sessions.delete(id);}
+  release(id){
+    const s=this.sessions.get(id);if(!s)return;s.disposed=true;s.restoreSkin();s.effects?.dispose();
+    if(s.motion){s.motion.dispose();s.actor.worker.root.position.set(0,0,0);s.actor.worker.root.rotation.set(0,0,0);}
+    if(s.resumeWalking)s.actor.locomotion=createWorkerLocomotion(s.actor.worker,s.actor.profile);
+    s.actor.signature=null;this.sessions.delete(id);
+  }
   remove(id){this.release(id);this.entries.delete(id);}
   dispose(){if(this.disposed)return;this.disposed=true;for(const id of this.sessions.keys())this.release(id);this.entries.clear();this.textures?.forEach(t=>t.dispose());}
 }

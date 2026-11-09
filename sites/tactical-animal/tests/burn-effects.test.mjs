@@ -33,6 +33,32 @@ test('authored engulf/collapse/ash rendering is read-only, selectable and fully 
   }finally{layer.dispose();actor.dispose();}
 });
 
+test('the fire shroud follows a downed rig and survives a late atlas load',async()=>{
+  for(const stance of ['kneeling','prone']){
+    const actor=rig(),u=victim({stance}),scene=new T.Scene();
+    const event={sequence:1,unitId:u.id,kind:'ash',weapon:u.weapon,route:[{x:u.x,y:u.y,heading:u.heading}]};
+    const s=state(u,event),before=JSON.stringify(s);
+    let releaseTextures;
+    const loading=new Promise(resolve=>{releaseTextures=resolve;});
+    const layer=new SoloBurnEffects(scene,{loadTexture:async()=>{await loading;return new T.Texture();}});
+    const frame=now=>{layer.observe(s,now,[u]);assert.ok(layer.pose(actor,u,camera));};
+    try{
+      actor.root.position.set(u.x,0,u.y);actor.root.updateMatrixWorld(true);
+      frame(0);frame(3000);
+      const session=layer.sessions.get(u.id);
+      assert.equal(session.value.value,0);
+      releaseTextures();await layer.ready;
+      frame(3200);await Promise.resolve();
+      frame(3400);frame(3600);
+      assert.ok(session.effects.group.children.some(m=>m.visible&&m.userData.zone&&m.material.uniforms.opacity.value>.6));
+      assert.deepEqual(actor.root.position.toArray(),[u.x,0,u.y]);
+      frame(5900);
+      assert.equal(session.effects.ash.visible,true);
+      assert.equal(JSON.stringify(s),before);
+    }finally{layer.dispose();actor.dispose();}
+  }
+});
+
 test('missing burn textures retain a visible corpse and reduced motion never replays a panic route',async()=>{
   const actor=rig(),u=victim(),s=state(u),layer=new SoloBurnEffects(new T.Scene(),{loadTexture:async()=>{throw Error('offline');},onError(){}});
   try{layer.observe(s,0,[u]);await layer.ready;assert.ok(layer.pose(actor,u,camera));assert.ok(actor.worker.parts.some(p=>p.visible));assert.equal(layer.sessions.get(1).value.value,0);}finally{layer.dispose();actor.dispose();}

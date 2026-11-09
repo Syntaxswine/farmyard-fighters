@@ -16,13 +16,14 @@ import {fieldCameraFor,grenadeCameraFrame} from './grenade-controls.js';
 import {InteractionScenery} from './interaction-view.js';
 import {clueAnchorHeight,missionHasArt,SCENERY_DIGEST} from './mission-scenery.js';
 import {SoloFlameEffects} from './flame-effects.js';
+import {FIRE_TIME,fireState} from './aft/tactics/painted-fire-state.js';
 import {SoloBurnEffects} from './burn-effects.js';
 import {SoloTankEffects} from './tank-effects.js';
 import {createFlameOperator} from './flame-pose.js';
 import {FlameConePreview} from './flame-aim-view.js';
 import {GuardSightView} from './guard-sight-view.js';
 import {blockWindow,pointInWorldRect,worldBounds} from './world-grid.js';
-import {clampCameraPoint,residentCameraSpan,residentWindowForCamera,MAX_CAMERA_SPAN} from './render-residency.js';
+import {clampCameraPoint,contactCameraFrame,residentCameraSpan,residentWindowForCamera,MAX_CAMERA_SPAN} from './render-residency.js';
 import {SearchHalo,searchHaloCandidates,searchHaloTarget} from './search-halo.js';
 import {WindowScenery,WindowEffects} from './window-view.js';
 import {ballistic,createWeaponAudio,GRENADE_IMPACT_MS,missImpactFlash,muzzleFlash,playWeaponSound,setTracer,traceEnd,traceStart,tracerMesh} from './weapon-feedback.js';
@@ -72,7 +73,7 @@ export class FieldView {
   resize(){const w=this.container.clientWidth,h=this.container.clientHeight;if(!w||!h)return;this.renderer.setSize(w,h,false);this.updateCamera();}
   updateCamera(){
     const w=this.container?.clientWidth,h=this.container?.clientHeight;
-    const requested=this.grenadeCamera||this.returnSpan!=null?this.span:this.requestedSpan??this.span,viewport={width:w,height:h};
+    const requested=this.grenadeCamera||this.returnSpan!=null?this.span:this.contactSpan??this.requestedSpan??this.span,viewport={width:w,height:h};
     if(this.state){const point=clampCameraPoint(this.state,{x:this.target.x,y:this.target.z});this.target.set(point.x,0,point.y);this.residentWindow=residentWindowForCamera(this.state,point,viewport,requested);}
     if(w&&h){
       this.span=this.state?residentCameraSpan(this.state,{x:this.target.x,y:this.target.z},viewport,requested,this.residentWindow):requested;
@@ -86,14 +87,15 @@ export class FieldView {
   canZoom(factor){const span=this.grenadeCamera?.baseSpan??this.requestedSpan??this.span,max=this.grenadeCamera?MAX_CAMERA_SPAN:this.zoomLimit();return factor>1?span<max-.01:span>6.01;}
   zoom(factor){if(this.grenadeCamera){this.grenadeCamera.baseSpan=T.MathUtils.clamp(this.grenadeCamera.baseSpan*factor,6,MAX_CAMERA_SPAN);return;}this.returnSpan=null;this.requestedSpan=T.MathUtils.clamp((this.requestedSpan??this.span)*factor,6,this.zoomLimit());this.resize();}
 
-  center(){if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=null;this.follow=true;if(this.state){const u=hero(this.state);this.target.set(u.x,0,u.y);this.updateCamera();}}
-  focusOpponent(id){const u=this.state?.units.find(v=>v.id===id&&v.team==='guard'&&Core.alive(v)&&this.state.detected.has(v.id));if(!u)return false;if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=id;this.follow=false;this.target.set(u.x,0,u.y);this.updateCamera();return true;}
+  center(){if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=null;this.follow=true;if(this.state&&this.contactSpan==null){const u=hero(this.state);this.target.set(u.x,0,u.y);this.updateCamera();}}
+  focusOpponent(id){const u=this.state?.units.find(v=>v.id===id&&v.team==='guard'&&Core.alive(v)&&this.state.detected.has(v.id));if(!u)return false;if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=id;this.follow=false;this.contactSpan=null;this.target.set(u.x,0,u.y);this.updateCamera();return true;}
   ground(clientX,clientY){const r=this.container.getBoundingClientRect();this.ray.setFromCamera(new T.Vector2((clientX-r.left)/r.width*2-1,-(clientY-r.top)/r.height*2+1),this.camera);return this.ray.ray.intersectPlane(this.plane,V());}
   interactionAnchor(object){const height=clueAnchorHeight(missionForState(this.state),object,object.kind==='door'?2.15:object.kind==='chest'?1.15:.7),point=V(object.x,height,object.y).project(this.camera);return {x:(point.x+1)*this.container.clientWidth/2,y:(1-point.y)*this.container.clientHeight/2,visible:Math.abs(point.x)<.95&&Math.abs(point.y)<.95&&Math.abs(point.z)<1};}
   down(e){if(e.button!==0||this.grenadeCamera)return;this.unlockSound();this.container.setPointerCapture(e.pointerId);this.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(this.pointers.size===1)this.gesture={x:e.clientX,y:e.clientY,target:this.target.clone(),moved:false,at:performance.now()};if(this.pointers.size===2){const [a,b]=[...this.pointers.values()];this.pinch={distance:Math.hypot(a.x-b.x,a.y-b.y),span:this.span};this.gesture.moved=true;}}
   drag(e){const point=this.pointers.get(e.pointerId);if(!point)return;point.x=e.clientX;point.y=e.clientY;
     if(this.pointers.size===2&&this.pinch){const [a,b]=[...this.pointers.values()];this.returnSpan=null;this.requestedSpan=T.MathUtils.clamp(this.pinch.span*this.pinch.distance/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),6,this.zoomLimit());this.resize();return;}
     if(!this.gesture)return;const dx=e.clientX-this.gesture.x,dy=e.clientY-this.gesture.y;if(Math.hypot(dx,dy)<8&&!this.gesture.moved)return;this.gesture.moved=true;this.follow=false;this.focusedId=null;
+    if(this.contactSpan!=null){this.requestedSpan=this.span;this.contactSpan=null;}
     // Map screen displacement to the ground plane using the current camera basis.
     const right=V().setFromMatrixColumn(this.camera.matrixWorld,0),up=V().setFromMatrixColumn(this.camera.matrixWorld,1);up.y=0;up.normalize();
     this.target.copy(this.gesture.target).addScaledVector(right,-dx*this.span/this.container.clientHeight).addScaledVector(up,dy*this.span/this.container.clientHeight*1.65);this.updateCamera();
@@ -123,7 +125,7 @@ export class FieldView {
     for(const effect of this.effects)disposeWeaponEffect(effect);
     this.effects=[];this.flameEffects?.dispose();this.flameEffects=null;this.flameCone?.dispose();this.flameCone=null;this.flameAim=null;this.lastEffect=null;
   }
-  clearGestures(){for(const id of this.pointers.keys())if(this.container.hasPointerCapture(id))this.container.releasePointerCapture(id);this.pointers.clear();this.gesture=null;this.pinch=null;this.grenadeCamera=null;this.flameAim=null;this.flameCone?.hide();this.returnSpan=null;this.focusedId=null;}
+  clearGestures(){for(const id of this.pointers.keys())if(this.container.hasPointerCapture(id))this.container.releasePointerCapture(id);this.pointers.clear();this.gesture=null;this.pinch=null;this.grenadeCamera=null;this.flameAim=null;this.flameCone?.hide();this.returnSpan=null;this.contactSpan=null;this.focusedId=null;}
   setGame(s){this.generation++;this.clearGestures();this.clearEffects();this.span=this.requestedSpan=DEFAULT_CAMERA_SPAN;this.state=s;this.residentWindow=null;this.lastWindowKey=null;this.samples.clear();this.failed.clear();for(const a of [...this.actors.values(),...(this.parkedActors?.values()||[])])this.disposeActor(a);this.actors.clear();this.parkedActors?.clear();this.pending.clear();this.clearEnvironment();this.buildEnvironment(s);this.center();this.resize();this.lastRevision=-1;this.lastLightAt=undefined;this.lastFrameAt=undefined;this.lastEffect=s.effect||null;this.route([]);}
   reportLoading(){this.onLoading(this.artBusy||this.propBusy||this.missionArtBusy||this.missionPaperBusy||this.pending.size>0||this.failed.size>0);}
   // Mission art owns its geometry; detach it before the generic traversal below.
@@ -175,7 +177,7 @@ export class FieldView {
   beginGrenadeAim(){
     const baseSpan=this.grenadeCamera?.baseSpan??this.returnSpan??this.requestedSpan??this.span;
     for(const id of this.pointers.keys())if(this.container.hasPointerCapture(id))this.container.releasePointerCapture(id);
-    this.pointers.clear();this.gesture=null;this.pinch=null;this.focusedId=null;this.follow=false;this.returnSpan=null;
+    this.pointers.clear();this.gesture=null;this.pinch=null;this.focusedId=null;this.follow=false;this.returnSpan=null;this.contactSpan=null;
     this.grenadeCamera={baseSpan,point:null,until:null,poseAt:performance.now()};this.route([]);
   }
   endGrenadeAim({linger=0}={}){
@@ -379,7 +381,7 @@ export class FieldView {
     const player=v.id===hero(s).id,alive=v.hp>0&&!v.burningTurns;
     const aim=alive&&displayedWeapon===v.weapon?realtimeWeaponAim(s,v):null;
     const flamePreview=player?this.flameAim:null;
-    const fire=flamePreview?null:this.flameEffects?.poseFor(operator,{moving:!!s.realtime});
+    const fire=flamePreview?null:this.flameEffects?.poseFor(operator,{realtime:!!s.realtime});
     const flameReady=!fire&&alive&&displayedWeapon==='flamethrower'&&(flamePreview||aim);
     if(fire||flameReady)sample.heading=fire?.entry.shape.source.heading??flamePreview?.heading??Core.headingTo(v,aim);
     const discharge=this.discharges?.get(v.id);
@@ -416,8 +418,12 @@ export class FieldView {
     if(displayedWeapon==='rpg')for(const part of a.equipment.parts)
       if(['shaped RPG warhead','warhead shoulder seam','nose fuse'].includes(part.name))part.visible=(v.ammo.rpg||0)>0;
     if(fire||flameReady){
-      const amount=fire?(fire.reduced||aim?1:1-T.MathUtils.smoothstep(fire.seconds,1.58,2.10)):
-        T.MathUtils.damp(a.lanceAmount??0,1,18,elapsed);
+      const readyWeight=flamePreview?1:.55*(aim?.progress??0);
+      const previous=a.lanceAmount??0;
+      const brace=fire?fireState(fire.seconds).brace:0;
+      let amount=T.MathUtils.damp(previous,Math.max(readyWeight,brace),18,elapsed);
+      if(fire?.reduced)amount=1;
+      else if(fire&&fire.seconds<FIRE_TIME.ignite)amount=Math.max(previous,amount);
       a.lanceAmount=amount;
       const fitted=a.flameOperator.apply({...sample,hp:operator.hp},fire?.seconds??.30,fire?.reduced??false,amount);
       result={pose:'lance brace',reason:fitted?.fallback?'lance reach':null,...fitted};
@@ -442,7 +448,7 @@ export class FieldView {
     }
     if(player)this.playerWeaponPose=result?{weapon:throwAction?'grenade':displayedWeapon,
       phase:throwAction?(throwAction.released?(throwAction.time>2.14?'recover':'release'):'ready'):
-        fire?(fire.seconds>1.58?'recover':fire.seconds<.32?'ready':'discharge'):flameReady?'ready':action?.phase??'carry',
+        fire?(fire.seconds>=FIRE_TIME.cutoff+FIRE_TIME.travel?'recover':fire.seconds<FIRE_TIME.ignite?'ready':'discharge'):flameReady?'ready':action?.phase??'carry',
       pose:result.pose,stance:sample.stance,moving:!!sample.blend,reason:result.reason??null}:null;
     this.burnEffects?.pose(a,v,this.camera);
   }
@@ -450,7 +456,21 @@ export class FieldView {
     if(this.grenadeCamera)this.trackGrenadeCamera(now,elapsed);
     if(this.returnSpan!=null){const goal=residentCameraSpan(s,{x:this.target.x,y:this.target.z},{width:this.container.clientWidth,height:this.container.clientHeight},this.returnSpan);this.span+=(goal-this.span)*zoomBlend;if(Math.abs(goal-this.span)<.01){this.span=goal;this.returnSpan=null;}this.resize();}
     if(this.focusedId!=null){const contact=s.units.find(v=>v.id===this.focusedId&&Core.alive(v)&&s.detected.has(v.id));if(contact){this.target.lerp(V(contact.x,0,contact.y),followBlend);this.updateCamera();}else this.center();}
-    if(this.follow){this.target.lerp(V(u.x,0,u.y),followBlend);this.updateCamera();}
+    if(this.follow){
+      const viewport={width:this.container.clientWidth,height:this.container.clientHeight};
+      const baseSpan=this.requestedSpan??this.span;
+      const frame=this.returnSpan==null?contactCameraFrame(s,u,viewport,baseSpan):null;
+      const settling=this.contactSpan!=null&&!frame;
+      const settleBlend=T.MathUtils.damp(0,1,4,elapsed);
+      const point=frame?.target??u;
+      this.target.lerp(V(point.x,0,point.y),settling?settleBlend:followBlend);
+      if(frame||settling){
+        const goal=frame?.span??baseSpan;
+        const span=this.span+(goal-this.span)*(goal>this.span?zoomBlend:settleBlend);
+        this.contactSpan=settling&&Math.abs(span-baseSpan)<.01?null:span;
+      }
+      this.updateCamera();
+    }
     return elapsed;
   }
   sync(s,now){this.frameCount=(this.frameCount||0)+1;this.state=s;const u=hero(s),elapsed=this.updateFollowCamera(s,now),motionBlend=T.MathUtils.damp(0,1,-60*Math.log(.8),elapsed),poseBlend=T.MathUtils.damp(0,1,-60*Math.log(.85),elapsed);
@@ -460,7 +480,7 @@ export class FieldView {
     this.animateEffects(now);
     this.flameEffects?.beginFrame(now,s);
     if(s.fireAnimations?.length||s.units.some(u=>u.burnedRemains||u.burningTurns))this.burnEffects ||= new SoloBurnEffects(this.scene);
-    const burnStart=event=>{const entry=this.flameEffects?.queue.find(e=>e.event.fireSequences?.includes(event.sequence));if(entry)return entry.muzzle&&entry.last!==null?now+Math.max(0,.64-entry.elapsed)*1000:null;const shot=s.effect?.sequence?.find(e=>e.fireSequences?.includes(event.sequence));return shot?(this.effectAt??now)+(shot.shot||0)*BURST_SHOT_INTERVAL:now;};
+    const burnStart=event=>{const entry=this.flameEffects?.queue.find(e=>e.event.fireSequences?.includes(event.sequence));if(entry)return entry.muzzle&&entry.last!==null?now+Math.max(0,FIRE_TIME.hit-entry.elapsed)*1000:null;const shot=s.effect?.sequence?.find(e=>e.fireSequences?.includes(event.sequence));return shot?(this.effectAt??now)+(shot.shot||0)*BURST_SHOT_INTERVAL:now;};
     if(s.fires?.length||s.fireAnimations?.some(e=>e.kind==='tank'))this.tankEffects ||= new SoloTankEffects(this.scene);
     this.tankEffects?.observe(s,now,visible,burnStart);this.tankEffects?.captureOrigins(this.actors);
     this.burnEffects?.observe(s,now,visible,burnStart);if(this.burnEffects)this.burnEffects.tankEffects=this.tankEffects;
