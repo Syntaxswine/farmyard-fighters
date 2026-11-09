@@ -25,14 +25,14 @@ import {blockWindow,pointInWorldRect,worldBounds} from './world-grid.js';
 import {clampCameraPoint,residentCameraSpan,residentWindowForCamera,MAX_CAMERA_SPAN} from './render-residency.js';
 import {SearchHalo,searchHaloCandidates,searchHaloTarget} from './search-halo.js';
 import {WindowScenery,WindowEffects} from './window-view.js';
-import {ballistic,createWeaponAudio,GRENADE_IMPACT_MS,muzzleFlash,playWeaponSound,setTracer,traceEnd,traceStart,tracerMesh} from './weapon-feedback.js';
+import {ballistic,createWeaponAudio,GRENADE_IMPACT_MS,missImpactFlash,muzzleFlash,playWeaponSound,setTracer,traceEnd,traceStart,tracerMesh} from './weapon-feedback.js';
+import {shotVisible} from './aft/tactics/shot-coordinates.js';
 import {actionDuration,createWeaponPose,weaponAction} from './weapon-pose.js';
 import {createGrenadePose,grenadeAction} from './grenade-pose.js';
 
 const V = (x=0,y=0,z=0) => new T.Vector3(x,y,z);
-// Distinct tracer pulses make each committed burst round readable. A shorter
-// lifetime than the interval prevents identical paths merging into one beam.
-const BURST_SHOT_INTERVAL=140,BURST_TRACER_DURATION=90,FLASH_DURATION=72;
+// Hits pulse at the burst cadence. Misses linger so diverging paths can be read together.
+const BURST_SHOT_INTERVAL=140,BURST_TRACER_DURATION=90,MISS_TRACER_DURATION=340,FLASH_DURATION=72;
 const MUZZLE_SOURCE_TOLERANCE=.04;
 // Two standard Zoom Out steps from the previous 13 m view.
 const DEFAULT_CAMERA_SPAN=13*1.2**2;
@@ -41,7 +41,7 @@ function disposeEffectMesh(mesh){
   mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();
 }
 function disposeWeaponEffect(effect){
-  for(const mesh of [effect.line,effect.flash,effect.exhaust])disposeEffectMesh(mesh);
+  for(const mesh of [effect.line,effect.flash,effect.exhaust,effect.impact])disposeEffectMesh(mesh);
   effect.projectile?.root.removeFromParent();
   effect.projectile?.dispose();
 }
@@ -260,6 +260,7 @@ export class FieldView {
         continue;
       }
       const thrown=event.weapon==='grenade',burst=event.shots>1,tracer=ballistic(event.weapon);
+      const realtime=!!this.state?.realtime,miss=realtime&&!!event.traceEnd;
       const at=now+delay+(burst?event.shot*BURST_SHOT_INTERVAL:0);
       let line=null,points=null,projectile=null;
       if(thrown){
@@ -268,8 +269,8 @@ export class FieldView {
         projectile=createGrenadeModel();
         for(const part of projectile.parts)if(part.name==='pull ring'||part.name==='curved safety lever')part.visible=false;
         projectile.root.visible=false;this.scene.add(projectile.root);
-      }else if(tracer)line=tracerMesh(event.weapon);
-      const visual={event,line,tracer,points,projectile,at,ttl:thrown?700:burst||event.fullAuto?BURST_TRACER_DURATION:240,started:!burst&&at<=now,
+      }else if(tracer)line=tracerMesh(event.weapon,realtime&&event.shooter!==hero(this.state).id);
+      const visual={event,line,tracer,points,projectile,at,ttl:thrown?700:miss?MISS_TRACER_DURATION:burst||event.fullAuto?BURST_TRACER_DURATION:240,started:!burst&&at<=now,
         previous:burst&&event.shot>0?previousRounds.get(event.shooter):null};
       (this.shotVisuals??=new Map()).set(event,visual);
       if(line){line.visible=at<=now;this.scene.add(line);}
@@ -349,6 +350,9 @@ export class FieldView {
           ?actor.equipment.anchors.muzzle?.getWorldPosition(V()):null;
         const origin=traceStart(event,muzzle,end,s);
         shot.hasTrace=setTracer(line,origin,end,s,event.weapon);line.visible=shot.hasTrace;
+        if(event.missImpact&&shot.hasTrace&&shotVisible(s,end)){
+          shot.impact=missImpactFlash(end);this.scene.add(shot.impact);
+        }
         if(muzzle===origin&&s.visible.has(Core.key(origin.x,origin.z))){
           shot.flash=muzzleFlash(origin,end,event.weapon);this.scene.add(shot.flash);
           if(event.weapon==='rpg'){
@@ -363,6 +367,12 @@ export class FieldView {
       }
       if(shot.flash){shot.flash.visible=age<FLASH_DURATION;shot.flash.material.opacity=Math.max(0,1-age/FLASH_DURATION);}
       if(shot.exhaust){shot.exhaust.visible=age<110;shot.exhaust.material.opacity=Math.max(0,1-age/110);}
+      if(shot.impact){
+        const progress=age/shot.ttl;
+        shot.impact.visible=shotVisible(s,shot.impact.position);
+        shot.impact.scale.setScalar(1+progress);
+        shot.impact.material.opacity=1-progress;
+      }
     }
   }
   poseActor(a,s,v,sample,now,elapsed,displayedWeapon,operator){

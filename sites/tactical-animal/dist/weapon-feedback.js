@@ -28,8 +28,8 @@ export function playWeaponSound(audio,event,state,delay=0){
   if(event.weapon==='shotgun')audio.play('shotgun-pump',origin,state,{delay:.35,priority:.5,range:18});
 }
 
-export function tracerMesh(weapon){
-  const color=weapon==='rpg'||weapon==='launcher'?0xffae58:0xffdf90;
+export function tracerMesh(weapon,incoming=false){
+  const color=incoming?0xff8066:weapon==='rpg'||weapon==='launcher'?0xffae58:0xffdf90;
   const beam=new T.Mesh(new T.BufferGeometry(),new T.MeshBasicMaterial({
     color,side:T.DoubleSide,transparent:true,depthWrite:false,toneMapped:false
   }));
@@ -58,21 +58,33 @@ export function traceStart(event,muzzle,end,state){
 export function setTracer(beam,start,end,state,weapon){
   start.shotLevel=end.shotLevel=0;
   const points=state?.visible?visibleShotSegments(state,[start,end]):[start,end];
-  const positions=[];
+  const positions=[],length=start.distanceTo(end);
+  const width=weapon==='rpg'?.082:weapon==='launcher'?.062:.044;
+  const widthAt=p=>state?.realtime&&length?width*(1+.6*Math.max(0,1-start.distanceTo(p)/length)):width;
   for(let i=0;i<points.length;i+=2){
     const a=points[i];let b=points[i+1];
     while(points[i+2]?.equals(b)){i+=2;b=points[i+1];}
     const direction=b.clone().sub(a).normalize();
-    const width=weapon==='rpg'?.082:weapon==='launcher'?.062:.044;
-    const side=V().crossVectors(direction,Math.abs(direction.y)>.95?V(1,0,0):V(0,1,0)).normalize().multiplyScalar(width);
+    const side=V().crossVectors(direction,Math.abs(direction.y)>.95?V(1,0,0):V(0,1,0)).normalize();
+    const startWidth=widthAt(a),endWidth=widthAt(b);
     for(const offset of [side,V().crossVectors(direction,side)]){
-      const p=a.clone().add(offset),q=a.clone().sub(offset),r=b.clone().sub(offset),s=b.clone().add(offset);
+      const p=a.clone().addScaledVector(offset,startWidth),q=a.clone().addScaledVector(offset,-startWidth);
+      const r=b.clone().addScaledVector(offset,-endWidth),s=b.clone().addScaledVector(offset,endWidth);
       positions.push(...p.toArray(),...q.toArray(),...r.toArray(),...p.toArray(),...r.toArray(),...s.toArray());
     }
   }
   beam.geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));
   beam.geometry.computeBoundingSphere();
   return positions.length>0;
+}
+
+export function missImpactFlash(end){
+  const flash=new T.Mesh(new T.OctahedronGeometry(.095),new T.MeshBasicMaterial({
+    color:0xf5cb98,transparent:true,depthWrite:false,toneMapped:false
+  }));
+  flash.name='Miss impact';
+  flash.position.copy(end);flash.position.shotLevel=end.shotLevel;
+  return flash;
 }
 
 export function muzzleFlash(origin,end,weapon){

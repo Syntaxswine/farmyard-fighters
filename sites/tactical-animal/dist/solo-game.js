@@ -8,6 +8,8 @@ import {initializeStats,weaponAccuracy,damageAfterResistance} from './aft/tactic
 import {QUICKPLAY_PRESETS} from './aft/tactics/quickplay-presets.js';
 import {identifyRange,headingTo} from './aft/tactics/core/perception.js';
 import {shotAim} from './aft/tactics/aim-levels.js';
+import {bodyIntersection} from './designer/a20b343a0234/tactics/ballistic-shot.js';
+import {angularHelicoidShot,failedShotRoll,placeHelicoidMiss,rollMarginScatter,seededShots} from './designer/a20b343a0234/tactics/helicoid-shot.js';
 import {WALL_DIMENSIONS,CRATE_DIMENSIONS} from './world-dimensions.js';
 import {missionScenery} from './mission-scenery.js';
 import {windowSystem} from './window-catalogue.js';
@@ -572,11 +574,30 @@ function firstShotObstacle(s,a,b,source,end){
   return obstacle;
 }
 
-function missedTrace(s,a,b,event){
-  const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
-  const side=event.shot%2?.36:-.36;
-  const end={x:b.x-dy/d*side,y:b.y+dx/d*side,h:event.bh+.16};
-  return firstShotObstacle(s,a,end,event.ah,end.h)?.point??end;
+function missedTrace(s,a,b,event,chance){
+  const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+  if(!s.realtime){
+    const side=(event.shot%2?.36:-.36)/(d||1);
+    const end={x:b.x-dy*side,y:b.y+dx*side,h:event.bh+.16};
+    return {traceEnd:firstShotObstacle(s,a,end,event.ah,end.h)?.point??end};
+  }
+  const origin={x:a.x,y:a.y,h:event.ah};
+  if(Math.hypot(d,event.bh-event.ah)<1e-6)return {traceEnd:origin};
+
+  // Reuse AFT's missed-roll scatter on a local copy of the committed seed.
+  const sample=seededShots(s.seed),{die}=failedShotRoll(chance,sample);
+  const {error}=rollMarginScatter({chance,die,roll:sample()});
+  // At arm's length a steep miss can still cross another part of the target.
+  const rotation=sample(),sideways=!b.ground&&d<1.2;
+  const frame={origin:[a.x,a.y,event.ah],aim:[b.x,b.y,event.bh],error,rotation:sideways?(rotation<.5?0:.5):rotation};
+  const target={x:b.x,y:b.y};
+  const ray=b.ground||d<2*RADIUS?angularHelicoidShot(frame):
+    placeHelicoidMiss(frame,({direction:[x,y,h]})=>!!bodyIntersection(target,origin,{x,y,h},Infinity,bodyHeight(b)));
+  const [x,y,h]=ray.direction;
+  const ground=h<0?-origin.h/h:Infinity,travel=Math.min(WEAPONS[event.weapon].range,ground);
+  const end={x:origin.x+x*travel,y:origin.y+y*travel,h:Math.max(0,origin.h+h*travel)};
+  const obstacle=firstShotObstacle(s,origin,end,origin.h,end.h);
+  return {traceEnd:obstacle?.point??end,missImpact:!!obstacle||travel===ground};
 }
 
 export function confirmedImpact(s,a,b,zone='torso'){
@@ -612,7 +633,7 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
         }
       }else if(impact?.unit){const victim=impact.unit;event.hit=true;event.impact={unitId:victim.id,zone:impact.zone};event.bx=victim.x;event.by=victim.y;event.bh=shotHeight(victim,impact.zone);
         if(!detonateImpact(s,a,victim,impact.zone,w,event))hurt(s,victim,Math.round((w.pellets?w.damage*w.pellets*.48:w.damage)*(AIM_ZONES[impact.zone]?.damage||1)));
-      }else if(w.mag)event.traceEnd=missedTrace(s,a,b,event);
+      }else if(w.mag)Object.assign(event,missedTrace(s,a,b,event,p.chance));
     }
     event.windowSequences=windowReceipts(s,windowBefore);event.fireSequences=(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence);if(event.hit)hits++;
   }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {Core,ANIMALS,createSoloGame,DEFAULT_BUILD,FIRST_REALTIME_MISSION,MISSIONS,hero,tick,encodeSave,decodeSave,lineClear,walkSegment,realtimeWeaponAim} from '../dist/solo-game.js';
+import {Core,ANIMALS,createSoloGame,DEFAULT_BUILD,FIRST_REALTIME_MISSION,MISSIONS,geometry,hero,tick,encodeSave,decodeSave,lineClear,walkSegment,realtimeWeaponAim} from '../dist/solo-game.js';
 import {windowReviewSource,WINDOW_REVIEW_ID} from '../dist/window-review-map.js';
 import {shotSeconds,WEAPON_TIMING} from '../dist/realtime-combat.js';
 import {loadTownTour} from '../dist/mount-dora-entry.js';
@@ -10,8 +10,8 @@ import {readTourProgress} from '../dist/mount-dora-progress.js';
 import {app} from './app-harness.mjs';
 
 // Declared synthetic editor document; every command runs through the production adapter/Core.
-function fixture({primary='assault',guards=[{x:28,y:25}],crate=false,door=false}={}){
- const source=windowReviewSource();source.edges=door?{'e:20:25':'door-wood-closed'}:{};source.farmyardWindows.instances=[];
+function fixture({primary='assault',guards=[{x:28,y:25}],crate=false,door=false,edges}={}){
+ const source=windowReviewSource();source.edges=edges??(door?{'e:20:25':'door-wood-closed'}:{});source.farmyardWindows.instances=[];
  source.guards=guards.map((g,i)=>({name:'Target '+i,species:'pig-foreman',weapon:'pistol',heading:0,...g}));
  if(crate)source.terrain[25][27]='crate';
  const s=Core.enableRealtime(createSoloGame({...DEFAULT_BUILD,primary,utility:'grenade',fireMode:'single'},1,WINDOW_REVIEW_ID,{authoredMap:source}));
@@ -105,6 +105,25 @@ test('automatic guns fire singles, three-round bursts and full auto at the selec
    }
   }
  }
+});
+
+test('full-auto misses pass on both sides of the target and stop at cover or ground',()=>{
+ const edges=Object.fromEntries(Array.from({length:11},(_,i)=>['e:29:'+(20+i),'wall-brick']));
+ const s=fixture({edges,guards:[{x:28,y:25,heading:180}]}),u=hero(s),guard=s.units[1];
+ u.stats.firearms=u.stats.dexterity=1;
+ assert(Core.configureRealtime(s,{autoFire:true,fireMode:'auto'}));
+ const shots=new Set();
+ for(let frame=0;frame<54;frame++){
+  tick(s,.02);
+  for(const event of s.effect?.sequence??[])if(event.shooter===u.id)shots.add(event);
+ }
+ const misses=[...shots].filter(event=>event.fullAuto&&!event.hit&&event.traceEnd);
+ const wall=geometry(s).find(box=>box.kind==='wall');
+ assert(misses.some(event=>event.traceEnd.y<guard.y-.25));
+ assert(misses.some(event=>event.traceEnd.y>guard.y+.25));
+ assert(misses.some(event=>event.missImpact&&Math.abs(event.traceEnd.x-wall.x0)<1e-6));
+ assert(misses.some(event=>event.missImpact&&event.traceEnd.h===0));
+ assert.equal(guard.hp,guard.maxHp);
 });
 
 test('a held trigger fires repeatedly, a tap fires once, and a saved game never restores a hold',()=>{
