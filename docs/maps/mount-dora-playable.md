@@ -31,8 +31,10 @@ Buildings now follow **one-metre tile edges**. Shared building groups are fitted
 together, retaining both courtyard holes and all 30 shared-owner relationships.
 `authored-buildings.json` supplies the native walls, floor/upper masks, artwork
 and collision. Each building retains its original `geographicGeometry` alongside
-its authored geometry in `features.json`. The depot has a recorded 6.2 m
-relocation to keep its proportions while clearing the unchanged streets.
+its authored geometry in `features.json`. The depot's reviewed plan was
+relocated 6.2 m to keep its proportions while clearing the original streets; it
+has since moved with its street to 6.75 m from its geographic centre and needs
+re-review.
 
 Five open stage/shelter decks also use integer-edge plans. The mapped Palm
 Island pavilion has bridge support under its deck and a clear connection to the

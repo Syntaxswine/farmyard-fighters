@@ -55,7 +55,7 @@ function nearest(desired,{requiredTerrain,visited}={}){
  }
  assert(best,'No safe outdoor cell near '+desired);return best;
 }
-const spawn=nearest([459.5,499.5]);
+const spawn=nearest([459.5,500.5]);
 const parent=new Uint8Array(count),queue=new Int32Array(count);let head=0,tail=1;
 queue[0]=spawn.i;parent[spawn.i]=1;
 function visit(from,to,direction,blocked){if(!blocked&&open[to]&&!parent[to]){parent[to]=direction;queue[tail++]=to;}}
@@ -89,16 +89,16 @@ for(const [a,b]of boardwalk.geometry.coordinates.slice(1).map((b,i)=>[boardwalk.
 const bridgeTarget=bridgeCandidates[Math.floor(bridgeCandidates.length/2)];
 assert(bridgeTarget,'Mapped boardwalk must have a reachable supported span.');
 const targets=[
- ['donnelly-park','Donnelly Park',[459.5,499.5],['osm-way-468920884']],
- ['lakeside-inn','Lakeside Inn approach',[333.5,809.5],['osm-way-560095890','osm-way-560095892']],
+ ['donnelly-park','Donnelly Park',[459.5,500.5],['osm-way-468920884']],
+ ['lakeside-inn','Lakeside Inn approach',[334.5,808.5],['osm-way-560095890','osm-way-560095892']],
  ['elizabeth-evans','Elizabeth Evans Park approach',[430.5,1015.5],['osm-way-486656245']],
  ['grantham-lighthouse','Grantham Point lighthouse approach',[504.5,1168.5],['osm-node-2704687214']],
  ['gilbert-park','Gilbert Park approach',[710.5,1205.5],['osm-way-468921011']],
  ['palm-island','Palm Island supported wooden route',bridgeTarget,['osm-way-688219167']],
- ['historic-shopfronts','Donnelly / Fourth shopfronts',[432.5,635.5],['osm-way-47163977']],
+ ['historic-shopfronts','Donnelly / Fourth shopfronts',[434.5,636.5],['osm-way-47163977']],
  ['donnelly-house','Donnelly House approach',[414.5,479.5],['osm-way-547799531']],
- ['history-museum','History Museum approach',[480.5,597.5],['osm-way-556809468']],
- ['former-depot','Former depot approach',[326.5,686.5],['osm-way-557494933']],
+ ['history-museum','History Museum approach',[480.5,598.5],['osm-way-556809468']],
+ ['former-depot','Former depot approach',[326.5,685.5],['osm-way-557494933']],
 ];
 const routes=targets.map(([id,name,point,sourceIds])=>{const p=nearest(point,{visited:parent,...(id==='palm-island'?{requiredTerrain:3}:{})});return {id,name,sourceIds,townPoint:p.town,adjustmentM:+p.distance.toFixed(4),...routeTo(p.i)};});
 const bySector=project.sectors.map(s=>{let reached=0;for(let y=0;y<240;y++)for(let x=0;x<240;x++)if(parent[(s.origin.y+y)*width+s.origin.x+x])reached++;return {id:s.id,reachedOutdoorCells:reached};});

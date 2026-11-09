@@ -23,7 +23,7 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
 - Public streets use a 6 m carriageway with 2 m sidewalks on both sides.
   Near-cardinal runs snap to metre lines, with shared junctions kept connected.
   Each straight street, and a pedestrian street on the grid (West 4th Avenue's
-  block east of Alexander Street), takes one line, chosen by its points inside
+  block between McDonald and Alexander Streets), takes one line, chosen by its points inside
   the town and at most 5 m from the mapped line. Same-named runs that a short
   angled piece breaks apart share it. Where a street really turns off the
   grid (some in the east and southeast), it changes line across one segment,
@@ -81,8 +81,10 @@ or follow a local circuit using the game's movement, combat and save systems.
 Buildings are deliberately generalized to cardinal, integer-metre tile edges.
 `authored-buildings.json` records the shared plans and fitting decisions; original
 projected footprints remain in each building's `geographicGeometry`. Courtyard
-holes and shared-wall groups are retained. The depot's recorded 6.2 m shift
-keeps its proportions while clearing the unchanged streets. Five open decks are
+holes and shared-wall groups are retained. The depot's reviewed plan was
+relocated 6.2 m to keep its proportions while clearing the original streets; it
+has since moved with its street to 6.75 m from its geographic centre and needs
+re-review (`needsReview` in its record). Five open decks are
 aligned too; the round lighthouse remains a point-feature exception.
 
 The user's ruler measured approximately 1,480.5 m from the northern downtown

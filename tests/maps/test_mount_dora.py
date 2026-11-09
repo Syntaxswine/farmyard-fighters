@@ -24,8 +24,8 @@ def segment_distance(point, a, b):
 
 # Street-facing fronts within FRONT_REACH of their neighbours' common line that
 # stay off it because every move there is blocked (test_fronts_along_a_street...).
-FRONT_MISSES = {"osm-way-556562396", "osm-way-556562397", "osm-way-556562399", "osm-way-556562408",
-                "osm-way-558337882", "osm-way-558337885", "osm-way-558337891"}
+FRONT_MISSES = {"osm-way-556562396", "osm-way-556562397", "osm-way-556562399", "osm-way-556562400",
+                "osm-way-556562408", "osm-way-558337882", "osm-way-558337885", "osm-way-558337891"}
 
 
 class MountDoraGeneration(unittest.TestCase):
@@ -292,6 +292,23 @@ class MountDoraGeneration(unittest.TestCase):
         owners = [{ident for ident in ("county-1469457-1", "osm-way-556562386")
                    if cell in grid.cells(records[ident]["geometry"]["coordinates"])} for cell in sides]
         self.assertEqual(sorted(map(sorted, owners)), [["county-1469457-1"], ["osm-way-556562386"]])
+        # Every repair of either would cover the other, or part them or open a
+        # slot between buildings (_keeps_neighbours).
+        owner = {cell: record["id"] for record in authored["records"] for cell in grid.cells(record["geometry"]["coordinates"])}
+        for ident in ("county-1469457-1", "osm-way-556562386"):
+            old = grid.cells(records[ident]["geometry"]["coordinates"])
+            repairs = [fix for step in grid._repairs(records[ident]["geometry"]["coordinates"]) for fix in step]
+            self.assertTrue(repairs)
+            for fix in repairs:
+                new = grid.cells(fix)
+                covers = any(owner.get(cell, ident) != ident for cell in new - old)
+
+                def before(cell):
+                    return {owner[cell]} if cell in owner else set()
+
+                def after(cell):
+                    return {ident} if cell in new else ({owner[cell]} - {ident} if cell in owner else set())
+                self.assertTrue(covers or not grid._keeps_neighbours(ident, old, new, before, after), (ident, fix))
 
     def test_downtown_grid_streets_each_run_on_one_line(self):
         # The streets the 2026-27 visitor map shows downtown, over the lengths
@@ -300,7 +317,7 @@ class MountDoraGeneration(unittest.TestCase):
         # a West/East avenue pair on the same line. Before the in-town snap and same-name bridges, Alexander
         # Street stepped 4 m between 5th and 4th Avenues, Tremain 2 m at 5th,
         # West 3rd 2 m at Alexander, 5th Avenue 4 m twice; West 4th Avenue's
-        # pedestrian block east of Alexander Street bent 3.4 m until it snapped
+        # pedestrian block between McDonald and Alexander Streets bent 3.4 m until it snapped
         # with the streets.
         streets = {"Alexander Street": (0, 0, 900), "McDonald Street": (0, 0, 740),
                    "North Donnelly Street": (0, 0, 815), "North Baker Street": (0, 0, 830),
@@ -338,9 +355,10 @@ class MountDoraGeneration(unittest.TestCase):
         # Every street-facing front (the generator's own _facades reading)
         # within FRONT_REACH of its neighbours' common gap sits on it, except
         # these, where the move is blocked by the generator's own rules: a new
-        # cell on the street ribbon, protected ground or another building, an
-        # attached shop no longer touching, or a tile emptied between two
-        # buildings. On main 57887f1, 46 of 255 fronts were off their line.
+        # cell on the street ribbon, protected ground or another building, or a
+        # neighbour it touched parted, a slot opened, or a tile emptied between
+        # two buildings (_keeps_neighbours). On main 57887f1, 46 of 255 fronts
+        # were off their line.
         grid = BUILDER._grid
         authored = json.loads(self.outputs["authored-buildings.json"])
         roads = [f for f in self.features.values() if f.get("nativeRoad")]
@@ -353,7 +371,6 @@ class MountDoraGeneration(unittest.TestCase):
                 faces.setdefault((axis, sign, ribbon), []).append((span, gap, record["id"]))
         cells_of = {record["id"]: grid.cells(record["geometry"]["coordinates"]) for record in authored["records"]}
         owner = {cell: ident for ident, cells in cells_of.items() for cell in cells}
-        attached = {record["id"]: set(record["componentIds"]) - {record["id"]} for record in authored["records"]}
         protected = {BUILDER.CODE[kind] for kind in ("water", "ground-asphalt", "ground-concrete", "ground-dirt",
                                                      "ground-gravel", "ground-wood-planks", "bridge")}
 
@@ -365,16 +382,13 @@ class MountDoraGeneration(unittest.TestCase):
                    or self.grid[y * 1440 + x] in protected or owner.get((x, y), ident) != ident for x, y in new - old):
                 return True
 
-            def touching(cells, other):
-                return any((x + ex, y + ey) in cells_of[other] for x, y in cells for ex, ey in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            def before(cell):
+                return {owner[cell]} if cell in owner else set()
 
-            if any(touching(old, other) and not touching(new, other) for other in attached[ident]):
-                return True
+            def after(cell):
+                return {ident} if cell in new else ({owner[cell]} - {ident} if cell in owner else set())
 
-            def taken(cell):
-                return cell in new or owner.get(cell, ident) != ident
-
-            return any(taken((x - 1, y)) and taken((x + 1, y)) or taken((x, y - 1)) and taken((x, y + 1)) for x, y in old - new)
+            return not grid._keeps_neighbours(ident, old, new, before, after)
 
         misses = set()
         for (axis, sign, _), members in faces.items():
@@ -417,13 +431,36 @@ class MountDoraGeneration(unittest.TestCase):
         self.assertEqual(stage["geometry"]["coordinates"][0][0][0], [472 + dx, 482 + dy])
         self.assertEqual(stage.get("geographicGeometry", stage["geometry"])["coordinates"][0][0][0], [472, 482])
 
-    def test_tour_approaches_move_with_the_town_where_they_stand(self):
-        # The walking tour's source-reviewed approach points move by the
-        # town's whole-metre move where they stand, as the streets and
-        # buildings around them did. The game and the route review hold the
-        # moved points, and no tour visit stands inside a building.
+    def test_tour_approaches_keep_their_places_beside_their_landmarks(self):
+        # The walking tour's approach points were reviewed on main 57887f1's map.
+        # Each keeps its place beside its landmark: it moves as the landmark's
+        # authored centre (or box, or the two streets at its corner) moved since
+        # main, recomputed here from the generated files against main's
+        # positions, spelled out. The game's spawn, the lighthouse and the moored
+        # Palm Island boardwalk do not move. The game and the route review hold
+        # the moved points, and no tour visit stands inside a building.
         moves = self.project["generation"]["approachMovesM"]
         self.assertEqual(set(moves), set(BUILDER.APPROACH_POINTS))
+        authored = json.loads(self.outputs["authored-buildings.json"])
+        records = {record["id"]: record for record in authored["records"]}
+        boxes = {}
+        for structure in authored["structures"]:
+            points = [q for poly in structure["geometry"]["coordinates"] for ring in poly for q in ring]
+            boxes[structure["id"]] = [min(q[0] for q in points), min(q[1] for q in points), max(q[0] for q in points), max(q[1] for q in points)]
+        roads = [f for f in self.features.values() if f.get("nativeRoad")]
+        on_main = {"donnelly-park": boxes, "elizabeth-evans": boxes, "evans-route": boxes, "gilbert-park": boxes}
+        landmarks = {"lakeside-inn": ("osm-way-560095890", (346.5, 811.0)), "donnelly-house": ("osm-way-547799531", (398.5, 479.0)),
+                     "history-museum": ("osm-way-556809468", (494.0, 598.0)), "former-depot": ("osm-way-557494933", (315.5, 679.0)),
+                     "donnelly-park": ("md:donnelly-stage", (478.5, 484.5)), "elizabeth-evans": ("md:evans-pavilion", (470.0, 1005.0)),
+                     "evans-route": ("md:evans-pavilion", (470.0, 1005.0)), "gilbert-park": ("md:shelter:557154684", (737.0, 1181.5))}
+        for name in ("launch", "grantham-lighthouse", "palm-island", "palm-entrance"):
+            self.assertEqual(moves[name], [0, 0], name)
+        for name, (ident, then) in landmarks.items():
+            box = boxes[ident] if name in on_main else records[ident]["bounds"]
+            self.assertEqual(moves[name], [round((box[i] + box[i + 2]) / 2 - then[i]) for i in (0, 1)], name)
+        corner = BUILDER.APPROACH_POINTS["historic-shopfronts"]
+        self.assertEqual(moves["historic-shopfronts"], [BUILDER.street_line(roads, "North Donnelly Street", 0, corner[1]) - 430,
+                                                         BUILDER.street_line(roads, "East 4th Avenue", 1, corner[0]) - 634])
 
         def moved(name):
             return [round(BUILDER.APPROACH_POINTS[name][axis] + moves[name][axis], 6) for axis in range(2)]
@@ -445,6 +482,33 @@ class MountDoraGeneration(unittest.TestCase):
         spawn = re.search(r"const spawn=nearest\(\[([-\d.]+),([-\d.]+)\]\);", routes)
         self.assertEqual([float(spawn[1]), float(spawn[2])], moved("launch"))
 
+    def test_a_moved_reviewed_plan_says_where_it_stands_and_asks_for_review(self):
+        # A reviewed grid override records the review of the plan where it
+        # stood. Each that moved with its street since says so in its record,
+        # with its authored centre and distance from the geographic centre now,
+        # and asks for a new review; the former depot also took a nudge clear of
+        # its lane.
+        authored = json.loads(self.outputs["authored-buildings.json"])
+        moved = 0
+        for record in authored["records"]:
+            derivation = record["derivation"]
+            if derivation["method"] != "reviewed-grid-override":
+                continue
+            translation = derivation["translationMetres"]
+            if translation == [0, 0]:
+                self.assertNotIn("needsReview", derivation)
+                continue
+            moved += 1
+            b = record["bounds"]
+            self.assertEqual((derivation["needsReview"], derivation["reviewedPlanMovedMetres"]), (True, translation))
+            self.assertIn("authored centre %g,%g is %.3fm from the geographic centre. Re-review the moved plan."
+                          % ((b[0] + b[2]) / 2, (b[1] + b[3]) / 2, record["metrics"]["centreShiftM"]), derivation["note"])
+        self.assertEqual(moved, 3)
+        depot = next(r for r in authored["records"] if r["id"] == "osm-way-557494933")["derivation"]
+        self.assertIn("and a further (0,-1) clear of a road", depot["note"])
+        self.assertIn("%.1f m from its geographic centre" % next(r for r in authored["records"] if r["id"] == "osm-way-557494933")["metrics"]["centreShiftM"],
+                      " ".join(self.project["limitations"]))
+
     def test_the_town_moves_without_the_reported_tears(self):
         # Review round 1 found the first street-follow field tore the town where
         # one street's pull ended: a Grantham Point path ran through the
@@ -461,28 +525,55 @@ class MountDoraGeneration(unittest.TestCase):
             self.assertLess(max(abs((q[i] - b[i]) - (p[i] - a[i])) for i in range(2)), .5 + .1 * math.dist(a, b), (a, b, p, q))
         authored = {r["id"]: r for r in json.loads(self.outputs["authored-buildings.json"])["records"]}
         one, two = (authored[i]["derivation"]["streetFollowMetres"] for i in ("osm-way-1240416239", "osm-way-1240419618"))
-        self.assertLessEqual(max(abs(a - b) for a, b in zip(one, two)), 1)
+        self.assertEqual(one, two)
 
-    def test_buildings_move_by_whole_metres_and_stay_on_their_shore(self):
-        # Every building moves with its street by whole metres, so it keeps the
-        # shape the one-metre fit gives it unmoved (a fractional move re-rounds
-        # every wall and resized 582 buildings in the first version of this
-        # change). The Lake Dora shore keeps its place and pulls the town beside
-        # it toward no move, so lakeside buildings stand over the mapped water no
-        # more than on main 57887f1 (1,251 floor cells); and no straightening or
-        # front line-up opens a one-tile slot between two buildings (main had 29).
+    def test_buildings_move_by_whole_metres_with_their_neighbours(self):
+        # Every building moves with its street by whole metres, its cluster's
+        # exact move rounded, so it keeps the shape the one-metre fit gives it
+        # unmoved (a fractional move re-rounds every wall: the first version of
+        # this change resized 582 buildings). Buildings within CLUSTER_GAP of
+        # each other share a move, and buildings within CLUSTER_NEAR move apart
+        # by a whole metre only where their exact moves differ by a metre or
+        # more: rounding alone never closes a two-metre gap to a one-tile slot.
+        # The Lake Dora shore keeps its place and pulls the town beside it toward
+        # no move: none of the eleven buildings over the mapped water moves.
+        # One-tile slots between buildings: 19 (main 57887f1 had 29).
         grid = BUILDER._grid
         authored = json.loads(self.outputs["authored-buildings.json"])
+        records = {record["id"]: record for record in authored["records"]}
         for record in authored["records"]:
-            follow = record["derivation"]["streetFollowMetres"]
-            self.assertTrue(all(isinstance(v, int) for v in follow), (record["id"], follow))
+            whole, exact = record["derivation"]["streetFollowMetres"], record["derivation"]["streetFollowExactMetres"]
+            self.assertTrue(all(isinstance(v, int) for v in whole), (record["id"], whole))
+            self.assertEqual(whole, [round(v) for v in exact], record["id"])
+        bounds = {f["id"]: f["geographicBounds"] for f in self.features.values() if f["category"] == "building"}
+
+        def apart(a, b):
+            (ax0, ay0, ax1, ay1), (bx0, by0, bx1, by1) = bounds[a], bounds[b]
+            return math.hypot(max(0, bx0 - ax1, ax0 - bx1), max(0, by0 - ay1, ay0 - by1))
+        ids = sorted(bounds)
+        near = [(a, b) for i, a in enumerate(ids) for b in ids[i + 1:]
+                if bounds[b][0] - grid.CLUSTER_NEAR <= bounds[a][2] and bounds[a][0] - grid.CLUSTER_NEAR <= bounds[b][2]
+                and bounds[b][1] - grid.CLUSTER_NEAR <= bounds[a][3] and bounds[a][1] - grid.CLUSTER_NEAR <= bounds[b][3]
+                and apart(a, b) <= grid.CLUSTER_NEAR]
+        self.assertGreater(len(near), 150)
+        for a, b in near:
+            whole = [records[i]["derivation"]["streetFollowMetres"] for i in (a, b)]
+            exact = [records[i]["derivation"]["streetFollowExactMetres"] for i in (a, b)]
+            if apart(a, b) <= grid.CLUSTER_GAP:
+                self.assertEqual(whole[0], whole[1], (a, b))
+            for axis in range(2):
+                if whole[0][axis] != whole[1][axis]:
+                    self.assertGreaterEqual(abs(exact[0][axis] - exact[1][axis]), 1, (a, b, exact))
         owner = {cell: record["id"] for record in authored["records"] for cell in grid.cells(record["geometry"]["coordinates"])}
         lake = next(f for f in self.features.values() if f["category"] == "water")
         water = {(x, y) for y, left, right in BUILDER.polygon_spans(lake["geometry"]["coordinates"], 1440, 1680) for x in range(left, right)}
-        self.assertLessEqual(len(water & set(owner)), 1251)
+        over = {owner[cell] for cell in water & set(owner)}
+        self.assertEqual(len(over), 11)
+        for ident in over:
+            self.assertEqual(records[ident]["derivation"]["streetFollowMetres"], [0, 0], ident)
         slots = {tuple(sorted((one, owner[(x + 2 * dx, y + 2 * dy)]))) for (x, y), one in owner.items()
                  for dx, dy in ((1, 0), (0, 1)) if (x + dx, y + dy) not in owner and owner.get((x + 2 * dx, y + 2 * dy), one) != one}
-        self.assertLessEqual(len(slots), 22)
+        self.assertLessEqual(len(slots), 19)
 
     def test_buildings_clear_the_full_road_and_sidewalk_ribbon(self):
         roads = [f for f in self.features.values() if f.get("nativeRoad")]
@@ -606,12 +697,68 @@ class GridShapeUnits(unittest.TestCase):
         # The third stands 5 m off and keeps its own.
         def building(ident, x0, x1):
             return {"id": ident, "bounds": [x0, 0, x1, 10]}
-        shifts = BUILDER._grid.building_shifts([building("a", 0, 10), building("b", 11, 21), building("c", 26, 40)], [],
-                                               lambda point: [point[0] / 20, 0.0])
+        shifts, exact = BUILDER._grid.building_shifts([building("a", 0, 10), building("b", 11, 21), building("c", 26, 40)], [],
+                                                      lambda point: [point[0] / 20, 0.0])
         self.assertEqual(shifts, {"a": [1, 0], "b": [1, 0], "c": [2, 0]})
         self.assertTrue(all(isinstance(v, int) for shift in shifts.values() for v in shift))
-        exact = BUILDER._grid.building_shifts([building("a", 0, 10), building("b", 11, 21)], [], lambda point: [point[0] / 20, 0.0], whole=False)
-        self.assertEqual(exact, {"a": [.525, 0.0], "b": [.525, 0.0]})
+        self.assertEqual((exact["a"], exact["c"]), ([.525, 0.0], [1.65, 0.0]))
+        # However steeply the town moves between them, buildings 1 m apart move
+        # together: alone they would round to 0 and 2 and collide or part.
+        shifts, _ = BUILDER._grid.building_shifts([building("a", 0, 10), building("b", 11, 21)], [],
+                                                  lambda point: [.2 if point[0] < 10.5 else 1.6, 0.0])
+        self.assertEqual(shifts["a"], shifts["b"])
+
+    def test_rounding_alone_never_splits_two_near_buildings(self):
+        # Two buildings 2 m apart: further than CLUSTER_GAP, within CLUSTER_NEAR.
+        # Moves of 0.45 and 0.55 m round apart though they differ by a tenth,
+        # which would close the gap to a one-tile slot, so they move as one;
+        # moves of 0.4 and 1.6 m really differ, and stay apart.
+        def building(ident, x0, x1):
+            return {"id": ident, "bounds": [x0, 0, x1, 10]}
+        pair = [building("d", 0, 9), building("e", 11, 20)]
+        shifts, _ = BUILDER._grid.building_shifts(pair, [], lambda point: [.45 if point[0] < 10 else .55, 0.0])
+        self.assertEqual(shifts["d"], shifts["e"])
+        shifts, _ = BUILDER._grid.building_shifts(pair, [], lambda point: [.4 if point[0] < 10 else 1.6, 0.0])
+        self.assertEqual((shifts["d"], shifts["e"]), ([0, 0], [2, 0]))
+
+    def test_the_lake_shore_pulls_the_town_beside_it_toward_no_move(self):
+        # A street 40 m from the shore moved 2 m east. On the shore the town does
+        # not move; between them the move fades toward the shore, well below what
+        # the same point would take with no lake.
+        style = BUILDER.road_style({"tags": {"highway": "residential"}})
+        style.update(widthSource="standard-game-street", centerline=[[102, -1000], [102, 0], [102, 1000]])
+        street = {"tags": {"highway": "residential"}, "nativeRoad": style,
+                  "geometry": {"type": "LineString", "coordinates": [[100, -1000], [100, 0], [100, 1000]]}}
+        lake = {"category": "water", "geometry": {"type": "MultiPolygon", "coordinates": [[[[140, -1000], [400, -1000], [400, 1000], [140, 1000], [140, -1000]]]]}}
+        shore = BUILDER.street_follow_field([street], [lake])
+        open_land = BUILDER.street_follow_field([street])
+        self.assertEqual(shore([140, 0])[0], 0.0)
+        self.assertEqual(shore([100, 0])[0], 2.0)
+        self.assertTrue(0 < shore([130, 0])[0] < .5 * open_land([130, 0])[0], (shore([130, 0]), open_land([130, 0])))
+
+    def test_a_move_keeps_every_touching_neighbour_and_opens_no_slot(self):
+        # A building touching a neighbour on its east may slide along it, not
+        # away from it; nor may it move to a tile from another building.
+        grid = BUILDER._grid
+
+        def box(x0, y0, x1, y1):
+            return {(x, y) for x in range(x0, x1) for y in range(y0, y1)}
+        me, wall, far = box(0, 0, 4, 4), box(4, 0, 8, 4), box(-5, 0, -2, 4)
+
+        def town(mine):
+            return lambda cell: {"me"} if cell in mine else {"wall"} if cell in wall else {"far"} if cell in far else set()
+
+        def moved(dx, dy):
+            return {(x + dx, y + dy) for x, y in me}
+        self.assertTrue(grid._keeps_neighbours("me", me, moved(0, 1), town(me), town(moved(0, 1))))
+        self.assertFalse(grid._keeps_neighbours("me", me, moved(-1, 0), town(me), town(moved(-1, 0))))
+        self.assertFalse(grid._keeps_neighbours("me", me, moved(-2, 0), town(me), town(moved(-2, 0))))
+
+        # Without the wall, a metre west leaves one empty tile to `far`: a new slot.
+        def alone(mine):
+            return lambda cell: {"me"} if cell in mine else {"far"} if cell in far else set()
+        self.assertTrue(grid._keeps_neighbours("me", me, moved(1, 0), alone(me), alone(moved(1, 0))))
+        self.assertFalse(grid._keeps_neighbours("me", me, moved(-1, 0), alone(me), alone(moved(-1, 0))))
 
     def test_a_one_tile_wall_step_has_two_clean_repairs(self):
         grid = BUILDER._grid

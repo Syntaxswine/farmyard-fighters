@@ -6,20 +6,20 @@ import {TownExplored} from './mount-dora-progress.js';
 import {TownEnvironment,drawTownMinimap} from './mount-dora-view.js';
 // Source-reviewed approaches in canonical town metres; open-shelter visits use
 // Architect-verified centres so the artwork and roof focus are immediately visible.
-// Each moved with the town at its place by whole metres when the grid streets
-// were straightened (project.json generation.approachMovesM).
+// Each keeps its place beside its landmark as reviewed on main when the grid
+// streets were straightened (project.json generation.approachMovesM).
 export const TOUR_VISITS=Object.freeze([
   {id:'donnelly-park',name:'Donnelly Park',town:[478,483.75]},
-  {id:'lakeside-inn',name:'Lakeside Inn',town:[333.5,809.5]},
+  {id:'lakeside-inn',name:'Lakeside Inn',town:[334.5,808.5]},
   {id:'elizabeth-evans',name:'Elizabeth Evans Park',town:[470,1005]},
   {id:'grantham-lighthouse',name:'Grantham Point lighthouse',town:[504.5,1168.5]},
   {id:'gilbert-park',name:'Gilbert Park',town:[737.2963,1180.367]},
   {id:'palm-island',name:'Palm Island boardwalk',town:[529.5,1402.5]},
-  {id:'palm-entrance',name:'Palm Island entrance',town:[665.969,1295.5786]},
-  {id:'historic-shopfronts',name:'Donnelly / Fourth shopfronts',town:[432.5,635.5]},
+  {id:'palm-entrance',name:'Palm Island entrance',town:[665.969,1296.5786]},
+  {id:'historic-shopfronts',name:'Donnelly / Fourth shopfronts',town:[434.5,636.5]},
   {id:'donnelly-house',name:'Donnelly House',town:[414.5,479.5]},
-  {id:'history-museum',name:'History Museum',town:[480.5,597.5]},
-  {id:'former-depot',name:'Former depot',town:[326.5,686.5]}
+  {id:'history-museum',name:'History Museum',town:[480.5,598.5]},
+  {id:'former-depot',name:'Former depot',town:[326.5,685.5]}
 ]);
 async function readBytes(fetcher,url,signal,limit){
   const response=await fetcher(url,{signal,cache:'no-cache'});if(!response.ok)throw Error('Could not load town data (HTTP '+response.status+').');

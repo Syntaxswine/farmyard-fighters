@@ -283,6 +283,36 @@ def _one_tile_edges(polygons):
     return sum(abs(b[0] - a[0]) + abs(b[1] - a[1]) == 1 for poly in polygons for ring in poly for a, b in zip(ring, ring[1:]))
 
 
+STEPS = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+
+def _neighbourhood(cells, owners):
+    """Buildings touching these cells, and buildings one empty tile away from them."""
+    touch, slot = set(), set()
+    for x, y in cells:
+        for dx, dy in STEPS:
+            if (x + dx, y + dy) in cells:
+                continue
+            beside = owners((x + dx, y + dy))
+            if beside:
+                touch |= beside
+            elif (x + 2 * dx, y + 2 * dy) not in cells:
+                slot |= owners((x + 2 * dx, y + 2 * dy))
+    return touch, slot
+
+
+def _keeps_neighbours(member, old, new, before, after):
+    """A building that moves or changes keeps every neighbour it touched and
+    opens no new one-tile slot to another; and no tile it gives up is left
+    between two buildings."""
+    touch_before, slot_before = _neighbourhood(old, lambda cell: before(cell) - {member})
+    touch_after, slot_after = _neighbourhood(new, lambda cell: after(cell) - {member})
+    if not touch_before <= touch_after or slot_after - slot_before - touch_before:
+        return False
+    return not any(after((x - 1, y)) and after((x + 1, y)) or after((x, y - 1)) and after((x, y + 1))
+                   for x, y in old - new if not after((x, y)))
+
+
 def _repairs(polygons):
     """For each one-tile step in these polygons' rings (outer walls and
     courtyards), the repaired polygons that keep the ring valid and its
@@ -317,9 +347,9 @@ def _straighten_walls(groups, validate, reserved, protected, occupancy, width, d
     whichever repair changes the area less, only when the component stays
     valid (topology, area within its limit, shared walls touching), every new
     cell is free (street ribbon, protected ground, other buildings, the town
-    edge), the steps really fall, and no emptied tile is left between two
-    buildings: attached shops are never pulled apart, nor a neighbour left
-    behind a one-tile slot. A step in a party wall that one building cannot
+    edge), the steps really fall, and every neighbour keeps its place beside
+    it (_keeps_neighbours): attached shops are never pulled apart, no
+    neighbour is left behind a one-tile slot, and none is opened. A step in a party wall that one building cannot
     move alone moves with the attached building's own repair. Returns the
     number of steps removed."""
     def free(new, old, ids):
@@ -336,14 +366,14 @@ def _straighten_walls(groups, validate, reserved, protected, occupancy, width, d
             return None
         if not all(free(footprint[id], current['cells'][id], ids) for id in changed):
             return None
-        taken = set().union(*footprint.values())
 
-        def occupied(cell):
-            return cell in taken or bool(occupancy.get(cell, set()) - set(ids))
+        def before(cell):
+            return occupancy.get(cell, set())
 
-        emptied = set().union(*(current['cells'][id] for id in changed)) - taken
-        if any(occupied((x - 1, y)) and occupied((x + 1, y)) or occupied((x, y - 1)) and occupied((x, y + 1))
-               for x, y in emptied):
+        def after(cell):
+            return {id for id in ids if cell in footprint[id]} | (occupancy.get(cell, set()) - set(ids))
+
+        if not all(_keeps_neighbours(id, current['cells'][id], footprint[id], before, after) for id in changed):
             return None
         return footprint
 
@@ -429,8 +459,10 @@ def _line_up_fronts(groups, validate, reserved, protected, occupancy, width, dep
     ribbon edge within FRONT_WINDOW along the street (weighted by frontage)
     moves onto it. The move must keep the component valid (attached shops
     still touch and never overlap) and every new cell free. A front farther
-    back is a real setback and stays. Each pass reads the fronts as the last
-    pass left them, until a pass moves nothing. Returns the number of buildings moved."""
+    back is a real setback and stays, and a move must keep every neighbour the
+    building touched and open no one-tile slot. Each pass reads the fronts as
+    the last pass left them, until a pass moves nothing (at most eight; the
+    town settles in four). Returns the number of buildings moved."""
     moved = set()
     owner = {id: g for g in groups for id in g['ids']}
     for _ in range(8):
@@ -473,12 +505,9 @@ def _line_up_pass(groups, validate, reserved, protected, occupancy, width, depth
                        or (x, y) in protected or occupancy.get((x, y), set()) - set(g['ids'])
                        for x, y in footprint[id] - current['cells'][id]):
                     continue
-                # Never leave a one-tile slot behind: no tile the move empties
-                # may lie between two buildings.
-                taken = set().union(*footprint.values())
-                occupied = lambda cell: cell in taken or bool(occupancy.get(cell, set()) - set(g['ids']))
-                if any(occupied((x - 1, y)) and occupied((x + 1, y)) or occupied((x, y - 1)) and occupied((x, y + 1))
-                       for x, y in current['cells'][id] - footprint[id]):
+                # The front keeps every neighbour it touched and opens no slot.
+                if not _keeps_neighbours(id, current['cells'][id], footprint[id], lambda cell: occupancy.get(cell, set()),
+                                         lambda cell: {i for i in g['ids'] if cell in footprint[i]} | (occupancy.get(cell, set()) - set(g['ids']))):
                     continue
                 for cell in current['cells'][id]:
                     occupancy[cell].discard(id)
@@ -503,7 +532,10 @@ class UnresolvedLayout(ValueError):
         self.ids = [entry['ids'] for entry in unresolved]
 
 
-def building_shifts(buildings, source_walls, follow, gap=CLUSTER_GAP, whole=True):
+CLUSTER_NEAR = 3  # metres: neighbouring clusters this close may not be split by rounding alone
+
+
+def building_shifts(buildings, source_walls, follow, gap=CLUSTER_GAP, near=CLUSTER_NEAR):
     """Whole-metre street-follow shifts, one for each cluster of buildings.
 
     A whole-metre shift moves a plan's one-metre fit by exactly that much, so
@@ -511,7 +543,12 @@ def building_shifts(buildings, source_walls, follow, gap=CLUSTER_GAP, whole=True
     every wall and resizes buildings by a tile. Buildings that share a wall or
     stand within `gap` of each other form one cluster and take the field's move
     at the cluster's centre, rounded, so neighbours that touched still touch.
-    whole=False gives the same clusters their exact fractional shifts."""
+    Two clusters within `near` of each other whose exact moves differ by under
+    a metre on an axis, yet round apart there, merge too: rounding would
+    otherwise turn a fraction of a metre into a whole one and close a two-metre
+    gap to a one-tile slot; the yards and setbacks around a cluster take the
+    fraction instead. Returns
+    (shifts, exact): each building's whole-metre shift and its cluster's exact move."""
     by_id = {f['id']: f for f in buildings}
     parent = {id: id for id in by_id}
 
@@ -521,34 +558,54 @@ def building_shifts(buildings, source_walls, follow, gap=CLUSTER_GAP, whole=True
             id = parent[id]
         return id
 
+    def union(a, b):
+        a, b = root(a), root(b)
+        if a != b:
+            parent[max(a, b)] = min(a, b)
+
+    def apart(a, b):
+        ax0, ay0, ax1, ay1 = by_id[a]['bounds']
+        bx0, by0, bx1, by1 = by_id[b]['bounds']
+        return math.hypot(max(0, bx0 - ax1, ax0 - bx1), max(0, by0 - ay1, ay0 - by1))
+
     for wall in source_walls:
         owners = [id for id in wall['owners'] if id in by_id]
         for a, b in zip(owners, owners[1:]):
-            parent[root(b)] = root(a)
+            union(a, b)
     size = 32
     buckets = collections.defaultdict(list)
     for id in sorted(by_id):
         x0, y0, x1, y1 = by_id[id]['bounds']
-        for cx in range(math.floor((x0 - gap) / size), math.floor((x1 + gap) / size) + 1):
-            for cy in range(math.floor((y0 - gap) / size), math.floor((y1 + gap) / size) + 1):
+        for cx in range(math.floor((x0 - near) / size), math.floor((x1 + near) / size) + 1):
+            for cy in range(math.floor((y0 - near) / size), math.floor((y1 + near) / size) + 1):
                 buckets[(cx, cy)].append(id)
-    for members in buckets.values():
-        for a, b in itertools.combinations(members, 2):
-            ax0, ay0, ax1, ay1 = by_id[a]['bounds']
-            bx0, by0, bx1, by1 = by_id[b]['bounds']
-            if math.hypot(max(0, bx0 - ax1, ax0 - bx1), max(0, by0 - ay1, ay0 - by1)) <= gap:
-                parent[root(b)] = root(a)
-    clusters = collections.defaultdict(list)
-    for id in sorted(by_id):
-        clusters[root(id)].append(id)
-    shifts = {}
-    for ids in clusters.values():
-        boxes = [by_id[id]['bounds'] for id in ids]
-        centre = [(min(b[i] for b in boxes) + max(b[i + 2] for b in boxes)) / 2 for i in (0, 1)]
-        shift = [0, 0] if follow is None else [round(v) if whole else round(v, 4) for v in follow(centre)]
-        for id in ids:
-            shifts[id] = shift
-    return shifts
+    neighbours = sorted({(a, b) for members in buckets.values() for a, b in itertools.combinations(members, 2) if apart(a, b) <= near})
+    for a, b in neighbours:
+        if apart(a, b) <= gap:
+            union(a, b)
+
+    def moves():
+        clusters = collections.defaultdict(list)
+        for id in sorted(by_id):
+            clusters[root(id)].append(id)
+        exact = {}
+        for leader, ids in clusters.items():
+            boxes = [by_id[id]['bounds'] for id in ids]
+            centre = [(min(b[i] for b in boxes) + max(b[i + 2] for b in boxes)) / 2 for i in (0, 1)]
+            exact[leader] = [0.0, 0.0] if follow is None else [round(v, 4) for v in follow(centre)]
+        return exact
+
+    while True:
+        exact = moves()
+        split = [(a, b) for a, b in neighbours if root(a) != root(b)
+                 and any(round(exact[root(a)][i]) != round(exact[root(b)][i]) and abs(exact[root(a)][i] - exact[root(b)][i]) < 1
+                         for i in (0, 1))]
+        if not split:
+            break
+        for a, b in split:
+            union(a, b)
+    whole = {leader: [round(v) for v in move] for leader, move in exact.items()}
+    return {id: whole[root(id)] for id in by_id}, {id: exact[root(id)] for id in by_id}
 
 
 def _component_centre(polygons):
@@ -557,7 +614,7 @@ def _component_centre(polygons):
 
 
 def author_buildings(buildings, source_walls, terrain, codebook, options, *,
-                     street_corridor=None, street_fit_terrain=None, shifts=None):
+                     street_corridor=None, street_fit_terrain=None, shifts=None, exact=None):
     if options.get('version') != 1 or options.get('gridMetres') != 1:
         raise ValueError('Unsupported building-grid authoring profile')
     by_id={f['id']:f for f in buildings}
@@ -645,7 +702,7 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
             # left it on a road (a lane hugging the former depot), it takes the
             # nearest clean extra metre or two instead.
             best=current
-            for base in ([current] if current['override'] else group['families']):
+            for base in (group['families'][:1] if current['override'] else group['families']):
                 for dx,dy in (OVERRIDE_NUDGES if current['override'] else offsets):
                     shapes=_translate(base['shapes'],dx,dy)
                     # Re-sample the translated polygons: moving an edge into the
@@ -687,11 +744,7 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
         # source centre, then move by the fit's whole metres plus the street
         # move (whole metres, unless the fit needed the exact move; a reviewed
         # plan always moved by whole metres).
-        if candidate['override']:
-            moved=[candidate['dx']+round(shift[0]),candidate['dy']+round(shift[1])]
-        else:
-            moved=[candidate['dx']+shift[0],candidate['dy']+shift[1]]
-            moved=[v if isinstance(v,int) else round(v,4) for v in moved]
+        moved=[candidate['dx']+shift[0],candidate['dy']+shift[1]]
         centre=[group['centre'][0]-shift[0],group['centre'][1]-shift[1]]
         for id in group['ids']:
             # A shop lined up on its street's front alone adds its own move.
@@ -700,9 +753,19 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
             polygons=candidate['shapes'][id];points=[q for poly in polygons for r in poly for q in r]
             b=[min(p[0] for p in points),min(p[1] for p in points),max(p[0] for p in points),max(p[1] for p in points)]
             original=by_id[id];old_bounds=original['bounds'];old_centre=[(old_bounds[i]+old_bounds[i+2])/2 for i in (0,1)];new_centre=[(b[i]+b[i+2])/2 for i in (0,1)]
+            note=overrides[id]['reason'] if candidate['override'] else 'Coherent cardinal lines and one-metre integer tile edges; geographic source retained.'
+            if candidate['override'] and translation!=[0,0]:
+                # The review above was of the plan where it stood; say where it stands now.
+                nudge=[candidate['dx'],candidate['dy']]
+                note+=(' Since that review the plan moved with its street by whole metres ('+','.join(map(str,shift))+')'
+                       +(' and a further ('+','.join(map(str,nudge))+') clear of a road' if nudge!=[0,0] else '')
+                       +'; authored centre '+','.join(f'{v:g}' for v in new_centre)+' is '+f'{math.dist(old_centre,new_centre):.3f}'
+                       +'m from the geographic centre. Re-review the moved plan.')
             records.append({'id':id,'geometry':{'type':'MultiPolygon','coordinates':polygons},'bounds':b,'componentIds':group['ids'],
                 'derivation':{'method':'reviewed-grid-override' if candidate['override'] else 'shared-component-dominant-axis','dominantAxisDegrees':round(candidate['angle']*180/math.pi,9),'componentCentre':centre,'phase':candidate['phase'],'translationMetres':translation,'streetFollowMetres':group['shift'],
-                    'note':overrides[id]['reason'] if candidate['override'] else 'Coherent cardinal lines and one-metre integer tile edges; geographic source retained.',
+                    'streetFollowExactMetres':(exact or {}).get(id,group['shift']),
+                    **({'reviewedPlanMovedMetres':translation,'needsReview':True} if candidate['override'] and translation!=[0,0] else {}),
+                    'note':note,
                     **({'streetClearance':candidate['streetClearance']} if 'streetClearance' in candidate else {})},
                 'metrics':{'sourceAreaM2':area(original['geometry']['coordinates']),'authoredAreaM2':area(polygons),'centreShiftM':math.dist(old_centre,new_centre),'sourceFloorCells':len(originals[id]),'authoredFloorCells':len(candidate['cells'][id])}})
     records.sort(key=lambda r:r['id'])
