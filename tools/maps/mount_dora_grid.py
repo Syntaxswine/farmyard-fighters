@@ -145,7 +145,7 @@ def _trim(shapes, trims):
     return result
 
 
-def _fit_street_clearance(groups, street_corridor, protected, validate, by_id, options, width, depth):
+def _reserved_rows(street_corridor, width, depth):
     if len(street_corridor) != width*depth:
         raise ValueError('Street clearance mask dimensions differ from the terrain')
     painted = _rows((i%width, i//width) for i, value in enumerate(street_corridor) if value)
@@ -155,6 +155,11 @@ def _fit_street_clearance(groups, street_corridor, protected, validate, by_id, o
         # Integer footprints need one extra tile next to angled raster edges.
         # This also keeps native wall thickness and façade ornaments off the sidewalk.
         reserved[y] = row | (row << 1) | (row >> 1)
+    return reserved
+
+
+def _fit_street_clearance(groups, street_corridor, protected, validate, plans, options, width, depth):
+    reserved = _reserved_rows(street_corridor, width, depth)
     immovable = _rows(protected)
     occupied = _rows(cell for g in groups for floor in g['current']['cells'].values() for cell in floor)
     offsets = sorted((dx*dx+dy*dy, dx, dy) for dx in range(-12, 13) for dy in range(-12, 13)
@@ -235,7 +240,7 @@ def _fit_street_clearance(groups, street_corridor, protected, validate, by_id, o
             for phase in options['phaseOffsets']:
                 angle = current['angle']+math.pi/2
                 try:
-                    shapes = {id:rectify(by_id[id]['geometry']['coordinates'], phase, angle, group['centre'])[0]}
+                    shapes = {id:rectify(plans[id], phase, angle, group['centre'])[0]}
                     rotated = {**current, 'shapes':shapes, 'cells':validate(shapes, ids, pairs),
                                'angle':angle, 'phase':phase, 'dx':0, 'dy':0}
                 except ValueError:
@@ -252,8 +257,177 @@ def _fit_street_clearance(groups, street_corridor, protected, validate, by_id, o
         group['current'] = best
 
 
+def _jog_variants(ring):
+    """Every way to remove a one-tile edge of a closed rectilinear ring.
+
+    A one-tile edge joins two parallel edges one tile apart. Moving the edge
+    before it, or the edge after it, onto the other's line removes the step;
+    the edge beyond grows or shrinks by one tile. Yields one pair of
+    candidate rings per one-tile edge, in ring order."""
+    points = ring[:-1]
+    count = len(points)
+    for i in range(count):
+        a, b = points[i], points[(i + 1) % count]
+        if abs(b[0] - a[0]) + abs(b[1] - a[1]) != 1:
+            continue
+        d = [b[0] - a[0], b[1] - a[1]]
+        before, after = [p[:] for p in points], [p[:] for p in points]
+        for k in ((i - 1) % count, i):
+            before[k] = [before[k][0] + d[0], before[k][1] + d[1]]
+        for k in ((i + 1) % count, (i + 2) % count):
+            after[k] = [after[k][0] - d[0], after[k][1] - d[1]]
+        yield [simplify(v + [v[0]]) for v in (before, after)]
+
+
+def _straighten_walls(groups, validate, reserved, protected, occupancy, width, depth):
+    """Remove one-tile wall steps the grid fit left in building outlines.
+
+    rectify rounds each wall run on its own, so a sub-metre jog in a measured
+    outline (a porch or a bay) can become a one-tile step. Each step is
+    removed by moving one neighbouring wall a tile, taking whichever variant
+    changes the area less, only when the component stays valid (topology,
+    area, shared walls) and every new cell is free (street ribbon, protected
+    ground, other buildings, the town edge). A courtyard stays wholly
+    plan inside. Returns the number of steps removed."""
+    removed = 0
+    for group in groups:
+        if group['current']['override']:
+            continue
+        ids = group['ids']
+        for id in ids:
+            for _ in range(64):
+                current = group['current']
+                polygons = current['shapes'][id]
+                choice = None
+                for p, poly in enumerate(polygons):
+                    old_area = abs(signed_area(poly[0]))
+                    for variants in _jog_variants(poly[0]):
+                        trials = []
+                        for ring in variants:
+                            if not valid_ring(ring) or signed_area(ring) * signed_area(poly[0]) <= 0:
+                                continue
+                            if any(not ring_cells(hole) < ring_cells(ring)
+                                   or any(crosses(a, b, c, d) for a, b in zip(ring, ring[1:]) for c, d in zip(hole, hole[1:]))
+                                   for hole in poly[1:]):
+                                continue
+                            shapes = {**current['shapes'], id: polygons[:p] + [[ring, *poly[1:]]] + polygons[p + 1:]}
+                            try:
+                                footprint = validate(shapes, ids, group['pairs'])
+                            except ValueError:
+                                continue
+                            if any(not (0 <= x < width and 0 <= y < depth) or reserved.get(y, 0) >> x & 1
+                                   or (x, y) in protected or occupancy.get((x, y), set()) - set(ids)
+                                   for x, y in footprint[id] - current['cells'][id]):
+                                continue
+                            trials.append((abs(abs(signed_area(ring)) - old_area), shapes, footprint))
+                        if trials:
+                            choice = min(trials, key=lambda t: t[0])
+                            break
+                    if choice is not None:
+                        break
+                if choice is None:
+                    break
+                for cell in current['cells'][id]:
+                    occupancy[cell].discard(id)
+                for cell in choice[2][id]:
+                    occupancy[cell].add(id)
+                group['current'] = {**current, 'shapes': choice[1], 'cells': choice[2]}
+                removed += 1
+    return removed
+
+
+FRONT_LOOK = 6     # metres: a side faces a street when the street ribbon lies this close
+FRONT_REACH = 2    # metres: a front this close to its neighbours' common line moves onto it
+FRONT_WINDOW = 50  # metres along the street: the neighbours a front lines up with
+
+
+def _facades(cells, reserved, width, depth):
+    """The sides of one component that face the street ribbon.
+
+    For each direction, every row (or column) the component occupies is
+    scanned outward from its last cell; a side faces a street when the
+    reserved ribbon is met within FRONT_LOOK on at least 60% of them. Yields
+    (axis, sign, ribbon edge, along span, gap) with the smallest gap."""
+    taken = lambda x, y: 0 <= y < depth and 0 <= x < width and reserved.get(y, 0) >> x & 1
+    for axis in (0, 1):
+        lines = collections.defaultdict(list)
+        for cell in cells:
+            lines[cell[1-axis]].append(cell[axis])
+        for sign in (-1, 1):
+            gaps, edges = [], []
+            for along, values in lines.items():
+                edge = (min(values) if sign < 0 else max(values)) + sign
+                for gap in range(FRONT_LOOK + 1):
+                    at = edge + sign*gap
+                    if taken(at, along) if axis == 0 else taken(along, at):
+                        gaps.append(gap);edges.append(at);break
+            if gaps and len(gaps) >= .6*len(lines):
+                yield axis, sign, collections.Counter(edges).most_common(1)[0][0], (min(lines), max(lines)), min(gaps)
+
+
+def _line_up_fronts(groups, validate, reserved, protected, occupancy, width, depth):
+    """Put the fronts along one side of a street on one line.
+
+    Each building keeps its measured setback through the street move, and
+    real setbacks differ by a metre or two, so the one-metre fit stepped the
+    fronts along a block in and out a tile. Building by building (a row of
+    attached shops is one component, and its shops step too), a front within
+    FRONT_REACH of the most common gap among the fronts facing the same
+    ribbon edge within FRONT_WINDOW along the street (weighted by frontage)
+    moves onto it. The move must keep the component valid (attached shops
+    still touch and never overlap) and every new cell free. A front farther
+    back is a real setback and stays. Returns the number of buildings moved."""
+    moved = 0
+    owner = {id: g for g in groups for id in g['ids']}
+    for axis in (0, 1):
+        faces = collections.defaultdict(list)
+        for g in groups:
+            if g['current']['override']:
+                continue
+            for id in g['ids']:
+                for facade in _facades(g['current']['cells'][id], reserved, width, depth):
+                    if facade[0] == axis:
+                        faces[facade[1:3]].append((facade[3], facade[4], id))
+        for (sign, ribbon), members in sorted(faces.items(), key=lambda item: item[0]):
+            members.sort(key=lambda m: (m[0], m[1], m[2]))
+            for (lo, hi), gap, id in members:
+                weights = collections.Counter()
+                for (lo2, hi2), gap2, _ in members:
+                    if lo2 <= hi + FRONT_WINDOW and hi2 >= lo - FRONT_WINDOW:
+                        weights[gap2] += hi2 - lo2 + 1
+                target = min(weights, key=lambda value: (-weights[value], value))
+                if not 0 < abs(gap - target) <= FRONT_REACH:
+                    continue
+                step = sign*(gap - target)
+                dx, dy = (step, 0) if axis == 0 else (0, step)
+                g = owner[id]
+                current = g['current']
+                shapes = {**current['shapes'], id: _translate({id: current['shapes'][id]}, dx, dy)[id]}
+                try:
+                    footprint = validate(shapes, g['ids'], g['pairs'])
+                except ValueError:
+                    continue
+                if any(not (0 <= x < width and 0 <= y < depth) or reserved.get(y, 0) >> x & 1
+                       or (x, y) in protected or occupancy.get((x, y), set()) - set(g['ids'])
+                       for x, y in footprint[id] - current['cells'][id]):
+                    continue
+                for cell in current['cells'][id]:
+                    occupancy[cell].discard(id)
+                for cell in footprint[id]:
+                    occupancy[cell].add(id)
+                fronts = {**current.get('frontMetres', {}), id: [a+b for a, b in zip(current.get('frontMetres', {}).get(id, [0, 0]), (dx, dy))]}
+                g['current'] = {**current, 'shapes': shapes, 'cells': footprint, 'frontMetres': fronts}
+                moved += 1
+    return moved
+
+
+def _component_centre(polygons):
+    points=[q for p in polygons for r in p for q in r]
+    return [(min(q[i] for q in points)+max(q[i] for q in points))/2 for i in (0,1)]
+
+
 def author_buildings(buildings, source_walls, terrain, codebook, options, *,
-                     street_corridor=None, street_fit_terrain=None):
+                     street_corridor=None, street_fit_terrain=None, follow=None):
     if options.get('version') != 1 or options.get('gridMetres') != 1:
         raise ValueError('Unsupported building-grid authoring profile')
     by_id={f['id']:f for f in buildings}
@@ -270,7 +444,18 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
             parents[root(b)]=root(a)
     components=collections.defaultdict(list)
     for id in sorted(by_id):components[root(id)].append(id)
-    originals={id:cells(f['geometry']['coordinates']) for id,f in by_id.items()}
+    # A component moves with its straightened streets: the town's move at its
+    # centre (follow) translates its source plan before the grid fit, so the
+    # fit keeps the measured setback from the street. Geographic source rings
+    # stay untouched; the move is part of translationMetres in each record.
+    shifts={}
+    for ids in components.values():
+        centre=_component_centre([p for id in ids for p in by_id[id]['geometry']['coordinates']])
+        shift=[0.0,0.0] if follow is None else [round(v,4) for v in follow(centre)]
+        for id in ids:shifts[id]=shift
+    plans={id:[[[[x+shifts[id][0],y+shifts[id][1]] for x,y in ring] for ring in poly] for poly in f['geometry']['coordinates']]
+           for id,f in by_id.items()}
+    originals={id:cells(plans[id]) for id in by_id}
     source_cells=set().union(*originals.values())
     width=1440
     protected_codes={codebook[k] for k in ('water','ground-asphalt','ground-concrete','ground-dirt','ground-gravel','ground-wood-planks','bridge')}
@@ -290,25 +475,27 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
         if any(not touches(cs[a],cs[b]) for a,b in pairs):raise ValueError('Shared-owner relationship separated')
         return cs
     for ids in sorted(components.values(),key=lambda ids:ids[0]):
-        polygons=[p for id in ids for p in by_id[id]['geometry']['coordinates']]
+        polygons=[p for id in ids for p in plans[id]]
         points=[q for p in polygons for r in p for q in r]
         centre=[(min(q[i] for q in points)+max(q[i] for q in points))/2 for i in (0,1)]
         angle=dominant_angle(polygons);pairs=[pair for pair in shared if pair[0] in ids and pair[1] in ids];families=[]
         if any(id in overrides for id in ids):
             if not all(id in overrides for id in ids):raise ValueError('Override every member of a shared-wall component together')
-            shapes={id:overrides[id]['geometry']['coordinates'] for id in ids}
+            # A reviewed plan moves with its street by whole metres only.
+            moved=[round(v) for v in shifts[ids[0]]]
+            shapes={id:[[[[x+moved[0],y+moved[1]] for x,y in ring] for ring in poly] for poly in overrides[id]['geometry']['coordinates']] for id in ids}
             families=[{'shapes':shapes,'cells':validate(shapes,ids,pairs),'angle':angle,'phase':None,'dx':0,'dy':0,'override':True}]
         else:
             for turn in ([0,math.pi/2] if abs(angle)>math.pi/8 else [0]):
                 for phase in options['phaseOffsets']:
                     try:
-                        shapes={id:rectify(by_id[id]['geometry']['coordinates'],phase,angle+turn,centre)[0] for id in ids}
+                        shapes={id:rectify(plans[id],phase,angle+turn,centre)[0] for id in ids}
                         cs=validate(shapes,ids,pairs)
                         families.append({'shapes':shapes,'cells':cs,'angle':angle+turn,'phase':phase,'dx':0,'dy':0,'override':False})
                     except ValueError:pass
         if not families:raise ValueError('Unresolved grid shape/component: '+','.join(ids))
         fidelity=lambda c:sum(len(c['cells'][id]^originals[id]) for id in ids)
-        groups.append({'ids':ids,'centre':centre,'pairs':pairs,'families':families,'current':min(families,key=fidelity)})
+        groups.append({'ids':ids,'centre':centre,'shift':shifts[ids[0]],'pairs':pairs,'families':families,'current':min(families,key=fidelity)})
     occupancy=collections.defaultdict(set)
     for group in groups:
         for id,cs in group['current']['cells'].items():
@@ -352,19 +539,41 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
             water = codebook['water']
             protected = {(i%width,i//width) for i, value in enumerate(street_fit_terrain)
                          if value in protected_codes and (value != water or terrain[i] == water)}-source_cells
-        _fit_street_clearance(groups, street_corridor, protected, validate, by_id, options, width, len(terrain)//width)
+        _fit_street_clearance(groups, street_corridor, protected, validate, plans, options, width, len(terrain)//width)
+    # Straighten the one-tile wall steps the fit left (see _straighten_walls).
+    depth=len(terrain)//width
+    reserved=_reserved_rows(street_corridor, width, depth) if street_corridor is not None else {}
+    occupancy=collections.defaultdict(set)
+    for group in groups:
+        for id,cs in group['current']['cells'].items():
+            for cell in cs:occupancy[cell].add(id)
+    straightened=_straighten_walls(groups, validate, reserved, protected, occupancy, width, depth)
+    lined_up=_line_up_fronts(groups, validate, reserved, protected, occupancy, width, depth)
     records=[]
     for group in groups:
-        candidate=group['current']
+        candidate=group['current'];shift=group['shift']
+        # The record inverts to the measured plan: turn by -angle about the
+        # source centre, then move by the fit's whole metres plus the street
+        # move (a reviewed plan moved with its street by whole metres only).
+        if candidate['override']:
+            moved=[candidate['dx']+round(shift[0]),candidate['dy']+round(shift[1])]
+        elif shift==[0.0,0.0]:
+            moved=[candidate['dx'],candidate['dy']]
+        else:
+            moved=[round(candidate['dx']+shift[0],4),round(candidate['dy']+shift[1],4)]
+        centre=group['centre'] if shift==[0.0,0.0] else [group['centre'][0]-shift[0],group['centre'][1]-shift[1]]
         for id in group['ids']:
+            # A shop lined up on its street's front alone adds its own move.
+            extra=candidate.get('frontMetres',{}).get(id,[0,0])
+            translation=moved if extra==[0,0] else [moved[0]+extra[0],moved[1]+extra[1]]
             polygons=candidate['shapes'][id];points=[q for poly in polygons for r in poly for q in r]
             b=[min(p[0] for p in points),min(p[1] for p in points),max(p[0] for p in points),max(p[1] for p in points)]
             original=by_id[id];old_bounds=original['bounds'];old_centre=[(old_bounds[i]+old_bounds[i+2])/2 for i in (0,1)];new_centre=[(b[i]+b[i+2])/2 for i in (0,1)]
             records.append({'id':id,'geometry':{'type':'MultiPolygon','coordinates':polygons},'bounds':b,'componentIds':group['ids'],
-                'derivation':{'method':'reviewed-grid-override' if candidate['override'] else 'shared-component-dominant-axis','dominantAxisDegrees':round(candidate['angle']*180/math.pi,9),'componentCentre':group['centre'],'phase':candidate['phase'],'translationMetres':[candidate['dx'],candidate['dy']],
+                'derivation':{'method':'reviewed-grid-override' if candidate['override'] else 'shared-component-dominant-axis','dominantAxisDegrees':round(candidate['angle']*180/math.pi,9),'componentCentre':centre,'phase':candidate['phase'],'translationMetres':translation,'streetFollowMetres':group['shift'],
                     'note':overrides[id]['reason'] if candidate['override'] else 'Coherent cardinal lines and one-metre integer tile edges; geographic source retained.',
                     **({'streetClearance':candidate['streetClearance']} if 'streetClearance' in candidate else {})},
                 'metrics':{'sourceAreaM2':area(original['geometry']['coordinates']),'authoredAreaM2':area(polygons),'centreShiftM':math.dist(old_centre,new_centre),'sourceFloorCells':len(originals[id]),'authoredFloorCells':len(candidate['cells'][id])}})
     records.sort(key=lambda r:r['id'])
     return {'kind':'mount-dora-authored-buildings','version':1,'gridMetres':1,'coordinatePolicy':'integer town structural edges; host game coordinates subtract0.5 exactly once','records':records,
-        'metrics':{'buildings':len(records),'components':len(groups),'sourceFloorCells':len(source_cells),'authoredFloorCells':sum(r['metrics']['authoredFloorCells'] for r in records),'sourceHoles':sum(len(p)-1 for f in buildings for p in f['geometry']['coordinates']),'authoredHoles':sum(len(p)-1 for r in records for p in r['geometry']['coordinates']),'sharedOwnerPairs':len(shared),'sharedOwnerPairsRetained':sum(touches(next(g['current']['cells'][a] for g in groups if a in g['ids']),next(g['current']['cells'][b] for g in groups if b in g['ids'])) for a,b in shared),'newStreetWaterCells':0,'overlappingInteriorCells':0}}
+        'metrics':{'buildings':len(records),'components':len(groups),'sourceFloorCells':len(source_cells),'authoredFloorCells':sum(r['metrics']['authoredFloorCells'] for r in records),'sourceHoles':sum(len(p)-1 for f in buildings for p in f['geometry']['coordinates']),'authoredHoles':sum(len(p)-1 for r in records for p in r['geometry']['coordinates']),'straightenedWallSteps':straightened,'linedUpFronts':lined_up,'sharedOwnerPairs':len(shared),'sharedOwnerPairsRetained':sum(touches(next(g['current']['cells'][a] for g in groups if a in g['ids']),next(g['current']['cells'][b] for g in groups if b in g['ids'])) for a,b in shared),'newStreetWaterCells':0,'overlappingInteriorCells':0}}

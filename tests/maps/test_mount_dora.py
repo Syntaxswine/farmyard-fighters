@@ -239,9 +239,28 @@ class MountDoraGeneration(unittest.TestCase):
             source = feature["geometry"]["coordinates"]
             self.assertEqual(source, originals[feature["id"]]["geometry"]["coordinates"])
             line = style.get("centerline", source)
+            # A jog corner is the one vertex the playable line adds: it turns a
+            # straight street onto its next line beside a junction, square to both.
+            corners = set(style.get("jogCorners", []))
+
+            def square_jog(run_end, corner, jog_end):
+                # The run keeps one line (one coordinate) up to the corner; the
+                # jog then crosses to the other line within STREET_JOG metres.
+                return any(corner[axis] == run_end[axis] != jog_end[axis]
+                           and abs(abs(jog_end[1 - axis] - corner[1 - axis]) - BUILDER.STREET_JOG) < 1e-3
+                           for axis in range(2))
+
+            for index in corners:
+                previous, corner, following = line[index - 1], line[index], line[index + 1]
+                self.assertTrue(square_jog(previous, corner, following) or square_jog(following, corner, previous),
+                                (feature["id"], index))
+            line = [point for index, point in enumerate(line) if index not in corners]
             for before, after in zip(source, line, strict=True):
                 self.assertEqual(after, junctions.setdefault(tuple(before), after))
-                self.assertLessEqual(max(abs(a - b) for a, b in zip(before, after)), BUILDER.STREET_SNAP_LIMIT)
+                # Only points in town choose a street's line; a source line
+                # running on past the crop follows that line out there.
+                if 0 <= before[0] <= 1440 and 0 <= before[1] <= 1680:
+                    self.assertLessEqual(max(abs(a - b) for a, b in zip(before, after)), BUILDER.STREET_SNAP_LIMIT)
                 if style["bridge"] or style["woodSurface"]:
                     self.assertEqual(before, after)
             if feature["tags"]["highway"] in BUILDER.STREET_CLASSES:
@@ -251,6 +270,78 @@ class MountDoraGeneration(unittest.TestCase):
                     segments += 1
                     cardinal += a[0] == b[0] or a[1] == b[1]
         self.assertGreater(cardinal, .7 * segments)
+
+    def test_authored_outlines_have_no_one_tile_wall_steps(self):
+        # rectify rounds each wall run on its own, which turned sub-metre jogs
+        # in the measured outlines into one-tile steps (299 in 139 buildings
+        # before _straighten_walls). Every outer wall now runs at least two tiles.
+        authored = json.loads(self.outputs["authored-buildings.json"])
+        steps = [(record["id"], a, b) for record in authored["records"]
+                 for polygon in record["geometry"]["coordinates"] for a, b in zip(polygon[0], polygon[0][1:])
+                 if abs(b[0] - a[0]) + abs(b[1] - a[1]) == 1]
+        self.assertEqual(steps, [])
+        self.assertEqual(len(authored["records"]), 1076)
+
+    def test_downtown_grid_streets_each_run_on_one_line(self):
+        # The streets the 2026-27 visitor map shows downtown, over the lengths
+        # where they are straight in reality: each sits on one tile line, and a
+        # West/East avenue pair on the same line. Before the in-town snap and
+        # same-name bridges, Alexander Street stepped 4 m between 5th and 4th
+        # Avenues, Tremain 2 m at 5th, West 3rd 2 m at Alexander, 5th Avenue 4 m twice.
+        streets = {"Alexander Street": (0, 0, 900), "McDonald Street": (0, 0, 740),
+                   "North Donnelly Street": (0, 0, 815), "North Baker Street": (0, 0, 830),
+                   "North Tremain Street": (0, 0, 900), "North Grandview Street": (0, 0, 935),
+                   "North Clayton Street": (0, 0, 790),
+                   "West 3rd Avenue": (1, 230, 433), "East 3rd Avenue": (1, 431, 1045),
+                   "West 4th Avenue": (1, 330, 433), "East 4th Avenue": (1, 431, 635),
+                   "West 5th Avenue": (1, 230, 433), "East 5th Avenue": (1, 431, 1440),
+                   "West 6th Avenue": (1, 150, 433), "East 6th Avenue": (1, 431, 835),
+                   "West 7th Avenue": (1, 128, 433), "East 7th Avenue": (1, 430, 1040),
+                   "West 9th Avenue": (1, 62, 433), "East 9th Avenue": (1, 429, 1440)}
+        lines = {name: set() for name in streets}
+        for feature in self.features.values():
+            name, style = feature["tags"].get("name"), feature.get("nativeRoad")
+            if name not in streets or not style or feature["geometry"]["type"] != "LineString":
+                continue
+            axis, low, high = streets[name]
+            line = style.get("centerline", feature["geometry"]["coordinates"])
+            for a, b in zip(line, line[1:]):
+                if a[axis] == b[axis] and low <= min(a[1 - axis], b[1 - axis]) and max(a[1 - axis], b[1 - axis]) <= high:
+                    lines[name].add(a[axis])
+        for name, found in lines.items():
+            self.assertEqual(len(found), 1, (name, sorted(found)))
+        for avenue in ("3rd", "4th", "5th", "6th", "7th", "9th"):
+            self.assertEqual(lines[f"West {avenue} Avenue"], lines[f"East {avenue} Avenue"], avenue)
+
+    def test_fronts_along_a_street_share_one_line_where_a_move_is_free(self):
+        # Every street-facing front (the generator's own _facades reading)
+        # within FRONT_REACH of its neighbours' common gap sits on it, except
+        # these ten, where the move would push into a neighbour, a shared
+        # wall or the ribbon. On main 57887f1, 46 of 255 fronts were off their line.
+        grid = BUILDER._grid
+        authored = json.loads(self.outputs["authored-buildings.json"])
+        roads = [f for f in self.features.values() if f.get("nativeRoad")]
+        reserved = grid._reserved_rows(BUILDER.street_corridor(roads, 1440, 1680), 1440, 1680)
+        faces = {}
+        for record in authored["records"]:
+            if record["derivation"]["method"] != "shared-component-dominant-axis":
+                continue
+            for axis, sign, ribbon, span, gap in grid._facades(grid.cells(record["geometry"]["coordinates"]), reserved, 1440, 1680):
+                faces.setdefault((axis, sign, ribbon), []).append((span, gap, record["id"]))
+        misses = set()
+        for members in faces.values():
+            for (low, high), gap, ident in members:
+                weights = {}
+                for (low2, high2), gap2, _ in members:
+                    if low2 <= high + grid.FRONT_WINDOW and high2 >= low - grid.FRONT_WINDOW:
+                        weights[gap2] = weights.get(gap2, 0) + high2 - low2 + 1
+                target = min(weights, key=lambda value: (-weights[value], value))
+                if 0 < abs(gap - target) <= grid.FRONT_REACH:
+                    misses.add(ident)
+        self.assertGreater(sum(map(len, faces.values())), 200)
+        self.assertEqual(misses, {"osm-way-556562408", "osm-way-558337885", "osm-way-556562399", "osm-way-556562400",
+                                  "osm-way-1240415863", "osm-way-556562388", "osm-way-558533874", "osm-way-556809469",
+                                  "osm-way-557349895", "osm-way-557349896"})
 
     def test_buildings_clear_the_full_road_and_sidewalk_ribbon(self):
         roads = [f for f in self.features.values() if f.get("nativeRoad")]
@@ -320,6 +411,105 @@ class MountDoraGeneration(unittest.TestCase):
         self.assertEqual({g["weapon"] for g in roster}, {"pistol", "smg", "rifle", "shotgun"})
         self.assertTrue(any(len(g.get("patrol", [])) == 2 for g in roster))
         self.assertTrue(any(len(g.get("patrol", [])) > 2 for g in roster))
+
+
+class GridShapeUnits(unittest.TestCase):
+    """The street snap, the street-follow blend, the wall repair and the junction
+    jog on small made-up inputs, without building the town."""
+
+    def test_street_snap_lets_only_in_town_points_choose_a_line(self):
+        # A straight street that drifts 0.5 degrees: 12 m over 1,200 m, of
+        # which the 300 m beyond the crop's north edge hold 3 m. In town it
+        # spans 9 m and fits one line; counting the outside points it would
+        # not, and the street would split with a sideways jump.
+        def road(points):
+            return {"id": "test", "tags": {"highway": "residential", "name": "Test Street"},
+                    "geometry": {"type": "LineString", "coordinates": points},
+                    "nativeRoad": BUILDER.road_style({"tags": {"highway": "residential"}})}
+        points = [[round(100 + .01 * y, 4), y] for y in range(-300, 901, 100)]
+        street = road([p[:] for p in points])
+        BUILDER.author_streets([street], 1440, 1680)
+        town = {x for x, y in street["nativeRoad"]["centerline"] if 0 <= y <= 1680}
+        self.assertEqual(len(town), 1, street["nativeRoad"]["centerline"])
+        outside = road([p[:] for p in points])
+        BUILDER.author_streets([outside])
+        self.assertGreater(len({x for x, y in outside["nativeRoad"]["centerline"]}), 1)
+
+    def test_street_follow_field_carries_a_block_with_its_two_streets(self):
+        # West street moved 2 m east, east street 2 m west: a point keeps its
+        # place between them, so the move blends across the block.
+        def street(x, line):
+            style = BUILDER.road_style({"tags": {"highway": "residential"}})
+            style.update(widthSource="standard-game-street", centerline=[[line, 0], [line, 200]])
+            return {"nativeRoad": style, "geometry": {"type": "LineString", "coordinates": [[x, 0], [x, 200]]}}
+        field = BUILDER.street_follow_field([street(100, 102), street(200, 198)])
+        self.assertEqual([round(v, 6) for v in field([100, 50])], [2, 0])
+        self.assertEqual([round(v, 6) for v in field([125, 50])], [1, 0])
+        self.assertEqual([round(v, 6) for v in field([150, 50])], [0, 0])
+        self.assertEqual([round(v, 6) for v in field([200, 50])], [-2, 0])
+        self.assertEqual([round(v, 6) for v in field([250, 50])], [-2, 0])
+        self.assertEqual(field([150, 500]), [0.0, 0.0])
+
+    def test_a_one_tile_wall_step_has_two_clean_repairs(self):
+        grid = BUILDER._grid
+        ring = [[0, 0], [5, 0], [5, 3], [3, 3], [3, 4], [0, 4], [0, 0]]
+        variants = list(grid._jog_variants(ring))
+        self.assertEqual(len(variants), 1)
+        for repaired in variants[0]:
+            self.assertTrue(grid.valid_ring(repaired), repaired)
+            self.assertFalse(any(abs(b[0] - a[0]) + abs(b[1] - a[1]) == 1 for a, b in zip(repaired, repaired[1:])), repaired)
+        self.assertEqual(sorted(abs(grid.signed_area(r)) for r in variants[0]), [15, 20])
+
+    def test_a_straight_street_changing_line_jogs_square_beside_its_junction(self):
+        # Two runs of one street on lines 10 and 14 meet at (10, 50): the
+        # segment between them runs straight on its first line and turns to
+        # the next within STREET_JOG metres of the junction end.
+        style = BUILDER.road_style({"tags": {"highway": "residential"}})
+        style.update(widthSource="standard-game-street", widthM=6, sidewalk="both", sidewalkWidthM=2)
+        a, b, c = (10.0, 0.0), (11.0, 50.0), (13.5, 100.0)
+        street = {"tags": {"highway": "residential"}, "nativeRoad": style,
+                  "geometry": {"type": "LineString", "coordinates": [list(a), list(b), list(c)]}}
+        cross = {"tags": {"highway": "residential"}, "nativeRoad": dict(style),
+                 "geometry": {"type": "LineString", "coordinates": [[0.0, 50.0], list(b)]}}
+        moves = [{a: 10, b: 10, c: 14}, {}]
+        BUILDER.follow_streets([street, cross], moves, lambda point: [0.0, 0.0])
+        line = street["nativeRoad"]["centerline"]
+        self.assertEqual(street["nativeRoad"]["jogCorners"], [2])
+        self.assertEqual(line, [[10, 0.0], [10, 50.0], [14, 54.0], [14, 100.0]])
+
+    def test_a_block_sized_park_moves_as_one_piece(self):
+        # A field that moves each point a hundredth of its x stretches a 100 m
+        # park by 1 m, the kind of stretch that closed the Donnelly stage's
+        # approach. The park takes the move at its centre, and so does every
+        # point inside it; a hole in it, a park wider than BLOCK_PARK_SPAN and
+        # the land outside keep the field's own move.
+        def park(x0, y0, x1, y1, hole=None):
+            rings = [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]]
+            if hole:
+                hx0, hy0, hx1, hy1 = hole
+                rings.append([[hx0, hy0], [hx0, hy1], [hx1, hy1], [hx1, hy0], [hx0, hy0]])
+            return {"category": "park", "tags": {"leisure": "park"}, "bounds": [x0, y0, x1, y1],
+                    "geometry": {"type": "MultiPolygon", "coordinates": [rings]}}
+        moved = BUILDER.park_follow(lambda point: [point[0] / 100, 0.0],
+                                    [park(100, 100, 200, 200, hole=(105, 105, 125, 125)), park(400, 0, 700, 300)])
+        self.assertEqual(moved([110, 150]), [1.5, 0.0])
+        self.assertEqual(moved([190, 150]), [1.5, 0.0])
+        self.assertEqual(moved([115, 115]), [1.15, 0.0])
+        self.assertEqual(moved([450, 150]), [4.5, 0.0])
+        self.assertEqual(moved([50, 50]), [0.5, 0.0])
+
+    def test_a_road_meeting_a_bridge_keeps_the_shared_vertex(self):
+        # The town moves 1 m east. The bridge keeps its mapped place over the
+        # water, and the path that meets it keeps their shared vertex there, so
+        # the two stay joined; the path's far end moves with the town.
+        def road(tags, points):
+            return {"tags": tags, "nativeRoad": BUILDER.road_style({"tags": tags}),
+                    "geometry": {"type": "LineString", "coordinates": points}}
+        bridge = road({"highway": "footway", "bridge": "yes"}, [[0.0, 0.0], [0.0, 20.0]])
+        path = road({"highway": "footway"}, [[0.0, 20.0], [0.0, 40.0]])
+        BUILDER.follow_streets([bridge, path], [{}, {}], lambda point: [1.0, 0.0])
+        self.assertNotIn("centerline", bridge["nativeRoad"])
+        self.assertEqual(path["nativeRoad"]["centerline"], [[0.0, 20.0], [1.0, 40.0]])
 
 
 class SurveyEvidence(unittest.TestCase):

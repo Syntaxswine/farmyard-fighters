@@ -378,7 +378,7 @@ test('the index records where the art kit disagrees with the native storeys', ()
 
 test('blocks keep 1 m of yard on every side and the wall-run contract', () => {
   assert.equal(blocks.length, parts.filter(blockFits).length);
-  assert.equal(blocks.length, 807);
+  assert.equal(blocks.length, 804);
   assert(parts.filter(blockFits).every(p => p.size.every(n => n <= 22)));
   for (const {part, block} of blocks) {
     assert.equal(block.terrain.length, 24); assert(block.terrain.every(r => r.length === 24));

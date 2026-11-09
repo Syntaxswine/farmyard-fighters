@@ -4,7 +4,7 @@
  "inputs": {
   "features": {
    "file": "maps/mount-dora/features.json",
-   "sha256OfFieldsRead": "33afcbbc035ba90bffe8c46d9840095709d5f041b6c2a16ec95e838decfadf6f",
+   "sha256OfFieldsRead": "50e9b70cd96081b64ca36a927d7db6468fcec253ab0849c9333865118f555e61",
    "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geometry"
   },
   "county": {
@@ -3052,7 +3052,8 @@
   {
    "id": "osm-way-1240415886",
    "sectors": [
-    "F05"
+    "F05",
+    "F06"
    ],
    "centroid": [
     1238.56,
@@ -19696,8 +19697,6 @@
   {
    "id": "osm-way-1240419520",
    "sectors": [
-    "E03",
-    "E04",
     "F03",
     "F04"
    ],
@@ -20302,8 +20301,7 @@
   {
    "id": "osm-way-1240419526",
    "sectors": [
-    "D04",
-    "E04"
+    "D04"
    ],
    "centroid": [
     953.82,
@@ -24537,8 +24535,7 @@
   {
    "id": "osm-way-1240419568",
    "sectors": [
-    "D04",
-    "E04"
+    "D04"
    ],
    "centroid": [
     955.26,
@@ -25334,7 +25331,6 @@
   {
    "id": "osm-way-1240419576",
    "sectors": [
-    "E04",
     "E05"
    ],
    "centroid": [
@@ -25435,7 +25431,6 @@
   {
    "id": "osm-way-1240419577",
    "sectors": [
-    "E04",
     "E05"
    ],
    "centroid": [
@@ -26220,7 +26215,6 @@
   {
    "id": "osm-way-1240419585",
    "sectors": [
-    "E04",
     "E05"
    ],
    "centroid": [
@@ -53384,7 +53378,6 @@
   {
    "id": "osm-way-1240419852",
    "sectors": [
-    "C01",
     "D01"
    ],
    "centroid": [
@@ -54068,7 +54061,8 @@
   {
    "id": "osm-way-1240419859",
    "sectors": [
-    "C01"
+    "C01",
+    "D01"
    ],
    "centroid": [
     713.65,
@@ -68624,8 +68618,7 @@
   {
    "id": "osm-way-1241962319",
    "sectors": [
-    "D07",
-    "E07"
+    "D07"
    ],
    "centroid": [
     954.69,
@@ -71023,6 +71016,7 @@
   {
    "id": "osm-way-1241962343",
    "sectors": [
+    "C07",
     "D07"
    ],
    "centroid": [
@@ -73644,7 +73638,8 @@
   {
    "id": "osm-way-1241962369",
    "sectors": [
-    "D06"
+    "D06",
+    "E06"
    ],
    "centroid": [
     951.07,
@@ -78684,6 +78679,7 @@
   {
    "id": "osm-way-1241962514",
    "sectors": [
+    "E01",
     "F01"
    ],
    "centroid": [
@@ -82553,8 +82549,7 @@
   {
    "id": "osm-way-556562397",
    "sectors": [
-    "B03",
-    "C03"
+    "B03"
    ],
    "centroid": [
     467.67,
@@ -83250,6 +83245,7 @@
   {
    "id": "osm-way-556562407",
    "sectors": [
+    "A03",
     "B03"
    ],
    "centroid": [
@@ -84411,8 +84407,7 @@
   {
    "id": "osm-way-556809470",
    "sectors": [
-    "B03",
-    "C03"
+    "B03"
    ],
    "centroid": [
     474.75,
@@ -89729,8 +89724,7 @@
   {
    "id": "osm-way-558337892",
    "sectors": [
-    "B03",
-    "C03"
+    "B03"
    ],
    "centroid": [
     461.54,

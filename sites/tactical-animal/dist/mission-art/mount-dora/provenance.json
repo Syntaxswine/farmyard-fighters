@@ -2,8 +2,8 @@
   "schema": "mount-dora-production-art/1",
   "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
   "farmyardBase": "75a6b61a547a96edebdc456e9a42edb4f28185e4",
-  "featuresSHA256": "4220f96a6a2fcf7b790e0c5f53ec265833db1eb7756257350e683634f7495a43",
-  "artRevision": "c4ae728b6745a52b31ab449037522f8bf6d83b48c349bcc4e6fe53b32d901d3c",
+  "featuresSHA256": "fbe7efc455d4793f4308048ba7b18e8a051c6ec6f0b22138b724608217ccefdb",
+  "artRevision": "39036484afde91c68cb128e31b14dc7adbed73fb01960beaa285b876bf4743b4",
   "files": [
     {
       "path": "source/packages/building-catalog/three.js",
