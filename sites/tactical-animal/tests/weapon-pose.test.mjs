@@ -11,7 +11,7 @@ import {V,Q,weaponGrip} from '../dist/weapon-pose-rig.js';
 import {FieldView} from '../dist/field-view.js';
 import {Core,DEFAULT_BUILD,createSoloGame,geometry,hero,lineClear,tick} from '../dist/solo-game.js';
 import {shotSeconds} from '../dist/realtime-combat.js';
-import {traceEnd,traceStart} from '../dist/weapon-feedback.js';
+import {setTracer,traceEnd,traceStart,tracerMesh} from '../dist/weapon-feedback.js';
 import {WINDOW_REVIEW_ID,windowReviewSource} from '../dist/window-review-map.js';
 
 function sheepRig(weapon){
@@ -114,6 +114,24 @@ test('a fitted muzzle can trace to the recorded wall impact but cannot introduce
   assert.ok(lineClear(state,{x:clear.ax,y:clear.ay},{x:clear.bx,y:clear.by}));
   assert.equal(lineClear(state,{x:offsetMuzzle.x,y:offsetMuzzle.z},{x:clear.bx,y:clear.by}),false);
   assert.ok(traceStart(clear,offsetMuzzle,traceEnd(clear),state).equals(V(clear.ax,clear.ah,clear.ay)));
+});
+
+test('real-time bullet ribbons fade and narrow toward the muzzle across separate visible runs',()=>{
+  const beam=tracerMesh('smg'),start=V(0,1,0),end=V(8,1,0);
+  const visible=new Set([0,1,2,5,6,7,8].map(x=>`${x},0`));
+  try{
+    assert.ok(setTracer(beam,start,end,{realtime:{},visible},'smg'));
+    const {position,color}=beam.geometry.attributes;
+    assert.equal(position.count,24);
+    assert.equal(color.count,position.count);
+    assert.equal(color.itemSize,4);
+    assert.equal(beam.material.vertexColors,true);
+    assert.ok(position.getX(2)<2.5&&position.getX(12)>4.5);
+    assert.equal(position.getX(14),end.x);
+    assert.ok(color.getW(0)<.15&&color.getW(2)<color.getW(12)&&color.getW(12)<color.getW(14));
+    assert.equal(color.getW(14),1);
+    assert.ok(Math.abs(position.getZ(0))<Math.abs(position.getZ(14))*.35);
+  }finally{beam.geometry.dispose();beam.material.dispose();}
 });
 
 test('a point-blank prone TT-33 fits a compact grip with the target ahead of the muzzle',()=>{

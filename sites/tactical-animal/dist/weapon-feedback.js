@@ -58,22 +58,35 @@ export function traceStart(event,muzzle,end,state){
 export function setTracer(beam,start,end,state,weapon){
   start.shotLevel=end.shotLevel=0;
   const points=state?.visible?visibleShotSegments(state,[start,end]):[start,end];
-  const positions=[],length=start.distanceTo(end);
+  const tapered=!!state?.realtime&&Object.hasOwn(GUN_SOUND,weapon);
+  const positions=[],colors=[],length=start.distanceTo(end);
   const width=weapon==='rpg'?.082:weapon==='launcher'?.062:.044;
-  const widthAt=p=>state?.realtime&&length?width*(1+.6*Math.max(0,1-start.distanceTo(p)/length)):width;
+  // Measure along the whole shot so a visible run past fog does not grow a new tail.
+  const progress=p=>length?Math.min(1,start.distanceTo(p)/length):0;
+  const widthAt=t=>{
+    if(tapered)return width*T.MathUtils.lerp(.28,1,t);
+    return state?.realtime&&length?width*(1+.6*(1-t)):width;
+  };
   for(let i=0;i<points.length;i+=2){
     const a=points[i];let b=points[i+1];
     while(points[i+2]?.equals(b)){i+=2;b=points[i+1];}
     const direction=b.clone().sub(a).normalize();
     const side=V().crossVectors(direction,Math.abs(direction.y)>.95?V(1,0,0):V(0,1,0)).normalize();
-    const startWidth=widthAt(a),endWidth=widthAt(b);
+    const from=progress(a),to=progress(b),startWidth=widthAt(from),endWidth=widthAt(to);
     for(const offset of [side,V().crossVectors(direction,side)]){
       const p=a.clone().addScaledVector(offset,startWidth),q=a.clone().addScaledVector(offset,-startWidth);
       const r=b.clone().addScaledVector(offset,-endWidth),s=b.clone().addScaledVector(offset,endWidth);
       positions.push(...p.toArray(),...q.toArray(),...r.toArray(),...p.toArray(),...r.toArray(),...s.toArray());
+      if(tapered){
+        const tail=[1,1,1,T.MathUtils.lerp(.10,1,from)],head=[1,1,1,T.MathUtils.lerp(.10,1,to)];
+        colors.push(...tail,...tail,...head,...tail,...head,...head);
+      }
     }
   }
   beam.geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));
+  if(tapered)beam.geometry.setAttribute('color',new T.Float32BufferAttribute(colors,4));
+  else beam.geometry.deleteAttribute('color');
+  if(beam.material.vertexColors!==tapered){beam.material.vertexColors=tapered;beam.material.needsUpdate=true;}
   beam.geometry.computeBoundingSphere();
   return positions.length>0;
 }
