@@ -10,10 +10,12 @@ import {identifyRange,headingTo} from './aft/tactics/core/perception.js';
 import {shotAim} from './aft/tactics/aim-levels.js';
 import {bodyIntersection} from './designer/a20b343a0234/tactics/ballistic-shot.js';
 import {angularHelicoidShot,failedShotRoll,placeHelicoidMiss,rollMarginScatter,seededShots} from './designer/a20b343a0234/tactics/helicoid-shot.js';
+import {grenadeDamage} from './designer/a20b343a0234/tactics/grenade-ballistics.js';
 import {WALL_DIMENSIONS,CRATE_DIMENSIONS} from './world-dimensions.js';
 import {missionScenery} from './mission-scenery.js';
 import {windowSystem} from './window-catalogue.js';
 import {legacyWallSpan,windowToLocal} from './window-system.js';
+import {bindWallMaterials,damageWall,restoreWallDamage,wallGaps} from './wall-damage.js';
 import {adaptAftSector} from './aft-sector.js';
 import {WINDOW_REVIEW_ID} from './window-review-map.js';
 import {createInteractionSystem,missionInteractables,interactionFootprint} from './interactions.js';
@@ -71,6 +73,7 @@ function mapMetadata(state,map){
     if(map[name]===undefined)delete state[name];
     else state[name]=structuredClone(map[name]);
   }
+  bindWallMaterials(state,map.wallMaterials);
 }
 export function createSoloGame(build=DEFAULT_BUILD,seed=1947,missionId=DEFAULT_MISSION_ID,{layoutVersion,authoredMap,tourWorld:walkingWorld}={}){
   if(!validBuild(build))throw Error('Choose a valid animal and loadout.');
@@ -94,12 +97,12 @@ export function createSoloGame(build=DEFAULT_BUILD,seed=1947,missionId=DEFAULT_M
 const geometryCache=new WeakMap(),GEOMETRY_BUCKET=8;
 export function geometry(s){
   const town=getTourWorld(s);if(town)return town.geometryBoxes();
-  if(geometryCache.has(s))return geometryCache.get(s).boxes;const boxes=[],covered=new Set(windowSystem.compile(s).flatMap(r=>r.edges));
+  if(geometryCache.has(s))return geometryCache.get(s).boxes;const boxes=[],gaps=wallGaps(s);
   for(const [k,kind] of Object.entries(s.edges)){
-    const span=legacyWallSpan(k,covered,WALL_DIMENSIONS.length);if(kind==='door'||!span)continue;const [axis,xs,ys]=k.split(':'),x=+xs+(axis==='e'?.5:0),y=+ys+(axis==='s'?.5:0);
+    const span=legacyWallSpan(k,gaps,WALL_DIMENSIONS.length);if(kind==='door'||!span)continue;const [axis,xs,ys]=k.split(':'),x=+xs+(axis==='e'?.5:0),y=+ys+(axis==='s'?.5:0);
     const hx=(axis==='e'?WALL_DIMENSIONS.thickness:WALL_DIMENSIONS.length)/2,hy=(axis==='s'?WALL_DIMENSIONS.thickness:WALL_DIMENSIONS.length)/2;
     const interactionId=s.interactables?.find(object=>object.kind==='door'&&object.edge===k)?.id;
-    boxes.push({x0:axis==='s'?span.min:x-hx,x1:axis==='s'?span.max:x+hx,y0:axis==='e'?span.min:y-hy,y1:axis==='e'?span.max:y+hy,height:WALL_DIMENSIONS.height,kind:'wall',...(interactionId?{interactionId}:{})});
+    boxes.push({x0:axis==='s'?span.min:x-hx,x1:axis==='s'?span.max:x+hx,y0:axis==='e'?span.min:y-hy,y1:axis==='e'?span.max:y+hy,height:WALL_DIMENSIONS.height,kind:'wall',...(interactionId?{interactionId}:kind==='wall'?{wallEdge:k}:{})});
   }
   const cargo=missionForState(s).cover.filter(p=>s.interactables?.some(object=>object.kind==='clue'&&object.id===p.id));
   const {width,height}=gridDimensions(s);
@@ -449,10 +452,12 @@ function throwGrenadeNow(s,u,point){
   stop(s);if(s.phase!=='player'){s.engaged=true;refresh(s);}
   u.ap=Math.max(0,u.ap-p.cost);u.ammo.grenade--;syncAmmo(u,'grenade');u.heading=headingTo(u,point);
   const impactEvent={explosions:[]},fireBefore=s.fireAnimationSequence||0,windowBefore=s.windowSequence||0;
+  const walls=planWallBlast(s,{...point,h:.08},p.blast,grenadeDamage);
   let hits=0;for(const target of s.units.filter(alive))if(alive(target)&&grenadeAffects(s,point,target)){
     if(!detonateImpact(s,u,target,'torso',WEAPONS.grenade,impactEvent))hurt(s,target,Math.round(WEAPONS.grenade.damage*Math.max(.2,1-distance(target,point)/(p.blast+1))));hits++;
   }
   windowBlast(s,point,p.blast);
+  commitWallDamage(s,walls,impactEvent);
   log(s,`${u.name} threw a grenade (${p.cost} AP).`);
   for(const guard of s.units.filter(g=>g.team==='guard'&&alive(g)))if(distance(u,guard)<=WEAPONS.grenade.range*2){guard.alert=true;guard.lastKnown={x:u.x,y:u.y};guard.alertAge=0;}
   s.effect={sequence:[{shooter:u.id,ax:u.x,ay:u.y,bx:point.x,by:point.y,hit:hits>0,weapon:'grenade',blast:p.blast,...impactEvent,windowSequences:windowReceipts(s,windowBefore),fireSequences:(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence)}]};
@@ -541,13 +546,20 @@ function windowBlast(s,origin,radius,options={}){
   const events=windowSystem.blast(s,origin,radius,{occluded:(a,b)=>!lineClear(s,{...a,h:1.1},b),...options});
   if(events.length)geometryCache.delete(s);return events;
 }
+function knownWallPoint(s,point){
+  if(!s.realtime||!point.wallEdge)return false;
+  const wall=geometryNear(s,point,point,.01,'wall').find(box=>box.wallEdge===point.wallEdge&&pointBoxDistance(point,box)<.01);
+  if(!wall||point.h>wall.height)return false;
+  const [axis,x,y]=point.wallEdge.split(':');
+  return s.seen.has(key(+x,+y))||s.seen.has(key(+x+(axis==='e'?1:0),+y+(axis==='s'?1:0)));
+}
 export function previewPointAttack(s,a,point,burst=false,aimLevel='hip'){
   const w=WEAPONS[a?.weapon],aim=w&&shotAim(w,aimLevel,burst),rounds=attackRounds(s,a,w,burst),d=point?distance(a,point):Infinity;
   const placed=point?.windowId!==undefined?windowSystem.compile(s).find(r=>r.placement.id===point.windowId):null,ceiling=placed?.spec.height??2;
   let reason='';
   if(!canControl(s,a))reason='Wait for your turn';
   else if(s.realtime&&realtimeRules.busy(s,a))reason=realtimeRules.busy(s,a);
-  else if(!point?.ground||point.windowId!==undefined&&!placed||![point.x,point.y,point.h].every(Number.isFinite)||point.h<0||point.h>ceiling||!insideWorld(s,point)||!s.seen.has(key(point.x,point.y)))reason='Choose an explored point';
+  else if(!point?.ground||point.windowId!==undefined&&!placed||![point.x,point.y,point.h].every(Number.isFinite)||point.h<0||point.h>ceiling||!insideWorld(s,point)||!s.seen.has(key(point.x,point.y))&&!knownWallPoint(s,point))reason='Choose an explored point';
   else if(!w||w.incendiary||a.weapon==='grenade')reason='Use the area weapon controls';
   else if(d>w.range+EPS)reason='Out of range';
   else if(w.mag&&(a.ammo[a.weapon]??0)<rounds)reason='Reload first';
@@ -562,6 +574,32 @@ export function projectileSegmentClear(s,a,b){
     const span=airSpan(a,b,a.h,b.h,box);
     return span&&span[0]<1-EPS&&span[1]>EPS;
   });
+}
+// Resolve the blast against intact cover. A wall falling to this blast opens
+// the way for the next shot or blast, including the next round of a burst.
+function planWallBlast(s,origin,radius,damageAt){
+  if(!s.realtime||isTour(s))return [];
+  const plans=[],clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+  for(const box of geometryNear(s,origin,origin,radius,'air')){
+    if(!box.wallEdge)continue;
+    const contact={x:clamp(origin.x,box.x0,box.x1),y:clamp(origin.y,box.y0,box.y1),h:clamp(origin.h,0,box.height)};
+    const d=Math.hypot(contact.x-origin.x,contact.y-origin.y,contact.h-origin.h);
+    if(d>radius)continue;
+    const damage=damageAt(d);
+    if(damage>0&&(d<EPS||projectileSegmentClear(s,origin,contact)))plans.push({edge:box.wallEdge,damage});
+  }
+  return plans;
+}
+function commitWallDamage(s,plans,event){
+  for(const {edge,damage} of plans){
+    const receipt=damageWall(s,edge,damage);
+    if(!receipt)continue;
+    (event.structures??=[]).push(receipt);
+    if(receipt.destroyed){
+      geometryCache.delete(s);delete s.fogAt;
+      log(s,`Wall breached (${receipt.kind==='wall'?'brick':receipt.kind.split('-').at(-1)}).`);
+    }
+  }
 }
 function firstShotObstacle(s,a,b,source,end){
   let obstacle=null;
@@ -606,7 +644,7 @@ function missedTrace(s,a,b,event,chance){
   const ground=h<0?-origin.h/h:Infinity,travel=Math.min(WEAPONS[event.weapon].range,ground);
   const end={x:origin.x+x*travel,y:origin.y+y*travel,h:Math.max(0,origin.h+h*travel)};
   const obstacle=firstShotObstacle(s,origin,end,origin.h,end.h);
-  return {traceEnd:obstacle?.point??end,missImpact:!!obstacle||travel===ground};
+  return {traceEnd:obstacle?.point??end,missImpact:!!obstacle||travel===ground,...(obstacle?.box.wallEdge?{wallEdge:obstacle.box.wallEdge}:{})};
 }
 
 export function confirmedImpact(s,a,b,zone='torso'){
@@ -631,25 +669,33 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
     const fireBefore=s.fireAnimationSequence||0,windowBefore=s.windowSequence||0,event={shooter:a.id,target:b.id,ax:a.x,ay:a.y,ah:eyeHeight(a),bx:b.x,by:b.y,bh:shotHeight(b,zone),sourceVisible:a.team==='squad'||s.detected.has(a.id),incendiary:w.incendiary,hit:false,weapon,shot:round,explosions:[]};sequence.push(event);
     if(w.incendiary){event.flame=recordFlame(a,w.range,geometryNear(s,a,a,w.range,'flame'),s.visible);event.impacts=resolveFlame(s,a,event);event.hit=event.impacts.length>0;}
     else if(w.blast){
-      const impact=confirmedImpact(s,a,b,zone),origin=impact?.box?.windowPart||impact?.box?.trunk?impact.point:b;event.bx=origin.x;event.by=origin.y;event.bh=origin.h??event.bh;
+      const impact=confirmedImpact(s,a,b,zone),box=impact?.box;
+      const origin=box?.windowPart||box?.trunk||s.realtime&&box?.wallEdge?impact.point:b;event.bx=origin.x;event.by=origin.y;event.bh=origin.h??event.bh;
+      const walls=planWallBlast(s,{...origin,h:event.bh},w.blast,d=>w.damage*(1-d/w.blast));
       for(const victim of s.units.filter(alive))if(alive(victim)&&distance(victim,origin)<=w.blast&&lineClear(s,origin,victim)){if(!detonateImpact(s,a,victim,'torso',w,event))hurt(s,victim,Math.round(w.damage*Math.max(.2,1-distance(victim,origin)/(w.blast+1))));event.hit=true;}
       windowBlast(s,origin,w.blast);
+      commitWallDamage(s,walls,event);
     }else{
+      const damage=w.pellets?w.damage*w.pellets*.48:w.damage;
       const rolledHit=random(s)*100<p.chance,impact=rolledHit?(w.mag||s.windows?.length?confirmedImpact(s,a,b,zone):alive(b)?{unit:b,zone}:null):null;
       if(impact?.box){event.bx=impact.point.x;event.by=impact.point.y;event.bh=impact.point.h;
         if(impact.box.kind==='glass'){const record=windowSystem.compile(s).find(r=>r.placement.id===impact.box.windowId),local=windowToLocal(record.placement,{...a,h:eyeHeight(a)});
           const broken=windowSystem.breakPane(s,impact.box.windowId,impact.box.paneId,impact.point,{cause:w.mag?'bullet':'melee',direction:local[2]<0?1:-1});if(broken){geometryCache.delete(s);event.glass=true;}
         }
-        if(s.realtime&&w.mag&&!event.glass)event.missImpact=true;
+        if(s.realtime&&w.mag&&!event.glass){
+          event.missImpact=true;
+          if(impact.box.wallEdge)event.wallEdge=impact.box.wallEdge;
+        }
       }else if(impact?.unit){
         const victim=impact.unit,known=victim.team==='squad'||s.detected.has(victim.id);
         const contact=s.realtime&&w.mag&&known?bodyShotContact(event,impact):null,hpBefore=victim.hp;
         event.hit=true;event.impact={unitId:victim.id,zone:impact.zone};event.bx=victim.x;event.by=victim.y;event.bh=shotHeight(victim,impact.zone);
         if(!detonateImpact(s,a,victim,impact.zone,w,event)){
-          hurt(s,victim,Math.round((w.pellets?w.damage*w.pellets*.48:w.damage)*(AIM_ZONES[impact.zone]?.damage||1)));
+          hurt(s,victim,Math.round(damage*(AIM_ZONES[impact.zone]?.damage||1)));
           if(contact&&hpBefore>victim.hp)event.bodyImpact={contact,seed:s.seed,strength:.7+.5*(hpBefore-victim.hp)/victim.maxHp};
         }
       }else if(w.mag)Object.assign(event,missedTrace(s,a,b,event,p.chance));
+      if(event.wallEdge)commitWallDamage(s,[{edge:event.wallEdge,damage}],event);
     }
     event.windowSequences=windowReceipts(s,windowBefore);event.fireSequences=(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence);if(event.hit)hits++;
   }
@@ -707,7 +753,7 @@ export function decodeSave(text){
   if(Array.isArray(s.interactables)&&s.interactables.some(object=>object?.kind!=='body'&&(!object||!insideWorld(canonical,object))))throw Error('Unsupported object save.');
   // Saved terrain/door state remains played state. Imported immutable scenery
   // is always rebuilt from the mission, never trusted from a save or a window.
-  mapMetadata(s,map);windowSystem.restore(s);
+  mapMetadata(s,map);windowSystem.restore(s);restoreWallDamage(s,map);
   if(s.solo.objectives===undefined)s.solo.objectives={};
   if(!s.solo.objectives||typeof s.solo.objectives!=='object'||Array.isArray(s.solo.objectives)||Object.entries(s.solo.objectives).some(([id,value])=>id!==mission.objective.id||typeof value!=='boolean'))throw Error('Unsupported objective save.');
   if(mission.id===DEFAULT_MISSION_ID&&s.solo.ledger)s.solo.objectives.ledger=true;

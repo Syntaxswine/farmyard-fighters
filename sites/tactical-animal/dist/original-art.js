@@ -2,11 +2,13 @@ import * as T from './aft/tactics/vendor/three.module.js';
 import {PAINTED_PROP_FORMS,cargoFinish} from './aft/tactics/battle-environment.js';
 import {createCargoLibrary,CARGO_ATLAS} from './aft/tactics/painted-cargo.js';
 import {PAINTED_ATLAS} from './aft/tactics/painted-environment-scene.js';
+import {wallBreachEnds,wallFamily} from './aft/tactics/wall-breaches.js';
+import {wallBreachGeometry} from './aft/tactics/wall-breach-geometry.js';
 import {WALL_DIMENSIONS} from './world-dimensions.js';
 import {blockForPoint,blockWindow,worldBounds} from './world-grid.js';
 import {windowChanges} from './render-residency.js';
-import {windowSystem} from './window-catalogue.js';
 import {legacyWallSpan} from './window-system.js';
+import {wallGaps,wallMaterial} from './wall-damage.js';
 export {weaponArtwork} from './weapon-artwork.js';
 
 const origin=new URL('./aft/tactics/',import.meta.url);
@@ -14,6 +16,7 @@ const key=(x,y)=>`${Math.round(x)},${Math.round(y)}`;
 const surfaces={
   brick:{file:'hybrid-surfaces/brick-factory-v1.png',period:2,tint:0xd7c4ad},
   concrete:{file:'ground-concrete.png',period:2,tint:0xd4cfbe},
+  metal:{file:'wall-corrugated.png',period:1,tint:0xd4cfbe},
   gravel:{file:'ground-gravel.png',period:2,tint:0xd4cfbe},
   grass:{file:'ground-grass.png',period:1.5,tint:0xd4cfbe},
   asphalt:{file:'ground-asphalt.png',period:2,tint:0xd4cfbe},
@@ -42,7 +45,7 @@ export function foregroundWall(wall,unit){
 export class OriginalEnvironment {
   constructor(renderer,state,{onLoading=()=>{},onError=()=>{},loader}={}){
     this.root=new T.Group();this.root.name='Animal Factory Tactics original art';
-    Object.assign(this,{state,disposed:false,materials:[],textures:[],chunks:new Map(),index:new Map(),prototypes:new Map(),materialCache:new Map(),texturesByKind:{},stats:{created:0,disposed:0},replaced:new Set()});
+    Object.assign(this,{state,disposed:false,materials:[],textures:[],chunks:new Map(),index:new Map(),prototypes:new Map(),materialCache:new Map(),breachGeometry:new Map(),texturesByKind:{},stats:{created:0,disposed:0},replaced:new Set()});
     const manager=new T.LoadingManager();
     manager.onStart=()=>{if(!this.disposed)onLoading(true);};
     manager.onLoad=()=>{if(!this.disposed)onLoading(false);};
@@ -52,23 +55,24 @@ export class OriginalEnvironment {
     this.cube=new T.BoxGeometry(1,1,1);
     const bucket=point=>{const b=blockForPoint(point),id=`${b.x},${b.y}`;if(!this.index.has(id))this.index.set(id,{walls:[],cargo:[],sandbags:[]});return this.index.get(id);};
     const doors=new Set((state.interactables||[]).filter(object=>object.kind==='door').map(object=>object.edge));
-    const covered=new Set(windowSystem.compile(state).flatMap(r=>r.edges));
+    const gaps=wallGaps(state),wallMaterials=new Set(['brick','concrete']);
     for(const [edge,kind]of Object.entries(state.edges)){
-      const span=legacyWallSpan(edge,covered,WALL_DIMENSIONS.length);if(kind==='door'||doors.has(edge)||!span)continue;
-      const [axis,x,y]=edge.split(':'),wall={axis,x:+x,y:+y,span};bucket(wall).walls.push(wall);
+      if(kind==='door'||doors.has(edge)||gaps.has(edge))continue;
+      const [axis,x,y]=edge.split(':'),family=wallFamily(wallMaterial(state,edge))||'brick',wall={edge,axis,x:+x,y:+y,family};
+      bucket(wall).walls.push(wall);wallMaterials.add(family);
     }
     const occupied=new Set();
     for(const p of state.props||[]){
       if(PAINTED_PROP_FORMS[p.kind]){bucket(p).cargo.push({...p,form:PAINTED_PROP_FORMS[p.kind]});occupied.add(key(p.x,p.y));}
       else if(p.kind==='sandbags')bucket(p).sandbags.push(p);
     }
-    const used=new Set(['brick','concrete']),bounds=worldBounds(state);
+    const used=new Set(wallMaterials),bounds=worldBounds(state);
     for(let y=bounds.y;y<bounds.y+bounds.h;y++)for(let x=bounds.x;x<bounds.x+bounds.w;x++){
       used.add(groundSurface(state,x,y));
       if(state.map[y][x]==='crate'&&!occupied.has(key(x,y)))bucket({x,y}).cargo.push({x,y,form:'crate-square'});
     }
     for(const kind of used)this.material(kind);
-    this.material('brick',true);this.material('concrete',true);
+    for(const kind of wallMaterials)this.material(kind,true);
     if([...this.index.values()].some(group=>group.sandbags.length)){
       this.sandbagPaint=this.load('../assets/environment/sandbags.png');this.sandbagPaint.colorSpace=T.SRGBColorSpace;
       // Alpha bounds of the unmodified 1254px source painting, with 2px bleed.
@@ -89,22 +93,22 @@ export class OriginalEnvironment {
   // only once that art is in the scene, so a late or failed kit leaves the
   // inherited cargo standing instead of an invisible collider.
   replace(tiles){for(const tile of tiles)this.replaced.add(tile);if(this.window)this.update(this.state,this.unit,this.window);}
-  material(kind,faded=false){
-    const id=`${kind}:${faded}`;if(this.materialCache.has(id))return this.materialCache.get(id);
+  material(kind,faded=false,breach=false){
+    const id=`${kind}:${faded}:${breach}`;if(this.materialCache.has(id))return this.materialCache.get(id);
     const surface=surfaces[kind];let texture=this.texturesByKind[kind];
     if(!texture){texture=this.load('../assets/environment/'+surface.file);texture.colorSpace=T.SRGBColorSpace;texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.anisotropy=this.anisotropy;this.texturesByKind[kind]=texture;}
-    const material=new T.MeshStandardMaterial({map:texture,color:surface.tint,roughness:.95,transparent:faded,opacity:faded?.24:1,depthWrite:!faded});
+    const material=new T.MeshStandardMaterial({map:texture,color:surface.tint,roughness:.95,transparent:faded,opacity:faded?.24:1,depthWrite:!faded,vertexColors:breach});
     material.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <uv_vertex>',`#include <uv_vertex>
       #ifdef USE_MAP
       vec3 surfaceWorld=(instanceMatrix*vec4(position,1.0)).xyz;
       vMapUv=(abs(normal.y)>.5?surfaceWorld.xz:abs(normal.x)>.5?surfaceWorld.zy:surfaceWorld.xy)/${surface.period.toFixed(2)};
       #endif`);};
-    material.customProgramCacheKey=()=>`aft-mobile-surface-${kind}-${faded}`;
+    material.customProgramCacheKey=()=>`aft-mobile-surface-${id}`;
     this.materials.push(material);this.materialCache.set(id,material);return material;
   }
   buildChunk(rect){
     const group=new T.Group();group.name='Resident block '+rect.id;
-    const chunk={rect,group,grounds:[],walls:[],cargo:[],sandbags:[],source:this.index.get(rect.id)||{walls:[],cargo:[],sandbags:[]}};
+    const chunk={rect,group,grounds:[],walls:[],breachMeshes:new Map(),cargo:[],sandbags:[],source:this.index.get(rect.id)||{walls:[],cargo:[],sandbags:[]}};
     const bounds=worldBounds(this.state),groups=new Map(),matrix=new T.Matrix4(),rotation=new T.Quaternion(),position=new T.Vector3(),scale=new T.Vector3();
     for(let y=Math.max(rect.y,bounds.y);y<Math.min(rect.y+rect.h,bounds.y+bounds.h);y++)for(let x=Math.max(rect.x,bounds.x);x<Math.min(rect.x+rect.w,bounds.x+bounds.w);x++){
       const kind=groundSurface(this.state,x,y);if(!groups.has(kind))groups.set(kind,[]);groups.get(kind).push({x,y});
@@ -114,10 +118,12 @@ export class OriginalEnvironment {
       records.forEach((p,i)=>{matrix.compose(position.set(p.x,-.06,p.y),rotation,scale.set(1.006,.1,1.006));mesh.setMatrixAt(i,matrix);mesh.setColorAt(i,new T.Color(0));});
       mesh.receiveShadow=true;mesh.userData.noShadow=true;mesh.computeBoundingSphere();group.add(mesh);chunk.grounds.push({mesh,records});
     }
-    for(const axis of ['e','s'])for(const faded of [false,true]){
-      const edges=chunk.source.walls.filter(wall=>wall.axis===axis);if(!edges.length)continue;
-      const brick=this.material('brick',faded),cap=this.material('concrete',faded),faces=axis==='e'?[brick,brick,cap,cap,cap,cap]:[cap,cap,cap,cap,brick,brick];
+    const families=new Set(chunk.source.walls.map(wall=>wall.family));
+    for(const family of families)for(const axis of ['e','s'])for(const faded of [false,true]){
+      const edges=chunk.source.walls.filter(wall=>wall.axis===axis&&wall.family===family);if(!edges.length)continue;
+      const side=this.material(family,faded),cap=this.material('concrete',faded),faces=axis==='e'?[side,side,cap,cap,cap,cap]:[cap,cap,cap,cap,side,side];
       const mesh=new T.InstancedMesh(this.cube,faces,edges.length);mesh.setColorAt(0,new T.Color(1,1,1));mesh.count=0;
+      mesh.userData.wallEdges=[];
       mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);chunk.walls.push({mesh,edges,axis,faded});
     }
     for(const p of chunk.source.sandbags){
@@ -148,11 +154,36 @@ export class OriginalEnvironment {
   releaseChunk(chunk){
     chunk.group.removeFromParent();
     for(const {mesh}of [...chunk.grounds,...chunk.walls,...chunk.cargo])mesh.dispose();
+    for(const mesh of chunk.breachMeshes.values())mesh.dispose();
     for(const {sprite}of chunk.sandbags)sprite.material.dispose();
     chunk.group.clear();this.stats.disposed++;
   }
+  breachMesh(chunk,wall,mask,faded){
+    const seed=((wall.x*17+wall.y*31)%3+3)%3,shape=`breach-${wall.family}-${mask}-${seed}-${wall.axis}-wall`;
+    if(!this.breachGeometry.has(shape))this.breachGeometry.set(shape,wallBreachGeometry(shape));
+    const geometry=this.breachGeometry.get(shape),material=this.material(wall.family,faded,true);
+    let mesh=chunk.breachMeshes.get(wall.edge);
+    if(!mesh){
+      mesh=new T.InstancedMesh(geometry,material,1);mesh.name='Broken wall end';mesh.userData.wallEdges=[wall.edge];
+      mesh.castShadow=mesh.receiveShadow=true;chunk.group.add(mesh);chunk.breachMeshes.set(wall.edge,mesh);
+    }
+    mesh.geometry=geometry;mesh.material=material;mesh.visible=true;
+    return mesh;
+  }
+  pickWall(ray){
+    const meshes=[];
+    for(const chunk of this.chunks.values()){
+      for(const {mesh} of chunk.walls)if(mesh.count)meshes.push(mesh);
+      for(const mesh of chunk.breachMeshes.values())if(mesh.visible)meshes.push(mesh);
+    }
+    return ray.intersectObjects(meshes,false)[0];
+  }
   update(state,unit,window=blockWindow(state,unit||{x:0,y:0})){
     if(this.disposed)return;this.state=state;this.unit=unit;
+    if(!this.gaps||this.lastBreaches!==state.wallBreaches){
+      this.lastBreaches=state.wallBreaches;this.gaps=wallGaps(state);
+      this.breachEnds=state.wallBreaches?wallBreachEnds({edges:state.edges,breaches:{edges:state.wallBreaches}}):new Map();
+    }
     if(this.window?.key!==window.key){
       const delta=windowChanges(this.window,window);
       for(const rect of delta.disposed){this.releaseChunk(this.chunks.get(rect.id));this.chunks.delete(rect.id);}
@@ -164,13 +195,22 @@ export class OriginalEnvironment {
       for(const {mesh,records}of chunk.grounds){
         records.forEach((p,i)=>{const known=state.seen.has(key(p.x,p.y)),lit=state.visible.has(key(p.x,p.y));mesh.setColorAt(i,color.setScalar(known?(lit?1:.38):state.groundPalette==='aft-sector'?0:.018));});mesh.instanceColor.needsUpdate=true;
       }
+      for(const [edge,mesh] of chunk.breachMeshes){
+        if(!this.breachEnds.has(edge)||!state.edges[edge]){mesh.removeFromParent();mesh.dispose();chunk.breachMeshes.delete(edge);}
+        else mesh.visible=false;
+      }
       for(const {mesh,edges,axis,faded}of chunk.walls){
         let count=0;
         for(const wall of edges){
-          if(!wallKnown(state,wall)||foregroundWall(wall,unit)!==faded)continue;
-          const middle=(wall.span.min+wall.span.max)/2,length=wall.span.max-wall.span.min;
+          if(!state.edges[wall.edge]||!wallKnown(state,wall)||foregroundWall(wall,unit)!==faded)continue;
+          const span=legacyWallSpan(wall.edge,this.gaps,WALL_DIMENSIONS.length);if(!span)continue;
+          const middle=(span.min+span.max)/2,length=span.max-span.min;
           matrix.compose(position.set(axis==='e'?wall.x+.5:middle,WALL_DIMENSIONS.height/2,axis==='s'?wall.y+.5:middle),rotation,scale.set(axis==='e'?WALL_DIMENSIONS.thickness:length,WALL_DIMENSIONS.height,axis==='e'?length:WALL_DIMENSIONS.thickness));
-          mesh.setMatrixAt(count,matrix);const lit=state.visible.has(key(wall.x,wall.y))||state.visible.has(key(wall.x+(axis==='e'?1:0),wall.y+(axis==='s'?1:0)));mesh.setColorAt(count++,color.setScalar(lit?1:.5));
+          const mask=this.breachEnds.get(wall.edge),target=mask?this.breachMesh(chunk,wall,mask,faded):mesh,index=mask?0:count++;
+          const lit=state.visible.has(key(wall.x,wall.y))||state.visible.has(key(wall.x+(axis==='e'?1:0),wall.y+(axis==='s'?1:0)));
+          target.setMatrixAt(index,matrix);target.setColorAt(index,color.setScalar(lit?1:.5));
+          target.userData.wallEdges[index]=wall.edge;
+          if(mask){target.instanceMatrix.needsUpdate=true;target.instanceColor.needsUpdate=true;target.computeBoundingSphere();}
         }
         mesh.count=count;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();
       }
@@ -186,6 +226,7 @@ export class OriginalEnvironment {
     if(this.disposed)return;this.disposed=true;
     for(const chunk of this.chunks.values())this.releaseChunk(chunk);this.chunks.clear();
     this.root.removeFromParent();this.root.clear();this.library?.dispose();this.prototypes.clear();this.cube.dispose();
+    for(const geometry of this.breachGeometry.values())geometry.dispose();this.breachGeometry.clear();
     for(const material of this.materials)material.dispose();for(const texture of this.textures)texture.dispose();
   }
 }

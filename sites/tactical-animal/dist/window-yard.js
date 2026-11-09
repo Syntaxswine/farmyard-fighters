@@ -8,7 +8,7 @@ const message=text=>$('message').textContent=text;
 function start(saved){
   cancelFireHold();view?.dispose();view=null;state=null;target=null;mode='shot';input={x:0,y:0};
   try{const source=authored?JSON.parse(localStorage.getItem('farmyard-window-authored-map')):undefined;if(authored&&!source)throw Error('Open the map from Playtest map in the designer.');state=saved||createSoloGame({...DEFAULT_BUILD,primary:$('weapon').value,utility:'grenade'},1,'window-yard',{authoredMap:source});
-    if(new URLSearchParams(location.search).get('rules')!=='turn-based')Core.enableRealtime(state);view=new FieldView($('viewport'),{onPick:pick,onLoading:busy=>$('loading').hidden=!busy,onError:message});view.setGame(state);view.windowEffects.muted=$('mute').checked;for(const id of ['save','turn','reload','grenade','center','cancel'])$(id).disabled=false;$('loading').textContent='Preparing the field…';message('Tap glass or a guard to aim. Plain panes span the whole window; divided panes break independently.');render();
+    if(new URLSearchParams(location.search).get('rules')!=='turn-based')Core.enableRealtime(state);view=new FieldView($('viewport'),{onPick:pick,aimAtWall:()=>mode==='shot',onLoading:busy=>$('loading').hidden=!busy,onError:message});view.setGame(state);view.windowEffects.muted=$('mute').checked;for(const id of ['save','turn','reload','grenade','center','cancel'])$(id).disabled=false;$('loading').textContent='Preparing the field…';message(state.realtime?'Tap a wall, glass, or a guard to aim.':'Tap glass or a guard to aim. Plain panes span the whole window; divided panes break independently.');render();
   }catch(e){for(const id of ['save','turn','reload','grenade','center','cancel','fire','burst'])$(id).disabled=true;$('loading').hidden=false;$('loading').textContent=e.message;message('The field could not be opened. Check the map in the designer, or retry in a browser with WebGL.');}
 }
 function preview(burst=false){
@@ -39,6 +39,7 @@ function render(){
 function pick(p){cancelFireHold();if(!Core.canControl(state,hero(state)))return;view.unlockSound();
   if(mode==='grenade'){target=p;Core.stop(state);message(Core.previewGrenade(state,hero(state),p).reason||'Grenade aimed. Throw to confirm.');}
   else if(p.windowId){target={...p,name:p.paneId?'Glass pane':'Window frame'};Core.stop(state);message(`${target.name}: ${p.windowId}${p.paneId?' / '+p.paneId:''}. Fire to confirm.`);}
+  else if(p.wallEdge){target={...p,name:'Wall'};Core.stop(state);message('Wall aimed. Fire to confirm.');}
   else if(p.unitId!==undefined&&p.unitId!==0){target=state.units.find(u=>u.id===p.unitId);Core.stop(state);message('Target: '+target.name);}
   else if(Number.isFinite(p.x)){target=null;const path=Core.navigationPath(state,hero(state),p.x,p.y);if(path){Core.move(state,hero(state),p.x,p.y);view.route(path);}else message('No clear walking route. Broken windows keep the existing wall passage rule.');}
   render();

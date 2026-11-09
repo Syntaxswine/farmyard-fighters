@@ -48,8 +48,8 @@ function disposeWeaponEffect(effect){
   effect.projectile?.dispose();
 }
 export class FieldView {
-  constructor(container, {onPick, onLoading, onError, getAimViewport}) {
-    this.container=container;this.onPick=onPick;this.onLoading=onLoading;this.onError=onError;this.getAimViewport=getAimViewport;
+  constructor(container, {onPick, onLoading, onError, getAimViewport, aimAtWall}) {
+    this.container=container;this.onPick=onPick;this.onLoading=onLoading;this.onError=onError;this.getAimViewport=getAimViewport;this.aimAtWall=aimAtWall;
     this.renderer=new T.WebGLRenderer({antialias:true,alpha:false});
     this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
     this.renderer.outputColorSpace=T.SRGBColorSpace;
@@ -106,6 +106,11 @@ export class FieldView {
     const point=this.ground(e.clientX,e.clientY);if(!point)return;
     const picks=[...this.actors.values()].filter(a=>a.root.visible&&a.pick.visible).map(a=>a.pick).concat(this.interactionArt?.picks||[],this.windowArt?.picks||[]);
     const hits=this.ray.intersectObjects(picks,false),hit=hits[0]?.object.userData.windowPaneId?hits.find(h=>h.object.userData.unitId!==undefined)||hits[0]:hits[0];
+    const wall=this.state?.realtime&&this.aimAtWall?.()?this.art?.pickWall?.(this.ray):null;
+    if(wall&&(!hit||wall.distance<hit.distance)){
+      const p=wall.point.addScaledVector(this.ray.ray.direction,.004);
+      this.onPick({x:p.x,y:p.z,h:Math.max(0,p.y),ground:true,wallEdge:wall.object.userData.wallEdges[wall.instanceId],targetName:'Wall'});return;
+    }
     this.onPick(hit?hit.object.userData.windowId?{windowId:hit.object.userData.windowId,paneId:hit.object.userData.windowPaneId,ground:true,x:hit.point.x,y:hit.point.z,h:hit.point.y}:hit.object.userData.interactionId?{interactionId:hit.object.userData.interactionId}:{unitId:hit.object.userData.unitId}:{x:point.x,y:point.z});
   }
   unlockSound(){
