@@ -574,6 +574,15 @@ function firstShotObstacle(s,a,b,source,end){
   return obstacle;
 }
 
+function bodyShotContact(event,{unit,t}){
+  const dx=event.bx-event.ax,dy=event.by-event.ay,dh=event.bh-event.ah,reach=Math.hypot(dx,dy,dh);
+  if(!reach)return null;
+  const origin={x:event.ax,y:event.ay,h:event.ah},direction={x:dx/reach,y:dy/reach,h:dh/reach};
+  const contact=bodyIntersection(unit,origin,direction,reach,bodyHeight(unit));
+  const fraction=contact?contact.distance/reach:t;
+  return {x:origin.x+dx*fraction,y:origin.y+dy*fraction,h:origin.h+dh*fraction};
+}
+
 function missedTrace(s,a,b,event,chance){
   const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
   if(!s.realtime){
@@ -631,8 +640,15 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
         if(impact.box.kind==='glass'){const record=windowSystem.compile(s).find(r=>r.placement.id===impact.box.windowId),local=windowToLocal(record.placement,{...a,h:eyeHeight(a)});
           const broken=windowSystem.breakPane(s,impact.box.windowId,impact.box.paneId,impact.point,{cause:w.mag?'bullet':'melee',direction:local[2]<0?1:-1});if(broken){geometryCache.delete(s);event.glass=true;}
         }
-      }else if(impact?.unit){const victim=impact.unit;event.hit=true;event.impact={unitId:victim.id,zone:impact.zone};event.bx=victim.x;event.by=victim.y;event.bh=shotHeight(victim,impact.zone);
-        if(!detonateImpact(s,a,victim,impact.zone,w,event))hurt(s,victim,Math.round((w.pellets?w.damage*w.pellets*.48:w.damage)*(AIM_ZONES[impact.zone]?.damage||1)));
+        if(s.realtime&&w.mag&&!event.glass)event.missImpact=true;
+      }else if(impact?.unit){
+        const victim=impact.unit,known=victim.team==='squad'||s.detected.has(victim.id);
+        const contact=s.realtime&&w.mag&&known?bodyShotContact(event,impact):null,hpBefore=victim.hp;
+        event.hit=true;event.impact={unitId:victim.id,zone:impact.zone};event.bx=victim.x;event.by=victim.y;event.bh=shotHeight(victim,impact.zone);
+        if(!detonateImpact(s,a,victim,impact.zone,w,event)){
+          hurt(s,victim,Math.round((w.pellets?w.damage*w.pellets*.48:w.damage)*(AIM_ZONES[impact.zone]?.damage||1)));
+          if(contact&&hpBefore>victim.hp)event.bodyImpact={contact,seed:s.seed,strength:.7+.5*(hpBefore-victim.hp)/victim.maxHp};
+        }
       }else if(w.mag)Object.assign(event,missedTrace(s,a,b,event,p.chance));
     }
     event.windowSequences=windowReceipts(s,windowBefore);event.fireSequences=(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence);if(event.hit)hits++;

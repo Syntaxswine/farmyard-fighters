@@ -18,6 +18,7 @@ import {clueAnchorHeight,missionHasArt,SCENERY_DIGEST} from './mission-scenery.j
 import {SoloFlameEffects} from './flame-effects.js';
 import {FIRE_TIME,fireState} from './aft/tactics/painted-fire-state.js';
 import {SoloBurnEffects} from './burn-effects.js';
+import {BodyImpactEffects} from './body-impact-effects.js';
 import {SoloTankEffects} from './tank-effects.js';
 import {createFlameOperator} from './flame-pose.js';
 import {FlameConePreview} from './flame-aim-view.js';
@@ -26,7 +27,7 @@ import {blockWindow,pointInWorldRect,worldBounds} from './world-grid.js';
 import {clampCameraPoint,contactCameraFrame,residentCameraSpan,residentWindowForCamera,MAX_CAMERA_SPAN} from './render-residency.js';
 import {SearchHalo,searchHaloCandidates,searchHaloTarget} from './search-halo.js';
 import {WindowScenery,WindowEffects} from './window-view.js';
-import {ballistic,createWeaponAudio,GRENADE_IMPACT_MS,missImpactFlash,muzzleFlash,playWeaponSound,setTracer,traceEnd,traceStart,tracerMesh} from './weapon-feedback.js';
+import {ballistic,createWeaponAudio,GRENADE_IMPACT_MS,muzzleFlash,playWeaponSound,setTracer,surfaceImpactFlash,traceEnd,traceStart,tracerMesh} from './weapon-feedback.js';
 import {shotVisible} from './aft/tactics/shot-coordinates.js';
 import {actionDuration,createWeaponPose,weaponAction} from './weapon-pose.js';
 import {createGrenadePose,grenadeAction} from './grenade-pose.js';
@@ -122,6 +123,7 @@ export class FieldView {
     this.weaponAudio?.dispose();this.weaponAudio=null;this.lastDischarge=null;this.playerWeaponPose=null;
     this.shotVisuals?.clear();this.discharges?.clear();
     this.tankEffects?.dispose();this.tankEffects=null;this.burnEffects?.dispose();this.burnEffects=null;
+    this.bodyImpacts?.dispose();this.bodyImpacts=null;
     for(const effect of this.effects)disposeWeaponEffect(effect);
     this.effects=[];this.flameEffects?.dispose();this.flameEffects=null;this.flameCone?.dispose();this.flameCone=null;this.flameAim=null;this.lastEffect=null;
   }
@@ -131,7 +133,7 @@ export class FieldView {
   // Mission art owns its geometry; detach it before the generic traversal below.
   clearEnvironment(){this.guardSight?.dispose();this.guardSight=null;this.windowArt?.dispose();this.windowArt=null;this.windowEffects?.dispose();this.windowEffects=null;this.searchHalo?.dispose();this.searchHalo=null;this.missionArt?.dispose();this.missionArt=null;this.missionArtBusy=this.missionPaperBusy=false;this.interactionArt?.dispose();this.interactionArt=null;this.art?.dispose();this.art=null;this.environment.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});this.environment.clear();for(const t of this.disposables)t.dispose();this.disposables=[];}
   buildEnvironment(s){
-    if(s.realtime)this.guardSight=new GuardSightView(this.environment);
+    if(s.realtime){this.guardSight=new GuardSightView(this.environment);this.bodyImpacts=new BodyImpactEffects(this.scene);}
     this.windowArt=new WindowScenery(s);this.environment.add(this.windowArt.root);this.windowEffects=new WindowEffects(this.scene,s);
     const tour=getTourWorld(s);if(tour){
       const generation=this.generation;this.artBusy=true;this.propBusy=this.missionArtBusy=this.missionPaperBusy=false;this.searchHalo=null;this.objectivePin=this.extractionPin=null;
@@ -352,8 +354,9 @@ export class FieldView {
           ?actor.equipment.anchors.muzzle?.getWorldPosition(V()):null;
         const origin=traceStart(event,muzzle,end,s);
         shot.hasTrace=setTracer(line,origin,end,s,event.weapon);line.visible=shot.hasTrace;
-        if(event.missImpact&&shot.hasTrace&&shotVisible(s,end)){
-          shot.impact=missImpactFlash(end);this.scene.add(shot.impact);
+        this.bodyImpacts?.present(event,s,now);
+        if(event.missImpact&&shotVisible(s,end)){
+          shot.impact=surfaceImpactFlash(end);this.scene.add(shot.impact);
         }
         if(muzzle===origin&&s.visible.has(Core.key(origin.x,origin.z))){
           shot.flash=muzzleFlash(origin,end,event.weapon);this.scene.add(shot.flash);
@@ -373,7 +376,7 @@ export class FieldView {
         const progress=age/shot.ttl;
         shot.impact.visible=shotVisible(s,shot.impact.position);
         shot.impact.scale.setScalar(1+progress);
-        shot.impact.material.opacity=1-progress;
+        shot.impact.material.opacity=.8*(1-progress);
       }
     }
   }
@@ -498,6 +501,7 @@ export class FieldView {
     this.art?.setFocus?.(u,this.camera);
     this.guardSight?.update(s,u,s.solo.status==='active'?visible:[],window,now);
     this.drawShotTraces(s,now);
+    this.bodyImpacts?.draw(s,this.camera,now);
     this.drawGrenadeFlights(s,now);
     const windowStart=event=>{const shot=s.effect?.sequence?.find(e=>e.windowSequences?.includes(event.sequence));if(!shot)return now;const flame=this.flameEffects?.queue.find(e=>e.event===shot);if(flame)return flame.muzzle&&flame.last!==null?now+Math.max(0,.64-flame.elapsed)*1000:null;const visual=this.shotVisuals?.get(shot);if(visual?.started===false)return null;return (visual?.at??this.effectAt??now)+(shot.weapon==='grenade'?GRENADE_IMPACT_MS:0);};
     this.windowEffects?.observe(s,now,window,windowStart);this.windowArt?.update(s,window,(id,pane)=>this.windowEffects?.holds(id,pane));

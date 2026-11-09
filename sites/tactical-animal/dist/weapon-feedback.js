@@ -91,11 +91,12 @@ export function setTracer(beam,start,end,state,weapon){
   return positions.length>0;
 }
 
-export function missImpactFlash(end){
-  const flash=new T.Mesh(new T.OctahedronGeometry(.095),new T.MeshBasicMaterial({
-    color:0xf5cb98,transparent:true,depthWrite:false,toneMapped:false
+export function surfaceImpactFlash(end){
+  // The cover and ground marker from AFT's BattleShotEffects.
+  const flash=new T.Mesh(new T.OctahedronGeometry(.07),new T.MeshBasicMaterial({
+    color:0xd5b78a,opacity:.8,transparent:true,depthWrite:false,toneMapped:false
   }));
-  flash.name='Miss impact';
+  flash.name='Surface impact';
   flash.position.copy(end);flash.position.shotLevel=end.shotLevel;
   return flash;
 }
