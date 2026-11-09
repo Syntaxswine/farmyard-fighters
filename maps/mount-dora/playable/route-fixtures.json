@@ -1,6 +1,6 @@
 {
   "schema": "mount-dora-route-evidence/1",
-  "sourceProjectSHA256": "0a27cb75ed90a5bc5f789a31f27a29a6175ec66cc4540ccfa13f2139e0e212e6",
+  "sourceProjectSHA256": "dfaf44cf017cea17613c45424dfab29747d5bdbd7ecaf45d91368d6527aff8bc",
   "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
   "coordinateFrame": "town east/south metres; game = town - (0.5,0.5)",
   "bounds": [
@@ -22,107 +22,107 @@
     "name": "Donnelly Park west approach",
     "townPoint": [
       459.5,
-      500.5
+      499.5
     ]
   },
-  "reachableOutdoorCells": 1672171,
+  "reachableOutdoorCells": 1671446,
   "reachedLandSectors": 39,
   "sectors": [
     {
       "id": "A01",
-      "reachedOutdoorCells": 49614
+      "reachedOutdoorCells": 49559
     },
     {
       "id": "B01",
-      "reachedOutdoorCells": 48077
+      "reachedOutdoorCells": 47983
     },
     {
       "id": "C01",
-      "reachedOutdoorCells": 48537
+      "reachedOutdoorCells": 48461
     },
     {
       "id": "D01",
-      "reachedOutdoorCells": 49124
+      "reachedOutdoorCells": 49052
     },
     {
       "id": "E01",
-      "reachedOutdoorCells": 50263
+      "reachedOutdoorCells": 50209
     },
     {
       "id": "F01",
-      "reachedOutdoorCells": 50872
+      "reachedOutdoorCells": 50964
     },
     {
       "id": "A02",
-      "reachedOutdoorCells": 43067
+      "reachedOutdoorCells": 43141
     },
     {
       "id": "B02",
-      "reachedOutdoorCells": 46080
+      "reachedOutdoorCells": 45966
     },
     {
       "id": "C02",
-      "reachedOutdoorCells": 48957
+      "reachedOutdoorCells": 49017
     },
     {
       "id": "D02",
-      "reachedOutdoorCells": 50184
+      "reachedOutdoorCells": 50178
     },
     {
       "id": "E02",
-      "reachedOutdoorCells": 43355
+      "reachedOutdoorCells": 43143
     },
     {
       "id": "F02",
-      "reachedOutdoorCells": 50243
+      "reachedOutdoorCells": 50339
     },
     {
       "id": "A03",
-      "reachedOutdoorCells": 21078
+      "reachedOutdoorCells": 20921
     },
     {
       "id": "B03",
-      "reachedOutdoorCells": 40767
+      "reachedOutdoorCells": 40620
     },
     {
       "id": "C03",
-      "reachedOutdoorCells": 45986
+      "reachedOutdoorCells": 46049
     },
     {
       "id": "D03",
-      "reachedOutdoorCells": 49403
+      "reachedOutdoorCells": 49420
     },
     {
       "id": "E03",
-      "reachedOutdoorCells": 48261
+      "reachedOutdoorCells": 48347
     },
     {
       "id": "F03",
-      "reachedOutdoorCells": 50104
+      "reachedOutdoorCells": 50146
     },
     {
       "id": "A04",
-      "reachedOutdoorCells": 3465
+      "reachedOutdoorCells": 3480
     },
     {
       "id": "B04",
-      "reachedOutdoorCells": 47285
+      "reachedOutdoorCells": 47097
     },
     {
       "id": "C04",
-      "reachedOutdoorCells": 50958
+      "reachedOutdoorCells": 50931
     },
     {
       "id": "D04",
-      "reachedOutdoorCells": 49466
+      "reachedOutdoorCells": 49452
     },
     {
       "id": "E04",
-      "reachedOutdoorCells": 51494
+      "reachedOutdoorCells": 51497
     },
     {
       "id": "F04",
-      "reachedOutdoorCells": 51287
+      "reachedOutdoorCells": 51346
     },
     {
       "id": "A05",
@@ -130,23 +130,23 @@
     },
     {
       "id": "B05",
-      "reachedOutdoorCells": 9200
+      "reachedOutdoorCells": 9202
     },
     {
       "id": "C05",
-      "reachedOutdoorCells": 29979
+      "reachedOutdoorCells": 30018
     },
     {
       "id": "D05",
-      "reachedOutdoorCells": 48874
+      "reachedOutdoorCells": 48852
     },
     {
       "id": "E05",
-      "reachedOutdoorCells": 49733
+      "reachedOutdoorCells": 49645
     },
     {
       "id": "F05",
-      "reachedOutdoorCells": 45550
+      "reachedOutdoorCells": 45473
     },
     {
       "id": "A06",
@@ -158,19 +158,19 @@
     },
     {
       "id": "C06",
-      "reachedOutdoorCells": 29889
+      "reachedOutdoorCells": 29918
     },
     {
       "id": "D06",
-      "reachedOutdoorCells": 49814
+      "reachedOutdoorCells": 49872
     },
     {
       "id": "E06",
-      "reachedOutdoorCells": 50672
+      "reachedOutdoorCells": 50579
     },
     {
       "id": "F06",
-      "reachedOutdoorCells": 50196
+      "reachedOutdoorCells": 50258
     },
     {
       "id": "A07",
@@ -182,19 +182,19 @@
     },
     {
       "id": "C07",
-      "reachedOutdoorCells": 34190
+      "reachedOutdoorCells": 34206
     },
     {
       "id": "D07",
-      "reachedOutdoorCells": 47552
+      "reachedOutdoorCells": 47419
     },
     {
       "id": "E07",
-      "reachedOutdoorCells": 53476
+      "reachedOutdoorCells": 53512
     },
     {
       "id": "F07",
-      "reachedOutdoorCells": 56266
+      "reachedOutdoorCells": 56321
     }
   ],
   "routes": [
@@ -206,14 +206,14 @@
       ],
       "townPoint": [
         459.5,
-        500.5
+        499.5
       ],
       "adjustmentM": 0,
       "metres": 0,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ]
       ]
     },
@@ -225,31 +225,31 @@
         "osm-way-560095892"
       ],
       "townPoint": [
-        336.5,
-        810.5
+        333.5,
+        809.5
       ],
       "adjustmentM": 0,
-      "metres": 433,
+      "metres": 436,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           421.5,
-          500.5
+          499.5
         ],
         [
           421.5,
-          522.5
+          521.5
         ],
         [
-          336.5,
-          522.5
+          333.5,
+          521.5
         ],
         [
-          336.5,
-          810.5
+          333.5,
+          809.5
         ]
       ]
     },
@@ -264,15 +264,15 @@
         1015.5
       ],
       "adjustmentM": 0,
-      "metres": 544,
+      "metres": 545,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           430.5,
-          500.5
+          499.5
         ],
         [
           430.5,
@@ -291,15 +291,15 @@
         1168.5
       ],
       "adjustmentM": 0,
-      "metres": 907,
+      "metres": 908,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           463.5,
-          500.5
+          499.5
         ],
         [
           463.5,
@@ -322,11 +322,11 @@
           508.5
         ],
         [
-          568.5,
+          567.5,
           508.5
         ],
         [
-          568.5,
+          567.5,
           619.5
         ],
         [
@@ -343,14 +343,6 @@
         ],
         [
           572.5,
-          677.5
-        ],
-        [
-          574.5,
-          677.5
-        ],
-        [
-          574.5,
           680.5
         ],
         [
@@ -359,11 +351,11 @@
         ],
         [
           597.5,
-          717.5
+          718.5
         ],
         [
           600.5,
-          717.5
+          718.5
         ],
         [
           600.5,
@@ -547,18 +539,18 @@
       ],
       "townPoint": [
         710.5,
-        1207.5
+        1205.5
       ],
       "adjustmentM": 0,
-      "metres": 958,
+      "metres": 957,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           463.5,
-          500.5
+          499.5
         ],
         [
           463.5,
@@ -581,19 +573,19 @@
           508.5
         ],
         [
-          576.5,
+          575.5,
           508.5
         ],
         [
-          576.5,
+          575.5,
           516.5
         ],
         [
-          642.5,
+          643.5,
           516.5
         ],
         [
-          642.5,
+          643.5,
           557.5
         ],
         [
@@ -605,19 +597,19 @@
           706.5
         ],
         [
-          651.5,
+          650.5,
           706.5
         ],
         [
+          650.5,
+          778.5
+        ],
+        [
           651.5,
-          720.5
+          778.5
         ],
         [
-          652.5,
-          720.5
-        ],
-        [
-          652.5,
+          651.5,
           801.5
         ],
         [
@@ -637,18 +629,10 @@
           826.5
         ],
         [
-          665.5,
+          666.5,
           826.5
         ],
         [
-          665.5,
-          848.5
-        ],
-        [
-          666.5,
-          848.5
-        ],
-        [
           666.5,
           864.5
         ],
@@ -666,7 +650,7 @@
         ],
         [
           710.5,
-          1207.5
+          1205.5
         ]
       ]
     },
@@ -681,15 +665,15 @@
         1402.5
       ],
       "adjustmentM": 0.4377,
-      "metres": 1168,
+      "metres": 1169,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           463.5,
-          500.5
+          499.5
         ],
         [
           463.5,
@@ -712,11 +696,11 @@
           508.5
         ],
         [
-          576.5,
+          575.5,
           508.5
         ],
         [
-          576.5,
+          575.5,
           516.5
         ],
         [
@@ -1256,22 +1240,22 @@
         "osm-way-47163977"
       ],
       "townPoint": [
-        433.5,
+        432.5,
         635.5
       ],
       "adjustmentM": 0,
-      "metres": 161,
+      "metres": 163,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
-          433.5,
-          500.5
+          432.5,
+          499.5
         ],
         [
-          433.5,
+          432.5,
           635.5
         ]
       ]
@@ -1284,18 +1268,18 @@
       ],
       "townPoint": [
         414.5,
-        480.5
+        479.5
       ],
       "adjustmentM": 0,
       "metres": 65,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           421.5,
-          500.5
+          499.5
         ],
         [
           421.5,
@@ -1315,7 +1299,7 @@
         ],
         [
           414.5,
-          480.5
+          479.5
         ]
       ]
     },
@@ -1326,19 +1310,19 @@
         "osm-way-556809468"
       ],
       "townPoint": [
-        481.5,
-        598.5
+        480.5,
+        597.5
       ],
       "adjustmentM": 0,
-      "metres": 120,
+      "metres": 119,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           463.5,
-          500.5
+          499.5
         ],
         [
           463.5,
@@ -1350,15 +1334,7 @@
         ],
         [
           480.5,
-          519.5
-        ],
-        [
-          481.5,
-          519.5
-        ],
-        [
-          481.5,
-          598.5
+          597.5
         ]
       ]
     },
@@ -1369,31 +1345,31 @@
         "osm-way-557494933"
       ],
       "townPoint": [
-        328.5,
-        687.5
+        326.5,
+        686.5
       ],
       "adjustmentM": 0,
-      "metres": 318,
+      "metres": 320,
       "turnPoints": [
         [
           459.5,
-          500.5
+          499.5
         ],
         [
           421.5,
-          500.5
+          499.5
         ],
         [
           421.5,
-          522.5
+          521.5
         ],
         [
-          328.5,
-          522.5
+          326.5,
+          521.5
         ],
         [
-          328.5,
-          687.5
+          326.5,
+          686.5
         ]
       ]
     }
@@ -1404,11 +1380,11 @@
       "townBoundaryM": 240,
       "from": [
         239.5,
-        500.5
+        499.5
       ],
       "to": [
         240.5,
-        500.5
+        499.5
       ]
     },
     {
@@ -1440,11 +1416,11 @@
       "townBoundaryM": 960,
       "from": [
         959.5,
-        500.5
+        499.5
       ],
       "to": [
         960.5,
-        500.5
+        499.5
       ]
     },
     {
@@ -1452,11 +1428,11 @@
       "townBoundaryM": 1200,
       "from": [
         1199.5,
-        500.5
+        499.5
       ],
       "to": [
         1200.5,
-        500.5
+        499.5
       ]
     },
     {

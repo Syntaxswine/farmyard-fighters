@@ -361,8 +361,8 @@ export async function build() {
   const asGame = (id, mp) => ({id, geometry: mp, box: bounds(mp)});
   const placedCounty = placeCountyBuildings({sketches: houseRef.countyOnly, holders, base: reg, grid: occupancy(index),
     games: [...houses.map(h => asGame(h.feature.id, h.geometry)),
-      ...(JSON.parse(featuresBytes).authoredStructures ?? []).map(s => asGame(s.id, s.geometry.coordinates)),
-      ...features.filter(f => isOsm(f) && f.tags.parking === 'multi-storey' && f.geometry.type === 'MultiPolygon').map(f => asGame(f.id, f.geometry.coordinates))]});
+      ...(JSON.parse(featuresBytes).authoredStructures ?? []).map(s => asGame(s.id, (s.geographicGeometry ?? s.geometry).coordinates)),
+      ...features.filter(f => isOsm(f) && f.tags.parking === 'multi-storey' && f.geometry.type === 'MultiPolygon').map(f => asGame(f.id, (f.geographicGeometry ?? f.geometry).coordinates))]});
   const saw = (b, seen) => b.roofShare >= PLACE.roofAt ? 'class-6 roof'
     : seen.raisedShare >= .5 ? 'raised returns without the building class: a deck classed as ground, or a roof under trees'
     : seen.groundShare >= .5 ? 'open ground in December 2018; placed on the county record alone' : 'too few returns to tell';

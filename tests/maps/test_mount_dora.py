@@ -1,9 +1,11 @@
 """Meaningful geometry/provenance/reproduction checks for the native map source."""
+import collections
 import hashlib
 import importlib.util
 import json
 import math
 from pathlib import Path
+import re
 import shutil
 import tempfile
 import unittest
@@ -18,6 +20,12 @@ def segment_distance(point, a, b):
     dx, dy = b[0] - a[0], b[1] - a[1]
     t = max(0, min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / (dx * dx + dy * dy or 1)))
     return math.dist(point, [a[0] + t * dx, a[1] + t * dy])
+
+
+# Street-facing fronts within FRONT_REACH of their neighbours' common line that
+# stay off it because every move there is blocked (test_fronts_along_a_street...).
+FRONT_MISSES = {"osm-way-556562396", "osm-way-556562397", "osm-way-556562399", "osm-way-556562408",
+                "osm-way-558337882", "osm-way-558337885", "osm-way-558337891"}
 
 
 class MountDoraGeneration(unittest.TestCase):
@@ -239,22 +247,6 @@ class MountDoraGeneration(unittest.TestCase):
             source = feature["geometry"]["coordinates"]
             self.assertEqual(source, originals[feature["id"]]["geometry"]["coordinates"])
             line = style.get("centerline", source)
-            # A jog corner is the one vertex the playable line adds: it turns a
-            # straight street onto its next line beside a junction, square to both.
-            corners = set(style.get("jogCorners", []))
-
-            def square_jog(run_end, corner, jog_end):
-                # The run keeps one line (one coordinate) up to the corner; the
-                # jog then crosses to the other line within STREET_JOG metres.
-                return any(corner[axis] == run_end[axis] != jog_end[axis]
-                           and abs(abs(jog_end[1 - axis] - corner[1 - axis]) - BUILDER.STREET_JOG) < 1e-3
-                           for axis in range(2))
-
-            for index in corners:
-                previous, corner, following = line[index - 1], line[index], line[index + 1]
-                self.assertTrue(square_jog(previous, corner, following) or square_jog(following, corner, previous),
-                                (feature["id"], index))
-            line = [point for index, point in enumerate(line) if index not in corners]
             for before, after in zip(source, line, strict=True):
                 self.assertEqual(after, junctions.setdefault(tuple(before), after))
                 # Only points in town choose a street's line; a source line
@@ -273,27 +265,49 @@ class MountDoraGeneration(unittest.TestCase):
 
     def test_authored_outlines_have_no_one_tile_wall_steps(self):
         # rectify rounds each wall run on its own, which turned sub-metre jogs
-        # in the measured outlines into one-tile steps (299 in 139 buildings
-        # before _straighten_walls). Every outer wall now runs at least two tiles.
+        # in the measured outlines into one-tile steps (299 in 139 buildings on
+        # main 57887f1, courtyards included). Every wall now runs at least two
+        # tiles but one step on its own and one where two buildings meet:
+        # county-1464994-2's two repairs would each take it further below its
+        # measured area than the fit allows, and neither county-1469457-1 nor
+        # osm-way-556562386 can move the step between them alone without
+        # opening a one-tile slot or covering the other.
+        grid = BUILDER._grid
         authored = json.loads(self.outputs["authored-buildings.json"])
+        records = {record["id"]: record for record in authored["records"]}
         steps = [(record["id"], a, b) for record in authored["records"]
-                 for polygon in record["geometry"]["coordinates"] for a, b in zip(polygon[0], polygon[0][1:])
-                 if abs(b[0] - a[0]) + abs(b[1] - a[1]) == 1]
-        self.assertEqual(steps, [])
+                 for polygon in record["geometry"]["coordinates"] for ring in polygon
+                 for a, b in zip(ring, ring[1:]) if abs(b[0] - a[0]) + abs(b[1] - a[1]) == 1]
+        self.assertEqual(sorted(ident for ident, _, _ in steps), ["county-1464994-2", "county-1469457-1", "osm-way-556562386"])
         self.assertEqual(len(authored["records"]), 1076)
+        limit = json.loads((ROOT / "maps/mount-dora/source/authoring-config.json").read_text(encoding="utf-8"))["buildingGrid"]["maxAreaChangeFraction"]
+        lonely = records["county-1464994-2"]
+        repairs = [fix for step in grid._repairs(lonely["geometry"]["coordinates"]) for fix in step]
+        self.assertEqual(len(repairs), 2)
+        for fix in repairs:
+            self.assertGreater(abs(grid.area(fix) / lonely["metrics"]["sourceAreaM2"] - 1), limit)
+        (_, a, b), = [step for step in steps if step[0] == "county-1469457-1"]
+        x, y = min(a[0], b[0]), min(a[1], b[1])
+        sides = [(x - 1, y), (x, y)] if a[0] == b[0] else [(x, y - 1), (x, y)]
+        owners = [{ident for ident in ("county-1469457-1", "osm-way-556562386")
+                   if cell in grid.cells(records[ident]["geometry"]["coordinates"])} for cell in sides]
+        self.assertEqual(sorted(map(sorted, owners)), [["county-1469457-1"], ["osm-way-556562386"]])
 
     def test_downtown_grid_streets_each_run_on_one_line(self):
         # The streets the 2026-27 visitor map shows downtown, over the lengths
-        # where they are straight in reality: each sits on one tile line, and a
-        # West/East avenue pair on the same line. Before the in-town snap and
-        # same-name bridges, Alexander Street stepped 4 m between 5th and 4th
-        # Avenues, Tremain 2 m at 5th, West 3rd 2 m at Alexander, 5th Avenue 4 m twice.
+        # where they are straight in reality: each sits on one tile line, with
+        # no straight piece drawn as a diagonal anywhere along that length, and
+        # a West/East avenue pair on the same line. Before the in-town snap and same-name bridges, Alexander
+        # Street stepped 4 m between 5th and 4th Avenues, Tremain 2 m at 5th,
+        # West 3rd 2 m at Alexander, 5th Avenue 4 m twice; West 4th Avenue's
+        # pedestrian block east of Alexander Street bent 3.4 m until it snapped
+        # with the streets.
         streets = {"Alexander Street": (0, 0, 900), "McDonald Street": (0, 0, 740),
                    "North Donnelly Street": (0, 0, 815), "North Baker Street": (0, 0, 830),
                    "North Tremain Street": (0, 0, 900), "North Grandview Street": (0, 0, 935),
                    "North Clayton Street": (0, 0, 790),
                    "West 3rd Avenue": (1, 230, 433), "East 3rd Avenue": (1, 431, 1045),
-                   "West 4th Avenue": (1, 330, 433), "East 4th Avenue": (1, 431, 635),
+                   "West 4th Avenue": (1, 180, 433), "East 4th Avenue": (1, 431, 635),
                    "West 5th Avenue": (1, 230, 433), "East 5th Avenue": (1, 431, 1440),
                    "West 6th Avenue": (1, 150, 433), "East 6th Avenue": (1, 431, 835),
                    "West 7th Avenue": (1, 128, 433), "East 7th Avenue": (1, 430, 1040),
@@ -304,10 +318,17 @@ class MountDoraGeneration(unittest.TestCase):
             if name not in streets or not style or feature["geometry"]["type"] != "LineString":
                 continue
             axis, low, high = streets[name]
-            line = style.get("centerline", feature["geometry"]["coordinates"])
-            for a, b in zip(line, line[1:]):
-                if a[axis] == b[axis] and low <= min(a[1 - axis], b[1 - axis]) and max(a[1 - axis], b[1 - axis]) <= high:
-                    lines[name].add(a[axis])
+            source = feature["geometry"]["coordinates"]
+            line = style.get("centerline", source)
+            for a, b, p, q in zip(source, source[1:], line, line[1:]):
+                # Every segment that runs straight along the street in the source
+                # sits on the street's line; the mapped curves where McDonald,
+                # Alexander and West 3rd meet the railway keep their shape.
+                along, across = abs(b[1 - axis] - a[1 - axis]), abs(b[axis] - a[axis])
+                if (low <= min(p[1 - axis], q[1 - axis]) and max(p[1 - axis], q[1 - axis]) <= high
+                        and along and across <= along * .2):
+                    self.assertEqual(p[axis], q[axis], (name, a, b, p, q))
+                    lines[name].add(p[axis])
         for name, found in lines.items():
             self.assertEqual(len(found), 1, (name, sorted(found)))
         for avenue in ("3rd", "4th", "5th", "6th", "7th", "9th"):
@@ -316,8 +337,10 @@ class MountDoraGeneration(unittest.TestCase):
     def test_fronts_along_a_street_share_one_line_where_a_move_is_free(self):
         # Every street-facing front (the generator's own _facades reading)
         # within FRONT_REACH of its neighbours' common gap sits on it, except
-        # these ten, where the move would push into a neighbour, a shared
-        # wall or the ribbon. On main 57887f1, 46 of 255 fronts were off their line.
+        # these, where the move is blocked by the generator's own rules: a new
+        # cell on the street ribbon, protected ground or another building, an
+        # attached shop no longer touching, or a tile emptied between two
+        # buildings. On main 57887f1, 46 of 255 fronts were off their line.
         grid = BUILDER._grid
         authored = json.loads(self.outputs["authored-buildings.json"])
         roads = [f for f in self.features.values() if f.get("nativeRoad")]
@@ -328,8 +351,33 @@ class MountDoraGeneration(unittest.TestCase):
                 continue
             for axis, sign, ribbon, span, gap in grid._facades(grid.cells(record["geometry"]["coordinates"]), reserved, 1440, 1680):
                 faces.setdefault((axis, sign, ribbon), []).append((span, gap, record["id"]))
+        cells_of = {record["id"]: grid.cells(record["geometry"]["coordinates"]) for record in authored["records"]}
+        owner = {cell: ident for ident, cells in cells_of.items() for cell in cells}
+        attached = {record["id"]: set(record["componentIds"]) - {record["id"]} for record in authored["records"]}
+        protected = {BUILDER.CODE[kind] for kind in ("water", "ground-asphalt", "ground-concrete", "ground-dirt",
+                                                     "ground-gravel", "ground-wood-planks", "bridge")}
+
+        def blocked(ident, axis, step):
+            dx, dy = (step, 0) if axis == 0 else (0, step)
+            old = cells_of[ident]
+            new = {(x + dx, y + dy) for x, y in old}
+            if any(not (0 <= x < 1440 and 0 <= y < 1680) or reserved.get(y, 0) >> x & 1
+                   or self.grid[y * 1440 + x] in protected or owner.get((x, y), ident) != ident for x, y in new - old):
+                return True
+
+            def touching(cells, other):
+                return any((x + ex, y + ey) in cells_of[other] for x, y in cells for ex, ey in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
+            if any(touching(old, other) and not touching(new, other) for other in attached[ident]):
+                return True
+
+            def taken(cell):
+                return cell in new or owner.get(cell, ident) != ident
+
+            return any(taken((x - 1, y)) and taken((x + 1, y)) or taken((x, y - 1)) and taken((x, y + 1)) for x, y in old - new)
+
         misses = set()
-        for members in faces.values():
+        for (axis, sign, _), members in faces.items():
             for (low, high), gap, ident in members:
                 weights = {}
                 for (low2, high2), gap2, _ in members:
@@ -338,10 +386,103 @@ class MountDoraGeneration(unittest.TestCase):
                 target = min(weights, key=lambda value: (-weights[value], value))
                 if 0 < abs(gap - target) <= grid.FRONT_REACH:
                     misses.add(ident)
+                    self.assertTrue(blocked(ident, axis, sign * (gap - target)), (ident, gap, target))
         self.assertGreater(sum(map(len, faces.values())), 200)
-        self.assertEqual(misses, {"osm-way-556562408", "osm-way-558337885", "osm-way-556562399", "osm-way-556562400",
-                                  "osm-way-1240415863", "osm-way-556562388", "osm-way-558533874", "osm-way-556809469",
-                                  "osm-way-557349895", "osm-way-557349896"})
+        self.assertEqual(misses, FRONT_MISSES)
+
+    def test_parks_and_car_parks_move_with_the_town_and_keep_their_measured_outline(self):
+        # A park, pitch or car park moves vertex by vertex with the town, so its
+        # edge stays on the paths and streets around it, and keeps its measured
+        # outline as geographicGeometry. A block-sized park moves as one piece
+        # (nativeShiftM), and the Donnelly stage with it, by whole metres.
+        originals = {f["id"]: f for f in BUILDER.load_source()[3]}
+        moved = 0
+        for feature in self.features.values():
+            if feature["category"] not in ("park", "parking") or feature["geometry"]["type"] != "MultiPolygon":
+                continue
+            source = originals[feature["id"]]
+            if "geographicGeometry" not in feature:
+                self.assertEqual(feature["geometry"], source["geometry"])
+                continue
+            moved += 1
+            self.assertEqual((feature["geographicGeometry"], feature["geographicBounds"]), (source["geometry"], source["bounds"]))
+            for old_polygon, new_polygon in zip(source["geometry"]["coordinates"], feature["geometry"]["coordinates"], strict=True):
+                for old_ring, new_ring in zip(old_polygon, new_polygon, strict=True):
+                    for old, new in zip(old_ring, new_ring, strict=True):
+                        self.assertLessEqual(max(abs(a - b) for a, b in zip(old, new)), BUILDER.STREET_SNAP_LIMIT)
+        self.assertGreater(moved, 20)
+        donnelly = next(f for f in self.features.values() if f["category"] == "park" and f["tags"].get("name") == "Donnelly Park")
+        dx, dy = (round(v) for v in donnelly["nativeShiftM"])
+        stage = next(s for s in json.loads(self.outputs["authored-buildings.json"])["structures"] if s["id"] == "md:donnelly-stage")
+        self.assertEqual(stage["geometry"]["coordinates"][0][0][0], [472 + dx, 482 + dy])
+        self.assertEqual(stage.get("geographicGeometry", stage["geometry"])["coordinates"][0][0][0], [472, 482])
+
+    def test_tour_approaches_move_with_the_town_where_they_stand(self):
+        # The walking tour's source-reviewed approach points move by the
+        # town's whole-metre move where they stand, as the streets and
+        # buildings around them did. The game and the route review hold the
+        # moved points, and no tour visit stands inside a building.
+        moves = self.project["generation"]["approachMovesM"]
+        self.assertEqual(set(moves), set(BUILDER.APPROACH_POINTS))
+
+        def moved(name):
+            return [round(BUILDER.APPROACH_POINTS[name][axis] + moves[name][axis], 6) for axis in range(2)]
+
+        entry = (ROOT / "sites/tactical-animal/dist/mount-dora-entry.js").read_text(encoding="utf-8")
+        visits = re.findall(r"\{id:'([a-z-]+)',name:'[^']*',town:\[([-\d.]+),([-\d.]+)\]\}", entry)
+        self.assertEqual(len(visits), 11)
+        for name, x, y in visits:
+            self.assertEqual([round(float(x), 6), round(float(y), 6)], moved(name), name)
+            self.assertNotEqual(self.grid[int(float(y)) * 1440 + int(float(x))], BUILDER.CODE["floor"], name)
+        routes = (ROOT / "tools/maps/review-mount-dora-routes.mjs").read_text(encoding="utf-8")
+        targets = {name: [round(float(x), 6), round(float(y), 6)]
+                   for name, x, y in re.findall(r"\['([a-z-]+)','[^']*',\[([-\d.]+),([-\d.]+)\],\['", routes)}
+        for target, name in (("donnelly-park", "launch"), ("lakeside-inn", "lakeside-inn"), ("elizabeth-evans", "evans-route"),
+                             ("grantham-lighthouse", "grantham-lighthouse"), ("gilbert-park", "gilbert-route"),
+                             ("historic-shopfronts", "historic-shopfronts"), ("donnelly-house", "donnelly-house"),
+                             ("history-museum", "history-museum"), ("former-depot", "former-depot")):
+            self.assertEqual(targets[target], moved(name), target)
+        spawn = re.search(r"const spawn=nearest\(\[([-\d.]+),([-\d.]+)\]\);", routes)
+        self.assertEqual([float(spawn[1]), float(spawn[2])], moved("launch"))
+
+    def test_the_town_moves_without_the_reported_tears(self):
+        # Review round 1 found the first street-follow field tore the town where
+        # one street's pull ended: a Grantham Point path ran through the
+        # lighthouse's base, a footway tore 4.65 m across a 5.2 m segment, and
+        # two houses 0.62 m apart slid 4.76 m past each other.
+        light = (500.2877, 1169.7989)
+        path = self.features["osm-way-508450232"]
+        line = path["nativeRoad"].get("centerline", path["geometry"]["coordinates"])
+        self.assertGreaterEqual(min(segment_distance(light, a, b) for a, b in zip(line, line[1:])), 2)
+        footway = self.features["osm-way-508450237"]
+        source = footway["geometry"]["coordinates"]
+        line = footway["nativeRoad"].get("centerline", source)
+        for a, b, p, q in zip(source, source[1:], line, line[1:]):
+            self.assertLess(max(abs((q[i] - b[i]) - (p[i] - a[i])) for i in range(2)), .5 + .1 * math.dist(a, b), (a, b, p, q))
+        authored = {r["id"]: r for r in json.loads(self.outputs["authored-buildings.json"])["records"]}
+        one, two = (authored[i]["derivation"]["streetFollowMetres"] for i in ("osm-way-1240416239", "osm-way-1240419618"))
+        self.assertLessEqual(max(abs(a - b) for a, b in zip(one, two)), 1)
+
+    def test_buildings_move_by_whole_metres_and_stay_on_their_shore(self):
+        # Every building moves with its street by whole metres, so it keeps the
+        # shape the one-metre fit gives it unmoved (a fractional move re-rounds
+        # every wall and resized 582 buildings in the first version of this
+        # change). The Lake Dora shore keeps its place and pulls the town beside
+        # it toward no move, so lakeside buildings stand over the mapped water no
+        # more than on main 57887f1 (1,251 floor cells); and no straightening or
+        # front line-up opens a one-tile slot between two buildings (main had 29).
+        grid = BUILDER._grid
+        authored = json.loads(self.outputs["authored-buildings.json"])
+        for record in authored["records"]:
+            follow = record["derivation"]["streetFollowMetres"]
+            self.assertTrue(all(isinstance(v, int) for v in follow), (record["id"], follow))
+        owner = {cell: record["id"] for record in authored["records"] for cell in grid.cells(record["geometry"]["coordinates"])}
+        lake = next(f for f in self.features.values() if f["category"] == "water")
+        water = {(x, y) for y, left, right in BUILDER.polygon_spans(lake["geometry"]["coordinates"], 1440, 1680) for x in range(left, right)}
+        self.assertLessEqual(len(water & set(owner)), 1251)
+        slots = {tuple(sorted((one, owner[(x + 2 * dx, y + 2 * dy)]))) for (x, y), one in owner.items()
+                 for dx, dy in ((1, 0), (0, 1)) if (x + dx, y + dy) not in owner and owner.get((x + 2 * dx, y + 2 * dy), one) != one}
+        self.assertLessEqual(len(slots), 22)
 
     def test_buildings_clear_the_full_road_and_sidewalk_ribbon(self):
         roads = [f for f in self.features.values() if f.get("nativeRoad")]
@@ -414,8 +555,8 @@ class MountDoraGeneration(unittest.TestCase):
 
 
 class GridShapeUnits(unittest.TestCase):
-    """The street snap, the street-follow blend, the wall repair and the junction
-    jog on small made-up inputs, without building the town."""
+    """The street snap, the street-follow field, the wall repair, party walls,
+    block parks and bridge joints on small made-up inputs, without building the town."""
 
     def test_street_snap_lets_only_in_town_points_choose_a_line(self):
         # A straight street that drifts 0.5 degrees: 12 m over 1,200 m, of
@@ -435,20 +576,42 @@ class GridShapeUnits(unittest.TestCase):
         BUILDER.author_streets([outside])
         self.assertGreater(len({x for x, y in outside["nativeRoad"]["centerline"]}), 1)
 
-    def test_street_follow_field_carries_a_block_with_its_two_streets(self):
-        # West street moved 2 m east, east street 2 m west: a point keeps its
-        # place between them, so the move blends across the block.
-        def street(x, line):
+    def test_street_follow_field_blends_a_block_and_fades_past_a_street_end(self):
+        # The west street moved 2 m east and the east one 2 m west. On a street
+        # the town takes its move; across the block the move blends, favouring
+        # the nearer street; past the streets' ends it fades without a jump; and
+        # beyond FOLLOW_REACH nothing moves.
+        def street(x, move):
             style = BUILDER.road_style({"tags": {"highway": "residential"}})
-            style.update(widthSource="standard-game-street", centerline=[[line, 0], [line, 200]])
-            return {"nativeRoad": style, "geometry": {"type": "LineString", "coordinates": [[x, 0], [x, 200]]}}
-        field = BUILDER.street_follow_field([street(100, 102), street(200, 198)])
-        self.assertEqual([round(v, 6) for v in field([100, 50])], [2, 0])
-        self.assertEqual([round(v, 6) for v in field([125, 50])], [1, 0])
-        self.assertEqual([round(v, 6) for v in field([150, 50])], [0, 0])
-        self.assertEqual([round(v, 6) for v in field([200, 50])], [-2, 0])
-        self.assertEqual([round(v, 6) for v in field([250, 50])], [-2, 0])
-        self.assertEqual(field([150, 500]), [0.0, 0.0])
+            source = [[x, -1000], [x, 0], [x, 1000]]
+            style.update(widthSource="standard-game-street", centerline=[[x + move, y] for _, y in source])
+            return {"tags": {"highway": "residential"}, "nativeRoad": style,
+                    "geometry": {"type": "LineString", "coordinates": source}}
+        field = BUILDER.street_follow_field([street(100, 2), street(200, -2)])
+        self.assertEqual(field([100, 50]), [2.0, 0.0])
+        self.assertEqual(field([200, -50]), [-2.0, 0.0])
+        across = [field([x, 50])[0] for x in range(100, 201)]
+        self.assertTrue(all(b < a for a, b in zip(across, across[1:])))
+        self.assertAlmostEqual(field([150, 50])[0], 0, places=9)
+        self.assertTrue(1 < field([125, 50])[0] < 1.3, field([125, 50]))
+        along = [field([125, y])[0] for y in range(900, 1300)]
+        self.assertLess(max(abs(b - a) for a, b in zip(along, along[1:])), .05)
+        self.assertEqual(field([125, 1250]), [0.0, 0.0])
+        self.assertEqual(field([500, 0]), [0.0, 0.0])
+
+    def test_buildings_within_a_metre_and_a_half_move_together_by_whole_metres(self):
+        # The field moves x by a twentieth of x. Alone, the two buildings 1 m
+        # apart would round apart (0.25 to 0 and 0.8 to 1) and open a slot; as
+        # one cluster they both take the move at the cluster's centre, rounded.
+        # The third stands 5 m off and keeps its own.
+        def building(ident, x0, x1):
+            return {"id": ident, "bounds": [x0, 0, x1, 10]}
+        shifts = BUILDER._grid.building_shifts([building("a", 0, 10), building("b", 11, 21), building("c", 26, 40)], [],
+                                               lambda point: [point[0] / 20, 0.0])
+        self.assertEqual(shifts, {"a": [1, 0], "b": [1, 0], "c": [2, 0]})
+        self.assertTrue(all(isinstance(v, int) for shift in shifts.values() for v in shift))
+        exact = BUILDER._grid.building_shifts([building("a", 0, 10), building("b", 11, 21)], [], lambda point: [point[0] / 20, 0.0], whole=False)
+        self.assertEqual(exact, {"a": [.525, 0.0], "b": [.525, 0.0]})
 
     def test_a_one_tile_wall_step_has_two_clean_repairs(self):
         grid = BUILDER._grid
@@ -460,40 +623,80 @@ class GridShapeUnits(unittest.TestCase):
             self.assertFalse(any(abs(b[0] - a[0]) + abs(b[1] - a[1]) == 1 for a, b in zip(repaired, repaired[1:])), repaired)
         self.assertEqual(sorted(abs(grid.signed_area(r)) for r in variants[0]), [15, 20])
 
-    def test_a_straight_street_changing_line_jogs_square_beside_its_junction(self):
-        # Two runs of one street on lines 10 and 14 meet at (10, 50): the
-        # segment between them runs straight on its first line and turns to
-        # the next within STREET_JOG metres of the junction end.
-        style = BUILDER.road_style({"tags": {"highway": "residential"}})
-        style.update(widthSource="standard-game-street", widthM=6, sidewalk="both", sidewalkWidthM=2)
-        a, b, c = (10.0, 0.0), (11.0, 50.0), (13.5, 100.0)
-        street = {"tags": {"highway": "residential"}, "nativeRoad": style,
-                  "geometry": {"type": "LineString", "coordinates": [list(a), list(b), list(c)]}}
-        cross = {"tags": {"highway": "residential"}, "nativeRoad": dict(style),
-                 "geometry": {"type": "LineString", "coordinates": [[0.0, 50.0], list(b)]}}
-        moves = [{a: 10, b: 10, c: 14}, {}]
-        BUILDER.follow_streets([street, cross], moves, lambda point: [0.0, 0.0])
-        line = street["nativeRoad"]["centerline"]
-        self.assertEqual(street["nativeRoad"]["jogCorners"], [2])
-        self.assertEqual(line, [[10, 0.0], [10, 50.0], [14, 54.0], [14, 100.0]])
+    @staticmethod
+    def straighten(shapes, members, neighbours=()):
+        """Run _straighten_walls on one component; neighbours only occupy cells."""
+        grid = BUILDER._grid
+
+        def validate(shapes, ids, pairs):
+            cells = {ident: grid.cells(shapes[ident]) for ident in ids}
+            if any(cells[a] & cells[b] for a in ids for b in ids if a < b):
+                raise ValueError("overlap")
+            for a, b in pairs:
+                if not any((x + dx, y + dy) in cells[b] for x, y in cells[a] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    raise ValueError("separated")
+            return cells
+        pairs = [(a, b) for a in members for b in members if a < b]
+        cells = validate(shapes, members, pairs)
+        group = {"ids": members, "pairs": pairs, "current": {"override": False, "shapes": dict(shapes), "cells": cells}}
+        occupancy = collections.defaultdict(set)
+        for ident, owned in [*cells.items(), *((name, grid.cells(polygons)) for name, polygons in neighbours)]:
+            for cell in owned:
+                occupancy[cell].add(ident)
+        removed = grid._straighten_walls([group], validate, {}, set(), occupancy, 1440, 1680)
+        return removed, cells, group["current"]
+
+    def test_a_party_wall_step_moves_for_both_buildings(self):
+        # Two attached Lakeside Inn buildings share a party wall with a one-tile
+        # step, and their outer walls beyond it are a tile apart too. Neither
+        # can straighten alone without opening a slot between them; together
+        # the east one gives up a column and the west one takes the two tiles
+        # beside it, so both walls run straight and nothing opens between them.
+        grid = BUILDER._grid
+        east = [[[[351, 787], [366, 787], [366, 770], [350, 770], [350, 777], [351, 777], [351, 787]]]]
+        west = [[[[351, 800], [351, 777], [350, 777], [350, 775], [338, 775], [338, 800], [351, 800]]]]
+        removed, before, after = self.straighten({"east": east, "west": west}, ["east", "west"])
+        self.assertEqual(removed, 2)
+        self.assertEqual(sum(grid._one_tile_edges(after["shapes"][ident]) for ident in ("east", "west")), 0)
+        self.assertEqual(after["cells"]["west"] - before["west"], {(350, 775), (350, 776)})
+        taken = after["cells"]["east"] | after["cells"]["west"]
+        for x, y in (before["east"] | before["west"]) - taken:
+            self.assertFalse((x - 1, y) in taken and (x + 1, y) in taken or (x, y - 1) in taken and (x, y + 1) in taken)
+
+    def test_a_step_between_two_buildings_stays_rather_than_open_a_slot(self):
+        # A building's east wall steps a tile where its neighbour's wall steps
+        # too. Pulling the upper wall in would open a one-tile slot between
+        # them; pushing the lower wall out would cover the neighbour. The step stays.
+        building = [[[[0, 0], [5, 0], [5, 3], [4, 3], [4, 6], [0, 6], [0, 0]]]]
+        neighbour = [[[[5, 0], [8, 0], [8, 6], [4, 6], [4, 3], [5, 3], [5, 0]]]]
+        removed, before, after = self.straighten({"building": building}, ["building"], [("neighbour", neighbour)])
+        self.assertEqual(removed, 0)
+        self.assertEqual(after["cells"], before)
 
     def test_a_block_sized_park_moves_as_one_piece(self):
         # A field that moves each point a hundredth of its x stretches a 100 m
         # park by 1 m, the kind of stretch that closed the Donnelly stage's
-        # approach. The park takes the move at its centre, and so does every
-        # point inside it; a hole in it, a park wider than BLOCK_PARK_SPAN and
-        # the land outside keep the field's own move.
-        def park(x0, y0, x1, y1, hole=None):
+        # approach. Deeper than BLOCK_PARK_BAND inside the park everything takes
+        # the move at its centre; nearer the edge the two moves blend, so a path
+        # crossing it stays joined; a hole in it, a park wider than
+        # BLOCK_PARK_SPAN and the land outside keep the field's own move.
+        def park(ident, x0, y0, x1, y1, hole=None):
             rings = [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]]
             if hole:
                 hx0, hy0, hx1, hy1 = hole
                 rings.append([[hx0, hy0], [hx0, hy1], [hx1, hy1], [hx1, hy0], [hx0, hy0]])
-            return {"category": "park", "tags": {"leisure": "park"}, "bounds": [x0, y0, x1, y1],
+            return {"id": ident, "category": "park", "tags": {"leisure": "park"}, "bounds": [x0, y0, x1, y1],
                     "geometry": {"type": "MultiPolygon", "coordinates": [rings]}}
-        moved = BUILDER.park_follow(lambda point: [point[0] / 100, 0.0],
-                                    [park(100, 100, 200, 200, hole=(105, 105, 125, 125)), park(400, 0, 700, 300)])
+
+        def field(point):
+            return [point[0] / 100, 0.0]
+        moved = BUILDER.park_follow(field, [park("block", 100, 100, 200, 200, hole=(105, 105, 125, 125)),
+                                            park("wide", 400, 0, 700, 300)])
+        self.assertEqual(moved.parks, {"block": [1.5, 0.0]})
         self.assertEqual(moved([110, 150]), [1.5, 0.0])
         self.assertEqual(moved([190, 150]), [1.5, 0.0])
+        self.assertAlmostEqual(moved([104, 150])[0], .4 * 1.5 + .6 * 1.04)
+        self.assertEqual(moved([100, 150]), field([100, 150]))
         self.assertEqual(moved([115, 115]), [1.15, 0.0])
         self.assertEqual(moved([450, 150]), [4.5, 0.0])
         self.assertEqual(moved([50, 50]), [0.5, 0.0])

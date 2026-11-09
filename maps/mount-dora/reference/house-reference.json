@@ -4,8 +4,8 @@
  "inputs": {
   "features": {
    "file": "maps/mount-dora/features.json",
-   "sha256OfFieldsRead": "50e9b70cd96081b64ca36a927d7db6468fcec253ab0849c9333865118f555e61",
-   "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geometry"
+   "sha256OfFieldsRead": "226db50496ee3e88da88c1722812a03a134b961d3bb806fa7b38cd922413aa0d",
+   "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geographicGeometry (else geometry)"
   },
   "county": {
    "file": "maps/mount-dora/reference/county/source.json",
@@ -20301,7 +20301,8 @@
   {
    "id": "osm-way-1240419526",
    "sectors": [
-    "D04"
+    "D04",
+    "E04"
    ],
    "centroid": [
     953.82,
@@ -24535,7 +24536,8 @@
   {
    "id": "osm-way-1240419568",
    "sectors": [
-    "D04"
+    "D04",
+    "E04"
    ],
    "centroid": [
     955.26,
@@ -26215,6 +26217,7 @@
   {
    "id": "osm-way-1240419585",
    "sectors": [
+    "E04",
     "E05"
    ],
    "centroid": [
@@ -53378,6 +53381,7 @@
   {
    "id": "osm-way-1240419852",
    "sectors": [
+    "C01",
     "D01"
    ],
    "centroid": [
@@ -54061,8 +54065,7 @@
   {
    "id": "osm-way-1240419859",
    "sectors": [
-    "C01",
-    "D01"
+    "C01"
    ],
    "centroid": [
     713.65,
@@ -68618,7 +68621,8 @@
   {
    "id": "osm-way-1241962319",
    "sectors": [
-    "D07"
+    "D07",
+    "E07"
    ],
    "centroid": [
     954.69,
@@ -71016,7 +71020,6 @@
   {
    "id": "osm-way-1241962343",
    "sectors": [
-    "C07",
     "D07"
    ],
    "centroid": [
@@ -82549,7 +82552,8 @@
   {
    "id": "osm-way-556562397",
    "sectors": [
-    "B03"
+    "B03",
+    "C03"
    ],
    "centroid": [
     467.67,
@@ -84407,7 +84411,8 @@
   {
    "id": "osm-way-556809470",
    "sectors": [
-    "B03"
+    "B03",
+    "C03"
    ],
    "centroid": [
     474.75,
@@ -97526,8 +97531,7 @@
   {
    "id": "osm-way-560095904",
    "sectors": [
-    "B03",
-    "B04"
+    "B03"
    ],
    "centroid": [
     287.92,

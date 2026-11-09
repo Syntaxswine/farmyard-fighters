@@ -73,11 +73,11 @@ IoU with `outline` is the true pose's `fitIoU`.
 
 ## In the Nautilus workshop
 
-804 parts fit a block. A block is 24 × 24 m and keeps at least 1 m of yard on
+807 parts fit a block. A block is 24 × 24 m and keeps at least 1 m of yard on
 every side, so a house fits only up to 22 × 22 m and 5 storeys. The engine
 treats a wall touching a block's edge as crossing into the next block, and
 then refuses to place or capture that neighbour (`wallsInSector` in
-`packages/map-core/wall-runs.js`). The other 272 parts are larger, up to
+`packages/map-core/wall-runs.js`). The other 269 parts are larger, up to
 88 × 61 m. Export blocks on demand. They are not committed:
 
 ```powershell

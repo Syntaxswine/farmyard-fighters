@@ -279,61 +279,113 @@ def _jog_variants(ring):
         yield [simplify(v + [v[0]]) for v in (before, after)]
 
 
+def _one_tile_edges(polygons):
+    return sum(abs(b[0] - a[0]) + abs(b[1] - a[1]) == 1 for poly in polygons for ring in poly for a, b in zip(ring, ring[1:]))
+
+
+def _repairs(polygons):
+    """For each one-tile step in these polygons' rings (outer walls and
+    courtyards), the repaired polygons that keep the ring valid and its
+    winding, and every courtyard wholly inside its outline and apart from the
+    others: a list per step, in ring order."""
+    for p, poly in enumerate(polygons):
+        for k, ring in enumerate(poly):
+            for pair in _jog_variants(ring):
+                fixed = []
+                for new in pair:
+                    if not valid_ring(new) or signed_area(new) * signed_area(ring) <= 0:
+                        continue
+                    rings = poly[:k] + [new] + poly[k + 1:]
+                    outer, holes = rings[0], rings[1:]
+                    inside = ring_cells(outer)
+                    if any(not ring_cells(hole) < inside
+                           or any(crosses(a, b, c, d) for a, b in zip(outer, outer[1:]) for c, d in zip(hole, hole[1:]))
+                           for hole in holes):
+                        continue
+                    if any(ring_cells(one) & ring_cells(two) for i, one in enumerate(holes) for two in holes[i + 1:]):
+                        continue
+                    fixed.append(polygons[:p] + [rings] + polygons[p + 1:])
+                yield fixed
+
+
 def _straighten_walls(groups, validate, reserved, protected, occupancy, width, depth):
     """Remove one-tile wall steps the grid fit left in building outlines.
 
     rectify rounds each wall run on its own, so a sub-metre jog in a measured
-    outline (a porch or a bay) can become a one-tile step. Each step is
-    removed by moving one neighbouring wall a tile, taking whichever variant
-    changes the area less, only when the component stays valid (topology,
-    area, shared walls) and every new cell is free (street ribbon, protected
-    ground, other buildings, the town edge). A courtyard stays wholly
-    plan inside. Returns the number of steps removed."""
-    removed = 0
-    for group in groups:
-        if group['current']['override']:
-            continue
+    outline (a porch, a bay, a courtyard corner) can become a one-tile step.
+    Each step is removed by moving one neighbouring wall a tile, taking
+    whichever repair changes the area less, only when the component stays
+    valid (topology, area within its limit, shared walls touching), every new
+    cell is free (street ribbon, protected ground, other buildings, the town
+    edge), the steps really fall, and no emptied tile is left between two
+    buildings: attached shops are never pulled apart, nor a neighbour left
+    behind a one-tile slot. A step in a party wall that one building cannot
+    move alone moves with the attached building's own repair. Returns the
+    number of steps removed."""
+    def free(new, old, ids):
+        return not any(not (0 <= x < width and 0 <= y < depth) or reserved.get(y, 0) >> x & 1
+                       or (x, y) in protected or occupancy.get((x, y), set()) - set(ids) for x, y in new - old)
+
+    def accept(shapes, current, ids, pairs):
+        try:
+            footprint = validate(shapes, ids, pairs)
+        except ValueError:
+            return None
+        changed = [id for id in ids if footprint[id] != current['cells'][id]]
+        if sum(_one_tile_edges(shapes[id]) for id in changed) >= sum(_one_tile_edges(current['shapes'][id]) for id in changed):
+            return None
+        if not all(free(footprint[id], current['cells'][id], ids) for id in changed):
+            return None
+        taken = set().union(*footprint.values())
+
+        def occupied(cell):
+            return cell in taken or bool(occupancy.get(cell, set()) - set(ids))
+
+        emptied = set().union(*(current['cells'][id] for id in changed)) - taken
+        if any(occupied((x - 1, y)) and occupied((x + 1, y)) or occupied((x, y - 1)) and occupied((x, y + 1))
+               for x, y in emptied):
+            return None
+        return footprint
+
+    live = [g for g in groups if not g['current']['override']]
+    before = sum(_one_tile_edges(polygons) for g in live for polygons in g['current']['shapes'].values())
+    for group in live:
         ids = group['ids']
         for id in ids:
             for _ in range(64):
                 current = group['current']
-                polygons = current['shapes'][id]
                 choice = None
-                for p, poly in enumerate(polygons):
-                    old_area = abs(signed_area(poly[0]))
-                    for variants in _jog_variants(poly[0]):
-                        trials = []
-                        for ring in variants:
-                            if not valid_ring(ring) or signed_area(ring) * signed_area(poly[0]) <= 0:
+                for step in _repairs(current['shapes'][id]):
+                    trials = []
+                    for mine in step:
+                        cost = abs(area(mine) - area(current['shapes'][id]))
+                        shapes = {**current['shapes'], id: mine}
+                        footprint = accept(shapes, current, ids, group['pairs'])
+                        if footprint is not None:
+                            trials.append((cost, shapes, footprint))
+                            continue
+                        changed = cells(mine) ^ current['cells'][id]
+                        for other in ids:
+                            if other == id or not any((x + dx, y + dy) in current['cells'][other]
+                                                      for x, y in changed for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1))):
                                 continue
-                            if any(not ring_cells(hole) < ring_cells(ring)
-                                   or any(crosses(a, b, c, d) for a, b in zip(ring, ring[1:]) for c, d in zip(hole, hole[1:]))
-                                   for hole in poly[1:]):
-                                continue
-                            shapes = {**current['shapes'], id: polygons[:p] + [[ring, *poly[1:]]] + polygons[p + 1:]}
-                            try:
-                                footprint = validate(shapes, ids, group['pairs'])
-                            except ValueError:
-                                continue
-                            if any(not (0 <= x < width and 0 <= y < depth) or reserved.get(y, 0) >> x & 1
-                                   or (x, y) in protected or occupancy.get((x, y), set()) - set(ids)
-                                   for x, y in footprint[id] - current['cells'][id]):
-                                continue
-                            trials.append((abs(abs(signed_area(ring)) - old_area), shapes, footprint))
-                        if trials:
-                            choice = min(trials, key=lambda t: t[0])
-                            break
-                    if choice is not None:
+                            for theirs in (fix for repair in _repairs(current['shapes'][other]) for fix in repair):
+                                both = {**shapes, other: theirs}
+                                footprint = accept(both, current, ids, group['pairs'])
+                                if footprint is not None:
+                                    trials.append((cost + abs(area(theirs) - area(current['shapes'][other])), both, footprint))
+                    if trials:
+                        choice = min(trials, key=lambda trial: trial[0])
                         break
                 if choice is None:
                     break
-                for cell in current['cells'][id]:
-                    occupancy[cell].discard(id)
-                for cell in choice[2][id]:
-                    occupancy[cell].add(id)
+                for member in ids:
+                    for cell in current['cells'][member]:
+                        occupancy[cell].discard(member)
+                    for cell in choice[2][member]:
+                        occupancy[cell].add(member)
                 group['current'] = {**current, 'shapes': choice[1], 'cells': choice[2]}
-                removed += 1
-    return removed
+    return before - sum(_one_tile_edges(polygons) for g in live for polygons in g['current']['shapes'].values())
 
 
 FRONT_LOOK = 6     # metres: a side faces a street when the street ribbon lies this close
@@ -362,7 +414,8 @@ def _facades(cells, reserved, width, depth):
                     if taken(at, along) if axis == 0 else taken(along, at):
                         gaps.append(gap);edges.append(at);break
             if gaps and len(gaps) >= .6*len(lines):
-                yield axis, sign, collections.Counter(edges).most_common(1)[0][0], (min(lines), max(lines)), min(gaps)
+                counts = collections.Counter(edges)
+                yield axis, sign, min(counts, key=lambda edge: (-counts[edge], edge)), (min(lines), max(lines)), min(gaps)
 
 
 def _line_up_fronts(groups, validate, reserved, protected, occupancy, width, depth):
@@ -376,9 +429,18 @@ def _line_up_fronts(groups, validate, reserved, protected, occupancy, width, dep
     ribbon edge within FRONT_WINDOW along the street (weighted by frontage)
     moves onto it. The move must keep the component valid (attached shops
     still touch and never overlap) and every new cell free. A front farther
-    back is a real setback and stays. Returns the number of buildings moved."""
-    moved = 0
+    back is a real setback and stays. Each pass reads the fronts as the last
+    pass left them, until a pass moves nothing. Returns the number of buildings moved."""
+    moved = set()
     owner = {id: g for g in groups for id in g['ids']}
+    for _ in range(8):
+        if not _line_up_pass(groups, validate, reserved, protected, occupancy, width, depth, owner, moved):
+            break
+    return len(moved)
+
+
+def _line_up_pass(groups, validate, reserved, protected, occupancy, width, depth, owner, moved):
+    changed = False
     for axis in (0, 1):
         faces = collections.defaultdict(list)
         for g in groups:
@@ -411,14 +473,82 @@ def _line_up_fronts(groups, validate, reserved, protected, occupancy, width, dep
                        or (x, y) in protected or occupancy.get((x, y), set()) - set(g['ids'])
                        for x, y in footprint[id] - current['cells'][id]):
                     continue
+                # Never leave a one-tile slot behind: no tile the move empties
+                # may lie between two buildings.
+                taken = set().union(*footprint.values())
+                occupied = lambda cell: cell in taken or bool(occupancy.get(cell, set()) - set(g['ids']))
+                if any(occupied((x - 1, y)) and occupied((x + 1, y)) or occupied((x, y - 1)) and occupied((x, y + 1))
+                       for x, y in current['cells'][id] - footprint[id]):
+                    continue
                 for cell in current['cells'][id]:
                     occupancy[cell].discard(id)
                 for cell in footprint[id]:
                     occupancy[cell].add(id)
                 fronts = {**current.get('frontMetres', {}), id: [a+b for a, b in zip(current.get('frontMetres', {}).get(id, [0, 0]), (dx, dy))]}
                 g['current'] = {**current, 'shapes': shapes, 'cells': footprint, 'frontMetres': fronts}
-                moved += 1
-    return moved
+                moved.add(id)
+                changed = True
+    return changed
+
+
+CLUSTER_GAP = 1.5  # metres: buildings this close move together, by one whole-metre shift
+OVERRIDE_NUDGES = sorted(((x, y) for x in range(-2, 3) for y in range(-2, 3) if x * x + y * y <= 4),
+                         key=lambda p: (p[0] ** 2 + p[1] ** 2, p))  # extra whole metres a reviewed plan may take
+
+
+class UnresolvedLayout(ValueError):
+    """The fit could not place these components clear of streets, water and neighbours."""
+    def __init__(self, unresolved):
+        super().__init__('Grid layout intrudes on streets/water/neighbours: '+str(unresolved))
+        self.ids = [entry['ids'] for entry in unresolved]
+
+
+def building_shifts(buildings, source_walls, follow, gap=CLUSTER_GAP, whole=True):
+    """Whole-metre street-follow shifts, one for each cluster of buildings.
+
+    A whole-metre shift moves a plan's one-metre fit by exactly that much, so
+    a building keeps the shape main's fit gave it; a fractional shift re-rounds
+    every wall and resizes buildings by a tile. Buildings that share a wall or
+    stand within `gap` of each other form one cluster and take the field's move
+    at the cluster's centre, rounded, so neighbours that touched still touch.
+    whole=False gives the same clusters their exact fractional shifts."""
+    by_id = {f['id']: f for f in buildings}
+    parent = {id: id for id in by_id}
+
+    def root(id):
+        while parent[id] != id:
+            parent[id] = parent[parent[id]]
+            id = parent[id]
+        return id
+
+    for wall in source_walls:
+        owners = [id for id in wall['owners'] if id in by_id]
+        for a, b in zip(owners, owners[1:]):
+            parent[root(b)] = root(a)
+    size = 32
+    buckets = collections.defaultdict(list)
+    for id in sorted(by_id):
+        x0, y0, x1, y1 = by_id[id]['bounds']
+        for cx in range(math.floor((x0 - gap) / size), math.floor((x1 + gap) / size) + 1):
+            for cy in range(math.floor((y0 - gap) / size), math.floor((y1 + gap) / size) + 1):
+                buckets[(cx, cy)].append(id)
+    for members in buckets.values():
+        for a, b in itertools.combinations(members, 2):
+            ax0, ay0, ax1, ay1 = by_id[a]['bounds']
+            bx0, by0, bx1, by1 = by_id[b]['bounds']
+            if math.hypot(max(0, bx0 - ax1, ax0 - bx1), max(0, by0 - ay1, ay0 - by1)) <= gap:
+                parent[root(b)] = root(a)
+    clusters = collections.defaultdict(list)
+    for id in sorted(by_id):
+        clusters[root(id)].append(id)
+    shifts = {}
+    for ids in clusters.values():
+        boxes = [by_id[id]['bounds'] for id in ids]
+        centre = [(min(b[i] for b in boxes) + max(b[i + 2] for b in boxes)) / 2 for i in (0, 1)]
+        shift = [0, 0] if follow is None else [round(v) if whole else round(v, 4) for v in follow(centre)]
+        for id in ids:
+            shifts[id] = shift
+    return shifts
 
 
 def _component_centre(polygons):
@@ -427,7 +557,7 @@ def _component_centre(polygons):
 
 
 def author_buildings(buildings, source_walls, terrain, codebook, options, *,
-                     street_corridor=None, street_fit_terrain=None, follow=None):
+                     street_corridor=None, street_fit_terrain=None, shifts=None):
     if options.get('version') != 1 or options.get('gridMetres') != 1:
         raise ValueError('Unsupported building-grid authoring profile')
     by_id={f['id']:f for f in buildings}
@@ -444,15 +574,12 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
             parents[root(b)]=root(a)
     components=collections.defaultdict(list)
     for id in sorted(by_id):components[root(id)].append(id)
-    # A component moves with its straightened streets: the town's move at its
-    # centre (follow) translates its source plan before the grid fit, so the
-    # fit keeps the measured setback from the street. Geographic source rings
-    # stay untouched; the move is part of translationMetres in each record.
-    shifts={}
-    for ids in components.values():
-        centre=_component_centre([p for id in ids for p in by_id[id]['geometry']['coordinates']])
-        shift=[0.0,0.0] if follow is None else [round(v,4) for v in follow(centre)]
-        for id in ids:shifts[id]=shift
+    # A component moves with its straightened streets: its cluster's whole-metre
+    # shift (building_shifts) translates its source plan before the grid fit,
+    # so the fit keeps the measured setback and main's shape. Geographic source
+    # rings stay untouched; the move is part of translationMetres in each record.
+    shifts={id:[0,0] for id in by_id} if shifts is None else shifts
+    if any(shifts[a]!=shifts[b] for ids in components.values() for a in ids for b in ids):raise ValueError('A shared-wall component must move by one shift')
     plans={id:[[[[x+shifts[id][0],y+shifts[id][1]] for x,y in ring] for ring in poly] for poly in f['geometry']['coordinates']]
            for id,f in by_id.items()}
     originals={id:cells(plans[id]) for id in by_id}
@@ -512,10 +639,14 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
         changed=False
         for group in groups:
             current=group['current'];best_score=score(group,current)
-            if not best_score[0] or current['override']:continue
+            if not best_score[0]:continue
+            # A reviewed plan keeps its shape. Its street moved the town round
+            # it by fractions of a metre, its plan by whole metres; where that
+            # left it on a road (a lane hugging the former depot), it takes the
+            # nearest clean extra metre or two instead.
             best=current
-            for base in group['families']:
-                for dx,dy in offsets:
+            for base in ([current] if current['override'] else group['families']):
+                for dx,dy in (OVERRIDE_NUDGES if current['override'] else offsets):
                     shapes=_translate(base['shapes'],dx,dy)
                     # Re-sample the translated polygons: moving an edge into the
                     # town must include cells previously outside the crop.
@@ -531,7 +662,7 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
                 changed=True
         if not changed:break
     unresolved=[{'ids':g['ids'],'violations':score(g,g['current'])[:3]} for g in groups if score(g,g['current'])[0]]
-    if unresolved:raise ValueError('Grid layout intrudes on streets/water/neighbours: '+str(unresolved))
+    if unresolved:raise UnresolvedLayout(unresolved)
     if street_corridor is not None:
         if street_fit_terrain is not None:
             if len(street_fit_terrain) != len(terrain):
@@ -554,14 +685,14 @@ def author_buildings(buildings, source_walls, terrain, codebook, options, *,
         candidate=group['current'];shift=group['shift']
         # The record inverts to the measured plan: turn by -angle about the
         # source centre, then move by the fit's whole metres plus the street
-        # move (a reviewed plan moved with its street by whole metres only).
+        # move (whole metres, unless the fit needed the exact move; a reviewed
+        # plan always moved by whole metres).
         if candidate['override']:
             moved=[candidate['dx']+round(shift[0]),candidate['dy']+round(shift[1])]
-        elif shift==[0.0,0.0]:
-            moved=[candidate['dx'],candidate['dy']]
         else:
-            moved=[round(candidate['dx']+shift[0],4),round(candidate['dy']+shift[1],4)]
-        centre=group['centre'] if shift==[0.0,0.0] else [group['centre'][0]-shift[0],group['centre'][1]-shift[1]]
+            moved=[candidate['dx']+shift[0],candidate['dy']+shift[1]]
+            moved=[v if isinstance(v,int) else round(v,4) for v in moved]
+        centre=[group['centre'][0]-shift[0],group['centre'][1]-shift[1]]
         for id in group['ids']:
             # A shop lined up on its street's front alone adds its own move.
             extra=candidate.get('frontMetres',{}).get(id,[0,0])

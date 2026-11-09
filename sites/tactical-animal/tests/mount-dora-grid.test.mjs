@@ -18,8 +18,8 @@ test('old saves enclosed by a moved building resume outdoors without losing reso
   // This was outdoor ground beside the original diamond-shaped house; the
   // new cardinal rectangle encloses it without placing a wall on the animal.
   // (The rectangle moved with its streets; this point is 3.5 m inside it.)
-  assert(solidDistance({kind:'polygon',polygons:house.geographicGeometry.coordinates},{x:281.5,y:717.5})>.31);
-  Object.assign(p.player,{x:281,y:717});p.sourceRevision='0'.repeat(64);
+  assert(solidDistance({kind:'polygon',polygons:house.geographicGeometry.coordinates},{x:276.5,y:714.5})>.31);
+  Object.assign(p.player,{x:276,y:714});p.sourceRevision='0'.repeat(64);
   await w.readyAt(p.player);assert(w.pointClear(p.player),'Interior is clear of walls, demonstrating why pointClear alone is insufficient');assert(!w.resumeClear(p.player));
   const oldPosition={x:p.player.x,y:p.player.y},restored=await loadTownTour({progress:p,fetcher,projectURL});
   try{const q=hero(restored),rw=getTourWorld(restored);assert(rw.resumeClear(q));assert(Math.hypot(q.x-oldPosition.x,q.y-oldPosition.y)<24);assert.equal(q.ammo.assault,4);assert.equal(q.stamina,0);assert.equal(q.heading,1.23);assert.deepEqual(q.pack,p.player.pack);assert.equal(restored.solo.distance,123);assert.equal(restored.elapsed,45);for(const key of p.seen)assert(restored.seen.has(key));assert.deepEqual({x:p.player.x,y:p.player.y},oldPosition);assert(restored.log.some(s=>s.includes('clear outdoor approach')));}finally{getTourWorld(restored).dispose();}

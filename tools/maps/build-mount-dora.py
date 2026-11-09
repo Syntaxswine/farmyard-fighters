@@ -37,6 +37,10 @@ WIDTHS = {"secondary": 8, "tertiary": 7, "residential": 6, "unclassified": 6,
           "service": 3.5, "pedestrian": 4, "cycleway": 2.5, "footway": 2,
           "path": 1.5, "steps": 1.5, "track": 3, "living_street": 5}
 STREET_CLASSES = {"secondary", "tertiary", "residential", "unclassified", "living_street"}
+# A pedestrian street is part of the street grid (West 4th Avenue is one for a
+# block east of Alexander Street): it snaps with the streets but keeps its own
+# mapped width.
+SNAP_CLASSES = STREET_CLASSES | {"pedestrian"}
 STREET_WIDTH = 6
 SIDEWALK_WIDTH = 2
 STREET_SNAP_LIMIT = 5        # metres a street may move to sit on one grid line; buildings move with it
@@ -344,7 +348,7 @@ def author_streets(roads, width=None, depth=None):
     outside points drifted with the real grid's slight turn; letting them vote
     split straight in-town streets onto two lines with a sideways jump.
     Outside points still move onto the line the town chose."""
-    streets = [f for f in roads if f["tags"]["highway"] in STREET_CLASSES
+    streets = [f for f in roads if f["tags"]["highway"] in SNAP_CLASSES
                and f["geometry"]["type"] == "LineString"]
     fixed = {tuple(p) for f in roads if f["nativeRoad"]["bridge"] or f["nativeRoad"]["woodSurface"]
              if f["geometry"]["type"] == "LineString" for p in f["geometry"]["coordinates"]}
@@ -432,52 +436,113 @@ def author_streets(roads, width=None, depth=None):
     return moves
 
 
-FOLLOW_REACH = 200  # metres: how far across a block a straightened street still moves the town
-FOLLOW_BIN = 20     # metres: bucket size for the along-street lookup
+FOLLOW_REACH = 200  # metres: a street or shoreline stops moving the town this far away
+FOLLOW_CELL = 50    # metres: bucket size of the segment index
+# Pull of the unmoved town, as if an unmoved straight street lay four reaches
+# away: a point beside one moved street takes 99% of its move at 10 m and fades
+# smoothly to none at FOLLOW_REACH.
+FOLLOW_REST = math.pi / (4 * FOLLOW_REACH)
 
 
-def street_follow_field(roads):
+def _segment_pull(point, a, b, move_a, move_b):
+    """How hard one constraint segment pulls a point, and toward what move.
+
+    The weight is the integral of 1/r^2 along the segment, so a segment split
+    in two pulls exactly as hard as the whole, and two long parallel streets at
+    distances d1 and d2 pull in the ratio 1/d1 : 1/d2 (before the reach taper,
+    which favours the nearer street a little more): the town blends across the
+    block between them. The move varies linearly along the segment.
+    Returns (distance, weight, weight * move), or (0, None, move) on the segment."""
+    ux, uy = b[0] - a[0], b[1] - a[1]
+    length = math.hypot(ux, uy)
+    ux, uy = ux / length, uy / length
+    rx, ry = point[0] - a[0], point[1] - a[1]
+    t = rx * ux + ry * uy                      # the foot of the perpendicular, from a
+    h = abs(rx * uy - ry * ux)                 # distance from the segment's line
+    s1, s2 = -t, length - t                    # the segment's ends, measured from the foot
+    slope = (move_b - move_a) / length
+    foot = move_a + slope * t                  # the move the segment's line has at the foot
+    if s1 <= 0 <= s2:
+        distance = h
+        if h < 1e-9:
+            return 0.0, None, foot
+    else:
+        distance = min(math.hypot(h, s1), math.hypot(h, s2))
+    if h < 1e-9:
+        near, far = sorted((abs(s1), abs(s2)))
+        weight = 1 / near - 1 / far
+    else:
+        weight = math.atan2(h * (s2 - s1), h * h + s1 * s2) / h
+    moment = .5 * math.log((h * h + s2 * s2) / (h * h + s1 * s1))
+    return distance, weight, foot * weight + slope * moment
+
+
+def street_follow_field(roads, features=(), width=None, depth=None):
     """How far the town moves so everything keeps its place beside the streets.
 
-    Every straightened near-cardinal standard-street segment knows, along its
-    length, how far its source line moved across it. A point takes, on each
-    axis, the moves of the nearest such street on each side, blended by
-    distance. A block between two streets therefore shears smoothly with them,
-    and a building translated by the move at its centre keeps its setback.
-    Returns field(point) -> [dx, dy] for a source-coordinate point."""
-    runs = ({}, {})
+    On each axis, the snapped near-cardinal segments of the grid streets pull
+    toward their own move (snapped line minus source line, varying along a
+    segment whose two ends took different lines), and the mapped lake shore
+    pulls toward no move: it keeps its place. Pulls are 1/r^2 integrals along
+    each segment, tapered to nothing at FOLLOW_REACH, against the rest pull of
+    the unmoved town, so the field is continuous everywhere: a building moved by
+    the field at its centre keeps its setback, and nothing tears where one
+    street ends or another begins. Returns field(point) -> [dx, dy]."""
+    def in_town(point):
+        return width is None or (0 <= point[0] <= width and 0 <= point[1] <= depth)
+
+    constraints = ([], [])
     for feature in roads:
-        style, geometry = feature["nativeRoad"], feature["geometry"]
-        if style["widthSource"] != "standard-game-street" or geometry["type"] != "LineString":
+        if feature["tags"]["highway"] not in SNAP_CLASSES or feature["geometry"]["type"] != "LineString":
             continue
-        source = geometry["coordinates"]
-        line = style.get("centerline", source)
+        source = feature["geometry"]["coordinates"]
+        line = feature["nativeRoad"].get("centerline", source)
         for a, b, p, q in zip(source, source[1:], line, line[1:]):
+            if not (in_town(a) or in_town(b)):
+                continue
             for axis in range(2):
-                if p[axis] != q[axis] or a[1-axis] == b[1-axis]:
-                    continue
-                run = (min(a[1-axis], b[1-axis]), max(a[1-axis], b[1-axis]), a[1-axis], a[axis], b[1-axis], b[axis], p[axis])
-                for cell in range(math.floor(run[0] / FOLLOW_BIN), math.floor(run[1] / FOLLOW_BIN) + 1):
-                    runs[axis].setdefault(cell, []).append(run)
+                across, along = abs(b[axis] - a[axis]), abs(b[1-axis] - a[1-axis])
+                if along and across <= along * .2:
+                    constraints[axis].append((a, b, p[axis] - a[axis], q[axis] - b[axis]))
+    for feature in features:
+        if feature["category"] == "water" and feature["geometry"]["type"] == "MultiPolygon":
+            for polygon in feature["geometry"]["coordinates"]:
+                for ring in polygon:
+                    for a, b in zip(ring, ring[1:]):
+                        if a != b and (in_town(a) or in_town(b)):
+                            for axis in range(2):
+                                constraints[axis].append((a, b, 0.0, 0.0))
+    index = ({}, {})
+    for axis in range(2):
+        for number, (a, b, _, _) in enumerate(constraints[axis]):
+            for cx in range(math.floor((min(a[0], b[0]) - FOLLOW_REACH) / FOLLOW_CELL),
+                            math.floor((max(a[0], b[0]) + FOLLOW_REACH) / FOLLOW_CELL) + 1):
+                for cy in range(math.floor((min(a[1], b[1]) - FOLLOW_REACH) / FOLLOW_CELL),
+                                math.floor((max(a[1], b[1]) + FOLLOW_REACH) / FOLLOW_CELL) + 1):
+                    index[axis].setdefault((cx, cy), []).append(number)
 
     def move(axis, point):
-        along, across = point[1-axis], point[axis]
-        sides = [None, None]
-        for low, high, a_along, a_across, b_along, b_across, line in runs[axis].get(math.floor(along / FOLLOW_BIN), ()):
-            if not low <= along <= high:
-                continue
-            source_across = a_across + (b_across - a_across) * (along - a_along) / (b_along - a_along)
-            gap = across - source_across
-            side, distance = (0, gap) if gap >= 0 else (1, -gap)
-            if distance <= FOLLOW_REACH and (sides[side] is None or distance < sides[side][0]):
-                sides[side] = (distance, line - source_across)
-        near, far = sides
-        if near and far:
-            total = near[0] + far[0]
-            return near[1] if not total else (near[1] * far[0] + far[1] * near[0]) / total
-        return (near or far or (0, 0.0))[1]
+        weight, total, exact = FOLLOW_REST, 0.0, []
+        for number in index[axis].get((math.floor(point[0] / FOLLOW_CELL), math.floor(point[1] / FOLLOW_CELL)), ()):
+            a, b, move_a, move_b = constraints[axis][number]
+            distance, pull, pulled = _segment_pull(point, a, b, move_a, move_b)
+            if pull is None:
+                exact.append(pulled)
+            elif distance < FOLLOW_REACH:
+                taper = (1 - (distance / FOLLOW_REACH) ** 2) ** 2
+                weight += pull * taper
+                total += pulled * taper
+        return sum(exact) / len(exact) if exact else total / weight
 
-    return lambda point: [move(0, point), move(1, point)]
+    cache = {}
+
+    def field(point):
+        key = (point[0], point[1])
+        if key not in cache:
+            cache[key] = [move(0, point), move(1, point)]
+        return list(cache[key])
+
+    return field
 
 
 BLOCK_PARK_SPAN = 120  # metres: a park no wider or deeper than this moves as one piece with its contents
@@ -495,6 +560,20 @@ def _inside(point, polygons):
     return hit
 
 
+BLOCK_PARK_BAND = 10  # metres inside a block park's edge over which its one-piece move blends into the town's
+
+
+def _edge_distance(point, polygons):
+    best = math.inf
+    for polygon in polygons:
+        for ring in polygon:
+            for a, b in zip(ring, ring[1:]):
+                dx, dy = b[0] - a[0], b[1] - a[1]
+                t = max(0, min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / (dx * dx + dy * dy or 1)))
+                best = min(best, math.hypot(point[0] - a[0] - t * dx, point[1] - a[1] - t * dy))
+    return best
+
+
 def park_follow(field, features):
     """A block-sized park moves as one piece, with everything inside it.
 
@@ -503,25 +582,30 @@ def park_follow(field, features):
     little. Inside Donnelly Park that pulled the Art Centre 1.8 m north and
     its tennis courts under 1 m, closing the stage's approach between them.
     A park is laid out as a whole, so a park at most BLOCK_PARK_SPAN metres
-    across takes the move at its centre, and so does any point inside it."""
+    across takes the move at its centre, and so does any point inside it
+    deeper than BLOCK_PARK_BAND; nearer its edge the two moves blend, so a path
+    or street crossing the edge stays joined and unbent. The returned function
+    lists the block parks' one-piece moves in .parks."""
     parks = []
     for feature in features:
         if (feature["category"] == "park" and feature["tags"].get("leisure") == "park"
                 and feature["geometry"]["type"] == "MultiPolygon"):
             x0, y0, x1, y1 = feature["bounds"]
             if x1 - x0 <= BLOCK_PARK_SPAN and y1 - y0 <= BLOCK_PARK_SPAN:
-                parks.append((feature["bounds"], feature["geometry"]["coordinates"], field([(x0 + x1) / 2, (y0 + y1) / 2])))
+                parks.append((feature["id"], feature["bounds"], feature["geometry"]["coordinates"],
+                              field([(x0 + x1) / 2, (y0 + y1) / 2])))
 
     def moved(point):
-        for (x0, y0, x1, y1), polygons, shift in parks:
+        for _, (x0, y0, x1, y1), polygons, shift in parks:
             if x0 <= point[0] <= x1 and y0 <= point[1] <= y1 and _inside(point, polygons):
-                return list(shift)
+                weight = min(1, _edge_distance(point, polygons) / BLOCK_PARK_BAND)
+                if weight == 1:
+                    return list(shift)
+                return [weight * whole + (1 - weight) * own for whole, own in zip(shift, field(point))]
         return field(point)
 
+    moved.parks = {ident: shift for ident, _, _, shift in parks}
     return moved
-
-
-STREET_JOG = 4  # metres: a straight street that must change line does so this close to its junction
 
 
 def follow_streets(roads, moves, field):
@@ -530,18 +614,10 @@ def follow_streets(roads, moves, field):
     A vertex the street snap placed keeps that line on each axis it moved;
     every other source vertex takes the town's move, so paths and curved
     roads keep their shape and stay joined. Bridges and boardwalks keep
-    their mapped place over the water.
-
-    Where a nearly straight standard-street segment joins two different
-    lines (North Highland Street drifts 15 m along its length), it runs
-    straight on one and jogs to the other within STREET_JOG metres of its
-    junction end, instead of crossing the whole block as a shallow diagonal
-    that the one-metre grid paints as a staircase of one-tile steps."""
-    junctions = defaultdict(int)
-    for feature in roads:
-        if feature["nativeRoad"]["widthSource"] == "standard-game-street" and feature["geometry"]["type"] == "LineString":
-            for point in set(map(tuple, feature["geometry"]["coordinates"])):
-                junctions[point] += 1
+    their mapped place over the water, and so does every vertex another road
+    shares with them. A segment whose two ends took different lines (a street
+    that really turns off the grid, in the east and southeast) crosses between
+    them as the field does, so the town beside it moves with it."""
     # A road that meets a bridge or boardwalk keeps the shared vertex where the
     # bridge is, so the two stay joined.
     moored = {tuple(p) for f in roads if f["nativeRoad"]["bridge"] or f["nativeRoad"]["woodSurface"]
@@ -556,36 +632,10 @@ def follow_streets(roads, moves, field):
             shift = [0.0, 0.0] if tuple(point) in moored else field(point)
             line.append([moves[axis][tuple(point)] if tuple(point) in moves[axis]
                          else round(point[axis] + shift[axis], 4) for axis in range(2)])
-        corners = []
-        if style["widthSource"] == "standard-game-street":
-            jogged = [line[0]]
-            for a, b, p, q in zip(points, points[1:], line, line[1:]):
-                for axis in range(2):
-                    along, across = abs(b[1-axis] - a[1-axis]), abs(b[axis] - a[axis])
-                    if (along > STREET_JOG and across <= along * .2 and p[axis] != q[axis]
-                            and tuple(a) in moves[axis] and tuple(b) in moves[axis]):
-                        step = math.copysign(STREET_JOG, q[1-axis] - p[1-axis])
-                        # Jog beside the end that meets another street; else at the far end.
-                        if junctions[tuple(a)] > 1 and junctions[tuple(b)] <= 1:
-                            corner = [None, None]
-                            corner[axis], corner[1-axis] = q[axis], p[1-axis] + step
-                        else:
-                            corner = [None, None]
-                            corner[axis], corner[1-axis] = p[axis], q[1-axis] - step
-                        corners.append(len(jogged))
-                        jogged.append([round(corner[0], 4), round(corner[1], 4)])
-                        break
-                jogged.append(q)
-            line = jogged
         if line != points:
             style["centerline"] = line
         else:
             style.pop("centerline", None)
-        # The added corners, by index in centerline; every other vertex is its source vertex moved.
-        if corners:
-            style["jogCorners"] = corners
-        else:
-            style.pop("jogCorners", None)
 
 
 def paint_roads(terrain, roads, width, depth):
@@ -880,14 +930,34 @@ def split_walls(walls, extent, diagnostics):
     return pieces
 
 
-def vegetation_clearings():
-    # Keep the launch point, source-reviewed visit approaches, and the
-    # Donnelly four-sector crossing clear of decorative brush and tree trunks.
-    approaches = ((459, 500), (477, 484), (336, 810), (469, 1004), (504, 1168),
-                  (737, 1181), (529, 1402), (665, 1296), (433, 635), (414, 480),
-                  (481, 598), (328, 687), (479, 479))
-    clear = {(x + dx, y + dy) for x, y in approaches for dx in range(-3, 4) for dy in range(-3, 4)}
-    clear.update((x, y) for x in range(458, 491) for y in range(506, 511))
+# Source-reviewed approach points of the walking tour, in town metres. Each
+# moves with the town at its own place by whole metres (approach_moves, recorded
+# in project.json as approachMovesM); the game's TOUR_VISITS (mount-dora-entry.js)
+# and the route review's targets hold the moved points.
+APPROACH_POINTS = {
+    "launch": (459.5, 500.5), "donnelly-park": (478, 484.75), "lakeside-inn": (336.5, 810.5),
+    "elizabeth-evans": (470, 1005), "evans-route": (430.5, 1015.5), "grantham-lighthouse": (504.5, 1168.5),
+    "gilbert-park": (737.2963, 1181.367), "gilbert-route": (710.5, 1207.5), "palm-island": (529.5, 1402.5),
+    "palm-entrance": (665.969, 1296.5786), "historic-shopfronts": (433.5, 635.5), "donnelly-house": (414.5, 480.5),
+    "history-museum": (481.5, 598.5), "former-depot": (328.5, 687.5)}
+
+
+def approach_moves(follow):
+    return {name: [round(v) for v in follow(list(point))] for name, point in APPROACH_POINTS.items()}
+
+
+def vegetation_clearings(moves):
+    # Keep the launch point and the source-reviewed visit approaches (each moved
+    # with the town at its place) and the Donnelly four-sector crossing (a fixed
+    # sector corner) clear of decorative brush and tree trunks.
+    approaches = {"launch": (459, 500), "donnelly-park": (477, 484), "lakeside-inn": (336, 810),
+                  "elizabeth-evans": (469, 1004), "grantham-lighthouse": (504, 1168), "gilbert-park": (737, 1181),
+                  "palm-island": (529, 1402), "palm-entrance": (665, 1296), "historic-shopfronts": (433, 635),
+                  "donnelly-house": (414, 480), "history-museum": (481, 598), "former-depot": (328, 687)}
+    clear = {(x + moves[name][0] + dx, y + moves[name][1] + dy) for name, (x, y) in approaches.items()
+             for dx in range(-3, 4) for dy in range(-3, 4)}
+    clear.update((479 + dx, 479 + dy) for dx in range(-3, 4) for dy in range(-3, 4))
+    clear.update((x + moves["launch"][0], y + moves["launch"][1]) for x in range(458, 491) for y in range(506, 511))
     return clear
 
 
@@ -1010,18 +1080,23 @@ def build_project(project=PROJECT):
     # so each keeps its place in its block instead of being pushed off a moved
     # sidewalk. Woods, wetlands, beaches and the lake keep the mapped shoreline.
     moves = author_streets(roads, width, depth)
-    follow = park_follow(street_follow_field(roads), features)
+    follow = park_follow(street_follow_field(roads, features, width, depth), features)
     follow_streets(roads, moves, follow)
+    # Park, pitch and car-park outlines move vertex by vertex with the town, so
+    # their edges stay on the paths and streets around them; a block park's
+    # inside moves as one piece (nativeShiftM).
     for feature in features:
         if feature["category"] in ("park", "parking") and feature["geometry"]["type"] == "MultiPolygon":
-            box = feature["bounds"]
-            shift = [round(v, 4) for v in follow([(box[0] + box[2]) / 2, (box[1] + box[3]) / 2])]
-            if shift != [0.0, 0.0]:
-                feature["geographicGeometry"], feature["geographicBounds"] = feature["geometry"], box
-                feature["geometry"] = {"type": "MultiPolygon", "coordinates": [[[[round(x + shift[0], 4), round(y + shift[1], 4)] for x, y in ring]
-                                                                                 for ring in polygon] for polygon in feature["geometry"]["coordinates"]]}
-                feature["bounds"] = [round(box[0] + shift[0], 4), round(box[1] + shift[1], 4), round(box[2] + shift[0], 4), round(box[3] + shift[1], 4)]
-                feature["nativeShiftM"] = shift
+            source = feature["geometry"]["coordinates"]
+            moved = [[[[round(x + dx, 4), round(y + dy, 4)] for (x, y), (dx, dy) in ((point, follow(point)) for point in ring)]
+                      for ring in polygon] for polygon in source]
+            if moved != source:
+                points = [point for polygon in moved for ring in polygon for point in ring]
+                feature["geographicGeometry"], feature["geographicBounds"] = feature["geometry"], feature["bounds"]
+                feature["geometry"] = {"type": "MultiPolygon", "coordinates": moved}
+                feature["bounds"] = [min(p[0] for p in points), min(p[1] for p in points), max(p[0] for p in points), max(p[1] for p in points)]
+            if feature["id"] in follow.parks:
+                feature["nativeShiftM"] = [round(v, 4) for v in follow.parks[feature["id"]]]
     for feature in features:
         if feature["category"] == "water" and feature["geometry"]["type"] == "MultiPolygon":
             paint_polygon(terrain, feature["geometry"]["coordinates"], WATER, width, depth)
@@ -1066,21 +1141,38 @@ def build_project(project=PROJECT):
     # over that water, as a mapped footprint may; let the one-metre fit also
     # take the water cells touching it, where the building now stands. Only
     # the fit sees this; nothing is painted as land.
-    fit_terrain = bytearray(terrain)
-    for feature in buildings:
-        if "county" in feature:
-            box = feature["bounds"]
-            shift = [round(v) for v in follow([(box[0] + box[2]) / 2, (box[1] + box[3]) / 2])]
-            for x, y in _grid.cells(feature["geometry"]["coordinates"]):
-                for nx in range(max(0, x + shift[0] - 3), min(width, x + shift[0] + 4)):
-                    for ny in range(max(0, y + shift[1] - 3), min(depth, y + shift[1] + 4)):
-                        if fit_terrain[ny * width + nx] == WATER:
-                            fit_terrain[ny * width + nx] = CODE["ground-grass"]
+    # Buildings move by whole metres with their cluster (building_shifts), so
+    # each keeps the shape the one-metre fit gives it unmoved. A cluster the fit
+    # cannot then place clear of the moved streets takes its exact fractional
+    # move instead, and its fit re-rounds.
+    walls = deduplicated_walls(buildings)
+    shifts = _grid.building_shifts(buildings, walls, follow)
+    exact = _grid.building_shifts(buildings, walls, follow, whole=False)
     # Reserve the full playable street and sidewalk ribbon for every footprint.
     corridor = street_corridor(roads, width, depth)
-    authored = author_buildings(buildings, deduplicated_walls(buildings), fit_terrain, CODE,
-                                config["buildingGrid"], street_corridor=corridor, street_fit_terrain=terrain,
-                                follow=follow)
+    while True:
+        fit_terrain = bytearray(terrain)
+        for feature in buildings:
+            if "county" in feature:
+                shift = [round(v) for v in shifts[feature["id"]]]
+                for x, y in _grid.cells(feature["geometry"]["coordinates"]):
+                    for nx in range(max(0, x + shift[0] - 3), min(width, x + shift[0] + 4)):
+                        for ny in range(max(0, y + shift[1] - 3), min(depth, y + shift[1] + 4)):
+                            if fit_terrain[ny * width + nx] == WATER:
+                                fit_terrain[ny * width + nx] = CODE["ground-grass"]
+        try:
+            authored = author_buildings(buildings, walls, fit_terrain, CODE,
+                                        config["buildingGrid"], street_corridor=corridor, street_fit_terrain=terrain,
+                                        shifts=shifts)
+            break
+        except _grid.UnresolvedLayout as error:
+            # A cluster's members share one shift list (building_shifts).
+            stuck = {id for ids in error.ids for id in ids}
+            stuck = {other for id in stuck for other in shifts if shifts[other] is shifts[id]}
+            if all(shifts[id] == exact[id] for id in stuck):
+                raise
+            for id in stuck:
+                shifts[id] = exact[id]
     # A mapped shelter deck supplies support over water, never invented land.
     structures = []
     for source_id in ('osm-way-557051211', 'osm-way-557154683', 'osm-way-557154684'):
@@ -1092,12 +1184,20 @@ def build_project(project=PROJECT):
                            'geometry':{'type':'MultiPolygon','coordinates':polygons}})
     for ident, source_id, box in (('md:donnelly-stage','osm-way-468920884',[472,482,485,487]),
                                   ('md:evans-pavilion','osm-way-486656245',[466,1002,474,1008])):
-        # Placed inside a park, so it moves with the park by whole metres.
-        dx, dy = (round(v) for v in follow([(box[0] + box[2]) / 2, (box[1] + box[3]) / 2]))
+        # Inside a block park it moves with the park; elsewhere with the town
+        # at its centre; by whole metres either way.
+        centre = [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2]
+        homes = [f for f in features if f["category"] == "park" and f["geometry"]["type"] == "MultiPolygon"
+                 and _inside(centre, f.get("geographicGeometry", f["geometry"])["coordinates"])]
+        home = min(homes, key=lambda f: _grid.area(f.get("geographicGeometry", f["geometry"])["coordinates"]), default=None)
+        dx, dy = (round(v) for v in (home["nativeShiftM"] if home and "nativeShiftM" in home else follow(centre)))
         x0,y0,x1,y1 = box[0]+dx, box[1]+dy, box[2]+dx, box[3]+dy
         structures.append({'id':ident,'sourceIds':[source_id],'geometry':{'type':'MultiPolygon',
-                           'coordinates':[[[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]]]}})
+                           'coordinates':[[[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]]]},
+                           **({'geographicGeometry':{'type':'MultiPolygon','coordinates':[[[[box[0],box[1]],[box[2],box[1]],[box[2],box[3]],[box[0],box[3]],[box[0],box[1]]]]]}}
+                              if (dx, dy) != (0, 0) else {})})
     authored['structures'] = structures
+    approaches = approach_moves(follow)
     layout_digest = sha(encoded(authored))
     authored_by_id = {record['id']: record for record in authored['records']}
     for feature in buildings:
@@ -1153,7 +1253,7 @@ def build_project(project=PROJECT):
     vegetation = load_map_helper("mount_dora_foliage")
     props_by_sector, foliage_by_sector, tree_cells = vegetation.build_vegetation(
         features, terrain, green, blocked, width, depth, size, CODE, sector_id,
-        reserved=vegetation_clearings())
+        reserved=vegetation_clearings(approaches))
     sector_positions = [(col, row) for row in range(extent["rows"]) for col in range(extent["columns"])]
     anchors_by_sector = {}
     for col, row in sector_positions:
@@ -1162,7 +1262,7 @@ def build_project(project=PROJECT):
     patrols = load_map_helper("mount_dora_patrols")
     guards_by_sector = patrols.author_guards(
         terrain, blocked, tree_cells, roads, {cell for cell, anchors in anchors_by_sector.items() if anchors},
-        width=width, depth=depth, size=size, code=CODE, anchors_by_sector=anchors_by_sector)
+        width=width, depth=depth, size=size, code=CODE, anchors_by_sector=anchors_by_sector, moves=approaches)
     outputs, sectors = {'authored-buildings.json': encoded(authored)}, []
     config_digest = sha((project / "source" / "authoring-config.json").read_bytes())
     digest = sha(encoded(source_records))
@@ -1210,7 +1310,7 @@ def build_project(project=PROJECT):
                             "bounds": {"x": ox, "y": oy, "widthM": size, "depthM": size}, "nativeImport": native_import, "metrics": metrics,
                             "buildingIds": sorted(sector_buildings[sid]), "guards": guards})
     feature_database = {"kind": "mount-dora-source-features", "version": 1, "id": config["id"], "projection": config["projection"],
-                        "coordinates": "Local east/south metres. Buildings, and parks and car parks that moved with their block (nativeShiftM), retain geographicGeometry; street geometry retains the source line with playable adjustments in nativeRoad.centerline.",
+                        "coordinates": "Local east/south metres. Buildings, parks and car parks that moved with their streets retain geographicGeometry, and a block-sized park that moved as one piece records nativeShiftM; street geometry retains the source line with playable adjustments in nativeRoad.centerline.",
                         "authoredLayoutSHA256": layout_digest,
                         "authoredStructures": structures,
                         "sources": source_records, "features": features, "diagnostics": diagnostics}
@@ -1224,9 +1324,10 @@ def build_project(project=PROJECT):
                                "sourceDigest": digest, "terrainCodebook": list(KINDS), "globalTerrainSHA256": sha(terrain),
                                "sampleRule": "Global cell centre (column*240+x+0.5, row*240+y+0.5); one global raster sliced without seam repaint.",
                                "nativeCoordinates": "Wall metre endpoints = global east/south - sectorOrigin - 0.5; tile indices remain integer cells.",
-                               "streets": {"classes": sorted(STREET_CLASSES), "widthM": STREET_WIDTH, "sidewalkWidthM": SIDEWALK_WIDTH,
+                               "streets": {"classes": sorted(STREET_CLASSES), "snapClasses": sorted(SNAP_CLASSES), "widthM": STREET_WIDTH, "sidewalkWidthM": SIDEWALK_WIDTH,
                                            "buildingClearanceTiles": 1,
                                            "snapLimitMPerAxis": STREET_SNAP_LIMIT, "policy": "Near-cardinal street runs align to a common metre line. Connected source nodes stay joined. Bridge and boardwalk points stay fixed."},
+                               "approachMovesM": approaches,
                                "defaultRoadWidthsM": WIDTHS,
                                "waterPolicy": "Fill complete source polygons first; land cover never creates land in water. Only mapped building footprints, bridges or wooden-surface paths can provide source-backed support over water; a county building on its lidar roof is such a footprint, and its one-metre fit may take the mapped water within three cells of it.",
                                "vegetation": {"seed": 1947, "brush": "woodland-v1",
