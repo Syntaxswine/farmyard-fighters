@@ -28,7 +28,8 @@ function render(){
   $('burst').disabled=!!rt||mode!=='shot'||!Core.WEAPONS[u.weapon].burstRounds||!preview(true)?.ok;
   $('turn').disabled=!rt&&state.phase!=='player';
   if(rt){
-    $('turn').textContent=rt.autoFire?'Hold fire':'Fire at will';
+    $('turn').textContent='Fire at Will';
+    $('turn').setAttribute('aria-pressed',String(rt.autoFire));
     $('status').textContent=`Real time · ${rt.ammo} rounds · ${rt.reloading?'reloading':holdingFire?'trigger held':'ready'}`;
   }else $('status').textContent=`${state.phase} · ${u.ap.toFixed(1)} AP · ${u.ammo[u.weapon]??0} rounds · ${Object.values(state.windowBreaks||{}).flat().length} panes broken`;
   if(target){

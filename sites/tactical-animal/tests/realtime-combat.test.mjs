@@ -267,7 +267,14 @@ test('real kills award weapon XP once, improve skill, and survive resuming the o
 test('real application controls toggle fire, persist aim, pause with menus/background and isolate Commando saves',()=>{
  const turnBasedKey='tactical-animal-operation-v2',realtimeKey='farmyard-realtime:tactical-animal-operation-v2';
  const s=fixture(),a=app({realTime:true,initialState:s,initialStorage:[[turnBasedKey,'turn-based'],[realtimeKey,'real-time']]});
- a.el('end-turn').click();assert(s.realtime.autoFire);a.el('realtime-aim').click();assert.equal(s.realtime.aim,'aimed');a.key(' ');assert.equal(s.realtime.autoFire,false);
+ const trigger=a.el('end-turn'),checkFireControl=on=>{
+   assert.equal(a.el('turn-label').innerHTML,'FIRE AT<br>WILL');
+   assert.equal(trigger['aria-label'],'Fire at Will');
+   assert.equal(trigger['aria-pressed'],String(on));
+   assert.equal(trigger.dataset.lit,String(on));
+ };
+ checkFireControl(false);trigger.click();assert(s.realtime.autoFire);checkFireControl(true);
+ a.el('realtime-aim').click();assert.equal(s.realtime.aim,'aimed');a.key(' ');assert.equal(s.realtime.autoFire,false);checkFireControl(false);
  a.el('menu').click();const elapsed=s.elapsed;a.advance(20);assert.equal(s.elapsed,elapsed);action(a,'Continue operation').click();a.visibility(true);a.advance(20);assert.equal(s.elapsed,elapsed);a.visibility(false);a.advance(2);assert(s.elapsed>elapsed);
  assert.equal(a.saved.get(turnBasedKey),'turn-based');assert.equal(a.saved.get(realtimeKey),'real-time');assert(a.saved.has('farmyard-fighters:tactical-animal-operation-v2'));
 });

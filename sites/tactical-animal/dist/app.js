@@ -378,13 +378,15 @@ function renderBattle(){if(!state)return;const u=hero(state),combat=state.phase=
   $('zoom-out').disabled=view?.canZoom?.(1.2)===false;$('zoom-in').disabled=view?.canZoom?.(.83)===false;
   $('battle-name').textContent=u.name;$('battle-species').textContent=speciesLabel(u.species);
   $('hp-label').textContent=`${Math.ceil(u.hp)} / ${u.maxHp} HP`;$('hp-bar').style.width=`${u.hp/u.maxHp*100}%`;
-  $('turn-label').innerHTML='END<br>TURN';$('end-turn').setAttribute('aria-label','End turn');
   $('ap').textContent=combat?Math.max(0,u.ap).toFixed(1):'∞';$('ap-label').textContent=combat?'AP':'FREE MOVE';
-  $('end-turn').disabled=state.phase!=='player'||aiming();
-  $('end-turn').dataset.lit=String(combat);
-  $('end-turn').setAttribute('aria-description',combat?'Combat light on':'Combat light off');
-  $('end-turn').setAttribute('aria-label',state.phase==='enemy'?'Guards are acting':'End turn');
-  $('turn-label').innerHTML=state.phase==='enemy'?'GUARD<br>TURN':'END<br>TURN';
+  if(!state.realtime){
+    const trigger=$('end-turn');
+    trigger.disabled=state.phase!=='player'||aiming();
+    trigger.dataset.lit=String(combat);
+    trigger.setAttribute('aria-description',combat?'Combat light on':'Combat light off');
+    trigger.setAttribute('aria-label',state.phase==='enemy'?'Guards are acting':'End turn');
+    $('turn-label').innerHTML=state.phase==='enemy'?'GUARD<br>TURN':'END<br>TURN';
+  }
   $('joystick').classList.toggle('unavailable',!can);
   renderGrenadeControls();renderFlameControls();
   if(REALTIME)renderSneak(u,can&&!aiming());
@@ -406,7 +408,13 @@ function renderBattle(){if(!state)return;const u=hero(state),combat=state.phase=
   drawMinimap($('minimap'),state);renderContext();renderInteractionHand();if(state.realtime)renderRealtimeBattle();
   if(state.solo.status!=='active'&&!resultShown){resultShown=true;storage.write();const win=state.solo.status==='extracted',mission=missionForState(state);showDialog(`<p class="eyebrow">${safe(mission.title)} / OPERATION ${win?'COMPLETE':'LOST'}</p><h2>${win?mission.result.title:'One worker down.'}</h2><p>${win?`${u.name} ${mission.result.summary} ${Math.round(state.solo.distance)} metres travelled; ${state.realtime?Math.round(state.elapsed)+' seconds in the field':state.round+' combat rounds'}.`:'The factory kept its secrets this time. Try another animal, another loadout, or a quieter route.'}</p>${win?`<p>${mission.result.epilogue}</p>`:''}`,[['Choose your next operation',backToPrep,'primary'],['Replay this loadout',()=>isTour(state)?launchTour():start(createSoloGame(state.solo.build,1947,state.solo.missionId))]]);}
 }
-if(REALTIME)bindPressHold($('end-turn'),{canUse:()=>!!state&&!paused&&!aiming()&&Core.canControl(state,hero(state)),tap:toggleRealtimeFire,hold:fireSettings});
+if(REALTIME){
+  const trigger=$('end-turn');
+  $('turn-label').innerHTML='FIRE AT<br>WILL';
+  trigger.setAttribute('aria-label','Fire at Will');
+  trigger.setAttribute('aria-description','Hold for fire mode, aim, and target priority.');
+  bindPressHold(trigger,{canUse:()=>!!state&&!paused&&!aiming()&&Core.canControl(state,hero(state)),tap:toggleRealtimeFire,hold:fireSettings});
+}
 else $('end-turn').onclick=()=>act(()=>{selected=null;cancelAreaAim();Core.endTurn(state);});
 function renderGrenadeControls(){
   const u=hero(state),armed=grenadeAim.active,point=grenadeAim.point,p=armed&&point?Core.previewGrenade(state,u,point):null;
@@ -795,9 +803,7 @@ function renderRealtimeBattle(){
   const r=Core.realtimeStatus(state),u=hero(state),w=Core.WEAPONS[u.weapon],target=state.units.find(v=>v.id===r.targetId);
   const trigger=$('end-turn');trigger.disabled=!Core.canControl(state,u)||aiming()||!r.automatic;
   trigger.dataset.lit=String(r.autoFire);trigger.setAttribute('aria-pressed',String(r.autoFire));
-  trigger.setAttribute('aria-label',`${r.autoFire?'Fire at will on. Hold fire':'Hold fire. Enable fire at will'}. Hold for fire mode, aim and target priority.`);
-  trigger.title=r.automatic?'Space: toggle fire at will. Hold for firing settings.':'This weapon uses deliberate area or point targeting.';
-  $('turn-label').innerHTML=r.autoFire?'FIRE AT<br>WILL':'HOLD<br>FIRE';
+  trigger.title=r.automatic?'Press Space to toggle. Hold for firing settings.':'This weapon uses deliberate area or point targeting.';
   $('realtime-tools').hidden=false;$('realtime-aim').disabled=!!w.incendiary||!Core.canControl(state,u)||aiming();
   $('realtime-aim-label').textContent=w.incendiary?'AREA FIRE':aimNames[r.aim];$('realtime-aim').setAttribute('aria-label',w.incendiary?'Flamethrower area fire. One cone every 3 seconds. No aiming required.':`Aim: ${aimNames[r.aim].toLowerCase()}. Tap to change aim level.`);
   $('ap').textContent=String(r.ammo);$('ap-label').textContent=w.mag?'ROUNDS':'MELEE';
