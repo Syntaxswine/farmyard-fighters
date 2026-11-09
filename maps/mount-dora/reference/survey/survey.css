@@ -1,0 +1,26 @@
+:root{color-scheme:dark;font:16px/1.5 system-ui,sans-serif;color:#eef2ec;background:#162421}
+*{box-sizing:border-box}body{margin:0 auto;max-width:1600px;padding:24px}h1{font-size:2rem;margin:.1em 0}h2{font-size:1.15rem;margin:.2em 0}h3{font-size:1rem;margin:1em 0 .3em}p{margin:.5em 0 1em}
+.eyebrow{letter-spacing:.12em;font-size:.75rem;color:#c0d5bd}.note,footer{font-size:.85rem;color:#c0d5bd}a{color:#e7d995}code{font-size:.85em}
+.bar{height:6px;background:#21332d;border:1px solid #50695b;border-radius:3px;max-width:850px;overflow:hidden}#progress{height:100%;width:0;background:#f1cd66}
+main{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,2.2fr);gap:24px;margin-top:20px}section{background:#21332d;border:1px solid #50695b;border-radius:8px;padding:18px;min-width:0}
+button,.button{font:inherit;color:inherit;background:#304a3e;border:1px solid #809b7b;border-radius:5px;padding:8px 11px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button:hover:enabled,.button:hover{background:#425f4b}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #f1cd66;outline-offset:2px}
+.primary{background:#4b5840;border-color:#f1cd66}kbd{font:.7rem ui-monospace,monospace;border:1px solid #809b7b;border-radius:3px;padding:0 4px;color:#c0d5bd}
+select,input,textarea{font:inherit;color:inherit;background:#162421;border:1px solid #809b7b;border-radius:5px;padding:6px}textarea{width:100%;resize:vertical}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:end}.filters label{display:flex;flex-direction:column;font-size:.8rem;color:#c0d5bd}.filters .grow{flex:1;min-width:140px}
+#queue{list-style:none;margin:12px 0;padding:0;max-height:62vh;overflow:auto;border-top:1px solid #50695b}#queue li{border-bottom:1px solid #2f453c}
+#queue button{width:100%;border:0;border-radius:0;background:none;padding:6px 4px;justify-content:space-between;text-align:left;font-size:.85rem}#queue button[aria-current=true]{background:#4b5840}
+#queue .done{color:#9fd18b}#queue .street{color:#c0d5bd;font-size:.75rem}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.views{display:grid;grid-template-columns:minmax(180px,260px) 1fr;gap:16px;align-items:start}
+#minimap{width:100%;aspect-ratio:1;background:#15231e;border:1px solid #50695b;border-radius:6px;cursor:crosshair;display:block}#entrances{margin:.4em 0 0}#imagery{width:7.5em;margin:0 8px}.view-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+#warnings{margin:0;padding-left:18px;color:#f1cd66;font-size:.85rem}dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 14px;margin:0;font-size:.9rem}dt{color:#c0d5bd}dd{margin:0}
+fieldset{border:1px solid #50695b;border-radius:6px;margin:12px 0 0;padding:8px 10px}legend{font-size:.85rem;color:#c0d5bd;padding:0 4px}.options{display:flex;flex-wrap:wrap;gap:6px}
+.options button{padding:6px 10px;font-size:.88rem}.options button[aria-pressed=true]{background:#4b5840;border:2px solid #f1cd66;padding:5px 9px}
+.options .swatch{width:34px;height:34px;padding:0;border-radius:50%}.options .swatch[aria-pressed=true]{outline:3px solid #f1cd66;outline-offset:2px;border:2px solid #162421;padding:0}
+.hint{font-size:.7rem;color:#162421;background:#c0d5bd;border-radius:3px;padding:0 4px}.notes{display:block;margin-top:12px;font-size:.85rem;color:#c0d5bd}
+#status{position:sticky;bottom:0;z-index:1;margin:0;padding:10px 12px;color:#f1cd66;background:#162421;border-top:1px solid #50695b}#status:empty{padding:0;border:0}
+[hidden]{display:none!important}
+#unknown{margin-top:14px;padding:10px;border:1px solid #f1cd66;border-radius:6px;font-size:.85rem}#unknown p{margin:0 0 8px;color:#f1cd66}
+#unknown div{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}#unknown code{min-width:10em;overflow-wrap:anywhere}#unknown span{flex:1;color:#c0d5bd}
+#unknown button{padding:4px 8px;font-size:.8rem}
+@media(max-width:860px){body{padding:12px}main{grid-template-columns:1fr}section{padding:12px}#queue{max-height:30vh}.views{grid-template-columns:1fr}#minimap{max-width:320px}}

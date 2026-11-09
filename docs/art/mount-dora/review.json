@@ -1,0 +1,379 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-11-02T06:28:58.498Z",
+  "artSourceCommit": "2b3755d3dcc427e7007e6c58f6ddf29772a8bbb2",
+  "branch": "codex/mount-dora-landmarks",
+  "pullRequest": "https://github.com/Syntaxswine/farmyard-commando/pull/30",
+  "farmyardBase": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+  "nautilusTarget": "2502646482218524fd5129641da769bb82462e4d",
+  "scope": "Detached authoring artwork and provenance; no terrain/generator/sector, game, engine or pin changes",
+  "collection": {
+    "landmarkGroups": 7,
+    "sourceFeatures": 68,
+    "selectedPublicAssets": 24,
+    "verifiedGeometryFactories": 9
+  },
+  "checks": {
+    "repository": "npm run check: 397 passed, 0 failed",
+    "focusedAssetTests": 7,
+    "productionBuild": "npm run build: passed; game output remains unchanged and does not deploy authoring maps",
+    "manifestCoordinates": true,
+    "globalSourceIdentity": true,
+    "noSeamCaps": true,
+    "unknownAssetRefusal": true,
+    "noEmptySourceModels": true,
+    "originalSourceIntegrity": true,
+    "nativeRoofBoundaryReproduction": true,
+    "sourceFactoryComparison": "All nine reused AFT factories match fixed Nautilus after CRLF/LF normalization",
+    "ownedGeometryAndMaterialDisposal": true,
+    "borrowedTextureLifetimePreserved": true
+  },
+  "native": {
+    "browser": "ChatGPT in-app browser",
+    "renderer": "WebGL 2",
+    "actualFramesRendered": 7,
+    "imagesPixels": [
+      768,
+      500
+    ],
+    "visuallyInspected": true,
+    "sourceRevisionLabelVerified": "2b3755d3dcc427e7007e6c58f6ddf29772a8bbb2",
+    "consoleWarningsOrErrors": 0,
+    "createdStudies": 7,
+    "disposedStudies": 7,
+    "temporaryRendererDisposed": true,
+    "imageTextureOwnerDisposed": true,
+    "rows": [
+      {
+        "id": "md:donnelly-park",
+        "renderer": "WebGL",
+        "drawObjects": 34,
+        "triangles": 13468,
+        "geometries": 34,
+        "materials": 23,
+        "textures": 3,
+        "geometryBytes": 1292356,
+        "bounds": {
+          "min": [
+            -28.457830786705017,
+            -0.12999999523162842,
+            -29.68090057373047
+          ],
+          "max": [
+            18.46900001168251,
+            5.427000045776367,
+            16.750967621803284
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:lakeside-inn",
+        "renderer": "WebGL",
+        "drawObjects": 52,
+        "triangles": 19864,
+        "geometries": 52,
+        "materials": 20,
+        "textures": 3,
+        "geometryBytes": 1906944,
+        "bounds": {
+          "min": [
+            -6.457830786705017,
+            -0.12999999523162842,
+            -2.6500000953674316
+          ],
+          "max": [
+            31.649999618530273,
+            5.67519998550415,
+            8.750967621803284
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:elizabeth-evans",
+        "renderer": "WebGL",
+        "drawObjects": 45,
+        "triangles": 6376,
+        "geometries": 30,
+        "materials": 7,
+        "textures": 1,
+        "geometryBytes": 120464,
+        "bounds": {
+          "min": [
+            -2.4576739370822906,
+            -0.11999999865889549,
+            -6.032499998807907
+          ],
+          "max": [
+            6.299999237060547,
+            3.874641180038452,
+            7.33500000834465
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:grantham-lighthouse",
+        "renderer": "WebGL",
+        "drawObjects": 29,
+        "triangles": 620,
+        "geometries": 29,
+        "materials": 3,
+        "textures": 1,
+        "geometryBytes": 38760,
+        "bounds": {
+          "min": [
+            -1.4500000476837158,
+            5.7220459037665705e-8,
+            -1.4500000476837158
+          ],
+          "max": [
+            1.4500000476837158,
+            10.599999990463257,
+            1.4500000476837158
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": false,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:gilbert-park",
+        "renderer": "WebGL",
+        "drawObjects": 16,
+        "triangles": 2016,
+        "geometries": 14,
+        "materials": 8,
+        "textures": 3,
+        "geometryBytes": 164368,
+        "bounds": {
+          "min": [
+            -6.457830786705017,
+            -0.11999999865889549,
+            -0.2999992370605469
+          ],
+          "max": [
+            10.299999237060547,
+            4.535999774932861,
+            8.299999237060547
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:palm-island",
+        "renderer": "WebGL",
+        "drawObjects": 61,
+        "triangles": 9108,
+        "geometries": 46,
+        "materials": 10,
+        "textures": 4,
+        "geometryBytes": 378992,
+        "bounds": {
+          "min": [
+            -6.365928292274475,
+            -0.11999999865889549,
+            -6.032499998807907
+          ],
+          "max": [
+            6.937901973724365,
+            5.64300012588501,
+            12.299999237060547
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:historic-shopfronts",
+        "renderer": "WebGL",
+        "drawObjects": 73,
+        "triangles": 38982,
+        "geometries": 73,
+        "materials": 23,
+        "textures": 1,
+        "geometryBytes": 3742272,
+        "bounds": {
+          "min": [
+            -0.15000000596046448,
+            -0.12999999523162842,
+            -2.6500000953674316
+          ],
+          "max": [
+            25.329999923706055,
+            8.119999885559082,
+            14.279999732971191
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      }
+    ],
+    "measurement": "Actual CPU-side mesh/resource counts. No GPU timing or phone performance approval."
+  },
+  "mobile": {
+    "viewport": [
+      390,
+      844
+    ],
+    "documentWidth": 375,
+    "horizontalOverflow": false,
+    "allSevenImagesLoaded": true,
+    "displayedImageSize": [
+      341,
+      222
+    ],
+    "sourceAspectPreserved": true
+  },
+  "limitations": {
+    "sourceGeometry": "Generic kits and explicitly map-owned static proxies; no surveyed interiors or heights",
+    "geography": "Anchors/footprints remain distinct from local visual studies. Precise Evans pavilion placement deferred.",
+    "unsupportedContent": "No public lighthouse/pavilion/court-paint/boardwalk-rail/palm IDs invented. Sidecar records remain explicit.",
+    "adoption": "Native gallery is not workshop placement/whole-town acceptance or a playable mission. Architect/coder own combined import/export.",
+    "promotion": "Draft for architect review. No merge, Pages promotion or game/engine upgrade performed."
+  },
+  "helpers": {
+    "processExited": true,
+    "portReleased": true,
+    "ports": [
+      60083
+    ],
+    "browserTabClosed": true,
+    "viewportReset": true,
+    "sourceAndRestartRecordPreserved": true,
+    "retainedServices": 0
+  },
+  "hashes": [
+    {
+      "file": "maps/mount-dora/art/index.js",
+      "sha256": "3e90d88837e3d981bee570d3e7fc5302a78549b0753cd55cbbc6f2faad6a3a48",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/three.js",
+      "sha256": "34b7d253f91c440bd1b4f3f9987e1fde6e9396bb9197645caa2c3f451a3b351d",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/review.html",
+      "sha256": "54d61ea518b9af772463f476e3b97d4ff23476b6aab45ce8ad52cd7f823f404c",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/review.css",
+      "sha256": "7884289354d9ca60f51ad5e7b7db056b8a678df38556f4a2d687422eb52a91c7",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/review.js",
+      "sha256": "25a1c8018580126c80edcb2e014462545e4f7922fcf520657f224f67c0d09c24",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/manifest.json",
+      "sha256": "8dae7b2d1d3395af9eb057021e60878cb648b4d2bd5f3067ea08b47dd9be32b9",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/geography.json",
+      "sha256": "d2538eec6275c7a60e9029f2ddc4cbdc79e3735d4813e03559114c5a799b4bf5",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/source/prototypes.json",
+      "sha256": "b2f7709de43411eac832dfd4e67c95b5046bcd987940f9823bb88f219b9017dd",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/source/provenance.json",
+      "sha256": "317e412b98a72874161f19556f6f48790592a336db4754ae683ab02118e4c1b5",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/source/selected-assets.json",
+      "sha256": "91eef9b0daf0ab235b0ac9f5fe996a6167107d829cee37b8b7942d5ad694d2b6",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/source/geometry-compatibility.json",
+      "sha256": "6d4667a0998fa452fe4cf09ce224436b91700da7a975c0fe5a11968c1bd1280d",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/tools/prepare.py",
+      "sha256": "ea48e7070af95870dc8e8d20bdc0ff63a26dc450493ee5ed4006647c93eee21f",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/tools/verify-source.py",
+      "sha256": "6b66444f11b534a244a6d27bfe1ca46eac28a5591b1acc60e06a8224dc751a22",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/tools/build-studies.mjs",
+      "sha256": "caaa0b5acdb87fbf7578fd4356d4a5962c16b3e8ba9db916bb8575cb933f0f48",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    },
+    {
+      "file": "maps/mount-dora/art/tools/serve.mjs",
+      "sha256": "86140c92427c470501e99f3ba689da10d49428a9acee7fd48cf697b3dd7734ee",
+      "format": "Git object bytes; own text LF, upstream copies preserved verbatim"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "donnelly-park.png",
+      "sha256": "30229bdf7b6b9cf8ef98548907ea9701b691255a1611ae6073a81f58700ce400"
+    },
+    {
+      "file": "elizabeth-evans.png",
+      "sha256": "f47cfe4226926d6302a200c33cb18319b8586d67f957d9cbed75efbfc00e070e"
+    },
+    {
+      "file": "gilbert-park.png",
+      "sha256": "1dffd009ef772ae6511b1dea3dab71d6354e58201d5ee25ff1122820db19c625"
+    },
+    {
+      "file": "grantham-lighthouse.png",
+      "sha256": "35b332044ea6e4cda1fbe873f6b31fe2bdb25cc62045abcdb5370d9704da7325"
+    },
+    {
+      "file": "historic-shopfronts.png",
+      "sha256": "19749138c0e6118c473d1ea7e30e9af6dbdf6c6dd5e304bc641bfb1a3f66158e"
+    },
+    {
+      "file": "lakeside-inn.png",
+      "sha256": "2bc117a24727fd858f26300f26e9fc0568091dff11937965850657aeb4f9f7b8"
+    },
+    {
+      "file": "native-studies.png",
+      "sha256": "bce8a28dfb0cb269ead265537af5d4f8c4855a0dd7224addefdc0f0b7bd241e4"
+    },
+    {
+      "file": "palm-island.png",
+      "sha256": "e752e96d03c8a042a6cd9856793662a07afcb04950e451203113f61b4fb9a3d3"
+    },
+    {
+      "file": "phone.jpg",
+      "sha256": "1f68bd45f628978377540122651600ca49c55bb49101e9fd783c52b6746a42a0"
+    }
+  ]
+}

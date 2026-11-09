@@ -1,0 +1,151 @@
+# Mount Dora downtown and lakefront
+
+An editable geographic blockout for the existing **Nautilus map workshop**, pinned
+to `2502646482218524fd5129641da769bb82462e4d`. It covers **1,440 × 1,680 metres** in
+**42 adjoining 240 × 240 m sectors**: six columns, A–F, and seven rows, 01–07.
+North is up. Columns go east and rows go south.
+
+Start with [the geographic overview](atlas.svg), then use the
+[sector atlas and workshop instructions](workshop/README.md). The atlas selects
+and downloads individual sectors; its isolated review host can open them in the
+actual pinned workshop. The maps are authoring documents, not a new Farmyard
+combat operation. Opening a sector does not stream neighboring sectors into it.
+
+The published [sector atlas](https://syntaxswine.github.io/farmyard-commando/maps/mount-dora/workshop/)
+offers the geographic overview and JSON downloads. Direct opening is available
+only on the matching isolated Nautilus review host. The older AFT designer
+embedded in the game is not evidence that Nautilus wall-run extensions render.
+
+## What is authored
+
+- Roads and paths, the complete Lake Dora shoreline polygon, park and wetland
+  areas, and 950 source building footprints, including courtyard holes.
+- Public streets use a 6 m carriageway with 2 m sidewalks on both sides.
+  Near-cardinal runs snap to metre lines, with shared junctions kept connected.
+  The game camera looks north-up. Source road centerlines are retained in
+  `features.json`, and paths, service lanes and boardwalks keep their own widths.
+- Grid-aligned exterior walls, floors and upper masks. Eighty-four buildings
+  cross sector boundaries; their source identities and wall geometry continue
+  across the cuts without invented closing walls.
+  The playable fit reserves the entire street corridor and a tile for facade
+  clearance. Original outlines and each adjusted footprint are recorded.
+- Source-backed bridge and wooden boardwalk routes. Water is retained beneath
+  these routes; park and vegetation fills do not manufacture land in the lake.
+- A common metre coordinate system, all 42 native JSON documents, neighbor
+  references, source feature identities, raw input snapshots and reproducible
+  generation records.
+- AFT trees, shrubs and reeds dress mapped parks, woods, wetlands and open ground
+  in residential areas. The native woodland brush paints undergrowth in woods
+  and wetlands. Individual placements are seeded scenery.
+- Mapped sports pitches exclude procedural trees. Tennis and pickleball polygons
+  use a declared existing asphalt ground proxy without invented court markings;
+  overlapping source records are retained rather than asserted as a current count.
+
+**Thirty-nine sectors pass the existing native import contract.** A05, A06 and
+A07 contain only lake water. Their geographic files are complete, but the
+workshop refuses them because it requires four walkable squad starts and a
+travel marker. The authoring data does not add fake platforms to bypass that
+rule. The other sectors have five clearly identified authoring-validator
+markers on connected existing land for editor validation. Forty-two sentries
+start across the 39 land sectors. They hold posts, walk a street back and forth,
+or follow a local circuit using the game's movement, combat and save systems.
+
+## Scale, coverage and precision
+
+Buildings are deliberately generalized to cardinal, integer-metre tile edges.
+`authored-buildings.json` records the shared plans and fitting decisions; original
+projected footprints remain in each building's `geographicGeometry`. Courtyard
+holes and shared-wall groups are retained. The depot's recorded 6.2 m shift
+keeps its proportions while clearing the unchanged streets. Five open decks are
+aligned too; the round lighthouse remains a point-feature exception.
+
+The user's ruler measured approximately 1,480.5 m from the northern downtown
+streets toward Palm Island. Seven 240 m rows leave room around those landmarks.
+The screenshot's endpoints are not surveyed control points, so the source
+geography is not stretched to fit the ruler exactly. `project.json` records the
+calibration and the southern crop, including which Johns Avenue segments lie
+outside it.
+
+Coordinates use a WGS84 local tangent plane with east/south axes. Donnelly
+Park's geocoding reference is town `(480,480)`; the named lighthouse source
+point is `(500.2877,1169.7989)`. Source vectors retain sub-cell coordinates.
+Terrain and floor masks sample one global 1 m grid before slicing it into
+sectors, so adjacent maps use the same raster and origin. Legacy integer tile
+centres are at sector origin plus `(x+0.5,y+0.5)`; wall endpoints account for that
+offset once.
+
+This is a geographic blockout, with **flat terrain and evidence-based building
+heights**. Each building's storeys and wall material come from the best recorded
+evidence in [reference/](reference/README.md): a survey answer, then the mapped
+`building:levels` tag, then the Lake County record, then lidar, then the kit
+default. `nativeProxy.storiesSource` and `materialSource` name the source, and
+`nativeProxy.evidence` keeps the county, lidar and survey values. Storeys are whole
+native-kit storeys, not measured wall heights; the evidence files are pinned in
+`project.json` (`generation.evidenceInputs`). Besides the 950 OpenStreetMap
+footprints, the town has 126 buildings OSM lacks. They come from Lake County
+sketches, each placed on its 2018 lidar roof, with a structure's stacked or
+attached units merged into one outline
+([county-buildings.json](reference/README.md#county-buildings-the-game-lacked)).
+Their ids start `county-`, and `county` on each says where it came from. Closed exterior proxies do not imply known doors,
+rooms, roofs or accessible interiors. The grid layout has no unsupported wall
+slivers. Incomplete residential land-use relations are
+recorded and left unfilled. Proposed roads are retained as source references
+and excluded from the terrain.
+
+## Files and regeneration
+
+| File | Purpose |
+| --- | --- |
+| `project.json` | Sector positions, neighbors, import status, hashes and assumptions |
+| `features.json` | Source identities and projected vectors in local metres |
+| `authored-buildings.json` | Canonical grid plans, open decks and fitting provenance |
+| `sectors/*.map.json` | Native AFT v2 maps with bounded `mountDora` metadata |
+| `source/authoring-config.json` | Projection, source selection and generation settings |
+| `source/*-source.json` | Request URLs, retrieval times, licence and exact input hashes |
+| `art/` | Landmark treatment references and native-renderer studies |
+| `workshop/` | Sector selection, downloads and the existing-editor bridge |
+
+From the repository root, Python 3's standard library and Node 22+ are sufficient
+for the base geography checks:
+
+```powershell
+python -B tools/maps/build-mount-dora.py --check
+python -B -m unittest discover -s tests/maps -p 'test_*.py' -v
+node tests/maps/validate-native-baseline.mjs
+```
+
+Omit `--check` to regenerate the 46 owned base outputs. Source snapshots are
+retained byte for byte; `.gitattributes` prevents newline conversion from
+invalidating their provenance. The workshop README documents the additional
+exact-version API and browser checks, including editing, Undo/Redo and reopening
+exported JSON. The basic format check alone is not evidence of native rendering.
+
+Saved evidence includes the [complete terrain overview](../../docs/maps/mount-dora/overview.png)
+and actual native workshop views of [downtown C03](../../docs/maps/mount-dora/native-C03.png),
+[shoreline C05](../../docs/maps/mount-dora/native-C05.png) and [boundary A01](../../docs/maps/mount-dora/native-A01.png).
+The browser receipt in `workshop/review/native-town.json` records the exact project
+and sector hashes, supported editing, Undo/Redo, export/reopen and helper cleanup.
+
+## Editor findings
+
+The [workshop feedback](../../docs/maps/mount-dora-editor-feedback.json) separates
+observed behavior from proposals. The [art handoff](../../docs/art/mount-dora/shortcomings.md)
+also records the real catalogue and source renderer limits.
+
+| Missing capability | Effect on this project |
+| --- | --- |
+| Terrain-only authoring validation | Three all-water maps cannot open without invented mission markers. |
+| Native town/georeference and shared cross-sector ownership | The atlas supplies context; a whole building cannot yet be edited across map boundaries as one object. |
+| Continuous elevation authoring | Real road grades, sloped ground and boardwalk elevations remain unmodeled. |
+| Freely placed facade/outdoor components and cross-map roof ownership | Landmark palettes and studies are useful references, but are not registered placements on the final sectors. |
+
+The existing arbitrary-angle wall runs, Import/Export, terrain tools and
+Undo/Redo are reused. The sector atlas adds selection and safe explicit opening;
+it does not replace those editor systems.
+
+## Source credit
+
+Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright),
+available under ODbL 1.0. Read [source/NOTICE.txt](source/NOTICE.txt) for attribution
+and reuse details. Official Mount Dora facility pages and the user's screenshots
+inform the references; no Google imagery is included as terrain or a texture.

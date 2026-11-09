@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "records": [
+    {
+      "module": "biome-foliage-models.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/biome-foliage-models.js",
+        "sha256": "51f8f91e3a61b2fbb64c2e93e54698e06f34deeb0b040f5e11ee77a4fb8032bf"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/biome-foliage-models.js",
+        "sha256": "e514343c5e846bff8bb01346de19e38f2be41c8d840e407520f73d9929531224"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "biome-foliage-data.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/biome-foliage-data.js",
+        "sha256": "05c500352b3ecef1be47b1341e700d0099e720f1f42680eb4787a5d5a7e482f4"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/biome-foliage-data.js",
+        "sha256": "32553c1c962c609f6091cf1ac3b558d3b69e8cdf144525bc848426c88478ac54"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "biome-plant-parts.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/biome-plant-parts.js",
+        "sha256": "fccc60ca74f51ae22b517351c1887ce4355f1b983fb1e916f23ca65efc9a6e6c"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/biome-plant-parts.js",
+        "sha256": "131fc981d6697d2527d84c23208c38562f296e421cf57cc270fd936ea9378929"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "foliage-models.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/foliage-models.js",
+        "sha256": "e179c77117a69cb56aa1144105f7ba2eb00878c3158d023cc82a097e775530b6"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/foliage-models.js",
+        "sha256": "3d8f5c13e12e569a73dad041d0ff2a2c24e350479ad5917b719e1f426ec117ba"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "environment-geometry.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/environment-geometry.js",
+        "sha256": "82e34231b7acd7b8f04499a5d68a95e772b875b7f3d22b6b844d5a0bc212238b"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/environment-geometry.js",
+        "sha256": "de362b563d91083e492458bba8ca702eeab160762022177089d0c5ac9d19a8fd"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "hybrid-world.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/hybrid-world.js",
+        "sha256": "98de2cfbdebfed177f958aca784a972251594a60f4fddb1ae7461267b3672151"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/hybrid-world.js",
+        "sha256": "13d1906addb3d46872b28e46772610715c6f19a169a81e6bdef9b0e6c8c30a69"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "environment-visuals.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/environment-visuals.js",
+        "sha256": "ed83462d10dd011925902a82c58261d0dad450b219c785882d5898fe52fd3324"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/environment-visuals.js",
+        "sha256": "5a7e169b03d27c3e5fb73151fcc76349ec4411c11a63f434439ab3ef33606661"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "environment-models.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/environment-models.js",
+        "sha256": "8a6bb4307432fdf06dcf31a1a1cbbf056c6493a5dfb98c8958f3e13b7e4561dd"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/environment-models.js",
+        "sha256": "34d4a913e99e07ce45c4a6fe591032021aed1c3d064f23d4ad97264913d4ebad"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    },
+    {
+      "module": "painted-furniture.js",
+      "nautilus": {
+        "revision": "2502646482218524fd5129641da769bb82462e4d",
+        "path": "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/painted-furniture.js",
+        "sha256": "d2501025cd7d2a1aa881b9f64e8979c392d86007f7432d0cb6f2d78dba1b6a46"
+      },
+      "farmyard": {
+        "revision": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+        "path": "sites/tactical-animal/dist/aft/tactics/painted-furniture.js",
+        "sha256": "6a6f61707cccdb666f8b1f040563d98bd0923100522080406f62e121a1bf26af"
+      },
+      "comparison": "exact after CRLF/LF normalization"
+    }
+  ]
+}

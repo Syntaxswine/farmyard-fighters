@@ -1,0 +1,51 @@
+{
+  "title": "Green CRT screen texture",
+  "created": "2026-10-20",
+  "generation": {
+    "mode": "built-in image_gen",
+    "transparent_background": false,
+    "original": "exec-b82f1eac-b1c7-4e72-880e-23ca9df0747e.png",
+    "prompt": "Use case: stylized-concept\nAsset type: reusable blank raster green CRT screen texture for a painterly industrial retrofuturist game's interface.\nPrimary request: alternating brighter and darker horizontal scanlines, with softly diffused dark shading around the edges to suggest the roundness of the screen.\nComposition: landscape 4:3, straight-on orthographic screen surface filling the entire image edge to edge. Only the glass/display texture, not a monitor object. The lit area is a softly rounded rectangle.\nMaterials and pattern: fine evenly spaced horizontal phosphor scanlines across the entire screen, alternating narrow muted luminous green lines and darker green gaps. The scanlines should be clearly visible but gentle enough for readable interface text to be placed on top later. Parallel and orderly, no diagonal or vertical banding.\nLighting: a broad calm green center; a very soft continuous dark green vignette that gradually deepens toward all four edges and is a little stronger at the rounded corners, suggesting convex CRT glass. A smooth diffuse transition, no hard black border, no sharp ring, no isolated bright central hotspot. Faint phosphor bloom; restrained fine surface grain with a soft painterly quality.\nPalette: deep bottle green, subdued moss-green phosphor highlights, near-black green at the outermost corners. No yellow or cyan cast.\nConstraints: completely blank screen. No text, letters, numbers, symbols, UI, cursor, graphics, reflections of objects, frame, bezel, buttons, cables, scene or perspective. No prominent scratches or distressed paper texture. Opaque image."
+  },
+  "usage": "Blank screen material with alternating horizontal phosphor scanlines and a diffuse curved-glass edge vignette. Use as one complete background, not a repeating tile; keep live text within the central area. Authored at 4:3. Prefer preserving that ratio; very wide stretching changes the apparent scanline spacing and curvature.",
+  "processing": "PNG copied unchanged from generated output. WebP is a quality-92 encoding of the full image, with no cropping or repainting.",
+  "portraitOverlay": {
+    "blendMode": "multiply",
+    "opacity": 0.2,
+    "centerLight": {
+      "source": "CSS achromatic radial gradient, centered on each portrait and fully faded at its edges",
+      "blendMode": "color-dodge",
+      "stops": ["#383838 0%", "#2b2b2b 22%", "#151515 50%", "#050505 78%", "#000000 100%"],
+      "order": "portrait image, center light, painted glass, scanlines, status caption",
+      "purpose": "Lift existing highlights before applying glass and scanline contrast"
+    },
+    "scanlines": {
+      "source": "CSS repeating-linear-gradient at portrait display size, separate from the unchanged painted glass",
+      "darkBandCssPx": 2,
+      "clearBandCssPx": 2,
+      "blendMode": "multiply",
+      "opacity": 0.2,
+      "colors": ["#031108", "#ffffff"]
+    },
+    "scope": "Both dialogue portraits, clipped and isolated inside each portrait frame",
+    "input": "Pointer events pass through; status captions stay above the filter"
+  },
+  "variants": [
+    {
+      "file": "crt-green-v1.png",
+      "role": "Original full-resolution texture",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1697030,
+      "sha256": "4409bbb9912b75f76d0fa458d1e328d323c8a703c97da0f3afc6fda09c06d259"
+    },
+    {
+      "file": "crt-green-v1.webp",
+      "role": "Compact web texture",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 69356,
+      "sha256": "b56a7e279bd18776dc5640af99697f4f39eecd14cd5e7585a5fe142496ad1d2e"
+    }
+  ]
+}

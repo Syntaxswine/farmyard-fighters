@@ -1,0 +1,120 @@
+{
+  "nautilusCommit": "2502646482218524fd5129641da769bb82462e4d",
+  "sourceMode": "project",
+  "projectId": "mount-dora-downtown",
+  "projectSha256": "3f3ccfb3fe1f7e9c0ab02a2a5e46f340ff5d987aba6ac2a9170ff1e10fe6dd2a",
+  "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
+  "scenarios": [
+    {
+      "id": "C03",
+      "sourceSha256": "79d6e248e1b13fc8b17e4a750a4655cf1973a8dbd22efe95474d82f2e6e45f67",
+      "exportSha256": "05b7d4b7adac1c742acc6ed95238e2d104b210e2d6ff57b12eb85fdee2fb8e45",
+      "nativeImport": true,
+      "nativeTerrainGesture": true,
+      "nativeUndoRedo": true,
+      "nativeExportReopen": true,
+      "selectionPreservesEdits": true,
+      "sourceValuesPreserved": true,
+      "features": {
+        "wallRuns": 234,
+        "slopedRoofs": 0,
+        "buildingPrefabs": 0
+      },
+      "nativeAddedPaths": [
+        "$.starts.0.character",
+        "$.starts.1.character",
+        "$.starts.2.character",
+        "$.starts.3.character"
+      ],
+      "rendering": {
+        "scope": "one explicit native draw, accumulated across render passes",
+        "calls": 245,
+        "triangles": 243108,
+        "geometries": 341,
+        "textures": 38,
+        "programs": 25,
+        "failedPrograms": 0
+      }
+    },
+    {
+      "id": "C05",
+      "sourceSha256": "7da6aa61e949a5cd56c31bf30e61d1b612e2f39b9a1c5aa8374a0b0c781ccf1f",
+      "exportSha256": "466887f6c6db49cf8c807d4cfd64676e794cb66c10661b39a5cb2fd10f09e727",
+      "nativeImport": true,
+      "nativeTerrainGesture": true,
+      "nativeUndoRedo": true,
+      "nativeExportReopen": true,
+      "selectionPreservesEdits": true,
+      "sourceValuesPreserved": true,
+      "features": {
+        "wallRuns": 27,
+        "slopedRoofs": 0,
+        "buildingPrefabs": 0
+      },
+      "nativeAddedPaths": [
+        "$.starts.0.character",
+        "$.starts.1.character",
+        "$.starts.2.character",
+        "$.starts.3.character"
+      ],
+      "rendering": {
+        "scope": "one explicit native draw, accumulated across render passes",
+        "calls": 214,
+        "triangles": 184534,
+        "geometries": 137,
+        "textures": 39,
+        "programs": 23,
+        "failedPrograms": 0
+      }
+    },
+    {
+      "id": "A01",
+      "sourceSha256": "94903db92563bde96b6826603dad12ac01aea5d710b9a52265173026732860b2",
+      "exportSha256": "78a44d2c752ffd4e335740f958d4a1b0e63c73faab4c1005d4bd4f2103126b5e",
+      "nativeImport": true,
+      "nativeTerrainGesture": true,
+      "nativeUndoRedo": true,
+      "nativeExportReopen": true,
+      "selectionPreservesEdits": true,
+      "sourceValuesPreserved": true,
+      "features": {
+        "wallRuns": 170,
+        "slopedRoofs": 0,
+        "buildingPrefabs": 0
+      },
+      "nativeAddedPaths": [
+        "$.starts.0.character",
+        "$.starts.1.character",
+        "$.starts.2.character",
+        "$.starts.3.character"
+      ],
+      "rendering": {
+        "scope": "one explicit native draw, accumulated across render passes",
+        "calls": 282,
+        "triangles": 551182,
+        "geometries": 276,
+        "textures": 36,
+        "programs": 21,
+        "failedPrograms": 0
+      }
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "version": "156.0.4314.58",
+    "channel": "msedge",
+    "headless": true,
+    "softwareWebGL": true
+  },
+  "blockedSector": {
+    "id": "A05",
+    "downloadAvailable": true,
+    "openDisabled": true,
+    "errors": [
+      "Place exactly four valid squad starts."
+    ]
+  },
+  "passed": true,
+  "portReleased": true,
+  "helpersClosed": true
+}

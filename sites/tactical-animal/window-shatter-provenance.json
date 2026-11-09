@@ -1,0 +1,31 @@
+{
+  "sourceRepository": "Syntaxswine/animal-factory-tactics-3d",
+  "sourceWorkspace": "AnimalFactory3D/animation-studies/window-sneak",
+  "sourceRevision": "ebf51393909040b61a7c40649d9d5f0ac3678735",
+  "originalModule": "dist/tactics/window-shatter.js",
+  "originalBytes": 5827,
+  "originalSha256": "435df91fb168a2f1a60206a5919239638b747c49cc60d97c3f760f18bac35a44",
+  "adaptedModule": "window-shatter.js",
+  "adaptations": [
+    "Farmyard Three.js and wall metrics imports",
+    "Arbitrary local pane bounds and explicit receiving-floor height without scaling gravity",
+    "Area/aspect-based shard count bounded at 70; caller enforces mobile aggregate budget",
+    "Optional intact preview disabled for live artist-owned pane meshes",
+    "Ejection clears the new 0.20 metre frame depth before falling",
+    "Optional reflected strokes fit each actual pane aperture",
+    "Tall-pane lifetime extends through analytic ground contact and fade while keeping metre gravity and a fixed shard budget"
+  ],
+  "rights": "User-supplied project source; no project-wide source license declared. Reuse follows explicit user instructions. Audio is CC0; verbatim license accompanies unchanged audio bytes. Three.js is MIT.",
+  "files": [
+    {
+      "path": "assets/audio/glass-smash-rubberduck-cc0.ogg",
+      "bytes": 27455,
+      "sha256": "438c45398ee77a40d5cc6ffcc59db0cdc709dc6d0521da5e2896b4afc19fcacb"
+    },
+    {
+      "path": "assets/audio/GLASS-SMASH-RUBBERDUCK-LICENSE.md",
+      "bytes": 730,
+      "sha256": "f346117715e4c7ad0dcf3f805e793f94392af8cff649439257e98b8b762aab49"
+    }
+  ]
+}

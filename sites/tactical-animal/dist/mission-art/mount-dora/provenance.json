@@ -1,0 +1,39 @@
+{
+  "schema": "mount-dora-production-art/1",
+  "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
+  "farmyardBase": "75a6b61a547a96edebdc456e9a42edb4f28185e4",
+  "featuresSHA256": "4220f96a6a2fcf7b790e0c5f53ec265833db1eb7756257350e683634f7495a43",
+  "artRevision": "c4ae728b6745a52b31ab449037522f8bf6d83b48c349bcc4e6fe53b32d901d3c",
+  "files": [
+    {
+      "path": "source/packages/building-catalog/three.js",
+      "sha256": "a6a71831c674c28b48ac25d4675708f9069329a759067ac08c5727002b38c6ba",
+      "bytes": 21570
+    },
+    {
+      "path": "source/packages/building-catalog/index.js",
+      "sha256": "6a13677421fe00a22e5cec55a29b7012b65566006e6b2a413866943c83fd9108",
+      "bytes": 11005
+    },
+    {
+      "path": "source/packages/building-catalog/designs.js",
+      "sha256": "87b20add713c321ac7a69a1ff16365c07657929d2200b7e82ba520f752bb24f6",
+      "bytes": 12266
+    },
+    {
+      "path": "source/packages/roof-core/index.js",
+      "sha256": "18d0698ce666bc727a04571391ec58e7a96dc57c717750182f800aaf5ed3490c",
+      "bytes": 13011
+    },
+    {
+      "path": "source/packages/roof-core/three.js",
+      "sha256": "96fe9556e429d86169db25005d939c58c2e5f72f595b15c34f4fb51b16187539",
+      "bytes": 5435
+    }
+  ],
+  "atlasSHA256": "bbe33709a63362a13e509131c11f358d286b3d55ffcb86ca0ca1def4934ccdb2",
+  "placements": 1156,
+  "buildingCount": 950,
+  "coordinates": "town east/south metres; no half-cell transform",
+  "sourceNotice": "Geometry and painted materials copied unchanged from the retained fixed source; map data Ã‚Â© OpenStreetMap contributors, ODbL 1.0. Details and heights are explicit approximations."
+}

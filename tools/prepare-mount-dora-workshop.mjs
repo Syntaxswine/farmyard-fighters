@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {argumentsOf,audit,root,verifySource,writeJSON,hash} from './review-mount-dora-workshop.mjs';
+const options=argumentsOf(process.argv.slice(2));
+if(!options.source)throw Error('Supply an immutable --source checkout at the reviewed Nautilus commit.');
+const source=fs.realpathSync(options.source),artifactRoot=fs.realpathSync(path.join(root,'artifacts'))+path.sep;
+if(!source.startsWith(artifactRoot))throw Error('Build only a task-owned snapshot under this repository’s artifacts directory.');
+verifySource(source,options.gitSource);
+const dist=path.resolve(source,'dist');
+if(path.dirname(dist)!==source||path.basename(dist)!=='dist'||(fs.existsSync(dist)&&fs.realpathSync(dist)!==dist))throw Error('Unsafe build output');
+execFileSync(process.execPath,[path.join(source,'tools/build.mjs')],{cwd:source,stdio:'inherit',windowsHide:true});
+const result=await audit(options);
+writeJSON(path.join(result.out,'prepared.json'),{...result.report.source,source,dist,project:result.project,sourceMode:result.report.sourceMode,indexSha256:hash(fs.readFileSync(path.join(dist,'index.html'))),buildProvenanceSha256:hash(fs.readFileSync(path.join(dist,'build-provenance.json')))});
+console.log('Prepared fixed workshop and audit at '+result.out);

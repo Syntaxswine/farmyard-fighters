@@ -1,0 +1,44 @@
+{
+  "mode": "built-in image_gen",
+  "date": "2026-10-14",
+  "asset": "screen-atlas-v1.png",
+  "prompt": "Use case: stylized-concept\nAsset type: opaque game texture atlas for low polygon dense vegetation in a painterly isometric military animal tactics game.\nCreate a landscape 1536x1024 raster, an EXACT 3 columns by 2 rows grid of SIX equal rectangular panels, no margins, no gutters, no labels, no borders, absolutely no text. Each panel is an uninterrupted flat material painting, like a close-up texture swatch, not an isolated object or a landscape. Every edge completely filled. Soft diffuse painted shading; restrained contrast; visible confident small brushwork; subtle broad color shifts; no black holes, no shiny highlights, no central emblem, no repeated rosettes. Foliage patterns extend beyond all panel edges. These will wrap world-space surfaces of thick bushes and vertical vegetation walls at small gameplay scale. Match muted olive, ochre and desaturated earthy greens of hand-painted 1930s military illustration.\nTOP LEFT: temperate impenetrable bramble thicket. Many small irregular olive and dusty sage leaves, branching thin dark umber woody twigs woven diagonally among leaves, occasional ochre dead leaves. Dense connected masses, fine leaf shapes and narrow twig lines.\nTOP MIDDLE: dense jungle broadleaf and lianas. Layered elongated deep olive jungle leaves of different sizes and directions, a few curving hanging vines, rich moss green midtones, subtle desaturated jade accents. Fine irregular overlap, no fern rosettes.\nTOP RIGHT: snow-laden evergreen bough thicket. Interwoven dark blue-green needles and brown twigs supporting uneven horizontal cushions of warm ivory snow. Broad soft snow fields broken by fine needle edges, no angular rocks, no white blobs on black.\nBOTTOM LEFT: dry grassland thorn scrub. Tawny straw and dusty olive narrow leaves threaded with grey-brown thorn branches, tiny branching twigs in an uneven woven rhythm. Ochre, warm greys, muted olive, restrained russet.\nBOTTOM MIDDLE: wetland willow and reeds. Dense slim willow leaves hanging diagonally in uneven layered curtains among slender vertical khaki reed stems, muted sage green, olive, tan reed tips. Stems clearly recognizable as linear reeds; no starbursts. Lower areas occasionally show tangled thin roots and wet brown twigs. Fine graceful leaves, not big banana leaves.\nBOTTOM RIGHT: waterlogged wood and tangled roots. Desaturated umber wet bark with slender irregular roots snaking mostly vertically and diagonally, moss traces and muted taupe exposed wood. Continuous close-up wood texture, no water scene.\nAll six panels equal size and sharp at boundaries. Opaque background. This is the actual skin texture, not a preview layout or rendered 3D objects.",
+  "panels": {
+    "temperate": [
+      0,
+      0,
+      3,
+      2
+    ],
+    "jungle": [
+      1,
+      0,
+      3,
+      2
+    ],
+    "snow": [
+      2,
+      0,
+      3,
+      2
+    ],
+    "dry": [
+      0,
+      1,
+      3,
+      2
+    ],
+    "wetlands": [
+      1,
+      1,
+      3,
+      2
+    ],
+    "wood": [
+      2,
+      1,
+      3,
+      2
+    ]
+  }
+}

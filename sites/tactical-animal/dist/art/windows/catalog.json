@@ -1,0 +1,9079 @@
+{
+  "version": "industrial-windows/2",
+  "metrics": {
+    "tile": 1,
+    "wallHeight": 2,
+    "storeyHeight": 2.12,
+    "wallThickness": 0.16,
+    "frameDepth": 0.2,
+    "post": 0.055,
+    "mullion": 0.035,
+    "glassThickness": 0.008
+  },
+  "finishes": [
+    {
+      "id": "steel",
+      "name": "Oiled factory steel",
+      "color": 5328700,
+      "edge": 10132611
+    },
+    {
+      "id": "sage",
+      "name": "Sage enamel",
+      "color": 6649436,
+      "edge": 10858643
+    },
+    {
+      "id": "ivory",
+      "name": "Aged ivory enamel",
+      "color": 13091239,
+      "edge": 15787464
+    }
+  ],
+  "walls": [
+    "brick",
+    "concrete",
+    "corrugated"
+  ],
+  "definitions": [
+    {
+      "id": "window.full.borderless.1m",
+      "name": "Full-storey · Borderless glass",
+      "heightId": "full",
+      "patternId": "borderless",
+      "span": 1,
+      "borderless": true,
+      "height": 2.12,
+      "sill": 0,
+      "head": 2.12,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.borderless.1m:W1H2.12:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.004
+        ],
+        "max": [
+          0.5,
+          2.12,
+          0.004
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.5,
+          0,
+          -0.004
+        ],
+        "max": [
+          0.5,
+          2.12,
+          0.004
+        ]
+      },
+      "dimensions": {
+        "width": 1,
+        "height": 2.12
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0,
+      "depth": 0.008,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.004
+            ],
+            "max": [
+              0.5,
+              2.12,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.06,
+            0
+          ],
+          "width": 1,
+          "height": 2.12,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": []
+    },
+    {
+      "id": "window.full.clear.1m",
+      "name": "Full-height · Framed clear glass",
+      "heightId": "full",
+      "patternId": "clear",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.clear.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1,
+            0
+          ],
+          "width": 0.89,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.vertical-2.1m",
+      "name": "Full-height · Two vertical lights",
+      "heightId": "full",
+      "patternId": "vertical-2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.vertical-2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.017500000000000016,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            -0.23125,
+            1,
+            0
+          ],
+          "width": 0.4275,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.017500000000000016,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0.23125,
+            1,
+            0
+          ],
+          "width": 0.4275,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.017500000000000016,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999988,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.vertical-3.1m",
+      "name": "Full-height · Three vertical lights",
+      "heightId": "full",
+      "patternId": "vertical-3",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.vertical-3.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.17166666666666663,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            -0.30833333333333335,
+            1,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.13666666666666666,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.13666666666666671,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            2.7755575615628914e-17,
+            1,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.1716666666666667,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.44500000000000006,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0.30833333333333335,
+            1,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.17166666666666663,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              -0.13666666666666663,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.13666666666666674,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.17166666666666675,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.horizontal-2.1m",
+      "name": "Full-height · Two horizontal bands",
+      "heightId": "full",
+      "patternId": "horizontal-2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.horizontal-2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            0.51875,
+            0
+          ],
+          "width": 0.89,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.89,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.grid-2x2.1m",
+      "name": "Full-height · Four-pane grid",
+      "heightId": "full",
+      "patternId": "grid-2x2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.grid-2x2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.017500000000000016,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            -0.23125,
+            0.51875,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.017500000000000016,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0.23125,
+            0.51875,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              -0.017500000000000016,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            -0.23125,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.017500000000000016,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0.23125,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.017500000000000016,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999988,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.grid-3x2.1m",
+      "name": "Full-height · Six-pane grid",
+      "heightId": "full",
+      "patternId": "grid-3x2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.grid-3x2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.17166666666666663,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            -0.30833333333333335,
+            0.51875,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.13666666666666666,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.13666666666666671,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            2.7755575615628914e-17,
+            0.51875,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.1716666666666667,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.44500000000000006,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0.30833333333333335,
+            0.51875,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              -0.17166666666666663,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            -0.30833333333333335,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.13666666666666666,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.13666666666666671,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            2.7755575615628914e-17,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c2",
+          "row": 1,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.1716666666666667,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.44500000000000006,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0.30833333333333335,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.17166666666666663,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              -0.13666666666666663,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.13666666666666674,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.17166666666666675,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.borderless.2m",
+      "name": "Full-storey · Borderless glass",
+      "heightId": "full",
+      "patternId": "borderless",
+      "span": 2,
+      "borderless": true,
+      "height": 2.12,
+      "sill": 0,
+      "head": 2.12,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.borderless.2m:W2H2.12:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.004
+        ],
+        "max": [
+          1,
+          2.12,
+          0.004
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1,
+          0,
+          -0.004
+        ],
+        "max": [
+          1,
+          2.12,
+          0.004
+        ]
+      },
+      "dimensions": {
+        "width": 2,
+        "height": 2.12
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0,
+      "depth": 0.008,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.004
+            ],
+            "max": [
+              1,
+              2.12,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.06,
+            0
+          ],
+          "width": 2,
+          "height": 2.12,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": []
+    },
+    {
+      "id": "window.full.clear.2m",
+      "name": "Full-height · Framed clear glass",
+      "heightId": "full",
+      "patternId": "clear",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.clear.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.945,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1,
+            0
+          ],
+          "width": 1.89,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.vertical-2.2m",
+      "name": "Full-height · Two vertical lights",
+      "heightId": "full",
+      "patternId": "vertical-2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.vertical-2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.01749999999999996,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            -0.48124999999999996,
+            1,
+            0
+          ],
+          "width": 0.9275,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01750000000000007,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.9450000000000001,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0.48125000000000007,
+            1,
+            0
+          ],
+          "width": 0.9275,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01749999999999996,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.017500000000000043,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.vertical-3.2m",
+      "name": "Full-height · Three vertical lights",
+      "heightId": "full",
+      "patternId": "vertical-3",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.vertical-3.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.3383333333333334,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            -0.6416666666666666,
+            1,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.30333333333333334,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.30333333333333323,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            -5.551115123125783e-17,
+            1,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.33833333333333326,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.9449999999999998,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0.6416666666666666,
+            1,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.3383333333333334,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              -0.30333333333333334,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.30333333333333323,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.33833333333333326,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.horizontal-2.2m",
+      "name": "Full-height · Two horizontal bands",
+      "heightId": "full",
+      "patternId": "horizontal-2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.horizontal-2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.945,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            0.51875,
+            0
+          ],
+          "width": 1.89,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.945,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.4812500000000002,
+            0
+          ],
+          "width": 1.89,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.grid-2x2.2m",
+      "name": "Full-height · Four-pane grid",
+      "heightId": "full",
+      "patternId": "grid-2x2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.grid-2x2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.01749999999999996,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            -0.48124999999999996,
+            0.51875,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01750000000000007,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.9450000000000001,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0.48125000000000007,
+            0.51875,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              -0.01749999999999996,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            -0.48124999999999996,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01750000000000007,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.9450000000000001,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0.48125000000000007,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01749999999999996,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.017500000000000043,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.grid-3x2.2m",
+      "name": "Full-height · Six-pane grid",
+      "heightId": "full",
+      "patternId": "grid-3x2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.grid-3x2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.3383333333333334,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            -0.6416666666666666,
+            0.51875,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.30333333333333334,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.30333333333333323,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            -5.551115123125783e-17,
+            0.51875,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.33833333333333326,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.9449999999999998,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0.6416666666666666,
+            0.51875,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              -0.3383333333333334,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            -0.6416666666666666,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.30333333333333334,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.30333333333333323,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            -5.551115123125783e-17,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c2",
+          "row": 1,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.33833333333333326,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.9449999999999998,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0.6416666666666666,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.3383333333333334,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              -0.30333333333333334,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.30333333333333323,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.33833333333333326,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.borderless.3m",
+      "name": "Full-storey · Borderless glass",
+      "heightId": "full",
+      "patternId": "borderless",
+      "span": 3,
+      "borderless": true,
+      "height": 2.12,
+      "sill": 0,
+      "head": 2.12,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.borderless.3m:W3H2.12:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.004
+        ],
+        "max": [
+          1.5,
+          2.12,
+          0.004
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.5,
+          0,
+          -0.004
+        ],
+        "max": [
+          1.5,
+          2.12,
+          0.004
+        ]
+      },
+      "dimensions": {
+        "width": 3,
+        "height": 2.12
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0,
+      "depth": 0.008,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.004
+            ],
+            "max": [
+              1.5,
+              2.12,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.06,
+            0
+          ],
+          "width": 3,
+          "height": 2.12,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": []
+    },
+    {
+      "id": "window.full.clear.3m",
+      "name": "Full-height · Framed clear glass",
+      "heightId": "full",
+      "patternId": "clear",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.clear.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              1.445,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1,
+            0
+          ],
+          "width": 2.89,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.vertical-2.3m",
+      "name": "Full-height · Two vertical lights",
+      "heightId": "full",
+      "patternId": "vertical-2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.vertical-2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.01750000000000007,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            -0.7312500000000001,
+            1,
+            0
+          ],
+          "width": 1.4275,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01749999999999985,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              1.4449999999999998,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0.7312499999999998,
+            1,
+            0
+          ],
+          "width": 1.4275,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01750000000000007,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999932,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.vertical-3.3m",
+      "name": "Full-height · Three vertical lights",
+      "heightId": "full",
+      "patternId": "vertical-3",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.vertical-3.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.505,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            -0.9750000000000001,
+            1,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.47,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.4700000000000001,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            5.551115123125783e-17,
+            1,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.5050000000000001,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              1.4450000000000003,
+              1.945,
+              0.004
+            ]
+          },
+          "center": [
+            0.9750000000000001,
+            1,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 1.8900000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.505,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              -0.47,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.4700000000000001,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.5050000000000001,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.horizontal-2.3m",
+      "name": "Full-height · Two horizontal bands",
+      "heightId": "full",
+      "patternId": "horizontal-2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.horizontal-2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              1.445,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            0.51875,
+            0
+          ],
+          "width": 2.89,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              1.445,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.4812500000000002,
+            0
+          ],
+          "width": 2.89,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.grid-2x2.3m",
+      "name": "Full-height · Four-pane grid",
+      "heightId": "full",
+      "patternId": "grid-2x2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.grid-2x2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.01750000000000007,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            -0.7312500000000001,
+            0.51875,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01749999999999985,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              1.4449999999999998,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0.7312499999999998,
+            0.51875,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              -0.01750000000000007,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            -0.7312500000000001,
+            1.4812500000000002,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01749999999999985,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              1.4449999999999998,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0.7312499999999998,
+            1.4812500000000002,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01750000000000007,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999932,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.full.grid-3x2.3m",
+      "name": "Full-height · Six-pane grid",
+      "heightId": "full",
+      "patternId": "grid-3x2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.055,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.full.grid-3x2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.055,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              -0.505,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            -0.9750000000000001,
+            0.51875,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.47,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              0.4700000000000001,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            5.551115123125783e-17,
+            0.51875,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.5050000000000001,
+              0.055,
+              -0.004
+            ],
+            "max": [
+              1.4450000000000003,
+              0.9825000000000002,
+              0.004
+            ]
+          },
+          "center": [
+            0.9750000000000001,
+            0.51875,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              -0.505,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            -0.9750000000000001,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.47,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              0.4700000000000001,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            5.551115123125783e-17,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c2",
+          "row": 1,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.5050000000000001,
+              1.0175,
+              -0.004
+            ],
+            "max": [
+              1.4450000000000003,
+              1.9450000000000003,
+              0.004
+            ]
+          },
+          "center": [
+            0.9750000000000001,
+            1.4812500000000002,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.9275000000000001,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.055,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.505,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              -0.47,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.4700000000000001,
+              0.055,
+              -0.1
+            ],
+            "max": [
+              0.5050000000000001,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9825000000000002,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              1.0175,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.clear.1m",
+      "name": "Waist-up · Framed clear glass",
+      "heightId": "waist",
+      "patternId": "clear",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.clear.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.89,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              0.5,
+              0.845,
+              0.08
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.vertical-2.1m",
+      "name": "Waist-up · Two vertical lights",
+      "heightId": "waist",
+      "patternId": "vertical-2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.vertical-2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.017500000000000016,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.23125,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.4275,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.017500000000000016,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.23125,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.4275,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              0.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.017500000000000016,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999988,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.vertical-3.1m",
+      "name": "Waist-up · Three vertical lights",
+      "heightId": "waist",
+      "patternId": "vertical-3",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.vertical-3.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.17166666666666663,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.30833333333333335,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.13666666666666666,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.13666666666666671,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            2.7755575615628914e-17,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.1716666666666667,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.44500000000000006,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.30833333333333335,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              0.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.17166666666666663,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              -0.13666666666666663,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.13666666666666674,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.17166666666666675,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.horizontal-2.1m",
+      "name": "Waist-up · Two horizontal bands",
+      "heightId": "waist",
+      "patternId": "horizontal-2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.horizontal-2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.1525,
+            0
+          ],
+          "width": 0.89,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.6925,
+            0
+          ],
+          "width": 0.89,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              0.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.grid-2x2.1m",
+      "name": "Waist-up · Four-pane grid",
+      "heightId": "waist",
+      "patternId": "grid-2x2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.grid-2x2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.017500000000000016,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            -0.23125,
+            1.1525,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.017500000000000016,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0.23125,
+            1.1525,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              -0.017500000000000016,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.23125,
+            1.6925,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.017500000000000016,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.445,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.23125,
+            1.6925,
+            0
+          ],
+          "width": 0.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              0.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.017500000000000016,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999988,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.grid-3x2.1m",
+      "name": "Waist-up · Six-pane grid",
+      "heightId": "waist",
+      "patternId": "grid-3x2",
+      "span": 1,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.grid-3x2.1m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -0.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          0.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.17166666666666663,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            -0.30833333333333335,
+            1.1525,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.13666666666666666,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.13666666666666671,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            2.7755575615628914e-17,
+            1.1525,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.1716666666666667,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.44500000000000006,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0.30833333333333335,
+            1.1525,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.445,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              -0.17166666666666663,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.30833333333333335,
+            1.6925,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.13666666666666666,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.13666666666666671,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            2.7755575615628914e-17,
+            1.6925,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c2",
+          "row": 1,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.1716666666666667,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.44500000000000006,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.30833333333333335,
+            1.6925,
+            0
+          ],
+          "width": 0.2733333333333334,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              0.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.17166666666666663,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              -0.13666666666666663,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.13666666666666674,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.17166666666666675,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.445,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              0.445,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.clear.2m",
+      "name": "Waist-up · Framed clear glass",
+      "heightId": "waist",
+      "patternId": "clear",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.clear.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.945,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.4224999999999999,
+            0
+          ],
+          "width": 1.89,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.08
+            ],
+            "max": [
+              1,
+              0.845,
+              0.08
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.vertical-2.2m",
+      "name": "Waist-up · Two vertical lights",
+      "heightId": "waist",
+      "patternId": "vertical-2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.vertical-2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.01749999999999996,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.48124999999999996,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.9275,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01750000000000007,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.9450000000000001,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.48125000000000007,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.9275,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.08
+            ],
+            "max": [
+              1,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01749999999999996,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.017500000000000043,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.vertical-3.2m",
+      "name": "Waist-up · Three vertical lights",
+      "heightId": "waist",
+      "patternId": "vertical-3",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.vertical-3.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.3383333333333334,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.6416666666666666,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.30333333333333334,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.30333333333333323,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -5.551115123125783e-17,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.33833333333333326,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.9449999999999998,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.6416666666666666,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.08
+            ],
+            "max": [
+              1,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.3383333333333334,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              -0.30333333333333334,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.30333333333333323,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.33833333333333326,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.horizontal-2.2m",
+      "name": "Waist-up · Two horizontal bands",
+      "heightId": "waist",
+      "patternId": "horizontal-2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.horizontal-2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.945,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.1525,
+            0
+          ],
+          "width": 1.89,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.945,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.6925,
+            0
+          ],
+          "width": 1.89,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.08
+            ],
+            "max": [
+              1,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.grid-2x2.2m",
+      "name": "Waist-up · Four-pane grid",
+      "heightId": "waist",
+      "patternId": "grid-2x2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.grid-2x2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.01749999999999996,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            -0.48124999999999996,
+            1.1525,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01750000000000007,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.9450000000000001,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0.48125000000000007,
+            1.1525,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              -0.01749999999999996,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.48124999999999996,
+            1.6925,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01750000000000007,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.9450000000000001,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.48125000000000007,
+            1.6925,
+            0
+          ],
+          "width": 0.9275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.08
+            ],
+            "max": [
+              1,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01749999999999996,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.017500000000000043,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.grid-3x2.2m",
+      "name": "Waist-up · Six-pane grid",
+      "heightId": "waist",
+      "patternId": "grid-3x2",
+      "span": 2,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.grid-3x2.2m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1,
+          0,
+          -0.1
+        ],
+        "max": [
+          1,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -0.945,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          0.945,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.3383333333333334,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            -0.6416666666666666,
+            1.1525,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.30333333333333334,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.30333333333333323,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            -5.551115123125783e-17,
+            1.1525,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.33833333333333326,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.9449999999999998,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0.6416666666666666,
+            1.1525,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -0.945,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              -0.3383333333333334,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.6416666666666666,
+            1.6925,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.30333333333333334,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.30333333333333323,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -5.551115123125783e-17,
+            1.6925,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c2",
+          "row": 1,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.33833333333333326,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.9449999999999998,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.6416666666666666,
+            1.6925,
+            0
+          ],
+          "width": 0.6066666666666666,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              -0.08
+            ],
+            "max": [
+              1,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.3383333333333334,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              -0.30333333333333334,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.30333333333333323,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.33833333333333326,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.945,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              0.945,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.clear.3m",
+      "name": "Waist-up · Framed clear glass",
+      "heightId": "waist",
+      "patternId": "clear",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.clear.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              1.445,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.4224999999999999,
+            0
+          ],
+          "width": 2.89,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              1.5,
+              0.845,
+              0.08
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.vertical-2.3m",
+      "name": "Waist-up · Two vertical lights",
+      "heightId": "waist",
+      "patternId": "vertical-2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.vertical-2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.01750000000000007,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.7312500000000001,
+            1.4224999999999999,
+            0
+          ],
+          "width": 1.4275,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01749999999999985,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              1.4449999999999998,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.7312499999999998,
+            1.4224999999999999,
+            0
+          ],
+          "width": 1.4275,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              1.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01750000000000007,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999932,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.vertical-3.3m",
+      "name": "Waist-up · Three vertical lights",
+      "heightId": "waist",
+      "patternId": "vertical-3",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 1,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.vertical-3.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.505,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.9750000000000001,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.47,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.4700000000000001,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            5.551115123125783e-17,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.5050000000000001,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              1.4450000000000003,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.9750000000000001,
+            1.4224999999999999,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 1.045,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              1.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.505,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              -0.47,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.4700000000000001,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.5050000000000001,
+              1.945,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.horizontal-2.3m",
+      "name": "Waist-up · Two horizontal bands",
+      "heightId": "waist",
+      "patternId": "horizontal-2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 1,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.horizontal-2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              1.445,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.1525,
+            0
+          ],
+          "width": 2.89,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              1.445,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0,
+            1.6925,
+            0
+          ],
+          "width": 2.89,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              1.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.grid-2x2.3m",
+      "name": "Waist-up · Four-pane grid",
+      "heightId": "waist",
+      "patternId": "grid-2x2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 2,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.grid-2x2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.01750000000000007,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            -0.7312500000000001,
+            1.1525,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01749999999999985,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              1.4449999999999998,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0.7312499999999998,
+            1.1525,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              -0.01750000000000007,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.7312500000000001,
+            1.6925,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              0.01749999999999985,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              1.4449999999999998,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.7312499999999998,
+            1.6925,
+            0
+          ],
+          "width": 1.4275,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              1.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.01750000000000007,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.017499999999999932,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "window.waist.grid-3x2.3m",
+      "name": "Waist-up · Six-pane grid",
+      "heightId": "waist",
+      "patternId": "grid-3x2",
+      "span": 3,
+      "borderless": false,
+      "height": 2,
+      "sill": 0.9,
+      "head": 1.945,
+      "columns": 3,
+      "rows": 2,
+      "version": "industrial-windows/2",
+      "joins": {
+        "left": false,
+        "right": false
+      },
+      "cacheKey": "window.waist.grid-3x2.3m:L0R0",
+      "units": "metres",
+      "origin": "span centre on X, floor Y=0, glass centre plane Z=0, front normal +Z; rotations are Three +Y degrees",
+      "bounds": {
+        "min": [
+          -1.5,
+          0,
+          -0.1
+        ],
+        "max": [
+          1.5,
+          2,
+          0.1
+        ]
+      },
+      "aperture": {
+        "min": [
+          -1.445,
+          0.9,
+          -0.004
+        ],
+        "max": [
+          1.445,
+          1.945,
+          0.004
+        ]
+      },
+      "wallHeight": 2,
+      "wallThickness": 0.16,
+      "frameDepth": 0.2,
+      "depth": 0.2,
+      "panes": [
+        {
+          "id": "r0c0",
+          "row": 0,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              -0.505,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            -0.9750000000000001,
+            1.1525,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c1",
+          "row": 0,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.47,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              0.4700000000000001,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            5.551115123125783e-17,
+            1.1525,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r0c2",
+          "row": 0,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.5050000000000001,
+              0.9,
+              -0.004
+            ],
+            "max": [
+              1.4450000000000003,
+              1.405,
+              0.004
+            ]
+          },
+          "center": [
+            0.9750000000000001,
+            1.1525,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c0",
+          "row": 1,
+          "column": 0,
+          "bounds": {
+            "min": [
+              -1.445,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              -0.505,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            -0.9750000000000001,
+            1.6925,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c1",
+          "row": 1,
+          "column": 1,
+          "bounds": {
+            "min": [
+              -0.47,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              0.4700000000000001,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            5.551115123125783e-17,
+            1.6925,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "r1c2",
+          "row": 1,
+          "column": 2,
+          "bounds": {
+            "min": [
+              0.5050000000000001,
+              1.44,
+              -0.004
+            ],
+            "max": [
+              1.4450000000000003,
+              1.9449999999999998,
+              0.004
+            ]
+          },
+          "center": [
+            0.9750000000000001,
+            1.6925,
+            0
+          ],
+          "width": 0.9400000000000001,
+          "height": 0.505,
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "solids": [
+        {
+          "id": "frame.left",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.5,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              -1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.right",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.5,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.sill",
+          "role": "sill",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              0.845,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              0.9,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "frame.head",
+          "role": "frame",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.945,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              2,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "wall.lower",
+          "role": "lower-wall",
+          "material": "wall",
+          "bounds": {
+            "min": [
+              -1.5,
+              0,
+              -0.08
+            ],
+            "max": [
+              1.5,
+              0.845,
+              0.08
+            ]
+          }
+        },
+        {
+          "id": "mullion.v1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -0.505,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              -0.47,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.v2",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              0.4700000000000001,
+              0.9,
+              -0.1
+            ],
+            "max": [
+              0.5050000000000001,
+              1.945,
+              0.1
+            ]
+          }
+        },
+        {
+          "id": "mullion.h1",
+          "role": "mullion",
+          "material": "frame",
+          "bounds": {
+            "min": [
+              -1.445,
+              1.405,
+              -0.1
+            ],
+            "max": [
+              1.445,
+              1.44,
+              0.1
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "window.full.borderless",
+      "dimensions": {
+        "units": "metres",
+        "width": "positive finite number",
+        "height": "positive finite number"
+      },
+      "paneId": "r0c0",
+      "solids": [],
+      "examples": [
+        {
+          "width": 20,
+          "height": 5
+        },
+        {
+          "width": 20,
+          "height": 10.6
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "baseFarmyardCommit": "6e47587",
+    "studyRepository": "https://github.com/Syntaxswine/animal-factory-tactics-3d",
+    "studyCommit": "ebf51393909040b61a7c40649d9d5f0ac3678735",
+    "studyFile": "dist/tactics/window-shatter.js",
+    "style": "Cyan translucent glass; framed forms retain pale reflection strokes and oiled metal. Borderless sheets have no caps, trim or repeated strokes; source effect remains with gameplay integration.",
+    "rights": "Inherited study/art license not declared; new geometry is a project contribution; Three.js has its separate MIT notice.",
+    "inherited": [
+      {
+        "path": "aft/tactics/hybrid-materials.js",
+        "sha256": "1dca85ff2eeb36cf61bc1ae7e16ccae7c82ec9fb7f624b13dadc7b4c65954953"
+      },
+      {
+        "path": "aft/tactics/diagonal-roads.js",
+        "sha256": "427e412356e9cdaa72a4ec581af1e2eb4b203357456f5ed562c7b4bdf99acaeb"
+      }
+    ],
+    "authored": [
+      {
+        "path": "art/windows/catalog.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "3b542522d18f27ec98f069a546c5f13b5e5b3fe499cead4465b44b965672dd70"
+      },
+      {
+        "path": "art/windows/geometry.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "ceca3bc128ae627308bf15f0fca043025874d767864bca84008d775e3b2f4065"
+      },
+      {
+        "path": "art/windows/preview-renderer.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "39f40b55ed5309e761bfe95f064a6b162e99e40b28968836f5031dce23cfa799"
+      },
+      {
+        "path": "art/windows/index.html",
+        "encoding": "UTF-8 with LF",
+        "sha256": "b80d09eb32c5870199f4c0af33b3c8f7eb3c24e4e954172c4a6abac928cc10f6"
+      },
+      {
+        "path": "art/windows/review.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "052a96698743b63577f14f340d8ed020183b1979e692b084cd6df9ab69e808e4"
+      },
+      {
+        "path": "art/windows/review.css",
+        "encoding": "UTF-8 with LF",
+        "sha256": "5985f080840d5500757a883dbb6ebd539ca5fb54675b3cae0d1da70b3ae72524"
+      }
+    ]
+  }
+}

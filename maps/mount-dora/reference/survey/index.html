@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mount Dora · House survey</title><link rel="stylesheet" href="./survey.css"><script type="module" src="./survey.js"></script></head>
+<body><header><p class="eyebrow">MOUNT DORA · REFERENCE</p><h1>House survey</h1>
+<p id="summary">Loading the house reference…</p><div class="bar" aria-hidden="true"><div id="progress"></div></div></header>
+<main><section aria-labelledby="queue-title"><h2 id="queue-title">Queue</h2>
+<div class="filters"><label>Sector <select id="sector"><option value="">All</option></select></label>
+<label>Show <select id="show"><option value="todo">To do</option><option value="done">Done</option><option value="all">All</option></select></label>
+<label class="grow">Find <input id="search" type="search" placeholder="Address or building id" autocomplete="off"></label></div>
+<ol id="queue"></ol>
+<div class="actions"><button id="export">Export survey JSON</button><label class="button">Import JSON<input id="import" type="file" accept="application/json,.json" hidden></label></div>
+<p class="note">Answers save in this browser as you go. Export writes them to a file for <code>maps/mount-dora/reference/house-survey.json</code>.</p>
+<div id="unknown" hidden></div></section>
+<section id="house" aria-labelledby="house-title"><div class="heading"><h2 id="house-title">Select a building</h2><span id="position" class="note"></span></div>
+<p id="where"></p><div class="views"><div><svg id="minimap" viewBox="0 0 100 100" role="img" aria-label="Footprint, nearby streets, the planned camera and marked entrances"></svg>
+<p id="entrances" class="note"></p></div>
+<div class="view-actions"><a id="streetview" class="button primary" target="mount-dora-streetview" rel="noopener">Open Street View <kbd>V</kbd></a>
+<a id="aerial" class="button" target="mount-dora-streetview" rel="noopener">Satellite view <kbd>A</kbd></a><p id="camera" class="note"></p><ul id="warnings"></ul></div></div>
+<h3>County record</h3><dl id="facts"></dl>
+<form id="survey"><div id="fields"></div>
+<label class="notes">Street View image date <input id="imagery" inputmode="numeric" placeholder="2024-03" maxlength="7" autocomplete="off">
+<span class="note">Google shows it as “Image capture” on the panorama.</span></label>
+<label class="notes">Notes <textarea id="note" rows="2"></textarea></label>
+<div class="actions"><button type="button" id="prev">← Previous</button><button type="submit" class="primary">Save &amp; next <kbd>Enter</kbd></button>
+<button type="button" id="skip">Skip <kbd>S</kbd></button><button type="button" id="clear">Clear answer</button></div></form></section></main>
+<p id="status" role="status" aria-live="polite"></p>
+<footer>Street View and satellite imagery open in Google Maps; this page never downloads or stores them. County facts: Lake County Property Appraiser public records.
+Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>. Keys: <kbd>V</kbd> Street View, <kbd>A</kbd> satellite, <kbd>1</kbd>–<kbd>6</kbd> storeys, <kbd>Enter</kbd> save &amp; next, <kbd>S</kbd> skip, <kbd>←</kbd>/<kbd>→</kbd> move.</footer></body></html>

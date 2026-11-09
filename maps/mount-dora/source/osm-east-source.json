@@ -1,0 +1,15 @@
+{
+  "url": "https://api.openstreetmap.org/api/0.6/map.json?bbox=-81.635,28.7895,-81.6325,28.8075",
+  "queryBoundsWGS84": {
+    "west": -81.635,
+    "south": 28.7895,
+    "east": -81.6325,
+    "north": 28.8075
+  },
+  "retrievedAt": "2026-11-02T06:08:03.515953+00:00",
+  "bytes": 540105,
+  "sha256": "8119246e108258efbb502cb869f320d2ea884ad3ab86ca54d8944ad2ed09599a",
+  "purpose": "Close the eastern11m query margin and retain a small overlap with the downtown snapshot.",
+  "attribution": "OpenStreetMap contributors",
+  "licence": "https://www.openstreetmap.org/copyright"
+}

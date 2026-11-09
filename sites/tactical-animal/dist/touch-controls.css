@@ -1,0 +1,134 @@
+/* Keep the field open; detailed actions belong to the lower-right menu. */
+@media(max-width:650px){.intro-copy{display:none}.intro h1{font-size:clamp(62px,20vw,85px)}}
+
+#battle .view-controls{top:max(15px,env(safe-area-inset-top));left:14px;right:auto;gap:2px;align-items:center}
+#battle .view-controls button{width:43px;height:35px;font-size:17px;background:#20271de8}
+#battle .view-controls>span{font:7px var(--mono);letter-spacing:1.4px;padding:3px 0;color:var(--muted)}
+#minimap-button{position:absolute;top:max(15px,env(safe-area-inset-top));right:14px;width:103px;height:101px;padding:5px;background:#20271de8;border:1px solid #6a7153}
+#minimap{width:100%;height:69px;display:block}
+#minimap-button span{font:8px var(--mono);letter-spacing:1.5px;color:var(--cream)}
+#battle>.hero-strip{position:absolute;top:max(18px,env(safe-area-inset-top));left:80px;right:128px;padding:9px 10px;gap:12px;background:#171b17d9;border:1px solid #4c574140;pointer-events:none}
+#battle .hero-identity strong{font-size:20px}
+#battle .hero-identity span{font-size:7px}
+#battle .vitals>span{font-size:8px;white-space:nowrap}
+#battle .ap-block{min-width:30px}
+#battle .ap-block strong{font-size:24px}
+#battle .ap-block small{font-size:6px}
+
+#battle .battle-bottom{background:transparent;border:0;padding:0;width:min(540px,calc(100% - 24px));bottom:max(12px,env(safe-area-inset-bottom))}
+#battle .thumb-layout{display:grid;grid-template-columns:85px 1fr 75px;align-items:end;gap:10px}
+.left-controls{display:flex;flex-direction:column;align-items:flex-start;gap:7px}
+.square-control{width:60px;height:60px;flex:none;border:1px solid #727c57;background:#20271de8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;position:relative;user-select:none;-webkit-touch-callout:none;touch-action:none}
+.square-control:disabled{opacity:.5}
+.control-icon{height:35px;display:block}
+.control-icon svg,.control-choices svg{width:34px;height:35px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.control-caption{font:8px var(--mono);letter-spacing:1.1px}
+.cycle-mark{position:absolute;right:4px;top:3px;font:10px var(--mono);color:var(--muted)}
+.eye-symbol{display:block;width:49px;height:32px;position:relative}
+.eye-symbol svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.5}
+.eye-symbol strong{position:absolute;inset:0;display:grid;place-items:center;font:600 17px var(--mono)}
+#look.inspecting{border-color:var(--rust);color:var(--cream);background:#493c29ee}
+.control-picker{position:fixed;top:auto;left:12px;right:12px;width:min(480px,calc(100% - 24px));max-height:calc(100dvh - 28px);margin:0 auto;padding:12px;background:#20271df8;overflow:auto;box-shadow:0 12px 50px #0008}
+.control-picker::backdrop{background:#0b130b55;backdrop-filter:blur(1px)}
+.picker-heading{display:flex;align-items:center;gap:10px;margin-bottom:10px;font:10px var(--mono);letter-spacing:1px}
+.picker-heading>span{font-size:8px;color:var(--muted);margin-left:auto;letter-spacing:0}
+.picker-heading>button{padding:0;width:32px;min-height:32px;background:transparent;font-size:22px;flex:none}
+.control-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.control-choices button{min-height:85px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font:11px var(--mono);background:#2c3526;border:1px solid #626b4d}
+.control-choices button[aria-pressed=true]{border-color:#d3dd9d;background:#465237;color:var(--cream)}
+.control-picker>p{font:9px var(--mono);color:var(--muted);text-align:center;margin:10px 0 0}
+.stick-column{display:flex;flex-direction:column;align-items:center;position:relative}
+#joystick{width:155px;height:155px;border:1px solid #8f987185;border-radius:34%;background:radial-gradient(ellipse,#273021ae,#20271d66);position:relative;touch-action:none;user-select:none;box-shadow:inset 0 0 24px #0003}
+.stick-ring{position:absolute;width:112px;height:112px;border-radius:50%;border:1px solid #a4ae7466;left:50%;top:50%;transform:translate(-50%,-50%)}
+.stick-ring:before,.stick-ring:after{content:'';position:absolute;background:#a4ae7430;top:50%;left:0;width:100%;height:1px}
+.stick-ring:after{transform:rotate(90deg)}
+.stick-north{font-size:8px;color:#aab78b7a;position:absolute;top:10px;left:50%;transform:translateX(-50%)}
+#stick-knob{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:65px;height:65px;border:1px solid #b6bf8b;border-radius:50%;background:radial-gradient(at 30% 20%,#748258e0,#37452de8);box-shadow:0 4px 12px #0004;pointer-events:none}
+.stick-caption{font:7px var(--mono);letter-spacing:3px;margin-top:8px;color:#a4ad89}
+#joystick.unavailable{opacity:.4}
+#battle.aiming-grenade #joystick{border-color:var(--rust)}
+#battle.aiming-flame #joystick{border-color:var(--rust)}
+.grenade-aim{position:absolute;left:0;right:0;bottom:calc(100% + 10px);padding:10px 12px;background:#20271df5;border:1px solid #84724e;font:10px/1.5 var(--mono)}
+.grenade-aim-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.grenade-aim-heading>strong{font-size:10px;letter-spacing:1.2px}
+.grenade-aim-heading>button{min-height:44px;padding:5px 12px;font:11px var(--mono);background:#35402c}
+.grenade-aim-heading>button span{margin-left:7px;font-size:18px}
+.grenade-aim output{display:block;color:var(--cream)}
+.grenade-aim p{margin:5px 0 0;font-size:9px;line-height:1.5;color:var(--muted)}
+.grenade-aim .danger-note{color:#f0a28a}
+.grenade-aim .blast-key{font-size:8px}
+
+.right-controls{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+#end-turn{background:var(--rust);color:var(--ink);border-color:var(--rust)}
+#end-turn strong{font:700 21px/.95 var(--display);letter-spacing:.7px;text-align:center}
+#end-turn:disabled{background:#20271de8;color:#9ca681;border-color:#626b4d;opacity:1}
+#grenade{gap:0}
+.grenade-icon{width:27px;height:29px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.grenade-count{position:absolute;right:4px;top:3px;font:10px var(--mono);color:var(--cream)}
+#grenade .control-caption{font-size:7px;letter-spacing:.6px}
+#grenade-cost{font:8px var(--mono);color:var(--muted);margin-top:2px}
+#grenade[aria-pressed=true]{background:#53452c;border-color:var(--rust);color:var(--cream)}
+#menu{font-size:22px;gap:3px}
+#menu span{font:7px var(--mono);letter-spacing:.5px}
+dialog .danger-note{color:#ee9b6d}
+.interaction-hand{position:absolute;z-index:3;transform:translate(-50%,-100%);min-width:72px;min-height:64px;padding:7px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;background:#202d23f2;border:1px solid #c1b07c;box-shadow:0 4px 14px #0005;touch-action:none;user-select:none;-webkit-touch-callout:none}
+.interaction-hand strong{font:11px var(--mono)}
+.interaction-hand>#interaction-icon{display:block;width:50px;height:25px}
+.interaction-hand small{font:9px var(--mono);color:#d5ca9f}
+.interaction-hand:after{content:'';position:absolute;top:100%;left:calc(50% - 5px);border:5px solid transparent;border-top-color:#c1b07c}
+.interaction-hand.unaffordable{border-color:#b67e60}
+.loot-note{font:11px/1.6 var(--mono);color:var(--muted)}
+
+dialog .context-panel{border:1px solid #626b4d;background:#20271d;padding:13px;margin:16px 0 0;display:flex;flex-wrap:wrap;gap:9px}
+dialog .context-panel:empty{display:none}
+dialog .context-copy{flex:1 1 100%;min-width:0}
+dialog .context-copy strong{font-size:13px}
+dialog .context-copy small{font-size:10px;line-height:1.7}
+dialog .context-panel>button{flex:1;min-height:44px}
+dialog .context-panel>.cancel-context{flex:0 0 44px}
+dialog .target-options{flex-wrap:wrap;gap:6px}
+dialog .target-options select{min-height:44px;max-width:125px;font:11px var(--mono)}
+dialog .target-options .burst-toggle{min-height:44px;padding:5px 10px;font:10px var(--mono);background:#424c32;color:var(--cream)}
+.menu-summary{font:11px/1.8 var(--mono);margin-bottom:0}
+.menu-log-title{font:9px var(--mono);letter-spacing:1.3px;margin:22px 0 12px}
+.menu-log{padding-left:18px;margin:0;display:grid;gap:9px;font:10px/1.6 var(--mono);color:var(--muted)}
+
+@media(min-width:800px){
+  #battle>.hero-strip{left:calc(50% - 150px);right:calc(50% - 150px)}
+  #minimap-button{width:150px;height:127px}#minimap{height:93px}
+  #battle .thumb-layout{grid-template-columns:95px 1fr 85px}
+  #joystick{width:160px;height:160px}
+}
+@media(max-width:380px){
+  #battle>.hero-strip{left:69px;right:111px;gap:7px;padding:8px 6px}
+  #battle .hero-identity strong{font-size:17px}#battle .hero-identity span{display:none}
+  #battle .vitals>span{font-size:7px}#battle .ap-block strong{font-size:20px}
+  #minimap-button{right:10px;width:92px}
+  #battle .thumb-layout{grid-template-columns:75px 1fr 66px;gap:7px}
+  #joystick{width:138px;height:138px}.stick-ring{width:100px;height:100px}#stick-knob{width:59px;height:59px}
+  .square-control{width:58px;height:58px}
+  #end-turn strong{font-size:20px}
+}
+@media(max-height:580px) and (min-width:600px){
+  #battle .battle-bottom{width:min(500px,calc(100% - 40px));bottom:7px}
+  #battle.aiming-grenade .battle-bottom{width:calc(100% - 24px)}
+  #battle.aiming-grenade .thumb-layout{margin-left:170px}
+  #battle.aiming-flame .battle-bottom{width:calc(100% - 24px)}
+  #battle.aiming-flame .thumb-layout{margin-left:170px}
+  .grenade-aim{left:0;right:auto;bottom:0;width:150px;padding:8px}
+  .grenade-aim-heading{gap:4px;flex-wrap:wrap}
+  .grenade-aim-heading>strong{font-size:8px}
+  .grenade-aim-heading>button{padding:4px 8px;min-height:44px}
+  #battle .thumb-layout{grid-template-columns:100px 1fr 90px}
+  #joystick{width:92px;height:92px;border-radius:50%}.stick-ring{width:76px;height:76px}#stick-knob{width:44px;height:44px}
+  .stick-caption{display:none}
+  .left-controls{display:grid;grid-template-columns:44px 44px;gap:6px}
+  #look{grid-column:1/3;justify-self:start}
+  .square-control{width:44px;height:44px;padding:2px;gap:0}.control-icon{height:26px}.control-icon svg{height:26px;width:27px}.control-caption{font-size:6px;letter-spacing:.6px}
+  .eye-symbol{width:34px;height:25px}.eye-symbol strong{font-size:13px}.cycle-mark{font-size:8px;top:1px;right:2px}
+  .right-controls{gap:6px;flex-direction:column;align-items:flex-end}
+  #end-turn strong{font-size:16px;letter-spacing:0}
+  #menu{font-size:17px;gap:0}#menu span{font-size:6px;letter-spacing:0}
+  .grenade-icon{height:21px;width:21px}#grenade .control-caption{font-size:6px;letter-spacing:0}#grenade-cost{font-size:6px;margin-top:1px}.grenade-count{font-size:8px;right:2px;top:2px}
+  #minimap-button{width:105px;height:95px}#minimap{height:64px}
+}

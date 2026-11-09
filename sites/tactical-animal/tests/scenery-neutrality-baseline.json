@@ -1,0 +1,46 @@
+{
+  "source": "Global movement revision: base pace2x, stamina off, elapsed catch-up and continuous movement controls; same seeds and full-state per-command hashes.",
+  "rows": [
+    {
+      "missionId": "night-ledger",
+      "seed": 3,
+      "steps": 150,
+      "hash": "aedaeb389397630819110ad183163543043ea945f28d792f689bb56e6eed35a5"
+    },
+    {
+      "missionId": "night-ledger",
+      "seed": 4,
+      "steps": 150,
+      "hash": "d9694f946eec4d6d05ff59909fa3c733634429143f5a99e97dc307b53e30384f"
+    },
+    {
+      "missionId": "night-ledger",
+      "seed": 6,
+      "steps": 150,
+      "hash": "768cb611271cee93d841e44f1ef479be32064f7afc8638f4f9e106c1c4e02eeb"
+    },
+    {
+      "missionId": "night-ledger",
+      "seed": 8,
+      "steps": 200,
+      "hash": "e4a4ce059c60fbd5db6aa78457330b5b89c4705b6dc6410196ff207996eef5a0"
+    },
+    {
+      "missionId": "road-checkpoint",
+      "seed": 1,
+      "steps": 40,
+      "hash": "cc1d4eff5999710619c8c65a0fb9da4712cfa2e828c89616babffad3aef88144"
+    },
+    {
+      "missionId": "road-checkpoint",
+      "seed": 2,
+      "steps": 40,
+      "hash": "ce36da07c88dd26603ee26cce8a09f1732a837608b39c3535cec325c713cc433"
+    }
+  ],
+  "movementPolicy": {
+    "standingWalk": 7.2,
+    "standingRun": 14.4,
+    "staminaEnabled": false
+  }
+}

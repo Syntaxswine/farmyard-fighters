@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "campaignId": "first-shift",
+  "title": "The First Shift",
+  "purpose": "Spatial authoring brief, not a runtime mission definition or AFT designer export",
+  "units": "metres",
+  "coordinates": "x east, y south; north is top of atlas",
+  "backingArray": {"width": 40, "height": 30},
+  "playableBounds": {"x": 1, "y": 1, "width": 38, "height": 28},
+  "wallHeight": 2,
+  "layoutRules": [
+    "Rooms and cover rectangles describe their ground footprints; room walls lie 0.5 m outside the outermost cell centers.",
+    "Doors give world-space centers on a room boundary. East/west door normals are x; north/south door normals are y.",
+    "Suggested routes use straight waypoint segments through door centers. Validate against the actual simulation before publishing.",
+    "Landmarks marked decorative are not collision. Solid props require corresponding gameplay geometry.",
+    "Night Ledger and Short Measure have runtime implementations; the remaining layouts are authored targets."
+  ],
+  "missions": [
+    {
+      "id": "night-ledger", "order": 1, "title": "The Night Ledger", "location": "Mill 04 records yard", "stage": "existing layout; preserve legacy saves",
+      "revelation": "The unpaid wages share a destination code: Reserve 7.",
+      "spawn": [5,24], "extraction": [5,24],
+      "objectives": [{"id":"ledger","name":"Wage ledger","at":[31,6],"action":"collect","required":true}],
+      "rooms": [
+        {"id":"warehouse","name":"Warehouse","rect":[8,14,10,8],"doors":[[7.5,18],[13,21.5]]},
+        {"id":"records","name":"Records office","rect":[24,2,12,11],"doors":[[23.5,7],[30,12.5]]}
+      ],
+      "walls": [{"id":"yard-divider","axis":"x","at":20.5,"from":4.5,"to":20.5,"gaps":[[12.5,14.5]]}],
+      "cover": [[6,17,1,2],[11,17,2,1],[15,19,1,1],[22,15,1,2],[28,8,2,1],[33,4,1,1],[17,6,1,2],[11,9,2,1],[32,17,1,2]],
+      "routes": [
+        {"id":"direct","name":"Divider crossing","points":[[5,24],[19,24],[19,13],[22,13],[23,7],[23.5,7],[25,7],[31,6]]},
+        {"id":"alternate","name":"North yard approach","points":[[5,24],[4,12],[8,6],[19,3],[22,3],[23,7],[23.5,7],[25,7],[31,6]]}
+      ],
+      "guardPosts": [{"at":[16,12],"weapon":"pistol","heading":0},{"at":[29,19],"weapon":"rifle","heading":90},{"at":[30,5],"weapon":"pistol","heading":0}],
+      "storyPoints": [{"id":"pay-window","name":"Closed pay hatch","at":[10,22],"decorative":true},{"id":"reserve-stamp","name":"Reserve 7 stamp","at":[31,6],"decorative":true}],
+      "newRuntimeNeeds": []
+    },
+    {
+      "id": "short-measure", "order": 2, "title": "Short Measure", "location": "East feed mill", "stage": "first new playable slice",
+      "revelation": "Full grain loads leave while the workers receive empty sacks.",
+      "spawn": [4,25], "extraction": [35,25],
+      "objectives": [{"id":"shipping-manifest","name":"Shipping manifest","at":[32,7],"action":"collect","required":true}],
+      "rooms": [
+        {"id":"ration-shed","name":"Ration shed","rect":[6,17,6,6],"doors":[[5.5,20],[9,22.5],[11.5,20]]},
+        {"id":"packing-hall","name":"Packing hall","rect":[14,8,11,10],"doors":[[13.5,13],[19,17.5],[24.5,13],[19,7.5]]},
+        {"id":"dispatch-office","name":"Dispatch office","rect":[28,4,8,8],"doors":[[27.5,8],[32,11.5]]}
+      ],
+      "walls": [],
+      "cover": [[8,10,2,2],[11,5,3,1],[16,10,2,2],[21,14,2,1],[27,19,2,2],[31,17,2,1],[34,21,2,1]],
+      "routes": [
+        {"id":"direct","name":"Through the packing hall","points":[[4,25],[13,25],[19,20],[19,17.5],[19,13],[24.5,13],[26,13],[26,8],[27.5,8],[30,8],[32,7]]},
+        {"id":"alternate","name":"West sack bays and north wall","points":[[4,25],[4,14],[5,7],[9,4],[25,3],[26,8],[27.5,8],[30,8],[32,7]]},
+        {"id":"departure","name":"East loading gate","points":[[32,7],[32,10],[32,11.5],[35,14],[37,19],[37,25],[35,25]]}
+      ],
+      "guardPosts": [{"at":[13,20],"weapon":"pistol","heading":270},{"at":[21,12],"weapon":"pistol","heading":180},{"at":[30,14],"weapon":"rifle","heading":0}],
+      "storyPoints": [{"id":"worker-scale","name":"Rigged ration scale","at":[8,20],"decorative":true},{"id":"sealed-load","name":"Full Reserve 7 sacks","at":[28,20],"decorative":true},{"id":"supply-chest","name":"Supply chest","at":[4,22],"decorative":false}],
+      "newRuntimeNeeds": ["Selected mission definition in state", "Mission-aware save migration and scene/menu/minimap", "Optional inspect text through the hand"]
+    },
+    {
+      "id": "town-gone-dry", "order": 3, "title": "A Town Gone Dry", "location": "Pump Station 3", "stage": "scripted follow-up",
+      "revelation": "The pumps work; the workers' water is deliberately shut off.",
+      "spawn": [4,24], "extraction": [35,24],
+      "objectives": [{"id":"pressure-record","name":"Pressure and shift record","at":[29,7],"action":"collect","required":true},{"id":"worker-main","name":"Workers' main valve","at":[20,13],"action":"restore","after":["pressure-record"],"required":true}],
+      "rooms": [
+        {"id":"pump-house","name":"Pump house","rect":[7,6,8,10],"doors":[[6.5,11],[11,15.5],[14.5,11]]},
+        {"id":"bypass-room","name":"Bypass control","rect":[26,4,10,8],"doors":[[25.5,8],[31,11.5]]}
+      ],
+      "walls": [{"id":"gallery-north","axis":"y","at":10.5,"from":17.5,"to":23.5,"gaps":[[19.5,21.5]]}],
+      "cover": [[18,17,2,3],[24,19,3,2],[30,17,2,2],[17,5,3,2]],
+      "routes": [
+        {"id":"direct","name":"North gallery crossing","points":[[4,24],[4,4],[16,3],[24,3],[24,8],[25.5,8],[29,7]]},
+        {"id":"alternate","name":"South maintenance route","points":[[4,24],[12,24],[22,24],[22,16],[24,14],[24,8],[25.5,8],[29,7]]},
+        {"id":"departure","name":"Valve then service gate","points":[[29,7],[31,9],[31,11.5],[31,13],[24,14],[20,13],[22,22],[35,24]]}
+      ],
+      "guardPosts": [{"at":[17,9],"weapon":"rifle","heading":90},{"at":[28,15],"weapon":"pistol","heading":180},{"at":[32,7],"weapon":"pistol","heading":180}],
+      "storyPoints": [{"id":"dry-trough","name":"Dry public trough","at":[5,21],"decorative":true},{"id":"reserve-bypass","name":"Wet Reserve 7 main","at":[22,6],"decorative":true}],
+      "newRuntimeNeeds": ["Ordered objectives", "Persistent valve and service-gate state", "Pipe and tank geometry", "Cosmetic water-state change"]
+    },
+    {
+      "id": "last-wagon", "order": 4, "title": "The Last Wagon", "location": "East Spur freight yard", "stage": "scripted follow-up",
+      "revelation": "Reserve 7 is a private residence, and workers are listed as freight.",
+      "spawn": [4,25], "extraction": [35,25],
+      "objectives": [{"id":"routing-sheet","name":"Routing sheet","at":[9,6],"action":"collect","required":true},{"id":"last-wagon","name":"Last wagon seal","at":[31,12],"action":"inspect","after":["routing-sheet"],"required":true}],
+      "rooms": [{"id":"dispatch-hut","name":"Dispatch hut","rect":[6,3,7,6],"doors":[[5.5,6],[9,8.5],[12.5,6]]}],
+      "walls": [],
+      "cover": [[8,13,8,3],[20,13,7,3],[29,13,6,3],[15,6,9,3],[28,5,7,3],[12,21,3,2],[25,21,3,2]],
+      "routes": [
+        {"id":"direct","name":"Central freight lanes","points":[[4,25],[4,10],[9,10],[9,8.5],[9,6],[12.5,6],[14,6],[14,10],[26,10],[31,12]]},
+        {"id":"alternate","name":"South maintenance alley","points":[[4,25],[9,25],[9,19],[18,19],[18,10],[13,10],[9,10],[9,8.5],[9,6]]},
+        {"id":"departure","name":"Last wagon and east exit","points":[[9,6],[12.5,6],[14,6],[14,10],[26,10],[31,12],[36,12],[36,17],[36,25],[35,25]]}
+      ],
+      "guardPosts": [{"at":[17,17],"weapon":"rifle","heading":0},{"at":[27,10],"weapon":"pistol","heading":180},{"at":[33,19],"weapon":"pistol","heading":270}],
+      "storyPoints": [{"id":"fountain-crate","name":"Fountain stone crate","at":[25,22],"decorative":true},{"id":"false-board","name":"Emergency reserve board","at":[6,11],"decorative":true}],
+      "newRuntimeNeeds": ["Long stationary freight footprints", "Two-stage evidence objective", "Open/closed wagon cosmetic state"]
+    },
+    {
+      "id": "beds-still-warm", "order": 5, "title": "Beds Still Warm", "location": "Dormitory B", "stage": "scripted follow-up",
+      "revelation": "The missing workers have stayed, kept records, and planned their own exit.",
+      "spawn": [4,25], "extraction": [35,24],
+      "objectives": [{"id":"worker-statement","name":"Workers' statement","at":[10,9],"action":"collect","required":true},{"id":"courtyard-release","name":"Courtyard gate release","at":[31,8],"action":"release","after":["worker-statement"],"required":true}],
+      "rooms": [
+        {"id":"west-bunks","name":"West bunk wing","rect":[7,5,8,14],"doors":[[6.5,12],[11,18.5],[14.5,12]]},
+        {"id":"east-bunks","name":"East bunk wing","rect":[25,13,9,8],"doors":[[24.5,17],[29,20.5],[33.5,17]]},
+        {"id":"gate-office","name":"Gate office","rect":[26,4,9,7],"doors":[[25.5,7],[30,10.5]]}
+      ],
+      "walls": [],
+      "cover": [[18,8,2,1],[20,14,2,1],[17,20,3,1],[8,7,1,1],[12,15,1,2]],
+      "routes": [
+        {"id":"direct","name":"Courtyard crossings","points":[[4,25],[16,24],[16,12],[14.5,12],[10,12],[10,9],[14.5,12],[17,12],[23,11],[24,7],[25.5,7],[31,8]]},
+        {"id":"alternate","name":"West rooms and north edge","points":[[4,25],[4,12],[6.5,12],[10,12],[10,9],[10,12],[6.5,12],[5,12],[4,4],[23,3],[24,7],[25.5,7],[31,8]]},
+        {"id":"departure","name":"Released courtyard exit","points":[[31,8],[30,10.5],[30,12],[36,12],[36,24],[35,24]]}
+      ],
+      "guardPosts": [{"at":[21,17],"weapon":"pistol","heading":270},{"at":[28,8],"weapon":"pistol","heading":180},{"at":[33,23],"weapon":"rifle","heading":270}],
+      "storyPoints": [{"id":"washing","name":"Abandoned washing line","at":[19,9],"decorative":true},{"id":"repaired-boots","name":"Repaired boots","at":[9,8],"decorative":true},{"id":"notice","name":"False evacuation notice","at":[25,12],"decorative":true}],
+      "newRuntimeNeeds": ["Persistent courtyard release", "Readable room interiors", "Off-screen worker departure text; no escort AI"]
+    },
+    {
+      "id": "peoples-hour", "order": 6, "title": "The People's Hour", "location": "Factory radio relay", "stage": "scripted finale",
+      "revelation": "The factory's public voice is a prepared script that the workers can interrupt.",
+      "spawn": [4,25], "extraction": [35,25],
+      "objectives": [{"id":"official-feed","name":"Official feed patch","at":[10,9],"action":"isolate","required":true},{"id":"transmitter","name":"Transmit the workers' records","at":[30,7],"action":"transmit","after":["official-feed"],"required":true}],
+      "rooms": [
+        {"id":"service-building","name":"Service building","rect":[6,5,9,10],"doors":[[5.5,10],[10,14.5],[14.5,10]]},
+        {"id":"radio-studio","name":"Radio studio","rect":[26,3,10,10],"doors":[[25.5,8],[31,12.5]]}
+      ],
+      "walls": [{"id":"antenna-baffle","axis":"x","at":20.5,"from":6.5,"to":18.5,"gaps":[[11.5,13.5]]}],
+      "cover": [[9,20,3,2],[16,17,2,2],[24,19,3,2],[30,17,2,2],[23,5,1,2]],
+      "routes": [
+        {"id":"direct","name":"Antenna court crossing","points":[[4,25],[4,17],[10,17],[10,14.5],[10,9],[14.5,10],[18,12],[20.5,12.5],[24,13],[24,8],[25.5,8],[30,7]]},
+        {"id":"alternate","name":"South cable route","points":[[4,25],[4,17],[10,17],[10,14.5],[10,9],[10,14.5],[14,23],[23,24],[36,24],[37,14],[31,14],[31,12.5],[30,7]]},
+        {"id":"departure","name":"Service yard exit","points":[[30,7],[31,12.5],[31,14],[34,14],[36,20],[35,25]]}
+      ],
+      "guardPosts": [{"at":[18,9],"weapon":"rifle","heading":90},{"at":[28,10],"weapon":"pistol","heading":180},{"at":[31,23],"weapon":"pistol","heading":180}],
+      "storyPoints": [{"id":"script","name":"Tomorrow's production bulletin","at":[29,10],"decorative":true},{"id":"mast","name":"Relay mast","at":[20,8],"decorative":true},{"id":"opening-banner","name":"Repeated Mill 04 banner","at":[7,16],"decorative":true}],
+      "newRuntimeNeeds": ["Persistent feed/transmission state", "Campaign evidence handoff and replay packet", "On-air visual/audio change with text equivalent"]
+    }
+  ]
+}

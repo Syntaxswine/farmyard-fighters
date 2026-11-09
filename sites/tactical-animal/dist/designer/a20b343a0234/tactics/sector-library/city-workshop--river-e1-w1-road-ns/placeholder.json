@@ -1,0 +1,150 @@
+{
+  "id": "city-workshop--river-e1-w1-road-ns",
+  "kind": "sector-placeholder",
+  "version": 1,
+  "status": "placeholder",
+  "role": "city",
+  "facilities": [
+    "workshop"
+  ],
+  "difficulties": [
+    "easy",
+    "medium",
+    "hard"
+  ],
+  "config": {
+    "feature": {
+      "kind": "river",
+      "ports": [
+        {
+          "side": "east",
+          "slot": 1
+        },
+        {
+          "side": "west",
+          "slot": 1
+        }
+      ]
+    },
+    "roads": [
+      "north",
+      "south"
+    ]
+  },
+  "equivalents": [
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 1
+          },
+          {
+            "side": "south",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": [
+        "east",
+        "west"
+      ]
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 2
+          },
+          {
+            "side": "south",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": [
+        "east",
+        "west"
+      ]
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "east",
+            "slot": 1
+          },
+          {
+            "side": "west",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": [
+        "north",
+        "south"
+      ]
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "east",
+            "slot": 2
+          },
+          {
+            "side": "west",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": [
+        "north",
+        "south"
+      ]
+    }
+  ],
+  "allowedTransforms": [
+    {
+      "turns": 0,
+      "mirror": false
+    },
+    {
+      "turns": 1,
+      "mirror": false
+    },
+    {
+      "turns": 2,
+      "mirror": false
+    },
+    {
+      "turns": 3,
+      "mirror": false
+    },
+    {
+      "turns": 0,
+      "mirror": true
+    },
+    {
+      "turns": 1,
+      "mirror": true
+    },
+    {
+      "turns": 2,
+      "mirror": true
+    },
+    {
+      "turns": 3,
+      "mirror": true
+    }
+  ],
+  "variants": [
+    "placeholder.json"
+  ],
+  "notes": []
+}

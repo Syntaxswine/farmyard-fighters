@@ -1,0 +1,81 @@
+{
+  "reviewedAt": "2026-11-02",
+  "sources": [
+    {
+      "id": "city-preservation",
+      "url": "https://mountdora.gov/282/Historic-Preservation",
+      "usedFor": "Local dwelling, hotel and commercial typologies; surrounding assignments remain inferred."
+    },
+    {
+      "id": "city-historic-sites",
+      "url": "https://mountdora.gov/DocumentCenter/View/6438",
+      "usedFor": "Frame and masonry vernacular, Donnelly Queen Anne, depot and Inn context. Native proportions and individual dimensions are inferred."
+    },
+    {
+      "id": "lakeside-owner",
+      "url": "https://lakeside-inn.com/about-us/",
+      "usedFor": "Yellow/white building group and veranda; no photo pixels copied."
+    },
+    {
+      "id": "lakeside-history",
+      "url": "https://lakeside-inn.com/history/",
+      "usedFor": "Historic two-storey main sections and veranda."
+    },
+    {
+      "id": "city-parks",
+      "url": "https://www.mountdora.gov/1031/Parks-and-Playgrounds",
+      "usedFor": "Facility types; precise stage/Evans pavilion positions remain inferred."
+    },
+    {
+      "id": "city-palm",
+      "url": "https://www.mountdora.gov/SlideShow.aspx?AID=12&AN=Palm+Island+Park",
+      "usedFor": "City album identifies wooden boardwalk and pavilion. Individual images unavailable to browser fetch; construction details inferred."
+    },
+    {
+      "id": "city-lighthouse",
+      "url": "https://www.mountdora.gov/facilities/facility/details/Grantham-Point-8",
+      "usedFor": "Lighthouse landmark in Grantham Point."
+    },
+    {
+      "id": "chamber-history",
+      "url": "https://www.mountdora.com/mount-dora-history/",
+      "usedFor": "35-foot lighthouse historical context."
+    },
+    {
+      "id": "city-design-standards-2025",
+      "url": "https://ci.mount-dora.fl.us/DocumentCenter/View/18927/9112025-v2-Mount-Dora-Design-Standards-EDITED?bidId=",
+      "sha256": "46d665a48b826f7b35efe06a57e235d4c9e8b3b1fa063b382c43631b01d034ef",
+      "bytes": 23226318,
+      "pagesInspected": [
+        {
+          "pdfPage": 76,
+          "printedPage": 72,
+          "observed": "Donnelly: yellow, white ornament, silver tin, polygonal tower, steep gables, wrap veranda."
+        },
+        {
+          "pdfPage": 77,
+          "printedPage": 73,
+          "observed": "Local stucco/flat parapet and Mediterranean tile-roof typologies; individual assignments inferred."
+        },
+        {
+          "pdfPage": 82,
+          "printedPage": 78,
+          "observed": "Depot: white siding and low gray hip roof."
+        },
+        {
+          "pdfPage": 84,
+          "printedPage": 80,
+          "observed": "Historical Bank/Shamrock brick upper facade, pale pilasters, arched lower windows and cornice; historical Inn veranda arches and corner gazebo."
+        }
+      ],
+      "inference": "Dimensions, exact turret position, gable divisions and present facade arrangements are inferred. OSM controls Shamrock floor count. No source pixels or PDF included in assets."
+    }
+  ],
+  "notUsed": [
+    {
+      "url": "https://www.mountdoraarchives.com/",
+      "reason": "JavaScript-only landing page; no individual image observed."
+    }
+  ],
+  "policy": "No Street View tracing, extraction, caching, or source-photo texture. Observed source facts inform hand-authored geometry; unsurveyed details remain inferred."
+}

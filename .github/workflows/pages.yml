@@ -1,0 +1,73 @@
+name: Publish Farmyard Fighters
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Check and build game
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Check game
+        run: npm run check
+      - name: Build static game
+        run: npm run build
+      - name: Install locked browser dependencies
+        run: npm ci --ignore-scripts --prefix sites/tactical-animal/browser-tests
+      - name: Install isolated Chromium
+        working-directory: sites/tactical-animal/browser-tests
+        run: npx playwright install --with-deps chromium
+      - name: Verify the real-time encounter on desktop and phone
+        run: node tools/test-realtime.mjs
+      - name: Preserve browser evidence and helper cleanup receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: realtime-browser-evidence
+          path: artifacts/realtime/native
+      - name: Verify disposable helpers stopped
+        if: always()
+        run: node -e "const r=require('./artifacts/realtime/native/helper-cleanup.json');if(!r.httpReleased||!r.wsReleased||!r.browserProcessExited||r.errors.length)process.exit(1)"
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Upload game
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy playable game
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/Syntaxswine/nautilus-engine",
+  "commit": "2502646482218524fd5129641da769bb82462e4d",
+  "files": [
+    {
+      "path": "packages/map-core/wall-runs.js",
+      "local": "wall-runs.js",
+      "bytes": 8795,
+      "sha256": "6d01eb4b49d6ba20ae71e4bb2cab095c80e63be5d14b6ff43f509a9cfc76633d"
+    }
+  ]
+}

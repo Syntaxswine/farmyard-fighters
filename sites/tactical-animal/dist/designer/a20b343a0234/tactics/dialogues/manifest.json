@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "dialogues": [
+    {
+      "id": "yard_bomb_permission",
+      "version": 1
+    },
+    {
+      "id": "yard_worker_flavour",
+      "version": 1
+    },
+    {
+      "id": "plateau_intro",
+      "version": 1
+    }
+  ]
+}

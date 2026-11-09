@@ -1,0 +1,6 @@
+Geographic data: OpenStreetMap contributors, https://www.openstreetmap.org/copyright
+The source snapshots and derived geographic feature database use the Open Database Licence (ODbL) 1.0: https://opendatacommons.org/licenses/odbl/1-0/.
+The public OpenStreetMap API supplied the retained road, building, park and lake-boundary data. Request URLs, retrieval times and SHA-256 digests are recorded beside each snapshot.
+Official Mount Dora facility pages and user-provided screenshots are reference material. Google map imagery is not included as terrain, textures or runtime tiles.
+The generated maps are editable game-authoring approximations. Width defaults, raster limits, native-kit heights and procedural vegetation are declared in the project metadata; this is not a property survey or a surveyed record of interiors.
+Code and reused game/art assets retain their own repository notices and source provenance; this notice identifies the geographic data.

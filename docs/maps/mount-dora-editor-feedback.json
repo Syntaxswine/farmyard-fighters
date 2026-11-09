@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "task": "Mount Dora authoring atlas and workshop feedback",
+  "reviewDate": "2026-11-02",
+  "nautilusCommit": "2502646482218524fd5129641da769bb82462e4d",
+  "scope": {
+    "authoringOnly": true,
+    "gameAdoption": false,
+    "engineChanges": false,
+    "geographicGeneratorChanged": false,
+    "finalSectorFilesChanged": false
+  },
+  "evidence": {
+    "apiAudit": "maps/mount-dora/workshop/audit.json",
+    "nativeTown": "maps/mount-dora/workshop/review/native-town.json",
+    "nativeFixtures": "maps/mount-dora/workshop/review/native-fixtures.json",
+    "screenshots": "Local ignored artifacts/mount-dora-workshop/town/native; CI uploads equivalent review artifacts when final town files are integrated.",
+    "realPhoneBenchmark": false,
+    "folderPickerTested": false,
+    "localPreparedBuild": {
+      "nautilusCommit": "2502646482218524fd5129641da769bb82462e4d",
+      "trackedBlobsVerified": 2297,
+      "sourceMode": "fixtures",
+      "indexSha256": "11821b05abaf5a6bdc3a0cbc376214aa7d33af926c7d3834ac96f4bb74fa0fc3",
+      "buildProvenanceSha256": "7b7006b182acc32a8d42f69291bb5a6194094b4ffa144cabec23d1890c326680"
+    }
+  },
+  "findings": [
+    {
+      "id": "terrain-only-sectors",
+      "kind": "observed-native-contract-and-ui",
+      "severity": "blocks-import",
+      "summary": "Three geographically complete all-water sectors cannot open in the native workshop.",
+      "details": "A05, A06 and A07 retain original water and have no artificial starts or land. Native authoring open still requires four walkable squad starts and one walkable travel marker. The atlas offers exact JSON download and explains the native rejection; direct opening stays disabled.",
+      "proposal": "Add an explicit terrain-only authoring profile independently of game mission validation.",
+      "sourceReferences": [
+        "packages/map-core/maps.js",
+        "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/core/maps.js:105-122"
+      ]
+    },
+    {
+      "id": "bounded-rendering",
+      "kind": "source-audit-and-implemented-atlas-policy",
+      "summary": "The atlas loads one sector; the inherited workshop retains geometry across that selected sector.",
+      "details": "The overview renders only a bounded button grid and selected labels. Direct opening mounts the actual existing workshop for one 240 m sector. Source InspectionScene.rebuild builds selected-level geometry throughout the document in spatial instance batches; Three.js culls drawing but this is not moving-window allocation. Renderer counters are controlled desktop software-WebGL observations, not phone speed or GPU budget guarantees.",
+      "proposal": "Expose visible bounds, a small prefetch ring and selected-floor band to scene residency, with disposal and late-load cancellation. Keep authoritative world state, collision, navigation, discovery and saves independent. Cap zoom to resident coverage. Index large objects by intersected bounds, not just anchor cells.",
+      "sourceReferences": [
+        "vendor/aft/781246a668c723d5a4c5463e70534cc04b6a5641/dist/tactics/editor-3d-scene.js:91-114",
+        "sites/tactical-animal/sector-renderer.md"
+      ],
+      "measurements": [
+        {
+          "sector": "C03",
+          "view": "22 m close view after native edit; not a real-phone timing benchmark",
+          "scope": "one explicit native draw, accumulated across render passes",
+          "calls": 245,
+          "triangles": 243108,
+          "geometries": 341,
+          "textures": 38,
+          "programs": 25,
+          "failedPrograms": 0
+        },
+        {
+          "sector": "C05",
+          "view": "22 m close view after native edit; not a real-phone timing benchmark",
+          "scope": "one explicit native draw, accumulated across render passes",
+          "calls": 214,
+          "triangles": 184534,
+          "geometries": 137,
+          "textures": 39,
+          "programs": 23,
+          "failedPrograms": 0
+        },
+        {
+          "sector": "A01",
+          "view": "22 m close view after native edit; not a real-phone timing benchmark",
+          "scope": "one explicit native draw, accumulated across render passes",
+          "calls": 282,
+          "triangles": 551182,
+          "geometries": 276,
+          "textures": 36,
+          "programs": 21,
+          "failedPrograms": 0
+        }
+      ]
+    },
+    {
+      "id": "project-georeference",
+      "kind": "observed-public-bridge-limit",
+      "summary": "The native bridge opens a map document, not a town project.",
+      "details": "window.nautilus.open/export and the native document provide a usable sector bridge. No town/georeference/neighbor API is used or assumed. The atlas consumes the architect's project and preserves the original native sector JSON. A static host without the matching pinned bridge has honest download/import controls.",
+      "proposal": "Define a public project/georeference manifest and safe sector-switch API; retain existing native documents and storage."
+    },
+    {
+      "id": "safe-neighbor-switch",
+      "kind": "native-ui-verified",
+      "summary": "Selecting a neighbor preserves the current native document and edits.",
+      "details": "The atlas distinguishes selection from opening. Actual UI checks paint a tile, select another sector, and dismiss replacement; exported document bytes remain unchanged. Native Import, Export, Undo/Redo and asset tools are reused. Native folder controls remain available; an actual OS folder chooser was not exercised.",
+      "proposal": "Return a dirty-document result from the public bridge so hosts need not read editor loading/changed state."
+    },
+    {
+      "id": "source-roundtrip",
+      "kind": "all-sector-api-and-representative-native-ui",
+      "summary": "Every original value survives successful imports; native-added fields are recorded separately.",
+      "details": "39 native-ready sectors pass supported edit/Undo/Redo/export/reopen with no source value removed or changed during import. All 5814 wall-run records are retained. Nested unknown source metadata is compared recursively without a field whitelist. Initial imports create new character IDs where preview anchors omit character data. After first native export, complete normalized documents including those IDs must remain byte-identical through Undo/Redo and export/reopen.",
+      "proposal": "Document native normalization and preserve bounded extension metadata as part of the authoring contract."
+    },
+    {
+      "id": "cross-sector-objects",
+      "kind": "data-roundtrip-verified-editor-capability-unverified",
+      "summary": "88 building identities cross sector boundaries in the final geographic project.",
+      "details": "Sector-local geometry and source references survive round trips. Native UI review covers boundary A01. This does not prove whole-building cross-sector editing, linked updates or boundary object ownership inside the native workshop.",
+      "proposal": "Add source-feature and cross-sector ownership references; do not merge the full town into one scene or duplicate authoritative objects."
+    },
+    {
+      "id": "curves-and-coast",
+      "kind": "format-review-and-source-preservation",
+      "summary": "Native ground uses one-metre tiles; geographic vectors remain external source evidence.",
+      "details": "The actual C05 shoreline view was inspected. Imported native terrain preserves the generated coast exactly. This review does not claim surveyed coastline accuracy or an editor curve/raster calibration workflow. The atlas links the architect's geographic SVG rather than introducing a second editor.",
+      "proposal": "Add georeferenced underlays, curve authoring and explicit rasterization/rounding policy."
+    },
+    {
+      "id": "heights-and-structures",
+      "kind": "bounded-feature-coverage",
+      "summary": "The final town has native exterior proxies rather than surveyed interiors and elevations.",
+      "details": "Final sectors contain wall runs and native terrain/props, with zero sloped-roof and building-prefab records. A synthetic fixture imports one wall-run and one sloped-roof record and preserves them through native terrain editing, Undo/Redo and export/reopen. Roof placement controls were not exercised. There is no claim that the final town contains authored roofs/prefabs or that arbitrary elevations, bridges and boardwalks have been visually surveyed.",
+      "proposal": "Define elevation datum, bridge/boardwalk supports and cross-sector height constraints. Report unsupported native features; do not flatten or drop them to pass validation."
+    }
+  ],
+  "proposals": "maps/mount-dora/workshop/project-proposal.md",
+  "finalSource": {
+    "projectId": "mount-dora-downtown",
+    "projectSha256": "3f3ccfb3fe1f7e9c0ab02a2a5e46f340ff5d987aba6ac2a9170ff1e10fe6dd2a",
+    "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
+    "architectBaseCommit": "8dc6f70",
+    "sectorHashes": "maps/mount-dora/workshop/audit.json",
+    "generationVersion": 2,
+    "sportsCorrection": {
+      "changedSectors": [
+        "B02",
+        "B04",
+        "C02",
+        "F02",
+        "F06"
+      ],
+      "props": 391,
+      "policy": "No seeded vegetation on mapped pitches; declared plain hard-court surface proxies, with original source tags retained."
+    }
+  },
+  "results": {
+    "geographicFiles": 42,
+    "nativeReady": 39,
+    "expectedWaterRefusals": [
+      "A05",
+      "A06",
+      "A07"
+    ],
+    "changedOriginalSourceValues": 0,
+    "wallRunsRetained": 5814,
+    "nativeTownSectors": [
+      "C03",
+      "C05",
+      "A01"
+    ],
+    "nativeFixtureScenarios": 3,
+    "browser": {
+      "version": "156.0.4314.58",
+      "channel": "msedge",
+      "headless": true,
+      "softwareWebGL": true
+    },
+    "phoneViewport": {
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    "shaderFailures": 0,
+    "helpersClosed": true,
+    "portsReleased": true
+  }
+}

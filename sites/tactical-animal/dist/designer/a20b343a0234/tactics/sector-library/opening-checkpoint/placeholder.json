@@ -1,0 +1,40 @@
+{
+  "id": "opening-checkpoint",
+  "kind": "sector-placeholder",
+  "version": 1,
+  "status": "in-progress",
+  "role": "special",
+  "config": {
+    "feature": null,
+    "roads": [
+      "west"
+    ]
+  },
+  "facilities": [],
+  "difficulties": [
+    "easy",
+    "medium",
+    "hard"
+  ],
+  "allowedTransforms": [
+    {
+      "turns": 0,
+      "mirror": false
+    }
+  ],
+  "variants": [
+    "foundation-1.json",
+    "placeholder.json"
+  ],
+  "variantDetails": {
+    "foundation-1.json": {
+      "status": "in-progress",
+      "preview": "foundation-1.svg"
+    }
+  },
+  "preview": "foundation-1.svg",
+  "notes": [
+    "Explicit seed-42 campaign assignment, one instance. Not part of random interchangeable templates.",
+    "Paired six-tile road and ground entry corridors are validated by the campaign."
+  ]
+}

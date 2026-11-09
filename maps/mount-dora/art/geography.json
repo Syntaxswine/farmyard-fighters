@@ -1,0 +1,4071 @@
+{
+  "schema": "mount-dora-art-geography/1",
+  "units": "metres",
+  "axes": [
+    "east",
+    "south"
+  ],
+  "townOffset": [
+    480,
+    480
+  ],
+  "features": [
+    {
+      "id": "osm:way/468920884",
+      "kind": "polygon",
+      "sourceId": 468920884,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Donnelly Park",
+        "surface": "grass"
+      },
+      "townPoints": [
+        [
+          450.0193,
+          524.4105
+        ],
+        [
+          440.4618,
+          515.422
+        ],
+        [
+          440.3058,
+          444.589
+        ],
+        [
+          458.2297,
+          444.4671
+        ],
+        [
+          460.1139,
+          444.3452
+        ],
+        [
+          511.2887,
+          443.9794
+        ],
+        [
+          519.4599,
+          443.9572
+        ],
+        [
+          519.8018,
+          524.211
+        ],
+        [
+          450.0193,
+          524.4105
+        ]
+      ],
+      "townBounds": [
+        440.3058,
+        443.9572,
+        519.8018,
+        524.4105
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 1
+        },
+        {
+          "column": 2,
+          "row": 1
+        },
+        {
+          "column": 1,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/468921011",
+      "kind": "polygon",
+      "sourceId": 468921011,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Gilbert Park"
+      },
+      "townPoints": [
+        [
+          652.6888,
+          1143.4528
+        ],
+        [
+          657.2878,
+          1182.0002
+        ],
+        [
+          660.0997,
+          1187.2758
+        ],
+        [
+          661.2129,
+          1202.3157
+        ],
+        [
+          659.0553,
+          1206.4941
+        ],
+        [
+          661.3403,
+          1231.11
+        ],
+        [
+          661.9359,
+          1234.4904
+        ],
+        [
+          663.1758,
+          1237.9483
+        ],
+        [
+          664.6208,
+          1239.9654
+        ],
+        [
+          666.4758,
+          1241.1513
+        ],
+        [
+          669.4634,
+          1242.5034
+        ],
+        [
+          672.8707,
+          1242.8913
+        ],
+        [
+          737.0243,
+          1242.5686
+        ],
+        [
+          741.2126,
+          1239.3766
+        ],
+        [
+          755.4863,
+          1238.9883
+        ],
+        [
+          759.8114,
+          1241.5928
+        ],
+        [
+          781.8077,
+          1242.501
+        ],
+        [
+          853.7913,
+          1241.7675
+        ],
+        [
+          855.8513,
+          1240.4152
+        ],
+        [
+          856.437,
+          1237.8107
+        ],
+        [
+          855.5183,
+          1208.2406
+        ],
+        [
+          854.99,
+          1174.0488
+        ],
+        [
+          854.6179,
+          1140.2782
+        ],
+        [
+          652.6888,
+          1143.4528
+        ]
+      ],
+      "townBounds": [
+        652.6888,
+        1140.2782,
+        856.437,
+        1242.8913
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 4
+        },
+        {
+          "column": 3,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 5
+        },
+        {
+          "column": 3,
+          "row": 5
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/486656245",
+      "kind": "polygon",
+      "sourceId": 486656245,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Evans Park"
+      },
+      "townPoints": [
+        [
+          401.9648,
+          1017.7588
+        ],
+        [
+          413.651,
+          1027.9776
+        ],
+        [
+          431.234,
+          1039.9698
+        ],
+        [
+          446.4056,
+          1046.0323
+        ],
+        [
+          469.6317,
+          1043.0288
+        ],
+        [
+          475.9874,
+          1023.7551
+        ],
+        [
+          482.1381,
+          1012.2285
+        ],
+        [
+          491.3152,
+          1001.2561
+        ],
+        [
+          495.5133,
+          978.6463
+        ],
+        [
+          494.9275,
+          967.0089
+        ],
+        [
+          494.0389,
+          852.9734
+        ],
+        [
+          439.1135,
+          823.2813
+        ],
+        [
+          436.5649,
+          955.8923
+        ],
+        [
+          445.4881,
+          967.0421
+        ],
+        [
+          449.3152,
+          979.4664
+        ],
+        [
+          443.9553,
+          990.1174
+        ],
+        [
+          431.9762,
+          994.1738
+        ],
+        [
+          419.9971,
+          989.1087
+        ],
+        [
+          413.8856,
+          979.9761
+        ],
+        [
+          401.9648,
+          1017.7588
+        ]
+      ],
+      "townBounds": [
+        401.9648,
+        823.2813,
+        495.5133,
+        1046.0323
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        },
+        {
+          "column": 1,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 4
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/548471563",
+      "kind": "polyline",
+      "sourceId": 548471563,
+      "sourceType": "way",
+      "tags": {
+        "name": "Palm Island Parkway",
+        "surface": "wood"
+      },
+      "townPoints": [
+        [
+          665.969,
+          1296.5786
+        ],
+        [
+          615.5621,
+          1325.8834
+        ]
+      ],
+      "townBounds": [
+        615.5621,
+        1296.5786,
+        665.969,
+        1325.8834
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 5
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562391",
+      "kind": "polygon",
+      "sourceId": 556562391,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes",
+        "name": "Maw's Mountain Moonshine"
+      },
+      "townPoints": [
+        [
+          346.906,
+          645.9044
+        ],
+        [
+          357.7523,
+          645.8934
+        ],
+        [
+          357.762,
+          654.2391
+        ],
+        [
+          352.2461,
+          654.2501
+        ],
+        [
+          346.9157,
+          654.2501
+        ],
+        [
+          346.906,
+          645.9044
+        ]
+      ],
+      "townBounds": [
+        346.906,
+        645.8934,
+        357.762,
+        654.2501
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562396",
+      "kind": "polygon",
+      "sourceId": 556562396,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "pub",
+        "building": "yes",
+        "name": "Wolf Branch Brewing Co."
+      },
+      "townPoints": [
+        [
+          442.1405,
+          644.3756
+        ],
+        [
+          442.0331,
+          653.3308
+        ],
+        [
+          442.4236,
+          653.2643
+        ],
+        [
+          442.4919,
+          665.2343
+        ],
+        [
+          457.253,
+          665.1124
+        ],
+        [
+          457.7119,
+          644.4643
+        ],
+        [
+          442.1405,
+          644.3756
+        ]
+      ],
+      "townBounds": [
+        442.0331,
+        644.3756,
+        457.7119,
+        665.2343
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562397",
+      "kind": "polygon",
+      "sourceId": 556562397,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          457.7119,
+          644.4643
+        ],
+        [
+          480.6248,
+          644.686
+        ],
+        [
+          480.5467,
+          657.1325
+        ],
+        [
+          467.9822,
+          657.1103
+        ],
+        [
+          467.8553,
+          660.1693
+        ],
+        [
+          469.4954,
+          660.3244
+        ],
+        [
+          469.593,
+          665.3341
+        ],
+        [
+          457.5069,
+          665.2454
+        ],
+        [
+          457.7119,
+          644.4643
+        ]
+      ],
+      "townBounds": [
+        457.5069,
+        644.4643,
+        480.6248,
+        665.3341
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562398",
+      "kind": "polygon",
+      "sourceId": 556562398,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "restaurant",
+        "building": "yes",
+        "name": "1921 Mount Dora"
+      },
+      "townPoints": [
+        [
+          512.9977,
+          644.2315
+        ],
+        [
+          484.7349,
+          644.3313
+        ],
+        [
+          484.8813,
+          655.0488
+        ],
+        [
+          485.0668,
+          665.3451
+        ],
+        [
+          490.2605,
+          665.4116
+        ],
+        [
+          508.9365,
+          665.1456
+        ],
+        [
+          508.8681,
+          664.1703
+        ],
+        [
+          513.2028,
+          663.9819
+        ],
+        [
+          512.9977,
+          644.2315
+        ]
+      ],
+      "townBounds": [
+        484.7349,
+        644.2315,
+        513.2028,
+        665.4116
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562399",
+      "kind": "polygon",
+      "sourceId": 556562399,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes",
+        "name": "Modernism Museum Shop"
+      },
+      "townPoints": [
+        [
+          525.1034,
+          644.165
+        ],
+        [
+          512.9977,
+          644.2315
+        ],
+        [
+          513.2028,
+          663.9819
+        ],
+        [
+          525.2694,
+          664.0705
+        ],
+        [
+          525.1034,
+          644.165
+        ]
+      ],
+      "townBounds": [
+        512.9977,
+        644.165,
+        525.2694,
+        664.0705
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562400",
+      "kind": "polygon",
+      "sourceId": 556562400,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes",
+        "name": "Modernism Museum",
+        "tourism": "museum"
+      },
+      "townPoints": [
+        [
+          504.8849,
+          605.95
+        ],
+        [
+          524.9372,
+          605.6839
+        ],
+        [
+          525.4547,
+          625.5784
+        ],
+        [
+          505.0802,
+          625.6338
+        ],
+        [
+          504.8849,
+          605.95
+        ]
+      ],
+      "townBounds": [
+        504.8849,
+        605.6839,
+        525.4547,
+        625.6338
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562408",
+      "kind": "polygon",
+      "sourceId": 556562408,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes"
+      },
+      "townPoints": [
+        [
+          340.9811,
+          566.4707
+        ],
+        [
+          354.102,
+          566.493
+        ],
+        [
+          354.0141,
+          570.5827
+        ],
+        [
+          354.092,
+          581.7325
+        ],
+        [
+          341.1957,
+          581.7766
+        ],
+        [
+          340.9811,
+          566.4707
+        ]
+      ],
+      "townBounds": [
+        340.9811,
+        566.4707,
+        354.102,
+        581.7766
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562409",
+      "kind": "polygon",
+      "sourceId": 556562409,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "restaurant",
+        "building": "yes",
+        "name": "Shiva Indian"
+      },
+      "townPoints": [
+        [
+          361.9025,
+          544.7256
+        ],
+        [
+          361.9415,
+          547.3966
+        ],
+        [
+          361.7363,
+          563.4895
+        ],
+        [
+          361.5996,
+          570.5274
+        ],
+        [
+          354.0141,
+          570.5827
+        ],
+        [
+          354.102,
+          566.493
+        ],
+        [
+          354.0825,
+          561.0954
+        ],
+        [
+          353.7019,
+          544.7144
+        ],
+        [
+          361.9025,
+          544.7256
+        ]
+      ],
+      "townBounds": [
+        353.7019,
+        544.7144,
+        361.9415,
+        570.5827
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556562410",
+      "kind": "polygon",
+      "sourceId": 556562410,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes",
+        "name": "Atkins Realty"
+      },
+      "townPoints": [
+        [
+          354.0825,
+          561.0954
+        ],
+        [
+          349.1915,
+          561.0843
+        ],
+        [
+          348.889,
+          544.67
+        ],
+        [
+          353.7019,
+          544.7144
+        ],
+        [
+          354.0825,
+          561.0954
+        ]
+      ],
+      "townBounds": [
+        348.889,
+        544.67,
+        354.0825,
+        561.0954
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556809462",
+      "kind": "polygon",
+      "sourceId": 556809462,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "ice_cream",
+        "building": "yes",
+        "name": "Scoops on 5th"
+      },
+      "townPoints": [
+        [
+          484.2077,
+          543.7398
+        ],
+        [
+          484.3346,
+          564.8755
+        ],
+        [
+          493.7359,
+          564.6871
+        ],
+        [
+          493.6285,
+          543.7508
+        ],
+        [
+          484.2077,
+          543.7398
+        ]
+      ],
+      "townBounds": [
+        484.2077,
+        543.7398,
+        493.7359,
+        564.8755
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556809463",
+      "kind": "polygon",
+      "sourceId": 556809463,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "cafe",
+        "building": "yes",
+        "name": "Foxtail Coffee Co"
+      },
+      "townPoints": [
+        [
+          493.6285,
+          543.7508
+        ],
+        [
+          502.8053,
+          543.6511
+        ],
+        [
+          502.8737,
+          564.5541
+        ],
+        [
+          493.7359,
+          564.6871
+        ],
+        [
+          493.6285,
+          543.7508
+        ]
+      ],
+      "townBounds": [
+        493.6285,
+        543.6511,
+        502.8737,
+        564.6871
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556809464",
+      "kind": "polygon",
+      "sourceId": 556809464,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "restaurant",
+        "building": "yes",
+        "name": "Fiesta Grande Mexican Grill"
+      },
+      "townPoints": [
+        [
+          524.9372,
+          605.6839
+        ],
+        [
+          524.5662,
+          596.8173
+        ],
+        [
+          527.8172,
+          596.8838
+        ],
+        [
+          527.5145,
+          591.852
+        ],
+        [
+          525.1324,
+          591.7856
+        ],
+        [
+          525.0153,
+          583.4842
+        ],
+        [
+          515.6139,
+          583.6394
+        ],
+        [
+          515.487,
+          585.2021
+        ],
+        [
+          514.8231,
+          585.2686
+        ],
+        [
+          505.0215,
+          585.1689
+        ],
+        [
+          504.8849,
+          605.95
+        ],
+        [
+          524.9372,
+          605.6839
+        ]
+      ],
+      "townBounds": [
+        504.8849,
+        583.4842,
+        527.8172,
+        605.95
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556809467",
+      "kind": "polygon",
+      "sourceId": 556809467,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "restaurant",
+        "building": "yes",
+        "name": "JK Thai & Sushi"
+      },
+      "townPoints": [
+        [
+          462.6129,
+          545.4909
+        ],
+        [
+          462.7886,
+          557.6271
+        ],
+        [
+          462.7984,
+          559.4447
+        ],
+        [
+          475.2359,
+          559.212
+        ],
+        [
+          475.0699,
+          545.4466
+        ],
+        [
+          462.6129,
+          545.4909
+        ]
+      ],
+      "townBounds": [
+        462.6129,
+        545.4466,
+        475.2359,
+        559.4447
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556809468",
+      "kind": "polygon",
+      "sourceId": 556809468,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes",
+        "name": "Mount Dora History Museum",
+        "tourism": "museum"
+      },
+      "townPoints": [
+        [
+          502.2001,
+          591.697
+        ],
+        [
+          486.2481,
+          591.5972
+        ],
+        [
+          486.1797,
+          604.1102
+        ],
+        [
+          502.122,
+          604.1989
+        ],
+        [
+          502.2001,
+          591.697
+        ]
+      ],
+      "townBounds": [
+        486.1797,
+        591.5972,
+        502.2001,
+        604.1989
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/556809469",
+      "kind": "polygon",
+      "sourceId": 556809469,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes"
+      },
+      "townPoints": [
+        [
+          484.1882,
+          604.8085
+        ],
+        [
+          503.2643,
+          605.3848
+        ],
+        [
+          503.5474,
+          624.6696
+        ],
+        [
+          502.5516,
+          624.7361
+        ],
+        [
+          502.6883,
+          628.0278
+        ],
+        [
+          485.1449,
+          628.0279
+        ],
+        [
+          485.1058,
+          624.7029
+        ],
+        [
+          484.2174,
+          624.8026
+        ],
+        [
+          484.1882,
+          604.8085
+        ]
+      ],
+      "townBounds": [
+        484.1882,
+        604.8085,
+        503.5474,
+        628.0279
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/557051180",
+      "kind": "polygon",
+      "sourceId": 557051180,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "pitch",
+        "sport": "tennis"
+      },
+      "townPoints": [
+        [
+          468.9294,
+          450.3191
+        ],
+        [
+          468.8805,
+          461.225
+        ],
+        [
+          492.6229,
+          461.3136
+        ],
+        [
+          492.6619,
+          450.4077
+        ],
+        [
+          468.9294,
+          450.3191
+        ]
+      ],
+      "townBounds": [
+        468.8805,
+        450.3191,
+        492.6619,
+        461.3136
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 1
+        },
+        {
+          "column": 2,
+          "row": 1
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/557051194",
+      "kind": "polygon",
+      "sourceId": 557051194,
+      "sourceType": "way",
+      "tags": {
+        "description": "Public Pickleball Court",
+        "leisure": "pitch",
+        "sport": "pickleball"
+      },
+      "townPoints": [
+        [
+          467.9921,
+          467.0548
+        ],
+        [
+          474.0644,
+          467.0548
+        ],
+        [
+          474.1035,
+          480.399
+        ],
+        [
+          468.0409,
+          480.399
+        ],
+        [
+          467.9921,
+          467.0548
+        ]
+      ],
+      "townBounds": [
+        467.9921,
+        467.0548,
+        474.1035,
+        480.399
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 1
+        },
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/557051202",
+      "kind": "polygon",
+      "sourceId": 557051202,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "arts_centre",
+        "building": "yes",
+        "name": "Mount Dora Center for the Arts"
+      },
+      "townPoints": [
+        [
+          463.97,
+          489.1991
+        ],
+        [
+          485.9063,
+          489.2545
+        ],
+        [
+          485.877,
+          505.2033
+        ],
+        [
+          463.9309,
+          505.159
+        ],
+        [
+          463.97,
+          489.1991
+        ]
+      ],
+      "townBounds": [
+        463.9309,
+        489.1991,
+        485.9063,
+        505.2033
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/557051211",
+      "kind": "polygon",
+      "sourceId": 557051211,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "description": "Palm Island Parkway Pavilion",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          559.7072,
+          1385.3787
+        ],
+        [
+          564.1983,
+          1380.9121
+        ],
+        [
+          568.6894,
+          1385.3786
+        ],
+        [
+          564.1983,
+          1389.8452
+        ],
+        [
+          559.7072,
+          1385.3787
+        ]
+      ],
+      "townBounds": [
+        559.7072,
+        1380.9121,
+        568.6894,
+        1389.8452
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 5
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/557154683",
+      "kind": "polygon",
+      "sourceId": 557154683,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          767.5035,
+          1190.8757
+        ],
+        [
+          769.4662,
+          1205.9599
+        ],
+        [
+          781.094,
+          1204.4634
+        ],
+        [
+          779.1313,
+          1189.3792
+        ],
+        [
+          767.5035,
+          1190.8757
+        ]
+      ],
+      "townBounds": [
+        767.5035,
+        1189.3792,
+        781.094,
+        1205.9599
+      ],
+      "sectorReferences": [
+        {
+          "column": 3,
+          "row": 4
+        },
+        {
+          "column": 3,
+          "row": 5
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/557154684",
+      "kind": "polygon",
+      "sourceId": 557154684,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          731.8679,
+          1174.9277
+        ],
+        [
+          732.659,
+          1188.3939
+        ],
+        [
+          742.7247,
+          1187.8062
+        ],
+        [
+          741.9433,
+          1174.3401
+        ],
+        [
+          731.8679,
+          1174.9277
+        ]
+      ],
+      "townBounds": [
+        731.8679,
+        1174.3401,
+        742.7247,
+        1188.3939
+      ],
+      "sectorReferences": [
+        {
+          "column": 3,
+          "row": 4
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/557349878",
+      "kind": "polygon",
+      "sourceId": 557349878,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "toilets",
+        "building": "yes"
+      },
+      "townPoints": [
+        [
+          748.5146,
+          1206.3483
+        ],
+        [
+          756.4618,
+          1205.9159
+        ],
+        [
+          756.7646,
+          1211.4575
+        ],
+        [
+          748.8174,
+          1211.89
+        ],
+        [
+          748.5146,
+          1206.3483
+        ]
+      ],
+      "townBounds": [
+        748.5146,
+        1205.9159,
+        756.7646,
+        1211.89
+      ],
+      "sectorReferences": [
+        {
+          "column": 3,
+          "row": 5
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337882",
+      "kind": "polygon",
+      "sourceId": 558337882,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          372.8266,
+          563.4453
+        ],
+        [
+          361.7363,
+          563.4895
+        ],
+        [
+          361.9415,
+          547.3966
+        ],
+        [
+          372.5436,
+          547.4078
+        ],
+        [
+          372.8266,
+          563.4453
+        ]
+      ],
+      "townBounds": [
+        361.7363,
+        547.3966,
+        372.8266,
+        563.4895
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337883",
+      "kind": "polygon",
+      "sourceId": 558337883,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          373.1388,
+          580.7241
+        ],
+        [
+          372.8461,
+          564.6423
+        ],
+        [
+          372.8266,
+          563.4453
+        ],
+        [
+          361.7363,
+          563.4895
+        ],
+        [
+          361.5996,
+          570.5274
+        ],
+        [
+          361.8142,
+          580.7905
+        ],
+        [
+          373.1388,
+          580.7241
+        ]
+      ],
+      "townBounds": [
+        361.5996,
+        563.4453,
+        373.1388,
+        580.7905
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337884",
+      "kind": "polygon",
+      "sourceId": 558337884,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          379.0065,
+          543.7504
+        ],
+        [
+          372.4753,
+          543.6284
+        ],
+        [
+          372.5436,
+          547.4078
+        ],
+        [
+          372.8266,
+          563.4453
+        ],
+        [
+          372.8461,
+          564.6423
+        ],
+        [
+          379.2503,
+          564.6756
+        ],
+        [
+          379.0065,
+          543.7504
+        ]
+      ],
+      "townBounds": [
+        372.4753,
+        543.6284,
+        379.2503,
+        564.6756
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337885",
+      "kind": "polygon",
+      "sourceId": 558337885,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial",
+        "name": "Shamrock Building"
+      },
+      "townPoints": [
+        [
+          422.9086,
+          545.0031
+        ],
+        [
+          403.9498,
+          545.0917
+        ],
+        [
+          404.018,
+          559.644
+        ],
+        [
+          422.9769,
+          559.5554
+        ],
+        [
+          422.9086,
+          545.0031
+        ]
+      ],
+      "townBounds": [
+        403.9498,
+        545.0031,
+        422.9769,
+        559.644
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337886",
+      "kind": "polygon",
+      "sourceId": 558337886,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          404.018,
+          559.644
+        ],
+        [
+          384.0829,
+          559.7436
+        ],
+        [
+          384.0146,
+          545.1913
+        ],
+        [
+          403.9498,
+          545.0917
+        ],
+        [
+          404.018,
+          559.644
+        ]
+      ],
+      "townBounds": [
+        384.0146,
+        545.0917,
+        404.018,
+        559.7436
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337887",
+      "kind": "polygon",
+      "sourceId": 558337887,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          422.0006,
+          561.5061
+        ],
+        [
+          391.0826,
+          561.8051
+        ],
+        [
+          391.1996,
+          574.573
+        ],
+        [
+          408.0303,
+          574.418
+        ],
+        [
+          408.1181,
+          585.1022
+        ],
+        [
+          422.2543,
+          584.8806
+        ],
+        [
+          422.0006,
+          561.5061
+        ]
+      ],
+      "townBounds": [
+        391.0826,
+        561.5061,
+        422.2543,
+        585.1022
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337888",
+      "kind": "polygon",
+      "sourceId": 558337888,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          407.6984,
+          574.828
+        ],
+        [
+          399.4197,
+          574.7172
+        ],
+        [
+          399.5173,
+          576.1469
+        ],
+        [
+          383.3896,
+          576.4239
+        ],
+        [
+          383.3895,
+          584.6587
+        ],
+        [
+          407.6202,
+          584.9914
+        ],
+        [
+          407.6984,
+          574.828
+        ]
+      ],
+      "townBounds": [
+        383.3895,
+        574.7172,
+        407.6984,
+        584.9914
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337889",
+      "kind": "polygon",
+      "sourceId": 558337889,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          422.5959,
+          612.8769
+        ],
+        [
+          403.6564,
+          612.9655
+        ],
+        [
+          403.7443,
+          611.6798
+        ],
+        [
+          384.1703,
+          611.7683
+        ],
+        [
+          384.0142,
+          598.5793
+        ],
+        [
+          403.6468,
+          598.524
+        ],
+        [
+          403.5687,
+          596.9502
+        ],
+        [
+          422.5276,
+          596.9614
+        ],
+        [
+          422.5959,
+          612.8769
+        ]
+      ],
+      "townBounds": [
+        384.0142,
+        596.9502,
+        422.5959,
+        612.9655
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337890",
+      "kind": "polygon",
+      "sourceId": 558337890,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          422.2543,
+          584.8806
+        ],
+        [
+          422.5276,
+          596.9614
+        ],
+        [
+          403.5687,
+          596.9502
+        ],
+        [
+          403.5394,
+          595.9527
+        ],
+        [
+          401.0206,
+          595.7864
+        ],
+        [
+          400.8059,
+          585.3793
+        ],
+        [
+          422.2543,
+          584.8806
+        ]
+      ],
+      "townBounds": [
+        400.8059,
+        584.8806,
+        422.5276,
+        596.9614
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337891",
+      "kind": "polygon",
+      "sourceId": 558337891,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          419.218,
+          613.1651
+        ],
+        [
+          403.2757,
+          613.2426
+        ],
+        [
+          391.4825,
+          612.9765
+        ],
+        [
+          391.375,
+          624.6804
+        ],
+        [
+          419.3156,
+          624.6141
+        ],
+        [
+          419.218,
+          613.1651
+        ]
+      ],
+      "townBounds": [
+        391.375,
+        612.9765,
+        419.3156,
+        624.6804
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337892",
+      "kind": "polygon",
+      "sourceId": 558337892,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          442.4237,
+          611.148
+        ],
+        [
+          442.8435,
+          611.0926
+        ],
+        [
+          474.7184,
+          610.7269
+        ],
+        [
+          476.0364,
+          610.7047
+        ],
+        [
+          476.0364,
+          610.9929
+        ],
+        [
+          480.3905,
+          611.004
+        ],
+        [
+          480.6053,
+          626.5427
+        ],
+        [
+          442.4432,
+          626.4096
+        ],
+        [
+          442.4237,
+          611.148
+        ]
+      ],
+      "townBounds": [
+        442.4237,
+        610.7047,
+        480.6053,
+        626.5427
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337893",
+      "kind": "polygon",
+      "sourceId": 558337893,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          474.7184,
+          610.7269
+        ],
+        [
+          474.4353,
+          600.4417
+        ],
+        [
+          473.3029,
+          600.4971
+        ],
+        [
+          442.9021,
+          600.1978
+        ],
+        [
+          442.8435,
+          611.0926
+        ],
+        [
+          474.7184,
+          610.7269
+        ]
+      ],
+      "townBounds": [
+        442.8435,
+        600.1978,
+        474.7184,
+        611.0926
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337894",
+      "kind": "polygon",
+      "sourceId": 558337894,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          442.9021,
+          600.1978
+        ],
+        [
+          442.6776,
+          590.8103
+        ],
+        [
+          473.0783,
+          590.633
+        ],
+        [
+          473.3029,
+          600.4971
+        ],
+        [
+          442.9021,
+          600.1978
+        ]
+      ],
+      "townBounds": [
+        442.6776,
+        590.633,
+        473.3029,
+        600.4971
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337896",
+      "kind": "polygon",
+      "sourceId": 558337896,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          442.3067,
+          590.112
+        ],
+        [
+          460.3382,
+          590.101
+        ],
+        [
+          460.2308,
+          575.2827
+        ],
+        [
+          442.0626,
+          575.3602
+        ],
+        [
+          442.3067,
+          590.112
+        ]
+      ],
+      "townBounds": [
+        442.0626,
+        575.2827,
+        460.3382,
+        590.112
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337897",
+      "kind": "polygon",
+      "sourceId": 558337897,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          464.6532,
+          574.5844
+        ],
+        [
+          477.6765,
+          574.3628
+        ],
+        [
+          477.9889,
+          586.5765
+        ],
+        [
+          464.7216,
+          586.6319
+        ],
+        [
+          464.6532,
+          574.5844
+        ]
+      ],
+      "townBounds": [
+        464.6532,
+        574.3628,
+        477.9889,
+        586.6319
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337898",
+      "kind": "polygon",
+      "sourceId": 558337898,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          460.182,
+          573.7532
+        ],
+        [
+          442.4141,
+          573.6756
+        ],
+        [
+          442.0725,
+          559.0789
+        ],
+        [
+          460.0063,
+          558.8351
+        ],
+        [
+          460.182,
+          573.7532
+        ]
+      ],
+      "townBounds": [
+        442.0725,
+        558.8351,
+        460.182,
+        573.7532
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337899",
+      "kind": "polygon",
+      "sourceId": 558337899,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          441.4672,
+          543.9281
+        ],
+        [
+          454.305,
+          543.8616
+        ],
+        [
+          454.2757,
+          545.6128
+        ],
+        [
+          454.344,
+          557.5605
+        ],
+        [
+          454.4026,
+          558.1147
+        ],
+        [
+          441.7308,
+          558.3585
+        ],
+        [
+          441.4672,
+          543.9281
+        ]
+      ],
+      "townBounds": [
+        441.4672,
+        543.8616,
+        454.4026,
+        558.3585
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/558337900",
+      "kind": "polygon",
+      "sourceId": 558337900,
+      "sourceType": "way",
+      "tags": {
+        "building": "commercial"
+      },
+      "townPoints": [
+        [
+          462.6129,
+          545.4909
+        ],
+        [
+          454.2757,
+          545.6128
+        ],
+        [
+          454.344,
+          557.5605
+        ],
+        [
+          462.7886,
+          557.6271
+        ],
+        [
+          462.6129,
+          545.4909
+        ]
+      ],
+      "townBounds": [
+        454.2757,
+        545.4909,
+        462.7886,
+        557.6271
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770164",
+      "kind": "polygon",
+      "sourceId": 559770164,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes",
+        "name": "Mount Dora Lawn Bowling Club"
+      },
+      "townPoints": [
+        [
+          460.7183,
+          923.8064
+        ],
+        [
+          460.6988,
+          905.8294
+        ],
+        [
+          450.9262,
+          905.7961
+        ],
+        [
+          450.9458,
+          903.9784
+        ],
+        [
+          446.4841,
+          903.9452
+        ],
+        [
+          446.4744,
+          905.5744
+        ],
+        [
+          441.7784,
+          905.5966
+        ],
+        [
+          441.9249,
+          915.1614
+        ],
+        [
+          443.6822,
+          915.1393
+        ],
+        [
+          444.0434,
+          923.6844
+        ],
+        [
+          454.3432,
+          924.0059
+        ],
+        [
+          460.7183,
+          923.8064
+        ]
+      ],
+      "townBounds": [
+        441.7784,
+        903.9452,
+        460.7183,
+        924.0059
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770165",
+      "kind": "polygon",
+      "sourceId": 559770165,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "pitch",
+        "sport": "bowls"
+      },
+      "townPoints": [
+        [
+          441.7492,
+          893.2166
+        ],
+        [
+          444.8928,
+          893.2831
+        ],
+        [
+          493.2677,
+          892.7844
+        ],
+        [
+          492.6526,
+          857.3069
+        ],
+        [
+          441.6224,
+          857.4731
+        ],
+        [
+          441.7492,
+          893.2166
+        ]
+      ],
+      "townBounds": [
+        441.6224,
+        857.3069,
+        493.2677,
+        893.2831
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770166",
+      "kind": "polygon",
+      "sourceId": 559770166,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "pitch",
+        "sport": "bowls"
+      },
+      "townPoints": [
+        [
+          450.2916,
+          930.8553
+        ],
+        [
+          450.7407,
+          930.6669
+        ],
+        [
+          462.173,
+          929.8689
+        ],
+        [
+          463.1395,
+          929.7138
+        ],
+        [
+          467.0739,
+          964.5706
+        ],
+        [
+          453.7768,
+          965.4129
+        ],
+        [
+          450.2916,
+          930.8553
+        ]
+      ],
+      "townBounds": [
+        450.2916,
+        929.7138,
+        467.0739,
+        965.4129
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 1,
+          "row": 4
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770167",
+      "kind": "polygon",
+      "sourceId": 559770167,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "pitch",
+        "sport": "bowls"
+      },
+      "townPoints": [
+        [
+          465.8341,
+          924.8261
+        ],
+        [
+          468.6067,
+          955.981
+        ],
+        [
+          469.1632,
+          959.8934
+        ],
+        [
+          490.8173,
+          958.1644
+        ],
+        [
+          490.5146,
+          954.0858
+        ],
+        [
+          488.8061,
+          922.7978
+        ],
+        [
+          487.5369,
+          922.9087
+        ],
+        [
+          465.7853,
+          924.7152
+        ],
+        [
+          465.8341,
+          924.8261
+        ]
+      ],
+      "townBounds": [
+        465.7853,
+        922.7978,
+        490.8173,
+        959.8934
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770171",
+      "kind": "polygon",
+      "sourceId": 559770171,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          465.7853,
+          924.7152
+        ],
+        [
+          465.5119,
+          921.8225
+        ],
+        [
+          477.2078,
+          921.1021
+        ],
+        [
+          487.4002,
+          920.4482
+        ],
+        [
+          487.6248,
+          922.953
+        ],
+        [
+          487.5369,
+          922.9087
+        ],
+        [
+          465.7853,
+          924.7152
+        ]
+      ],
+      "townBounds": [
+        465.5119,
+        920.4482,
+        487.6248,
+        924.7152
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770172",
+      "kind": "polygon",
+      "sourceId": 559770172,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          469.1632,
+          959.8934
+        ],
+        [
+          469.3096,
+          962.3872
+        ],
+        [
+          491.1004,
+          960.8466
+        ],
+        [
+          490.8173,
+          958.1644
+        ],
+        [
+          469.1632,
+          959.8934
+        ]
+      ],
+      "townBounds": [
+        469.1632,
+        958.1644,
+        491.1004,
+        962.3872
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        },
+        {
+          "column": 1,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 4
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770175",
+      "kind": "polygon",
+      "sourceId": 559770175,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          453.7768,
+          965.4129
+        ],
+        [
+          454.1674,
+          968.2834
+        ],
+        [
+          467.2008,
+          967.5741
+        ],
+        [
+          467.0739,
+          964.5706
+        ],
+        [
+          453.7768,
+          965.4129
+        ]
+      ],
+      "townBounds": [
+        453.7768,
+        964.5706,
+        467.2008,
+        968.2834
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 4
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770178",
+      "kind": "polygon",
+      "sourceId": 559770178,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          450.7407,
+          930.6669
+        ],
+        [
+          450.77,
+          929.0598
+        ],
+        [
+          450.6626,
+          928.0069
+        ],
+        [
+          454.2358,
+          927.6523
+        ],
+        [
+          461.8704,
+          927.1757
+        ],
+        [
+          461.9094,
+          928.1621
+        ],
+        [
+          462.173,
+          929.8689
+        ],
+        [
+          450.7407,
+          930.6669
+        ]
+      ],
+      "townBounds": [
+        450.6626,
+        927.1757,
+        462.173,
+        930.6669
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770191",
+      "kind": "polygon",
+      "sourceId": 559770191,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          493.4044,
+          893.1501
+        ],
+        [
+          493.3653,
+          896.2313
+        ],
+        [
+          444.6683,
+          896.2423
+        ],
+        [
+          444.5414,
+          893.5713
+        ],
+        [
+          493.4044,
+          893.1501
+        ]
+      ],
+      "townBounds": [
+        444.5414,
+        893.1501,
+        493.4044,
+        896.2423
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770193",
+      "kind": "polygon",
+      "sourceId": 559770193,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          444.5512,
+          857.3069
+        ],
+        [
+          491.8716,
+          857.2183
+        ],
+        [
+          491.8618,
+          854.5029
+        ],
+        [
+          444.5122,
+          854.8021
+        ],
+        [
+          444.5512,
+          857.3069
+        ]
+      ],
+      "townBounds": [
+        444.5122,
+        854.5029,
+        491.8716,
+        857.3069
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/559770196",
+      "kind": "polygon",
+      "sourceId": 559770196,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "shelter",
+        "shelter_type": "pavilion"
+      },
+      "townPoints": [
+        [
+          492.5941,
+          906.184
+        ],
+        [
+          492.3109,
+          897.6832
+        ],
+        [
+          481.2692,
+          897.7165
+        ],
+        [
+          480.1562,
+          897.8494
+        ],
+        [
+          479.8047,
+          898.2041
+        ],
+        [
+          479.4435,
+          898.6696
+        ],
+        [
+          478.9554,
+          899.2238
+        ],
+        [
+          478.0377,
+          900.2878
+        ],
+        [
+          478.1353,
+          904.1004
+        ],
+        [
+          480.4979,
+          906.2173
+        ],
+        [
+          483.1729,
+          906.1175
+        ],
+        [
+          492.5941,
+          906.184
+        ]
+      ],
+      "townBounds": [
+        478.0377,
+        897.6832,
+        492.5941,
+        906.2173
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        },
+        {
+          "column": 2,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095890",
+      "kind": "polygon",
+      "sourceId": 560095890,
+      "sourceType": "way",
+      "tags": {
+        "building": "hotel",
+        "name": "Grand Lobby"
+      },
+      "townPoints": [
+        [
+          340.3142,
+          818.9913
+        ],
+        [
+          343.6628,
+          819.0025
+        ],
+        [
+          343.653,
+          819.7007
+        ],
+        [
+          353.4549,
+          819.7451
+        ],
+        [
+          353.5429,
+          801.4024
+        ],
+        [
+          340.3925,
+          801.3468
+        ],
+        [
+          340.3142,
+          818.9913
+        ]
+      ],
+      "townBounds": [
+        340.3142,
+        801.3468,
+        353.5429,
+        819.7451
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095892",
+      "kind": "polygon",
+      "sourceId": 560095892,
+      "sourceType": "way",
+      "tags": {
+        "building": "hotel",
+        "name": "Gables"
+      },
+      "townPoints": [
+        [
+          275.2363,
+          774.6685
+        ],
+        [
+          275.1876,
+          768.7944
+        ],
+        [
+          290.8177,
+          768.4732
+        ],
+        [
+          290.7885,
+          767.3649
+        ],
+        [
+          300.9612,
+          767.4537
+        ],
+        [
+          301.0198,
+          768.6729
+        ],
+        [
+          318.6415,
+          768.6066
+        ],
+        [
+          318.7293,
+          771.0117
+        ],
+        [
+          320.7307,
+          770.9785
+        ],
+        [
+          320.8576,
+          772.1755
+        ],
+        [
+          321.6777,
+          773.1286
+        ],
+        [
+          323.7376,
+          773.2284
+        ],
+        [
+          323.9035,
+          776.775
+        ],
+        [
+          321.9705,
+          776.7085
+        ],
+        [
+          321.9607,
+          779.7786
+        ],
+        [
+          310.6457,
+          779.9668
+        ],
+        [
+          310.5773,
+          778.7255
+        ],
+        [
+          300.0629,
+          778.6589
+        ],
+        [
+          300.1214,
+          780.0221
+        ],
+        [
+          294.996,
+          780.0331
+        ],
+        [
+          293.5999,
+          781.618
+        ],
+        [
+          291.3545,
+          781.5514
+        ],
+        [
+          290.2513,
+          780.3655
+        ],
+        [
+          279.6782,
+          780.2213
+        ],
+        [
+          272.3855,
+          780.1879
+        ],
+        [
+          272.2196,
+          774.7571
+        ],
+        [
+          275.2363,
+          774.6685
+        ]
+      ],
+      "townBounds": [
+        272.2196,
+        767.3649,
+        323.9035,
+        781.618
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095893",
+      "kind": "polygon",
+      "sourceId": 560095893,
+      "sourceType": "way",
+      "tags": {
+        "amenity": "restaurant",
+        "building": "yes",
+        "name": "Fisherman's Tavern"
+      },
+      "townPoints": [
+        [
+          353.9042,
+          801.3137
+        ],
+        [
+          353.8944,
+          799.2301
+        ],
+        [
+          353.8555,
+          788.4904
+        ],
+        [
+          353.8263,
+          779.0696
+        ],
+        [
+          352.6743,
+          779.0475
+        ],
+        [
+          352.7036,
+          776.8086
+        ],
+        [
+          340.8224,
+          776.5203
+        ],
+        [
+          340.4315,
+          801.2249
+        ],
+        [
+          353.9042,
+          801.3137
+        ]
+      ],
+      "townBounds": [
+        340.4315,
+        776.5203,
+        353.9042,
+        801.3137
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095895",
+      "kind": "polygon",
+      "sourceId": 560095895,
+      "sourceType": "way",
+      "tags": {
+        "building": "yes",
+        "name": "Gatehouse Gift Shop"
+      },
+      "townPoints": [
+        [
+          306.4382,
+          763.0427
+        ],
+        [
+          311.6027,
+          762.9984
+        ],
+        [
+          311.5832,
+          760.5933
+        ],
+        [
+          320.9652,
+          760.5159
+        ],
+        [
+          320.8677,
+          749.1445
+        ],
+        [
+          317.3043,
+          749.1777
+        ],
+        [
+          317.2945,
+          748.1691
+        ],
+        [
+          306.3701,
+          748.2576
+        ],
+        [
+          306.3895,
+          750.7957
+        ],
+        [
+          303.4607,
+          750.8178
+        ],
+        [
+          303.49,
+          755.0959
+        ],
+        [
+          306.37,
+          755.0627
+        ],
+        [
+          306.4382,
+          763.0427
+        ]
+      ],
+      "townBounds": [
+        303.4607,
+        748.1691,
+        320.9652,
+        763.0427
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095896",
+      "kind": "polygon",
+      "sourceId": 560095896,
+      "sourceType": "way",
+      "tags": {
+        "building": "hotel",
+        "name": "Lake House"
+      },
+      "townPoints": [
+        [
+          270.8433,
+          760.6592
+        ],
+        [
+          278.673,
+          760.5374
+        ],
+        [
+          278.595,
+          757.1127
+        ],
+        [
+          280.7525,
+          757.0462
+        ],
+        [
+          280.7624,
+          750.6844
+        ],
+        [
+          280.4012,
+          750.5514
+        ],
+        [
+          280.3329,
+          747.4924
+        ],
+        [
+          278.7318,
+          747.5257
+        ],
+        [
+          278.5756,
+          746.8385
+        ],
+        [
+          272.2787,
+          746.8606
+        ],
+        [
+          272.2884,
+          750.5069
+        ],
+        [
+          270.8142,
+          750.5069
+        ],
+        [
+          270.8433,
+          760.6592
+        ]
+      ],
+      "townBounds": [
+        270.8142,
+        746.8385,
+        280.7624,
+        760.6592
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095897",
+      "kind": "polygon",
+      "sourceId": 560095897,
+      "sourceType": "way",
+      "tags": {
+        "brand": "Lakeside Inn",
+        "building": "yes",
+        "name": "Lakeside Inn",
+        "tourism": "hotel"
+      },
+      "townPoints": [
+        [
+          280.8687,
+          813.8146
+        ],
+        [
+          285.1643,
+          813.7371
+        ],
+        [
+          284.9985,
+          804.2942
+        ],
+        [
+          287.2537,
+          804.2499
+        ],
+        [
+          287.1855,
+          800.271
+        ],
+        [
+          284.7545,
+          800.3153
+        ],
+        [
+          284.579,
+          790.6174
+        ],
+        [
+          280.4688,
+          790.6949
+        ],
+        [
+          280.8687,
+          813.8146
+        ]
+      ],
+      "townBounds": [
+        280.4688,
+        790.6174,
+        287.2537,
+        813.8146
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095898",
+      "kind": "polygon",
+      "sourceId": 560095898,
+      "sourceType": "way",
+      "tags": {
+        "building": "hotel",
+        "name": "Terrace"
+      },
+      "townPoints": [
+        [
+          322.3604,
+          824.8098
+        ],
+        [
+          322.5556,
+          826.7272
+        ],
+        [
+          324.7522,
+          826.6275
+        ],
+        [
+          324.7228,
+          832.5238
+        ],
+        [
+          322.9167,
+          832.5238
+        ],
+        [
+          322.9655,
+          835.3721
+        ],
+        [
+          318.3379,
+          835.4497
+        ],
+        [
+          317.0297,
+          836.9126
+        ],
+        [
+          314.7062,
+          837.0789
+        ],
+        [
+          313.7201,
+          835.6491
+        ],
+        [
+          304.9141,
+          835.8374
+        ],
+        [
+          303.6352,
+          837.0454
+        ],
+        [
+          301.3507,
+          837.1784
+        ],
+        [
+          300.2963,
+          836.0701
+        ],
+        [
+          295.2587,
+          836.1365
+        ],
+        [
+          294.1164,
+          837.3445
+        ],
+        [
+          291.7245,
+          837.3112
+        ],
+        [
+          291.1388,
+          836.1697
+        ],
+        [
+          281.8739,
+          836.1363
+        ],
+        [
+          281.8446,
+          836.6239
+        ],
+        [
+          278.4667,
+          836.6571
+        ],
+        [
+          272.775,
+          837.1779
+        ],
+        [
+          272.7164,
+          834.4071
+        ],
+        [
+          272.6872,
+          833.598
+        ],
+        [
+          272.6092,
+          826.2055
+        ],
+        [
+          273.9565,
+          826.0282
+        ],
+        [
+          278.4376,
+          825.8842
+        ],
+        [
+          278.5548,
+          824.4766
+        ],
+        [
+          290.4556,
+          824.3106
+        ],
+        [
+          291.6857,
+          823.1358
+        ],
+        [
+          293.9214,
+          822.9474
+        ],
+        [
+          295.3272,
+          824.3772
+        ],
+        [
+          300.2672,
+          824.3772
+        ],
+        [
+          301.2533,
+          822.7148
+        ],
+        [
+          303.5475,
+          822.8035
+        ],
+        [
+          304.5823,
+          823.9118
+        ],
+        [
+          310.44,
+          824.0338
+        ],
+        [
+          310.4595,
+          823.1361
+        ],
+        [
+          315.3214,
+          823.2248
+        ],
+        [
+          317.2252,
+          823.3135
+        ],
+        [
+          317.2544,
+          824.7432
+        ],
+        [
+          322.3604,
+          824.8098
+        ]
+      ],
+      "townBounds": [
+        272.6092,
+        822.7148,
+        324.7522,
+        837.3445
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/560095899",
+      "kind": "polygon",
+      "sourceId": 560095899,
+      "sourceType": "way",
+      "tags": {
+        "building": "hotel",
+        "name": "Sunset"
+      },
+      "townPoints": [
+        [
+          307.0713,
+          862.9027
+        ],
+        [
+          306.9445,
+          855.2663
+        ],
+        [
+          309.7464,
+          855.211
+        ],
+        [
+          309.5611,
+          844.1388
+        ],
+        [
+          317.2542,
+          843.9837
+        ],
+        [
+          317.2542,
+          841.4457
+        ],
+        [
+          325.8845,
+          841.2574
+        ],
+        [
+          326.0309,
+          846.9098
+        ],
+        [
+          324.8496,
+          847.0428
+        ],
+        [
+          325.1131,
+          851.2766
+        ],
+        [
+          328.3836,
+          851.2102
+        ],
+        [
+          328.4519,
+          854.2137
+        ],
+        [
+          325.0447,
+          854.2691
+        ],
+        [
+          324.8494,
+          862.4818
+        ],
+        [
+          322.4672,
+          862.648
+        ],
+        [
+          307.0713,
+          862.9027
+        ]
+      ],
+      "townBounds": [
+        306.9445,
+        841.2574,
+        328.4519,
+        862.9027
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 3
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/561136643",
+      "kind": "polygon",
+      "sourceId": 561136643,
+      "sourceType": "way",
+      "tags": {
+        "description": "Public Pickleball Court",
+        "leisure": "pitch",
+        "sport": "pickleball"
+      },
+      "townPoints": [
+        [
+          484.1393,
+          467.0658
+        ],
+        [
+          490.2116,
+          467.0658
+        ],
+        [
+          490.2604,
+          480.399
+        ],
+        [
+          484.1881,
+          480.399
+        ],
+        [
+          484.1393,
+          467.0658
+        ]
+      ],
+      "townBounds": [
+        484.1393,
+        467.0658,
+        490.2604,
+        480.399
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 1
+        },
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/561136644",
+      "kind": "polygon",
+      "sourceId": 561136644,
+      "sourceType": "way",
+      "tags": {
+        "description": "Public Pickleball Court",
+        "leisure": "pitch",
+        "sport": "pickleball"
+      },
+      "townPoints": [
+        [
+          475.9583,
+          467.0658
+        ],
+        [
+          482.0306,
+          467.0658
+        ],
+        [
+          482.0794,
+          480.399
+        ],
+        [
+          476.0071,
+          480.399
+        ],
+        [
+          475.9583,
+          467.0658
+        ]
+      ],
+      "townBounds": [
+        475.9583,
+        467.0658,
+        482.0794,
+        480.399
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 1
+        },
+        {
+          "column": 2,
+          "row": 1
+        },
+        {
+          "column": 1,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 2
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/688219167",
+      "kind": "polyline",
+      "sourceId": 688219167,
+      "sourceType": "way",
+      "tags": {
+        "bridge": "yes",
+        "layer": "1",
+        "name": "Palm Island Parkway",
+        "surface": "wood"
+      },
+      "townPoints": [
+        [
+          615.5621,
+          1325.8834
+        ],
+        [
+          601.2688,
+          1326.2825
+        ],
+        [
+          585.2087,
+          1370.2499
+        ],
+        [
+          557.5008,
+          1400.4297
+        ],
+        [
+          520.8983,
+          1402.7463
+        ],
+        [
+          506.3413,
+          1408.4099
+        ],
+        [
+          465.8921,
+          1424.1481
+        ],
+        [
+          412.9457,
+          1434.3002
+        ],
+        [
+          373.7852,
+          1428.6142
+        ],
+        [
+          343.8705,
+          1424.2803
+        ],
+        [
+          331.5002,
+          1440.8829
+        ],
+        [
+          325.271,
+          1460.2009
+        ],
+        [
+          324.1967,
+          1481.6912
+        ],
+        [
+          348.575,
+          1544.733
+        ]
+      ],
+      "townBounds": [
+        324.1967,
+        1325.8834,
+        615.5621,
+        1544.733
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 5
+        },
+        {
+          "column": 2,
+          "row": 5
+        },
+        {
+          "column": 1,
+          "row": 6
+        },
+        {
+          "column": 2,
+          "row": 6
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:way/1215493446",
+      "kind": "polygon",
+      "sourceId": 1215493446,
+      "sourceType": "way",
+      "tags": {
+        "leisure": "pitch",
+        "sport": "pickleball"
+      },
+      "townPoints": [
+        [
+          464.751,
+          458.8199
+        ],
+        [
+          478.2428,
+          458.9418
+        ],
+        [
+          478.2916,
+          452.7685
+        ],
+        [
+          464.8096,
+          452.6465
+        ],
+        [
+          464.751,
+          458.8199
+        ]
+      ],
+      "townBounds": [
+        464.751,
+        452.6465,
+        478.2916,
+        458.9418
+      ],
+      "sectorReferences": [
+        {
+          "column": 1,
+          "row": 1
+        }
+      ],
+      "coverage": "conservative full bounds; host clips geometry; do not cap sector cuts"
+    },
+    {
+      "id": "osm:node/2704687214",
+      "kind": "point",
+      "sourceId": 2704687214,
+      "sourceType": "node",
+      "tags": {
+        "name": "Mount Dora Lighthouse"
+      },
+      "wgs84": {
+        "lat": 28.7948053,
+        "lon": -81.6440151
+      },
+      "townPoint": [
+        500.2877,
+        1169.7989
+      ],
+      "townBounds": [
+        500.2876,
+        1169.7988,
+        500.2878,
+        1169.799
+      ],
+      "sectorReferences": [
+        {
+          "column": 2,
+          "row": 4
+        }
+      ],
+      "coordinateSource": "Architect supplied verified ECEF tangent projection; no second projection or scale"
+    }
+  ],
+  "attribution": "© OpenStreetMap contributors, ODbL 1.0",
+  "sourceURL": "https://www.openstreetmap.org/copyright",
+  "inputs": {
+    "osm-downtown-snapshot.json": {
+      "bytes": 3385887,
+      "sha256": "b23d6838d52b393670781cdacc0146b8bc0b83c9bbf6e0503a7bd77ecbfcbef0"
+    },
+    "osm-source.json": {
+      "bytes": 1198,
+      "sha256": "016b9dd567f3d35a149a77a77ed936b40a8563c4d7066fdceaabaff27b4a397a"
+    },
+    "projected-ways.json": {
+      "bytes": 595783,
+      "sha256": "3c77e895969fdef026199ea2140bde955931885d765702997fc07416db9ebf04"
+    },
+    "survey.json": {
+      "bytes": 18443,
+      "sha256": "312ec79608869dd4fa4fa7a5939f5d08b1229afd33ea25a0a96b405ab50dcd2b"
+    }
+  }
+}

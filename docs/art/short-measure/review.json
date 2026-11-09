@@ -1,0 +1,109 @@
+{
+  "stage": "Artist first pass; runtime integration installed 2026-10-28 (see integration)",
+  "branch": "codex/short-measure-environment",
+  "baseCommit": "85c8a2e",
+  "blockoutCommit": "5524d91b3971328f27ccc9bb50b41ce7d2a19482",
+  "reviewedAt": "2026-10-27T05:09:42.794Z",
+  "validation": {
+    "fullSuiteTests": 87,
+    "artTests": 7,
+    "build": "passed",
+    "inheritedAssetHashes": "passed"
+  },
+  "browser": {
+    "surface": "Codex in-app browser",
+    "portraitViewport": [
+      390,
+      844
+    ],
+    "portraitCanvas": [
+      390,
+      844
+    ],
+    "cameraOffset": [
+      10,
+      14,
+      12
+    ],
+    "storyViewSpanMetres": 13,
+    "viewsVerified": [
+      "arrival inspection pan",
+      "office approach",
+      "paired props",
+      "HTML top-down map",
+      "map navigation and browser Back rebuild"
+    ],
+    "finalHtmlConsoleErrors": [],
+    "finalHtmlConsoleWarnings": [],
+    "diagnostic": "Direct standalone SVG inspection produced an animation TypeError on a script-free SVG document in the automation browser. Reproduced on a fresh SVG-only tab. The final HTML map viewer embeds the SVG and was verified without warnings or errors.",
+    "framing": "Measured full 390 x 844 canvas in the DOM; review controls overlay it. Real model vertices fit the phone view and safe overlay region at the 13 m gameplay span."
+  },
+  "evidence": [
+    {
+      "file": "arrival-phone.jpg",
+      "width": 390,
+      "height": 844,
+      "sha256": "065265e36a2a5624b218ac7bf7534a4e6a03dfed7f7530fc6745ca86f09373fe"
+    },
+    {
+      "file": "dispatch-phone.jpg",
+      "width": 390,
+      "height": 844,
+      "sha256": "041a42c7dac653537bbcb6335d30108fbb8f87f2b93e314dcec02c3b401864c7"
+    },
+    {
+      "file": "props-phone.jpg",
+      "width": 390,
+      "height": 844,
+      "sha256": "d4e6410355236eaf5ec9102bebbd6c38118676010d3accf752d1f74409c8121e"
+    }
+  ],
+  "sourceHashes": {
+    "blockout.json": "bec82abaec552491b323ef8c735c81b0abdc9e86335ee1cd4d280d94e8f76dfb",
+    "kit.js": "429b5b8a72609a79fb10c2ab865c411829da81af04993b4244b4e4ac6de04440",
+    "manifest.js": "dcf538ab708c179bcd35120a3d01cddba1eb4d682a06fc950e1924d7d9d579ae",
+    "map.html": "b9a33404cd8167194381e96ad2f322c8ebc6fe764d6f8ee327298777f41ecf33",
+    "placement.svg": "2be42fa6a38e5727c3f91fc6f533bbdd08f19fffeb2b909f79f0309b5a4b45e1",
+    "placements.json": "a0cd6ed82755be507cf79ba1b6e174bcc5f3d0293631b528b58466322556f3cc",
+    "reserve-7.svg": "89f549893b519feb673f66e5175b90d74fd8c709a51ba49ecb6298a250667e6b",
+    "review.css": "b14baa44ecbc860d8c47e08c6cf5f586b6c66a7af83166c4ad7f969b39da840c",
+    "review.html": "a68bb8d86267011c941c60880daa006f67523de5f0d888d796787e2fa14e4ae3",
+    "review.js": "034dad5ade98782c3d2836d5211391304c878c1b899b9f17c7c5bcf840841ebc",
+    "shipping-manifest.svg": "8ff83c66e3dcaa443c17888cfbb9f863375687b21a63d370c726b1475f194494"
+  },
+  "helpers": {
+    "previewStopped": true,
+    "port": 4737,
+    "portReleased": true,
+    "browserTabsClosed": true,
+    "viewportOverrideReset": true
+  },
+  "remainingIntegration": [
+    "Runtime mission-art loader and matching navigation reservations",
+    "Mesh-part sight/projectile/grenade occlusion adapter",
+    "Existing cover visual replacement ownership",
+    "Optional inspect hooks and collected-paper state binding",
+    "Architect acceptance of additional arrival freight scale and sack bay"
+  ],
+  "notPublished": true,
+  "integration": {
+    "date": "2026-10-28",
+    "branch": "claude/short-measure-art-kit",
+    "runtime": [
+      "mission-scenery.js registers ground reservations and 108 solid parts",
+      "mission-art-view.js draws the kit with the registered bindings",
+      "solids.js is baked from kit.solidParts() by tools/short-measure-art.mjs"
+    ],
+    "done": [
+      "Runtime mission-art loader and matching navigation reservations",
+      "Mesh-part sight/projectile/grenade occlusion adapter",
+      "Existing cover visual replacement ownership",
+      "Optional inspect hooks and collected-paper state binding"
+    ],
+    "coderAcceptance": "Arrival freight scale and sack bay installed after route, door, spawn, guard-post and leaf-swing clearance checks; the architect approved them in the combined candidate shipped as PR #20.",
+    "authoringChanges": [
+      "sealed-load sized to the runtime crate collider: 1.96 x 1.96 x 0.92 m (short-measure/2)",
+      "full-load corner posts end at the lower of 0.935 m and the load height"
+    ]
+  }
+}

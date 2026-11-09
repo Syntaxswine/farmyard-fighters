@@ -1,0 +1,48 @@
+/* Painted field controls above the stick. */
+body[data-realtime='true'] .stick-column { position:relative; }
+.realtime-tools { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:min(100%,180px); gap:5px; margin-bottom:7px; }
+.realtime-tools .industrial-switch { width:100%; height:44px; border:0; padding:0; background:none; }
+.realtime-tools .switch-legend { inset:8px; display:grid; grid-template-rows:1fr; }
+.realtime-tools .switch-label { font-size:10px; }
+.realtime-status,.realtime-target { display:block; max-width:180px; margin:0 auto 4px; text-align:center; color:#f2e4b7; font:700 9px/1.35 Consolas,'Courier New',monospace; text-shadow:0 1px 3px #000; pointer-events:none; }
+.realtime-target { color:#d1c7a6; font-size:8px; min-height:11px; }
+/* An inset status lamp, separate from the switch's Sneak on/off light. */
+#battle #movement-cycle[data-stealth] .switch-legend { grid-template-rows:23px 9px 10px; }
+#battle #movement-cycle[data-stealth] .control-icon,
+#battle #movement-cycle[data-stealth] .control-icon svg { width:22px; height:22px; }
+#battle #movement-cycle[data-stealth] .switch-cost { display:none; }
+.sneak-indicator {
+  --lens:#7e8573;
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  padding:0 3px;
+  border-radius:2px;
+  color:#d9d5c5;
+  background:#182019;
+  box-shadow:inset 0 1px 2px #000a,0 1px 0 #f8e9bd40;
+  font:700 7.5px/10px var(--mono);
+}
+.sneak-indicator[hidden] { display:none; }
+.sneak-indicator::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--lens); }
+#movement-cycle[data-stealth='brush'] .sneak-indicator { --lens:#9ed47a; color:#d0eeaa; }
+#movement-cycle[data-stealth='spotted'] .sneak-indicator { --lens:#f38365; color:#ffc4b0; }
+@media (max-height:580px) and (min-width:600px) {
+  #battle #movement-cycle[data-stealth] .switch-legend { grid-template-rows:16px 7px 8px; }
+  #battle #movement-cycle[data-stealth] .control-icon,
+  #battle #movement-cycle[data-stealth] .control-icon svg { width:16px; height:16px; }
+  .sneak-indicator { font-size:6.5px; line-height:8px; }
+  .sneak-indicator::before { width:4px; height:4px; }
+}
+body[data-realtime='true'] .edition { color:#914f27; }
+body[data-realtime='true'] #end-turn[data-lit='true'] .switch-legend { color:#fff0ba; }
+@media(max-height:600px) {
+  .realtime-tools { margin-bottom:3px; }
+  .realtime-tools .industrial-switch { height:38px; }
+  .realtime-status,.realtime-target { margin-bottom:2px; font-size:8px; }
+}
+
+#overlay .shooting-bank[data-fire-modes='one'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#overlay .shooting-bank[data-fire-modes='three'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#overlay .shooting-bank[data-fire-modes='three'] .industrial-switch { max-width: 100%; }
+.hold-trigger { touch-action: none; user-select: none; -webkit-touch-callout: none; }

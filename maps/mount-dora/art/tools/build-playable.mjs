@@ -1,0 +1,114 @@
+// Deterministic, map-owned production bindings. Never modifies base geography.
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const repo=fileURLToPath(new URL('../../../../',import.meta.url));
+const target=path.join(repo,'sites/tactical-animal/dist/mission-art/mount-dora');
+const bytes=fs.readFileSync(path.join(repo,'maps/mount-dora/features.json'));
+const source=JSON.parse(bytes),byId=new Map(source.features.map(f=>[f.id,f]));
+const structures=new Map(source.authoredStructures.map(s=>[s.id,s]));
+const output=[],r=n=>Math.round(n*1e6)/1e6;
+const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
+const bound=points=>[Math.min(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1])),Math.max(...points.map(p=>p[0])),Math.max(...points.map(p=>p[1]))];
+const expand=(b,p)=>b.map((v,i)=>r(v+(i<2?-p:p)));
+const centre=b=>[r((b[0]+b[2])/2),r((b[1]+b[3])/2)];
+const near=(a,b,t)=>Math.hypot(a[0]-b[0],a[1]-b[1])<t;
+const pointInside=(p,ring)=>{let yes=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const a=ring[i],b=ring[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])yes=!yes;}return yes;};
+function insetCorner(f,radius,target=[f.bounds[2],f.bounds[3]]){const ring=f.geometry.coordinates[0][0],b=f.bounds,distance=(p,a,b)=>{const d=[b[0]-a[0],b[1]-a[1]],t=Math.max(0,Math.min(1,((p[0]-a[0])*d[0]+(p[1]-a[1])*d[1])/(d[0]**2+d[1]**2)));return Math.hypot(p[0]-a[0]-d[0]*t,p[1]-a[1]-d[1]*t);};let best;
+ for(let y=b[1];y<b[3];y+=.25)for(let x=b[0];x<b[2];x+=.25){const p=[r(x),r(y)];if(!pointInside(p,ring)||ring.slice(1).some((q,i)=>distance(p,ring[i],q)<radius))continue;const score=Math.hypot(p[0]-target[0],p[1]-target[1]);if(!best||score<best.score)best={p,score};}if(!best)throw Error('No bounded inferred turret position '+f.id);return best.p;}
+const inn=new Set(Array.from({length:10},(_,i)=>560095890+i).map(n=>'osm-way-'+n));
+const palettes=[['cream-siding','slate',[1,.98,.9]],['sage-siding','brown-shingle',[.94,1,.94]],['plaster','terracotta',[1,.94,.84]],['yellow-siding','green-metal',[1,.97,.85]],['brick','slate',[1,.95,.9]],['cream-siding','blue-metal',[.94,.98,1]]];
+// Recorded evidence (nativeProxy: county record, lidar, survey) chooses the wall class,
+// roof cover, roof form, ridge axis and pitch. Colours stay seeded placeholders until a
+// survey records them; `why` names the source of every evidence-driven field.
+const SIDINGS=['cream-siding','sage-siding','yellow-siding'],SHAPES=['gable','hip','flat'];
+const COVERS={metal:{roof:'blue-metal',roofFinish:'silver'},tile:{roof:'terracotta'},'tar-and-gravel':{roof:'slate',roofStyle:'flat'},'rolled-asphalt':{roof:'slate',roofStyle:'flat'}};
+// County-sketched buildings carry no OSM tags; their county use says shop or office.
+const COUNTY_COMMERCIAL=/STORE|OFFICE|SHOP|PROFESSIONAL/;
+function evidenceTreatment(f,seed){
+ const np=f.nativeProxy,ev=np.evidence||{},lidar=ev.lidar||{},survey=ev.survey||{},cover=ev.county?.roofCover,out={},why={};
+ if(!/^unsurveyed/.test(np.materialSource)){out.wall=np.material==='wood'?SIDINGS[seed%SIDINGS.length]:np.material==='brick'?'brick':'plaster';why.wall=np.materialSource;}
+ if(cover==='asphalt-shingle'){out.roof=seed%2?'slate':'brown-shingle';why.roof='county:'+cover;}
+ else if(COVERS[cover]){Object.assign(out,COVERS[cover]);why.roof='county:'+cover;if(out.roofStyle)why.roofStyle='county:'+cover;}
+ const shape=SHAPES.includes(survey.roofShape)?['survey',survey.roofShape]:SHAPES.includes(lidar.roofForm)&&lidar.roofConfidence>=.7?['lidar',lidar.roofForm]:null;
+ if(shape){out.roofStyle=shape[1];why.roofStyle=shape.join(':')+(shape[0]==='lidar'?' confidence '+lidar.roofConfidence:'');}
+ if(out.roofStyle==='flat')out.pitch=0;
+ else if(shape?.[0]==='lidar'&&lidar.pitchDeg){
+  out.pitch=Math.max(12,Math.min(40,Math.round(lidar.pitchDeg)));why.pitch='lidar:'+lidar.pitchDeg+' deg';
+  // The kit's axis 'x' runs the ridge east-west; lidar bearings are compass degrees.
+  if(Number.isFinite(lidar.ridgeBearingDeg)){const b=(lidar.ridgeBearingDeg%180+180)%180;out.roofAxis=b>=45&&b<135?'x':'y';why.roofAxis='lidar:ridge '+lidar.ridgeBearingDeg+' deg';}
+ }
+ return {out,why};
+}
+for(const f of source.features.filter(f=>f.category==='building')){
+ const seed=hash(f.id),a=centre(f.bounds),isInn=inn.has(f.id),shop=f.tags.building==='commercial'||f.tags.shop||f.tags.amenity&&['restaurant','cafe','bar','pub','bank'].includes(f.tags.amenity)||COUNTY_COMMERCIAL.test(f.county?.style||'')||(a[0]>345&&a[0]<590&&a[1]>520&&a[1]<690),p=palettes[seed%palettes.length];
+ const type=isInn?'lakeside-inn':shop?'commercial':f.id==='osm-way-557051202'?'donnelly-civic':'vernacular';
+ const hero={'osm-way-547799531':'donnelly-house','osm-way-556809468':'history-museum','osm-way-557494933':'former-depot','osm-way-558337885':'shamrock-building'}[f.id];
+ const stories=isInn||hero==='donnelly-house'?2:f.nativeProxy.stories;
+ const treatment={type,wall:isInn?'yellow-siding':shop?(seed%2?'brick':'plaster'):p[0],trim:'cream-siding',roof:isInn?'brown-shingle':shop?'slate':p[1],roofStyle:shop?'flat':seed%3?'gable':'hip',tint:isInn?[1,1,.9]:p[2],stories,pitch:shop?0:22+seed%9,windowSpacing:shop?3.3:3.8,veranda:isInn&&['osm-way-560095890','osm-way-560095893'].includes(f.id)};
+ if(hero){Object.assign(treatment,{type:hero,wall:hero==='donnelly-house'?'cream-siding':hero==='former-depot'?'cream-siding':'brick',roof:hero==='donnelly-house'?'green-metal':'slate',roofStyle:hero==='shamrock-building'?'flat':hero==='former-depot'?'hip':'gable',pitch:28,veranda:hero==='donnelly-house'});}
+ if(hero==='donnelly-house')Object.assign(treatment,{wall:'yellow-siding',roof:'blue-metal',roofFinish:'silver',roofRiseLimit:2.2,crossGable:true,ornate:true,frontGables:[.3,.65].map(t=>insetCorner(f,2.2,[f.bounds[2],f.bounds[1]+(f.bounds[3]-f.bounds[1])*t])),turret:{centre:insetCorner(f,1.8),radius:1.5,stories:3,capRiseFactor:1.3,placement:'inferred-inset-southeast-corner; not surveyed'}});
+ if(hero==='former-depot')Object.assign(treatment,{roof:'blue-metal',roofFinish:'silver',pitch:10});
+ if(hero==='shamrock-building')Object.assign(treatment,{baseWall:'plaster',archedLowerWindows:true,cornice:true});
+ if(isInn&&['osm-way-560095892','osm-way-560095898'].includes(f.id))Object.assign(treatment,{wall:'plaster',roofStyle:'flat',tint:[1,.96,.8],annex:true});
+ // Hand-authored heroes and the Inn keep their curated treatments.
+ const evidence=isInn||hero?null:evidenceTreatment(f,seed);
+ if(evidence)Object.assign(treatment,evidence.out);
+ // Keep all rings, including inner courtyards. Local anchors do not quantize them.
+ const polygons=f.geometry.coordinates;
+ output.push({id:f.id,kind:'building',sourceIds:[f.id],anchor:a,bounds:expand(f.bounds,.5),polygons,treatment,seed,collisionPolicy:'retain-source-walls',solids:[{kind:'polygon',polygons}],replacesSourceIds:[f.id],provenance:{footprint:f.county?'grid-generalized county sketch placed on its 2018 lidar roof (reference/county-buildings.json); original geographicGeometry retained':'grid-generalized-osm; original geographicGeometry retained',treatment:isInn?'observed-group-palette-inferred-details':['donnelly-house','former-depot'].includes(hero)?'observed-typology-inferred-details':'inferred-local-typology',height:isInn?'two-native-storey-approximation-city-documents-2-to-3-storey-complex':hero==='donnelly-house'?'native-two-storey-queen-anne-approximation':f.nativeProxy.storiesSource,details:'Repeated windows, roof form and facade divisions are approximations; no surveyed doors or interiors.',sourceRefs:isInn?['city-historic-sites','lakeside-owner','lakeside-history']:['city-preservation','city-historic-sites']}});
+ if(evidence)output.at(-1).provenance.evidence={...evidence.why,colour:'seeded placeholder until surveyed'};
+ if(hero||isInn){const p=output.at(-1);p.provenance.sourceRefs.push('city-design-standards-2025');p.provenance.observedFeatures=hero==='donnelly-house'?'PDF76: yellow siding, white decorative veranda, silver stamped-tin roof, polygonal tower and multiple gables':hero==='shamrock-building'?'PDF84 historical image: brick upper facade, pale pilasters, arched lower windows, cornice; current three floors derive from OSM':hero==='former-depot'?'PDF82: white siding and low gray hipped roof':isInn?'PDF84 historical veranda/arched supports; current owner yellow/white group':'Facade remains inferred; no individual photo matched.';}
+}
+const feature=n=>{const f=byId.get('osm-way-'+n);if(!f)throw Error('Missing source '+n);return f;};
+function polygonRecord(id,kind,points,sourceIds,treatment,provenance={}){const bounds=bound(points),a=centre(bounds);const p={id,kind,sourceIds,anchor:a,bounds:expand(bounds,.15),points,treatment,collisionPolicy:'additional-solids',solids:[],replacesSourceIds:[],provenance};output.push(p);return p;}
+const light={id:'md:lighthouse',kind:'lighthouse',sourceIds:['osm-node-2704687214'],anchor:[500.2877,1169.7989],bounds:[498.7877,1168.2989,501.7877,1171.2989],height:10.6,collisionPolicy:'additional-solids',solids:[{kind:'circle',centre:[500.2877,1169.7989],radius:1.45}],replacesSourceIds:[],provenance:{position:'retained-osm-named-point',shape:'map-owned-static-approximation',sourceRefs:['city-lighthouse','chamber-history'],height:'Native 2.12 m proportions, approximately the documented 35 feet; not surveyed.'}};output.push(light);
+// Actual shelter contours, with inferred roof and support details. No filled pavilion solid.
+for(const n of [557154683,557154684,557051211]){
+ const f=feature(n),plan=structures.get('md:shelter:'+n),p=polygonRecord(plan.id,'pavilion',plan.geometry.coordinates[0][0],[f.id],{roof:'green-metal',roofStyle:'hip',pitch:25},{position:'grid-generalized-mapped-shelter',details:'inferred-native-posts-and-hip-roof',sourceRefs:['city-parks','city-palm']});
+ p.collisionPolicy='replace-source-walls';p.replacesSourceIds=[f.id];
+ const c=p.anchor;p.posts=p.points.slice(0,-1).map(q=>{const d=Math.hypot(q[0]-c[0],q[1]-c[1]);return q.map((v,i)=>r(v+(c[i]-v)*.22/d));});
+ p.solids=p.posts.map(centre=>({kind:'circle',centre,radius:.15}));
+}
+// City confirms these facilities, but their exact contemporary positions are not surveyed.
+for(const [id,c,w,d,parent,kind]of [['md:donnelly-stage',[478,484.75],13,5,468920884,'stage'],['md:evans-pavilion',[470,1005],8,6,486656245,'pavilion']]){
+ const f=feature(parent),points=structures.get(id).geometry.coordinates[0][0],p=polygonRecord(id,kind,points,[f.id],{roof:'green-metal',roofStyle:'hip',pitch:22},{position:'inferred-within-mapped-park',footprint:'authored-grid',uncertaintyBounds:f.bounds,sourceRefs:['city-parks'],details:'Approximate review placement, not a surveyed facility footprint.'});
+ p.posts=kind==='stage'?points.slice(0,2):points.slice(0,4);p.solids=p.posts.map(centre=>({kind:'circle',centre,radius:.15}));p.bounds=expand(bound(points),.2);
+}
+for(const n of [557051180,557051194,561136643,561136644,1215493446]){
+ const f=feature(n);if(f.geometry.type!=='MultiPolygon'||f.geometry.coordinates.length!==1||f.geometry.coordinates[0].length!==1)throw Error('Review changed court topology '+f.id);polygonRecord('md:court:'+n,'court',f.geometry.coordinates[0][0],[f.id],{sport:f.tags.sport},{position:'retained-osm',details:'Historical overlapping sport polygons retained; not a current court count.',sourceRefs:['city-parks']});
+}
+// Split along the ORIGINAL polylines into bounded pieces; no end caps. Rails lie
+// just outside the same two-metre support corridor used by the base generator.
+for(const n of [548471563,688219167]){
+ const f=feature(n),points=f.geometry.coordinates;
+ for(let j=1;j<points.length;j++){
+  const a=points[j-1],b=points[j],dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy),parts=Math.ceil(length/8),normal=[-dy/length,dx/length];
+  for(let k=0;k<parts;k++){
+   const ends=[k/parts,(k+1)/parts].map(t=>[r(a[0]+dx*t),r(a[1]+dy*t)]),anchor=centre(bound(ends)),segments=[-1,1].map(sign=>ends.map(p=>p.map((v,i)=>r(v+normal[i]*1.12*sign))));
+   const p={id:`md:boardwalk:${n}:${j}:${k}`,kind:'boardwalk',sourceIds:[f.id],anchor,bounds:expand(bound(ends),1.2),ends,width:2,rails:segments,collisionPolicy:'additional-solids',solids:segments.map(([a,b])=>({kind:'segment',a,b,radius:.055})),replacesSourceIds:[],provenance:{position:'original-polyline-subdivision',width:'unsurveyed-2m-base-terrain-proxy',height:'flat-supported-ground-no-invented-layer-elevation',sourceRefs:['city-palm']}};
+   // Preserve pavilion access through the side nearest the mapped shelter.
+   const shelter=output.find(p=>p.id==='md:shelter:557051211');
+   if(shelter&&near(anchor,shelter.anchor,12)){p.rails=[];p.solids=[];p.provenance.railGap='Open approach near mapped pavilion; no invented route support.';}
+   output.push(p);
+  }
+ }
+}
+output.sort((a,b)=>a.id.localeCompare(b.id));
+for(const p of output)if(!p.bounds.every(Number.isFinite)||p.bounds[0]>p.bounds[2]||p.bounds[1]>p.bounds[3])throw Error('Invalid production bounds '+p.id);
+// Exact shared outline edges have one visual owner. Do not modify any ring or
+// the simulation's multi-owner wall records to obtain this draw reduction.
+const edgeOwners=new Map();
+for(const p of output.filter(p=>p.kind==='building')){p.suppressedWallEdges=[];for(const [pi,poly]of p.polygons.entries())for(const [ri,ring]of poly.entries())for(let i=1;i<ring.length;i++){const key=[ring[i-1].join(','),ring[i].join(',')].sort().join('|');if(edgeOwners.has(key))p.suppressedWallEdges.push([pi,ri,i-1]);else edgeOwners.set(key,p.id);}}
+const digest=createHash('sha256').update(JSON.stringify(output)).digest('hex'),sourceHash=createHash('sha256').update(bytes).digest('hex');
+fs.mkdirSync(target,{recursive:true});
+fs.writeFileSync(path.join(target,'placements.js'),`// Generated by maps/mount-dora/art/tools/build-playable.mjs.\nexport const ART_REVISION='${digest}';\nexport const SOURCE_FEATURES_SHA256='${sourceHash}';\nexport const AUTHORED_LAYOUT_SHA256='${source.authoredLayoutSHA256}';\nexport const PLACEMENTS=${JSON.stringify(output)};\n`);
+const files=[];
+for(const rel of ['packages/building-catalog/three.js','packages/building-catalog/index.js','packages/building-catalog/designs.js','packages/roof-core/index.js','packages/roof-core/three.js']){
+ const b=fs.readFileSync(path.join(repo,'maps/mount-dora/art/source/nautilus',rel)),dest=path.join(target,'source',rel);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,b);files.push({path:'source/'+rel,sha256:createHash('sha256').update(b).digest('hex'),bytes:b.length});
+}
+const atlas=fs.readFileSync(path.join(repo,'maps/mount-dora/art/source/nautilus/assets/buildings/painted-materials-v2.png'));
+fs.writeFileSync(path.join(target,'painted-materials-bbe33709.png'),atlas);
+fs.writeFileSync(path.join(target,'provenance.json'),JSON.stringify({schema:'mount-dora-production-art/1',engineRevision:'2502646482218524fd5129641da769bb82462e4d',farmyardBase:'75a6b61a547a96edebdc456e9a42edb4f28185e4',featuresSHA256:sourceHash,artRevision:digest,files,atlasSHA256:createHash('sha256').update(atlas).digest('hex'),placements:output.length,buildingCount:950,coordinates:'town east/south metres; no half-cell transform',sourceNotice:'Geometry and painted materials copied unchanged from the retained fixed source; map data Ã‚Â© OpenStreetMap contributors, ODbL 1.0. Details and heights are explicit approximations.'},null,2)+'\n');
+console.log(JSON.stringify({placements:output.length,buildings:output.filter(p=>p.kind==='building').length,boardwalkPieces:output.filter(p=>p.kind==='boardwalk').length,artRevision:digest}));

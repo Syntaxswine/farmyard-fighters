@@ -1,0 +1,135 @@
+{
+  "id": "countryside--cliff-e1-n2-road-none",
+  "kind": "sector-placeholder",
+  "version": 1,
+  "status": "placeholder",
+  "role": "countryside",
+  "facilities": [],
+  "difficulties": [
+    "easy",
+    "medium",
+    "hard"
+  ],
+  "config": {
+    "feature": {
+      "kind": "cliff",
+      "ports": [
+        {
+          "side": "east",
+          "slot": 1
+        },
+        {
+          "side": "north",
+          "slot": 2
+        }
+      ]
+    },
+    "roads": []
+  },
+  "equivalents": [
+    {
+      "feature": {
+        "kind": "cliff",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 2
+          },
+          {
+            "side": "east",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "cliff",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 1
+          },
+          {
+            "side": "west",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "cliff",
+        "ports": [
+          {
+            "side": "east",
+            "slot": 2
+          },
+          {
+            "side": "south",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "cliff",
+        "ports": [
+          {
+            "side": "south",
+            "slot": 1
+          },
+          {
+            "side": "west",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": []
+    }
+  ],
+  "allowedTransforms": [
+    {
+      "turns": 0,
+      "mirror": false
+    },
+    {
+      "turns": 1,
+      "mirror": false
+    },
+    {
+      "turns": 2,
+      "mirror": false
+    },
+    {
+      "turns": 3,
+      "mirror": false
+    },
+    {
+      "turns": 0,
+      "mirror": true
+    },
+    {
+      "turns": 1,
+      "mirror": true
+    },
+    {
+      "turns": 2,
+      "mirror": true
+    },
+    {
+      "turns": 3,
+      "mirror": true
+    }
+  ],
+  "variants": [
+    "placeholder.json"
+  ],
+  "notes": [
+    "Cliff wall and passage footprint only; high bank and elevation contracts await authoring."
+  ]
+}

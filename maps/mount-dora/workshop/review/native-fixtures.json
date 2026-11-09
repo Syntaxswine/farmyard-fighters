@@ -1,0 +1,105 @@
+{
+  "nautilusCommit": "2502646482218524fd5129641da769bb82462e4d",
+  "sourceMode": "fixtures",
+  "projectId": "mount-dora-workshop-synthetic-fixtures",
+  "projectSha256": "f9c31d8a259409253d03ea83e1b6466e9c46e48ba2f2f0eda36db4167143b497",
+  "sourceDigest": null,
+  "scenarios": [
+    {
+      "id": "fixture-downtown",
+      "sourceSha256": "a76e8e94cab9d50cb901133493d95afca4aee90918492f9d8361d08790b09f9d",
+      "exportSha256": "4fa22a07e19c41848d8d78a415cb824fced547b3bd4008690f081a49b4389887",
+      "nativeImport": true,
+      "nativeTerrainGesture": true,
+      "nativeUndoRedo": true,
+      "nativeExportReopen": true,
+      "selectionPreservesEdits": true,
+      "sourceValuesPreserved": true,
+      "features": {
+        "wallRuns": 1,
+        "slopedRoofs": 1,
+        "buildingPrefabs": 0
+      },
+      "nativeAddedPaths": [],
+      "rendering": {
+        "scope": "one explicit native draw, accumulated across render passes",
+        "calls": 245,
+        "triangles": 265814,
+        "geometries": 103,
+        "textures": 34,
+        "programs": 23,
+        "failedPrograms": 0
+      }
+    },
+    {
+      "id": "fixture-shoreline",
+      "sourceSha256": "f71404e8ad5653898661fecae1c80ca35f91b8fd4aa82c3a34a3c047d51c4a88",
+      "exportSha256": "fc80497f4b6a9217b5ea639584006ab74601a78c4f976d0d5ae7a56086f60a0b",
+      "nativeImport": true,
+      "nativeTerrainGesture": true,
+      "nativeUndoRedo": true,
+      "nativeExportReopen": true,
+      "selectionPreservesEdits": true,
+      "sourceValuesPreserved": true,
+      "features": {
+        "wallRuns": 0,
+        "slopedRoofs": 0,
+        "buildingPrefabs": 0
+      },
+      "nativeAddedPaths": [],
+      "rendering": {
+        "scope": "one explicit native draw, accumulated across render passes",
+        "calls": 245,
+        "triangles": 265814,
+        "geometries": 100,
+        "textures": 35,
+        "programs": 20,
+        "failedPrograms": 0
+      }
+    },
+    {
+      "id": "fixture-boundary",
+      "sourceSha256": "e03279ee12acc187c438a861224d3f5db021e45016309005e8da8b6f0389f4fe",
+      "exportSha256": "7ef171c84365aaebbf9308607f2e9da587afcb8a5f95b0e90cf7f02f119f9b68",
+      "nativeImport": true,
+      "nativeTerrainGesture": true,
+      "nativeUndoRedo": true,
+      "nativeExportReopen": true,
+      "selectionPreservesEdits": true,
+      "sourceValuesPreserved": true,
+      "features": {
+        "wallRuns": 0,
+        "slopedRoofs": 0,
+        "buildingPrefabs": 0
+      },
+      "nativeAddedPaths": [],
+      "rendering": {
+        "scope": "one explicit native draw, accumulated across render passes",
+        "calls": 245,
+        "triangles": 265814,
+        "geometries": 100,
+        "textures": 35,
+        "programs": 20,
+        "failedPrograms": 0
+      }
+    }
+  ],
+  "errors": [],
+  "browser": {
+    "version": "156.0.4314.58",
+    "channel": "msedge",
+    "headless": true,
+    "softwareWebGL": true
+  },
+  "blockedSector": {
+    "id": "fixture-water",
+    "downloadAvailable": true,
+    "openDisabled": true,
+    "errors": [
+      "Place exactly four valid squad starts."
+    ]
+  },
+  "passed": true,
+  "portReleased": true,
+  "helpersClosed": true
+}

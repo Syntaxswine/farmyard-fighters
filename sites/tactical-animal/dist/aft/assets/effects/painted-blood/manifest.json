@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "title": "Painted ordinary blood spray",
+  "generation": {
+    "mode": "built-in image_gen",
+    "original": "exec-ccae538f-a5d0-48c1-adb4-59185af92234.png",
+    "promptFile": "generation-prompt.txt",
+    "prompt": "Use case: stylized-concept\nAsset type: transparent production texture atlas for a short ordinary bullet-hit blood spray in the painterly tactical game Animal Factory Tactics.\nPrimary request: paint four reusable blood effect components in an exact 2 by 2 atlas, each isolated in its own equal square cell, all on genuine transparent alpha. This is an effects skin, not a character injury illustration or a scene.\nComposition: a square image split conceptually into four equal square cells with NO drawn grid, borders, labels or background. Leave at least 12 percent transparent padding inside every cell so the four components never touch their cell boundaries. Keep components fully separate.\nTop-left cell: a compact irregular dark-crimson entrance splash, an off-centre dense root near the left third and a short fan of torn liquid lobes extending toward the right, with only two or three small detached beads. Broad rounded liquid masses with a few translucent torn edges. It should read as a restrained physical impact, not an explosion.\nTop-right cell: a lighter, more open asymmetrical short blood fan traveling from left toward right, four or five unequal connected lobes and a few separated rounded droplets, with substantial transparent space between the tips. A different silhouette from the top-left component.\nBottom-left cell: one thick elongated blood droplet, with its rounded heavy leading lobe at the right and a narrower tapered tail trailing toward the left, slightly bent and irregular with a dark maroon core and a restrained painted red highlight.\nBottom-right cell: one small irregular rounded blood bead, almost circular but not a perfect sphere, dense dark crimson with a small muted red highlight. Centre this bead in its cell; its painted diameter should be roughly 35 percent of cell width so it has useful transparent padding.\nStyle/medium: confident hand-painted game VFX, broad economical brushwork and opaque dark-red masses, soft translucent liquid edges only where useful. Match painterly low-poly animal soldiers and subdued grass/stone environments. Shapes must remain legible when the whole effect is only 15–35 pixels wide in gameplay.\nPalette: oxblood, dark crimson, muted burgundy, a few desaturated red accents for contrast. No luminous neon red, orange, yellow, pink glow or white shine.\nLighting: quiet painted volume, no strong directional lighting, no drop shadow.\nConstraints: genuine transparent background, straight alpha suitable for normal alpha blending, no baked backdrop or checkerboard. No text, arrows, crosshairs, labels, numbers, frames, organs, bones, heads, people, weapons or scenery. Avoid cartoon stars, radial spikes, smoke, flames, uniform circles, spray-paint mist, repeated symmetric petals, long beams, fine noisy dots and excessive gore. Each component fits safely within its own equal quadrant.\n"
+  },
+  "source": {
+    "file": "spray-components-source-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "dddcbb6733cbe60e9ece60f09c540ecd2b26a8fbc39515508606c64e2fa402ad"
+  },
+  "runtime": {
+    "file": "spray-components-v1.png",
+    "width": 512,
+    "height": 512,
+    "sha256": "b717aa4b8d9c0c3b6bb36a091fa0a6d92ba0f19b547ddc1c00fd2dd5a9e6a4bc",
+    "bytes": 106939,
+    "alpha": "straight",
+    "alphaCutoff": 0.015,
+    "blend": "normal alpha, never additive",
+    "decodedBytesWithMipmaps": 1398102
+  },
+  "cells": [
+    {
+      "name": "compact",
+      "pixels": [
+        34,
+        60,
+        192,
+        172
+      ],
+      "uv": [
+        0.06640625,
+        0.546875,
+        0.375,
+        0.3359375
+      ],
+      "pivot": [
+        0.19625000000000004,
+        0.5302325581395348
+      ],
+      "occupiedPixels": 13550
+    },
+    {
+      "name": "open",
+      "pixels": [
+        286,
+        82,
+        203,
+        131
+      ],
+      "uv": [
+        0.55859375,
+        0.583984375,
+        0.396484375,
+        0.255859375
+      ],
+      "pivot": [
+        0.14226600985221677,
+        0.49251908396946575
+      ],
+      "occupiedPixels": 6882
+    },
+    {
+      "name": "streak",
+      "pixels": [
+        30,
+        351,
+        209,
+        66
+      ],
+      "uv": [
+        0.05859375,
+        0.185546875,
+        0.408203125,
+        0.12890625
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "occupiedPixels": 5590
+    },
+    {
+      "name": "bead",
+      "pixels": [
+        343,
+        339,
+        90,
+        89
+      ],
+      "uv": [
+        0.669921875,
+        0.1640625,
+        0.17578125,
+        0.173828125
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "occupiedPixels": 5018
+    }
+  ],
+  "authoring": {
+    "axis": "+X away from contact; builder chooses hit orientation",
+    "duration": 0.48,
+    "maximumCards": 18,
+    "gravity": "world -Y, separate from transformed emission",
+    "scope": "Reusable spray skin and asset motion only; no hit detection, damage, casualties or combat wiring."
+  },
+  "flipbook": {
+    "file": "spray-flipbook-v1.png",
+    "width": 512,
+    "height": 384,
+    "columns": 4,
+    "rows": 3,
+    "frameOrder": "row-major from top-left",
+    "loop": false,
+    "orientationLimit": "Flat bake includes downward fall in its authoring plane. Arbitrary pitched orientation rotates that fall; use the component motion for world-down gravity.",
+    "frameSize": 128,
+    "times": [
+      0,
+      0.016,
+      0.033,
+      0.055,
+      0.083,
+      0.12,
+      0.17,
+      0.23,
+      0.29,
+      0.34,
+      0.38,
+      0.48
+    ],
+    "duration": 0.48,
+    "interpolation": "Cross-fade neighboring frames using the recorded nonuniform times; first and last frames are transparent.",
+    "pivotPixels": [
+      17.72307692307692,
+      34.46153846153846
+    ],
+    "pivotConvention": "Pixels from top-left; same source/contact in every frame",
+    "quadWorldSize": [
+      1.3,
+      1.3
+    ],
+    "authoringBounds": {
+      "left": -0.18,
+      "right": 1.12,
+      "bottom": -0.95,
+      "top": 0.35
+    },
+    "sha256": "d98adca226e7cc9b3c17a4d6bfdbcccd442787a19c37803de53855b62eb3202c",
+    "bytes": 17861,
+    "decodedBytesWithMipmaps": 1048576
+  },
+  "preview": {
+    "file": "spray-preview.gif",
+    "width": 256,
+    "height": 256,
+    "loopDurationMs": 990,
+    "sha256": "de6bd5e484feaded825ab39a64671ebf972718442681803bc97669e548a3f146",
+    "purpose": "Matte review GIF only; use transparent PNGs in the game."
+  }
+}

@@ -1,0 +1,366 @@
+{
+  "revision": "2502646482218524fd5129641da769bb82462e4d",
+  "catalogue": "packages/assets/catalogue.js",
+  "assets": [
+    {
+      "id": "building:branchline-depot",
+      "name": "Branchline Depot",
+      "category": "Buildings",
+      "source": {
+        "project": "nautilus",
+        "commit": "ee7c18ecdc2669168247b94a82156634b2c4ffe5",
+        "catalogue": "original"
+      },
+      "availability": "shared-building-renderer",
+      "note": "Native visual assembly; consumer owns collision, doors, navigation, fire and persistence."
+    },
+    {
+      "id": "building:estuary-cottage",
+      "name": "Estuary Cottage",
+      "category": "Buildings",
+      "source": {
+        "project": "nautilus",
+        "commit": "ee7c18ecdc2669168247b94a82156634b2c4ffe5",
+        "catalogue": "original"
+      },
+      "availability": "shared-building-renderer",
+      "note": "Native visual assembly; consumer owns collision, doors, navigation, fire and persistence."
+    },
+    {
+      "id": "building:coach-yard-inn",
+      "name": "Coach Yard Inn",
+      "category": "Buildings",
+      "source": {
+        "project": "nautilus",
+        "commit": "ee7c18ecdc2669168247b94a82156634b2c4ffe5",
+        "catalogue": "original"
+      },
+      "availability": "shared-building-renderer",
+      "note": "Native visual assembly; consumer owns collision, doors, navigation, fire and persistence."
+    },
+    {
+      "id": "building:pepper-corner-shop",
+      "name": "Pepper Corner Shop",
+      "category": "Buildings",
+      "source": {
+        "project": "nautilus",
+        "commit": "ee7c18ecdc2669168247b94a82156634b2c4ffe5",
+        "catalogue": "original"
+      },
+      "availability": "shared-building-renderer",
+      "note": "Native visual assembly; consumer owns collision, doors, navigation, fire and persistence."
+    },
+    {
+      "id": "building:batten-general-store",
+      "name": "Batten General Store",
+      "category": "Buildings",
+      "source": {
+        "project": "nautilus",
+        "commit": "ee7c18ecdc2669168247b94a82156634b2c4ffe5",
+        "catalogue": "original"
+      },
+      "availability": "shared-building-renderer",
+      "note": "Native visual assembly; consumer owns collision, doors, navigation, fire and persistence."
+    },
+    {
+      "id": "building:market-terrace",
+      "name": "Market Terrace",
+      "category": "Buildings",
+      "source": {
+        "project": "nautilus",
+        "commit": "ee7c18ecdc2669168247b94a82156634b2c4ffe5",
+        "catalogue": "original"
+      },
+      "availability": "shared-building-renderer",
+      "note": "Native visual assembly; consumer owns collision, doors, navigation, fire and persistence."
+    },
+    {
+      "id": "terrain:ground-wood-planks",
+      "name": "Ground wood planks",
+      "category": "Terrain",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "terrain:ground-concrete",
+      "name": "Ground concrete",
+      "category": "Terrain",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "terrain:ground-biome-wetlands",
+      "name": "Wetland grass",
+      "category": "Terrain",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "terrain:ground-grass",
+      "name": "Ground grass",
+      "category": "Terrain",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "objects:streetlight",
+      "name": "Streetlight",
+      "category": "Objects",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "objects:streetlight-double",
+      "name": "Streetlight double",
+      "category": "Objects",
+      "dimensions": {
+        "width": 2,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "objects:tree-broadleaf",
+      "name": "Tree broadleaf",
+      "category": "Objects",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "objects:tree-broadleaf-large",
+      "name": "Tree broadleaf large",
+      "category": "Objects",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "objects:reeds",
+      "name": "Reeds",
+      "category": "Objects",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "objects:table-wood",
+      "name": "Table wood",
+      "category": "Objects",
+      "dimensions": {
+        "width": 2,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "objects:chair-wood-honey",
+      "name": "Wooden chair · honey",
+      "category": "Objects",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "boundaries:fence-railing",
+      "name": "Fence railing",
+      "category": "Boundaries",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "boundaries:fence-chainlink",
+      "name": "Fence chainlink",
+      "category": "Boundaries",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "boundaries:window-brick",
+      "name": "Window brick",
+      "category": "Boundaries",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "boundaries:window-concrete",
+      "name": "Window concrete",
+      "category": "Boundaries",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "boundaries:door-wood-closed",
+      "name": "Door wood closed",
+      "category": "Boundaries",
+      "dimensions": {
+        "width": 1,
+        "depth": 1,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Bind this content ID to the consumer renderer and gameplay explicitly."
+    },
+    {
+      "id": "foliage:wetland-v1",
+      "name": "Dense wetland thicket",
+      "category": "Foliage",
+      "dimensions": {
+        "width": 8,
+        "depth": 8,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Impassable reeds and willow growth. Sight is blocked; waterlogged wood stops shots."
+    },
+    {
+      "id": "foliage:woodland-v1",
+      "name": "Open woodland",
+      "category": "Foliage",
+      "dimensions": {
+        "width": 8,
+        "depth": 8,
+        "metresPerUnit": 1
+      },
+      "source": {
+        "project": "aft",
+        "commit": "781246a668c723d5a4c5463e70534cc04b6a5641"
+      },
+      "availability": "content-binding-required",
+      "note": "Walk between trees. Sight and shots pass through gaps; trunks stop both."
+    }
+  ]
+}

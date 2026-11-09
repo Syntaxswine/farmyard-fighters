@@ -1,0 +1,31 @@
+{
+  "title": "Amber prismatic shooting switches and red AP warning",
+  "created": "2026-10-27",
+  "generation": {
+    "tool": "built-in image_gen",
+    "original": "exec-d2abc448-263a-4b06-8773-4170582073b0.png",
+    "transparent_background": false,
+    "reference": "switch-skins-v2.webp"
+  },
+  "prompt": "Use case: precise-object-edit. Asset type: production sprite atlas for a painterly industrial retrofuturist game interface. Input image 1 is the approved material reference and edit target for the painted metal and molded glass. Create a new LANDSCAPE atlas exactly twice as wide as tall, split into an exact 2 by 2 grid with no gaps. Each of the four tiles is a wide horizontal rectangular switch, twice as wide as tall, front-on orthographic. Top left: golden amber glass unlit. Top right: the EXACT SAME amber switch internally illuminated. Bottom left: red warning glass unlit. Bottom right: the EXACT SAME red warning switch internally illuminated. All four tiles share exactly the same worn olive painted metal housing, dull steel chips, rounded bevel and scratch geometry, adapted into a wide rectangle. Keep the reference's illustrated vintage machine character and its molded diamond/prismatic glass thickness, nested edge ribs, cloudy material and gently painted highlights. The entire top row changes the reference red lens into honey / orange golden AMBER glass, never green and never cherry-red. The lit amber state glows warm orange-gold and soft yellow-gold from one diffused tungsten lamp through molded diamonds of different thickness, like an old amber vehicle signal or antique street light. Amber unlit is deep warm honey-brown with its prismatic relief still visible. The lower row keeps deep cherry red when off and warm orange-red when lit, for brief AP warning flashes only. Each left/right pair has identical geometry and weathering, with ONLY the internal lamp changing. Preserve opaque chipped olive enamel metal bezels with brown worn recesses: the housing never emits light. Calm enough for white labels to be overlaid in code. Every tile must fill its quadrant edge-to-edge with the whole mounting bezel visible, perfectly square to the canvas and no perspective. Absolutely no text, symbols, numbers, icons, digits, captions, borders between tiles, shadows outside the tile or watermarks. No LEDs, no modern glossy plastic, no photoreal product rendering. Preserve painterly gouache/oil brush texture and warm aged equipment. Output ONLY the clean 2x2 atlas.",
+  "image": {
+    "file": "shooting-switch-skins-v1.webp",
+    "width": 1774,
+    "height": 887,
+    "bytes": 330320,
+    "sha256": "426b66eee03bba0c6a2d614301e7da8f705e06daf4c4e194aef235b227d1eb4d",
+    "originalSha256": "24f25940cb88366aca57dac819b7e4fe0a70c009acbe45f5182c9ffd179191fa",
+    "processing": "Generated pixels encoded as WebP quality 90. No cropping, resizing, recoloring or repainting."
+  },
+  "atlas": {
+    "columns": 2,
+    "rows": 2,
+    "cells": [
+      "amber glass unlit",
+      "amber glass illuminated",
+      "red AP warning unlit",
+      "red AP warning illuminated"
+    ]
+  },
+  "usage": "Aim level and body location use amber glass. Insufficient AP flashes the matching red glass three times. Legends remain live white paint with one shared illumination filter."
+}

@@ -1,0 +1,514 @@
+{
+  "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+  "nativeRenderer": true,
+  "borrowedAtlasReleasedByOwner": true,
+  "factoryDisposed": true,
+  "rendererDisposed": true,
+  "rows": [
+    {
+      "id": "donnelly",
+      "label": "Donnelly Park / mapped civic building and stage",
+      "residentBounds": [
+        444,
+        444,
+        516,
+        516
+      ],
+      "focusTown": [
+        480,
+        480
+      ],
+      "sourceIds": [
+        "osm-way-1215493446",
+        "osm-way-557051180",
+        "osm-way-557051194",
+        "osm-way-561136643",
+        "osm-way-561136644",
+        "osm-way-468920884",
+        "osm-way-557051202"
+      ],
+      "placementIds": [
+        "md:court:1215493446",
+        "md:court:557051180",
+        "md:court:557051194",
+        "md:court:561136643",
+        "md:court:561136644",
+        "md:donnelly-stage",
+        "osm-way-557051202"
+      ],
+      "solids": 3,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 7,
+      "created": 7,
+      "evicted": 0,
+      "drawObjects": 19,
+      "triangles": 5461,
+      "geometries": 19,
+      "materials": 13,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "inn",
+      "label": "Lakeside Inn / separate buildings and veranda rhythm",
+      "residentBounds": [
+        276,
+        772,
+        348,
+        844
+      ],
+      "focusTown": [
+        312,
+        808
+      ],
+      "sourceIds": [
+        "osm-way-560095890",
+        "osm-way-560095892",
+        "osm-way-560095893",
+        "osm-way-560095897",
+        "osm-way-560095898",
+        "osm-way-560095899"
+      ],
+      "placementIds": [
+        "osm-way-560095890",
+        "osm-way-560095892",
+        "osm-way-560095893",
+        "osm-way-560095897",
+        "osm-way-560095898",
+        "osm-way-560095899"
+      ],
+      "solids": 6,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 6,
+      "created": 13,
+      "evicted": 7,
+      "drawObjects": 36,
+      "triangles": 71060,
+      "geometries": 36,
+      "materials": 18,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "lighthouse",
+      "label": "Grantham Point / lighthouse at the original named point",
+      "residentBounds": [
+        464.2877,
+        1133.7989,
+        536.2877,
+        1205.7989
+      ],
+      "focusTown": [
+        500.2877,
+        1169.7989
+      ],
+      "sourceIds": [
+        "osm-node-2704687214"
+      ],
+      "placementIds": [
+        "md:lighthouse"
+      ],
+      "solids": 1,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 1,
+      "created": 14,
+      "evicted": 13,
+      "drawObjects": 4,
+      "triangles": 620,
+      "geometries": 4,
+      "materials": 19,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "gilbert",
+      "label": "Gilbert Park / two open mapped shelters",
+      "residentBounds": [
+        716,
+        1154,
+        788,
+        1226
+      ],
+      "focusTown": [
+        752,
+        1190
+      ],
+      "sourceIds": [
+        "osm-way-557154683",
+        "osm-way-557154684",
+        "osm-way-557349878"
+      ],
+      "placementIds": [
+        "md:shelter:557154683",
+        "md:shelter:557154684",
+        "osm-way-557349878"
+      ],
+      "solids": 9,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 3,
+      "created": 17,
+      "evicted": 14,
+      "drawObjects": 14,
+      "triangles": 2159,
+      "geometries": 14,
+      "materials": 21,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "palm",
+      "label": "Palm Island / original boardwalk bends and mapped shelter",
+      "residentBounds": [
+        528,
+        1349,
+        600,
+        1421
+      ],
+      "focusTown": [
+        564,
+        1385
+      ],
+      "sourceIds": [
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-688219167",
+        "osm-way-557051211"
+      ],
+      "placementIds": [
+        "md:boardwalk:688219167:2:2",
+        "md:boardwalk:688219167:2:3",
+        "md:boardwalk:688219167:2:4",
+        "md:boardwalk:688219167:2:5",
+        "md:boardwalk:688219167:3:0",
+        "md:boardwalk:688219167:3:1",
+        "md:boardwalk:688219167:3:2",
+        "md:boardwalk:688219167:3:3",
+        "md:boardwalk:688219167:3:4",
+        "md:boardwalk:688219167:3:5",
+        "md:boardwalk:688219167:4:0",
+        "md:boardwalk:688219167:4:1",
+        "md:boardwalk:688219167:4:2",
+        "md:boardwalk:688219167:4:3",
+        "md:boardwalk:688219167:4:4",
+        "md:shelter:557051211"
+      ],
+      "solids": 28,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 16,
+      "created": 33,
+      "evicted": 17,
+      "drawObjects": 31,
+      "triangles": 3919,
+      "geometries": 31,
+      "materials": 23,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "evans",
+      "label": "Elizabeth Evans / explicitly approximate pavilion",
+      "residentBounds": [
+        434,
+        969,
+        506,
+        1041
+      ],
+      "focusTown": [
+        470,
+        1005
+      ],
+      "sourceIds": [
+        "osm-way-486656245"
+      ],
+      "placementIds": [
+        "md:evans-pavilion"
+      ],
+      "solids": 4,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 1,
+      "created": 34,
+      "evicted": 33,
+      "drawObjects": 4,
+      "triangles": 270,
+      "geometries": 4,
+      "materials": 23,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "shops",
+      "label": "Fifth Avenue / historic shopfront typologies",
+      "residentBounds": [
+        378,
+        516,
+        450,
+        588
+      ],
+      "focusTown": [
+        414,
+        552
+      ],
+      "sourceIds": [
+        "osm-way-558337884",
+        "osm-way-558337885",
+        "osm-way-558337886",
+        "osm-way-558337887",
+        "osm-way-558337888",
+        "osm-way-558337890",
+        "osm-way-558337896",
+        "osm-way-558337898",
+        "osm-way-558337899",
+        "osm-way-558337901",
+        "osm-way-558337902"
+      ],
+      "placementIds": [
+        "osm-way-558337884",
+        "osm-way-558337885",
+        "osm-way-558337886",
+        "osm-way-558337887",
+        "osm-way-558337888",
+        "osm-way-558337890",
+        "osm-way-558337896",
+        "osm-way-558337898",
+        "osm-way-558337899",
+        "osm-way-558337901",
+        "osm-way-558337902"
+      ],
+      "solids": 11,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 11,
+      "created": 45,
+      "evicted": 34,
+      "drawObjects": 66,
+      "triangles": 75643,
+      "geometries": 66,
+      "materials": 32,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "donnelly-house",
+      "label": "Donnelly House / footprint and inferred veranda detail",
+      "residentBounds": [
+        363,
+        442,
+        435,
+        514
+      ],
+      "focusTown": [
+        399,
+        478
+      ],
+      "sourceIds": [
+        "osm-way-1240419651",
+        "osm-way-547799531",
+        "osm-way-558337901",
+        "osm-way-558337902"
+      ],
+      "placementIds": [
+        "osm-way-1240419651",
+        "osm-way-547799531",
+        "osm-way-558337901",
+        "osm-way-558337902"
+      ],
+      "solids": 4,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 4,
+      "created": 47,
+      "evicted": 43,
+      "drawObjects": 24,
+      "triangles": 40332,
+      "geometries": 24,
+      "materials": 34,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    },
+    {
+      "id": "courtyard",
+      "label": "Preserved church courtyard / roof remains open",
+      "residentBounds": [
+        244,
+        434,
+        316,
+        506
+      ],
+      "focusTown": [
+        280,
+        470
+      ],
+      "sourceIds": [
+        "osm-relation-7980769"
+      ],
+      "placementIds": [
+        "osm-relation-7980769"
+      ],
+      "solids": 1,
+      "artRevision": "8e595fcde85e57e14046154356fcbe92d3acd8bc9322c7c87c060dcc8b73fff9",
+      "resident": 1,
+      "created": 48,
+      "evicted": 47,
+      "drawObjects": 5,
+      "triangles": 14570,
+      "geometries": 5,
+      "materials": 34,
+      "occlusionMaterials": 0,
+      "fadedPlacements": [],
+      "borrowedAtlas": true,
+      "ownedSamplers": 1,
+      "disposed": false,
+      "coordinates": "town metres; host applies game offset once",
+      "renderer": "WebGL"
+    }
+  ],
+  "reviewedAt": "2026-11-02",
+  "phone": {
+    "documentWidth": 375,
+    "errors": "",
+    "images": [
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "naturalHeight": 500,
+        "naturalWidth": 768,
+        "width": 341
+      }
+    ],
+    "viewportWidth": 390
+  },
+  "consoleWarnings": [],
+  "consoleErrors": [],
+  "measurement": "Native Three geometry/CPU counts; no GPU timing or in-game route claim.",
+  "occlusionEvidence": "Native Three ray/material lifetime tests; final actual animal legibility belongs to game integration.",
+  "runtimeSourceHashes": {
+    "kit.js": "c932dd04faac582ccf84ffc9e31b46c02a8e57d86fda8a7fc1fea06e27ea858a",
+    "manifest.js": "60a59f716348ba2c8982a51a174471e49567b8839ca179fdefe51676da4c380d",
+    "placements.js": "9d02ea08868d1d23f7c4d65da56866b21c5ceb39524919d955a1a4eea81cce2a"
+  },
+  "helperCleanup": {
+    "stoppedAt": "2026-11-02T09:40:40.140064+00:00",
+    "pid": 36344,
+    "creationFileTime": 134380846453325727,
+    "port": 51672,
+    "method": "Exact PID+creation time+executable verified; private STOP marker; graceful process exit confirmed.",
+    "portReleased": true,
+    "restartRecord": "artifacts/mount-dora-playable-art-refinement/final-restart/restart.json",
+    "browser": "Own review tabs closed; viewport reset.",
+    "remainingTaskHelpers": []
+  },
+  "earlierHelperCleanup": {
+    "stoppedAt": "2026-11-02T09:07:37.810444+00:00",
+    "pid": 2312,
+    "creationFileTime": 134380829634483095,
+    "port": 60696,
+    "method": "Exact PID+creation time+executable verified; private STOP marker; process exit confirmed.",
+    "portReleased": true,
+    "restartRecord": "artifacts/mount-dora-playable-art/final-restart/restart.json",
+    "browser": "Own review tab closed; viewport override reset.",
+    "remainingTaskHelpers": []
+  },
+  "checks": {
+    "repositoryTests": 408,
+    "repositoryTestsPassed": 408,
+    "focusedArtTests": 11,
+    "productionBuild": "passed"
+  }
+}

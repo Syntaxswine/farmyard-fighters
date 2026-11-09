@@ -1,0 +1,29 @@
+{
+  "id": "sand-cliff",
+  "name": "Cliff sand",
+  "version": 1,
+  "tileWorldSize": 2,
+  "pixels": 512,
+  "colorSpace": "sRGB",
+  "alpha": "Straight (PNG); no baked grass or ground colour",
+  "tiles": [
+    "sand.png",
+    "sand-feather.png"
+  ],
+  "usage": "sand.png repeats without rotation. sand-feather.png is an isolated alpha patch over any local ground; its transparent border reveals the actual underlying material. Top of image is north (-Z). Paint only, independent of navigation.",
+  "source": "tactics/painted-sand.js",
+  "validation": [
+    {
+      "borderError": 0,
+      "borderAlpha": 255,
+      "partial": 0,
+      "centerAlpha": 255
+    },
+    {
+      "borderError": 0,
+      "borderAlpha": 0,
+      "partial": 128351,
+      "centerAlpha": 255
+    }
+  ]
+}

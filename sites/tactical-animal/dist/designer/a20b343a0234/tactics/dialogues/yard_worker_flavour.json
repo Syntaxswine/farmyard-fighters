@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "yard_worker_flavour",
+  "version": 1,
+  "entry": [
+    {
+      "node": "greeting"
+    }
+  ],
+  "nodes": {
+    "greeting": {
+      "npc": [
+        "The town's past the loading yard. Mind the barricade.",
+        "Quiet shift? I don't think we get those anymore."
+      ]
+    }
+  }
+}

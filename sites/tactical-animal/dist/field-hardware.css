@@ -1,0 +1,198 @@
+/* Live field controls use the approved painted switch materials. */
+#battle .square-control.industrial-switch,
+#battle .view-controls .industrial-switch {
+  display: block;
+  width: var(--switch-size);
+  height: var(--switch-size);
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--legend-paint);
+  box-shadow: 0 2px 3px #070e0980;
+  opacity: 1;
+}
+#battle .square-control.industrial-switch { --switch-size: 60px; }
+#battle .square-control .switch-legend {
+  inset: 9px 7px 7px;
+  grid-template-rows: 25px 9px 8px;
+}
+#battle .square-control .switch-icon,
+#battle .square-control .switch-glyph,
+#battle .square-control .control-icon svg { width: 25px; height: 25px; }
+#battle .square-control .switch-label { font: 700 7px/9px var(--mono); letter-spacing: .15px; }
+#battle .square-control .switch-cost { font: 700 7px/8px var(--mono); color: inherit; margin: 0; }
+#battle .square-control .switch-stock { top: -2px; right: 0; font-size: 7px; color: inherit; }
+#battle #look .eye-symbol { width: 29px; }
+#battle #look .switch-glyph { width: 29px; fill: currentColor; stroke: none; }
+#battle #look .eye-count { font-size: 10px; }
+#battle #look.guard-alert .eye-symbol { animation: none; }
+#battle #look.guard-alert::after { animation: contact-lamp .5s step-end 4; }
+@keyframes contact-lamp { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+#battle #end-turn .switch-legend {
+  inset: 10px 7px 8px;
+  grid-template-rows: 22px 16px;
+  gap: 1px;
+}
+#battle #end-turn .switch-icon,
+#battle #end-turn .switch-glyph { width: 22px; height: 22px; }
+#battle #end-turn .switch-label {
+  font: 700 8px/8px var(--mono);
+  letter-spacing: .2px;
+  text-align: center;
+}
+#battle .view-controls .industrial-switch { --switch-size: 44px; }
+#battle .view-controls .switch-legend {
+  inset: 9px;
+  grid-template-rows: 1fr;
+  place-items: center;
+}
+#battle .view-controls .switch-icon,
+#battle .view-controls .switch-glyph { width: 24px; height: 24px; }
+#battle .view-controls > span { color: #efe6ce; }
+@media (max-width: 380px) {
+  #battle .square-control.industrial-switch { --switch-size: 58px; }
+}
+@media (max-height: 580px) and (min-width: 600px) {
+  #battle .square-control.industrial-switch { --switch-size: 44px; }
+  #battle .square-control .switch-legend { inset: 6px 5px 4px; grid-template-rows: 17px 7px 6px; }
+  #battle .square-control .switch-icon, #battle .square-control .switch-glyph,
+  #battle .square-control .control-icon svg { width: 17px; height: 17px; }
+  #battle .square-control .switch-label { font-size: 6px; line-height: 7px; }
+  #battle .square-control .switch-cost { font-size: 5.5px; line-height: 6px; }
+  #battle #look .eye-symbol, #battle #look .switch-glyph { width: 21px; }
+  #battle #look .eye-count { font-size: 8px; }
+  #battle .square-control .switch-stock { font-size: 5.5px; top: -1px; }
+  #battle #end-turn .switch-legend { inset: 7px 5px 5px; grid-template-rows: 16px 13px; }
+  #battle #end-turn .switch-icon, #battle #end-turn .switch-glyph { width: 16px; height: 16px; }
+  #battle #end-turn .switch-label { font-size: 6.5px; line-height: 6.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #battle #look.guard-alert::after { animation: none; }
+}
+
+/* Physical targeting console, using the inherited terminal paint and CRT glass. */
+#overlay[data-mode='shooting'] {
+  width: min(414px, calc(100vw - 16px)); max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px); padding: 12px 16px 14px;
+  background: #1d261f; border-color: #70785b;
+  box-shadow: inset 0 0 0 4px #30392b, inset 0 0 22px #080f09, 0 20px 100px #0009;
+}
+#overlay[data-mode='shooting'] #overlay-content { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: end; }
+#overlay[data-mode='shooting'] .eyebrow { grid-column: 1 / -1; font-size: 8px; margin: 0; color: #c2b68e; letter-spacing: 1px; }
+#overlay[data-mode='shooting'] h2 { margin: 0; font: 600 24px/1 var(--display); }
+#overlay[data-mode='shooting'] .shooting-resources { margin: 0; font: 9px/1.5 var(--mono); color: #d3cbb2; }
+#overlay[data-mode='shooting'] .dialog-actions:empty { display: none; }
+#overlay .context-panel.shooting-panel { display: block; padding: 0; margin-top: 8px; border: 0; background: transparent; }
+#overlay .target-monitor {
+  height: clamp(176px, 26dvh, 220px); width: 100%; margin: 0; padding: 2px 2px 0;
+  border: 10px solid #4d5540;
+  border-image: url('aft/assets/ui/dialogue-terminal/field-terminal.webp') 7% fill / 10px / 0 stretch;
+  box-shadow: 0 3px 0 #080e08, 0 5px 8px #03080390; position: relative;
+}
+#overlay .target-glass {
+  position: relative; isolation: isolate; height: calc(100% - 19px); overflow: hidden;
+  border: 3px solid #142014; border-radius: 12px; background: #06160c;
+  box-shadow: inset 0 0 14px #000c, 0 1px 0 #a5ab7440;
+}
+#overlay .target-glass::before, #overlay .target-glass::after { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; opacity: .2; }
+#overlay .target-glass::before { z-index: 2; background: url('aft/assets/ui/dialogue-terminal/crt-green-v1.webp') center/cover no-repeat; }
+#overlay .target-glass::after { z-index: 3; background: repeating-linear-gradient(to bottom,#031108 0 2px,#fff 2px 4px); }
+#overlay .target-center-light { position: absolute; z-index: 1; inset: 0; pointer-events: none; mix-blend-mode: color-dodge; background: radial-gradient(ellipse closest-side at 50% 50%,#383838 0%,#2b2b2b 22%,#151515 50%,#050505 78%,#000 100%); }
+#overlay .target-scan { display: block; width: 100%; height: 100%; }
+#overlay .target-body-highlight { fill: #a5ff7f26; stroke: #c3ffad; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+#overlay .target-hit-leader { fill: none; stroke: #a8e895; stroke-width: 1; vector-effect: non-scaling-stroke; }
+#overlay .target-hit-percent { fill: #c8ffaf; font: 700 28px/1 var(--mono); }
+#overlay .target-hit-location { fill: #b9e6a7; font: 700 12px/1 var(--mono); letter-spacing: 1px; }
+#overlay .target-monitor-caption { display: flex; align-items: center; justify-content: space-between; gap: 5px; height: 19px; color: #ddd6bc; font: 7px/1 var(--mono); }
+#overlay .target-monitor-caption::before { content: ''; width: 5px; height: 5px; border: 1px solid #a8bd80; border-radius: 50%; background: #607c40; box-shadow: 0 0 3px #b5d78b60; flex: none; }
+#overlay .target-monitor-caption strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: inherit; flex: 1; }
+#overlay .target-signal-status { white-space: nowrap; color: #b6c09a; font-size: 6px; }
+#overlay .target-no-signal { display: grid; place-items: center; height: 100%; padding: 15px; text-align: center; color: #c1e9a8; font: 10px var(--mono); }
+#overlay .shooting-group { min-width: 0; margin: 10px 0 0; padding: 0; border: 0; }
+#overlay .shooting-group legend { margin: 0 0 5px; font: 9px/1.4 var(--mono); letter-spacing: 1.2px; color: #bec4ac; }
+#overlay .shooting-bank { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; gap: 6px; }
+#overlay .shooting-panel .industrial-switch {
+  --switch-size: 64px; display: block; width: var(--switch-size); height: var(--switch-size);
+  min-height: 0; padding: 0; border: 0; border-radius: 2px; background: transparent;
+  color: var(--legend-paint); opacity: 1;
+}
+#overlay .shooting-panel .switch-legend { inset: 9px 6px 7px; grid-template-rows: 23px 10px 8px; }
+#overlay .shooting-panel .switch-icon, #overlay .shooting-panel .switch-glyph { width: 23px; height: 23px; }
+#overlay .shooting-panel .switch-label { font: 700 8px/10px var(--mono); }
+#overlay .shooting-panel .switch-cost { font: 700 7px/8px var(--mono); }
+#overlay .shooting-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+#overlay .shooting-columns .shooting-group { margin: 0; }
+#overlay .shooting-columns .shooting-bank { grid-template-columns: minmax(0, 1fr); gap: 6px; justify-items: stretch; }
+#overlay .shooting-columns .industrial-switch { width: 100%; height: 48px; }
+#overlay .shooting-columns .switch-legend { inset: 6px 10px; grid-template-columns: 22px minmax(0, 1fr); grid-template-rows: 16px 10px; column-gap: 7px; justify-items: start; align-items: center; }
+#overlay .shooting-columns .switch-icon { grid-column: 1; grid-row: 1 / 3; }
+#overlay .shooting-columns .switch-icon, #overlay .shooting-columns .switch-glyph { width: 22px; height: 22px; }
+#overlay .shooting-columns .switch-label { grid-column: 2; grid-row: 1; font: 700 clamp(9px, 2.7vw, 11px)/15px var(--mono); }
+#overlay .shooting-columns .switch-cost { grid-column: 2; grid-row: 2; font: 700 8px/10px var(--mono); }
+#overlay .shooting-panel .fire-bar { width: 100%; height: 48px; margin-top: 10px; box-shadow: 0 4px 0 #080f08, 0 5px 6px #0007; }
+#overlay .fire-bar::before {
+  background: none; border: 7px solid #414c34;
+  border-image: url('aft/assets/ui/dialogue-terminal/field-terminal.webp') 7% fill / 7px / 0 stretch;
+  box-shadow: inset 0 1px 0 #c3c69d80, inset 0 -4px 0 #0b140c80;
+}
+#overlay .fire-bar::after { --switch-skins: url('assets/ui/industrial-switches/shooting-switch-skins-v1.webp'); }
+#overlay .fire-bar .switch-legend { inset: 8px 14px; display: flex; gap: 11px; justify-content: center; align-items: center; }
+#overlay .fire-bar .switch-label { font: 700 15px/1 var(--mono); letter-spacing: 2px; }
+#overlay .fire-bar .switch-cost { position: absolute; right: 0; font-size: 9px; }
+#overlay .fire-bar:enabled:active { transform: translateY(2px); box-shadow: 0 2px 0 #080f08; }
+#overlay .shooting-bank[data-burst='false'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#overlay .shooting-warning { margin: 8px 0 0; color: #edb58e; font: 10px/1.5 var(--mono); }
+@media (max-width: 360px) {
+  #overlay[data-mode='shooting'] { padding: 10px 12px; }
+  #overlay[data-mode='shooting'] h2 { font-size: 20px; }
+  #overlay .shooting-columns { gap: 10px; }
+  #overlay .shooting-columns .industrial-switch { height: 44px; }
+  #overlay .shooting-columns .switch-legend { inset: 5px 8px; grid-template-columns: 20px minmax(0, 1fr); column-gap: 5px; }
+  #overlay .shooting-columns .switch-icon, #overlay .shooting-columns .switch-glyph { width: 20px; height: 20px; }
+  #overlay .trigger-bank .industrial-switch { --switch-size: 56px; }
+  #overlay .trigger-bank .switch-legend { inset: 8px 5px 6px; grid-template-rows: 19px 9px 8px; }
+  #overlay .trigger-bank .switch-icon, #overlay .trigger-bank .switch-glyph { width: 19px; height: 19px; }
+  #overlay .trigger-bank .switch-label { font-size: 7px; }
+  #overlay .target-signal-status { display: none; }
+}
+@media (max-height: 580px) and (min-width: 600px) {
+  #overlay[data-mode='shooting'] { width: min(720px, calc(100vw - 16px)); padding: 12px; }
+  #overlay[data-mode='shooting'][open] { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 8px 14px; }
+  #overlay[data-mode='shooting'] #overlay-content { grid-column: 1; grid-row: 1; }
+  #overlay[data-mode='shooting'] .context-panel.shooting-panel { display: contents; }
+  #overlay[data-mode='shooting'] .target-monitor { grid-column: 1; grid-row: 2 / 5; height: 210px; align-self: start; }
+  #overlay[data-mode='shooting'] .shooting-columns { grid-column: 2; grid-row: 1 / 3; margin: 0; gap: 10px; }
+  #overlay[data-mode='shooting'] .shooting-columns .industrial-switch { height: 44px; }
+  #overlay[data-mode='shooting'] .shooting-columns .shooting-bank { gap: 4px; }
+  #overlay[data-mode='shooting'] .fire-bar { grid-column: 2; grid-row: 3; margin: 0; height: 44px; }
+  #overlay[data-mode='shooting'] .trigger-bank { grid-column: 2; grid-row: 4; margin: 0; }
+  #overlay[data-mode='shooting'] .trigger-bank legend { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); }
+  #overlay[data-mode='shooting'] .trigger-bank .industrial-switch { --switch-size: 44px; }
+  #overlay[data-mode='shooting'] .trigger-bank .switch-legend { inset: 6px 5px 4px; grid-template-rows: 16px 7px 6px; }
+  #overlay[data-mode='shooting'] .trigger-bank .switch-icon, #overlay[data-mode='shooting'] .trigger-bank .switch-glyph { width: 16px; height: 16px; }
+  #overlay[data-mode='shooting'] .trigger-bank .switch-label { font-size: 6px; line-height: 7px; }
+  #overlay[data-mode='shooting'] .trigger-bank .switch-cost { font-size: 5.5px; line-height: 6px; }
+  #overlay[data-mode='shooting'] .shooting-warning { grid-column: 1 / -1; grid-row: 5; margin: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #overlay .fire-bar:enabled:active { transform: none; }
+}
+
+/* The shared area-weapon switch lights only for an affordable, held aim. */
+#battle #grenade[data-ready='false'] { --legend-paint: #e9e1cd; --legend-light: none; }
+#battle #grenade[data-ready='false']::after { opacity: 0; animation: none; }
+#battle #grenade[data-ready='true']::after { animation: area-fire-ready 2.4s ease-in-out infinite; }
+#battle #grenade[data-ready='true'] .switch-legend { animation: area-fire-legend 2.4s ease-in-out infinite; }
+@keyframes area-fire-ready { 0%,100% { opacity: .12; } 50% { opacity: 1; } }
+@keyframes area-fire-legend {
+  0%,100% { color: #e9e1cd; filter: none; }
+  50% { color: #fff4dd; filter: drop-shadow(0 0 .35px #fff2d1) drop-shadow(0 0 1.3px #fff0d153); }
+}
+.control-choices.area-choices { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.area-choices small { font: 9px/1.5 var(--mono); color: var(--muted); }
+.area-choices button[aria-pressed='true'] small { color: inherit; opacity: .85; }
+@media (prefers-reduced-motion: reduce) {
+  #battle #grenade[data-ready='true']::after { animation: none; opacity: 1; }
+  #battle #grenade[data-ready='true'] .switch-legend { animation: none; }
+}

@@ -1,0 +1,88 @@
+{
+  "frameWidth": 192,
+  "frameHeight": 256,
+  "anchor": [
+    96,
+    244
+  ],
+  "poses": [
+    "idle",
+    "walk-a",
+    "walk-b",
+    "work"
+  ],
+  "characters": {
+    "horse": {
+      "sheet": "horse.png",
+      "frames": [
+        "horse-idle.png",
+        "horse-walk-a.png",
+        "horse-walk-b.png",
+        "horse-work.png"
+      ]
+    },
+    "donkey": {
+      "sheet": "donkey.png",
+      "frames": [
+        "donkey-idle.png",
+        "donkey-walk-a.png",
+        "donkey-walk-b.png",
+        "donkey-work.png"
+      ]
+    },
+    "cow": {
+      "sheet": "cow.png",
+      "frames": [
+        "cow-idle.png",
+        "cow-walk-a.png",
+        "cow-walk-b.png",
+        "cow-work.png"
+      ]
+    },
+    "sheep": {
+      "sheet": "sheep.png",
+      "frames": [
+        "sheep-idle.png",
+        "sheep-walk-a.png",
+        "sheep-walk-b.png",
+        "sheep-work.png"
+      ]
+    },
+    "goat": {
+      "sheet": "goat.png",
+      "frames": [
+        "goat-idle.png",
+        "goat-walk-a.png",
+        "goat-walk-b.png",
+        "goat-work.png"
+      ]
+    },
+    "hen": {
+      "sheet": "hen.png",
+      "frames": [
+        "hen-idle.png",
+        "hen-walk-a.png",
+        "hen-walk-b.png",
+        "hen-work.png"
+      ]
+    },
+    "pig-foreman": {
+      "sheet": "pig-foreman.png",
+      "frames": [
+        "pig-foreman-idle.png",
+        "pig-foreman-walk-a.png",
+        "pig-foreman-walk-b.png",
+        "pig-foreman-work.png"
+      ]
+    },
+    "pig-director": {
+      "sheet": "pig-director.png",
+      "frames": [
+        "pig-director-idle.png",
+        "pig-director-walk-a.png",
+        "pig-director-walk-b.png",
+        "pig-director-work.png"
+      ]
+    }
+  }
+}

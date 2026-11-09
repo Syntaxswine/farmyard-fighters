@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="640" viewBox="0 0 512 640">
+ <title>East mill shipping manifest — Reserve 7</title>
+ <rect width="512" height="640" fill="#ddd3af"/>
+ <path d="M20 20H492V620H20Z" fill="none" stroke="#a99b79" stroke-width="4"/>
+ <g fill="#343e36" font-family="monospace" font-weight="700">
+  <text x="42" y="67" font-size="22" letter-spacing="4">EAST FEED MILL</text>
+  <text x="42" y="109" font-size="30">DISPATCH RECORD</text>
+  <text x="42" y="158" font-size="16">LOAD: GRAIN / SEALED SACKS</text>
+  <text x="42" y="188" font-size="16">DESTINATION</text>
+  <text x="42" y="235" font-size="40">RESERVE 7</text>
+  <text x="42" y="316" font-size="16">RELEASE AUTHORITY</text>
+  <text x="42" y="349" font-size="26">PUMP STATION 3</text>
+ </g>
+ <g stroke="#7c8368" stroke-width="3"><path d="M42 270H470M42 387H470M42 419H470M42 451H470"/><path d="M235 387V451M363 387V451"/></g>
+ <g transform="translate(166 330) rotate(-6 150 150) scale(3)" fill="#a63f29" fill-rule="evenodd">
+  <path d="M0 0H100V100H0ZM9 9V91H91V9Z M25 23H78V35L50 79H33L62 36H25Z"/>
+ </g>
+ <path d="M48 543Q102 514 93 554Q136 520 153 545L242 537" fill="none" stroke="#343e36" stroke-width="5"/>
+ <text x="42" y="592" fill="#686f5b" font-family="monospace" font-size="14">RELEASE SIGNATURE</text>
+</svg>

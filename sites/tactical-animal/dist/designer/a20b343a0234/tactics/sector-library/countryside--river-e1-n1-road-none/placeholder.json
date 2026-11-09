@@ -1,0 +1,197 @@
+{
+  "id": "countryside--river-e1-n1-road-none",
+  "kind": "sector-placeholder",
+  "version": 1,
+  "status": "placeholder",
+  "role": "countryside",
+  "facilities": [],
+  "difficulties": [
+    "easy",
+    "medium",
+    "hard"
+  ],
+  "config": {
+    "feature": {
+      "kind": "river",
+      "ports": [
+        {
+          "side": "east",
+          "slot": 1
+        },
+        {
+          "side": "north",
+          "slot": 1
+        }
+      ]
+    },
+    "roads": []
+  },
+  "equivalents": [
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 1
+          },
+          {
+            "side": "east",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 2
+          },
+          {
+            "side": "east",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 1
+          },
+          {
+            "side": "west",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "north",
+            "slot": 2
+          },
+          {
+            "side": "west",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "east",
+            "slot": 1
+          },
+          {
+            "side": "south",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "east",
+            "slot": 2
+          },
+          {
+            "side": "south",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "south",
+            "slot": 1
+          },
+          {
+            "side": "west",
+            "slot": 1
+          }
+        ]
+      },
+      "roads": []
+    },
+    {
+      "feature": {
+        "kind": "river",
+        "ports": [
+          {
+            "side": "south",
+            "slot": 2
+          },
+          {
+            "side": "west",
+            "slot": 2
+          }
+        ]
+      },
+      "roads": []
+    }
+  ],
+  "allowedTransforms": [
+    {
+      "turns": 0,
+      "mirror": false
+    },
+    {
+      "turns": 1,
+      "mirror": false
+    },
+    {
+      "turns": 2,
+      "mirror": false
+    },
+    {
+      "turns": 3,
+      "mirror": false
+    },
+    {
+      "turns": 0,
+      "mirror": true
+    },
+    {
+      "turns": 1,
+      "mirror": true
+    },
+    {
+      "turns": 2,
+      "mirror": true
+    },
+    {
+      "turns": 3,
+      "mirror": true
+    }
+  ],
+  "variants": [
+    "placeholder.json"
+  ],
+  "notes": []
+}

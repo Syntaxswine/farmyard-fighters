@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "title": "Painted fatal head presentation",
+  "generation": {
+    "mode": "built-in image_gen",
+    "original": "exec-135487fe-27fa-40be-8c5f-ab36b5fa365b.png",
+    "promptFile": "generation-prompt.txt",
+    "prompt": "Use case: stylized-concept\nAsset type: transparent production atlas for a brief stylized fatal-head impact effect in the painterly fictional animal-soldier tactical game Animal Factory Tactics.\nPrimary request: one square RGBA texture atlas with four distinct hand-painted components in exact equal 2 by 2 cells. Genuine transparent alpha. Leave at least 15 percent transparent padding inside every cell. No drawn grid.\nTop-left: one compact irregular dark-crimson liquid impact burst, broken asymmetrical broad lobes surrounding an off-centre dense centre, a few detached red beads, no symmetrical star or perfect circle. This lasts a fraction of a second and masks a game model changing silhouette. Keep brush masses economical and clearly liquid, not flame or smoke.\nTop-right: a short torn oxblood liquid fan pointing LEFT TO RIGHT, with its root near the left quarter, three or four unequal lobes and separated droplets. No long beam.\nBottom-left: a small cluster of five irregular dark burgundy and muted reddish-brown painted chips and flecks, uneven sizes and spacing, some elongated. Non-identifiable generic game debris only, no recognizable anatomy. Plenty of negative space, no shiny round berries.\nBottom-right: a small flat matte dark-maroon surface paint patch, roughly oval with irregular softened edges. Dark burgundy centre and restrained crimson brush marks, useful as a sealed low-detail closure on a small game mesh. No anatomical detail, bone, open hole or identifiable organ. Transparent around the patch.\nStyle: hand-painted low-poly game VFX matching subdued olive and cream painted uniforms. Oxblood, dark crimson and burgundy, muted red highlights, broad economical shapes. Legible at 15–40 pixels. Realism of direction and weight with a stylized, non-graphic presentation.\nAvoid: text, labels, grid, frames, backdrop, checkerboard, drop shadows, glow, fireball, orange or yellow flame, smoke, beams, perfect spheres, white glossy highlights, full heads, faces, bodies, skin, brains, organs, bones, teeth or any identifiable anatomical fragment. Do not show an injury illustration. Only the four isolated painted VFX components on alpha.\n"
+  },
+  "source": {
+    "file": "source-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "4a2d437543fa1afd320cf712d7f3e45fa8ca15c1902c85ae398cf7fb578629fc"
+  },
+  "runtime": {
+    "file": "fatal-head-components-v1.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 174140,
+    "sha256": "40748bf991e0230812c8c063e6e82ff8201ea47644c8473321faa82daf751557",
+    "alpha": "straight",
+    "alphaCutoff": 0.015,
+    "blend": "normal alpha",
+    "decodedBytesWithMipmaps": 1398102
+  },
+  "cells": [
+    {
+      "name": "burst",
+      "uv": [
+        0,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 79,
+        "top": 74,
+        "width": 534,
+        "height": 525
+      }
+    },
+    {
+      "name": "fan",
+      "uv": [
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.0975,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 687,
+        "top": 208,
+        "width": 517,
+        "height": 323
+      }
+    },
+    {
+      "name": "fragments",
+      "uv": [
+        0,
+        0,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 106,
+        "top": 753,
+        "width": 471,
+        "height": 390
+      }
+    },
+    {
+      "name": "closure",
+      "uv": [
+        0.5,
+        0,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 707,
+        "top": 856,
+        "width": 468,
+        "height": 231
+      }
+    }
+  ],
+  "authoring": {
+    "duration": 0.9,
+    "maximumCards": 48,
+    "axis": "+X is entrance-biased emission from the resolved contact; builder supplies the world frame",
+    "scope": "Artist assets and reversible instance mask. No qualification, HP or combat changes."
+  }
+}

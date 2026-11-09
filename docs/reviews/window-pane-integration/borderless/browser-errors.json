@@ -1,0 +1,29 @@
+{
+  "editor": [
+    {
+      "level": "error",
+      "message": "THREE.WebGLRenderer: A WebGL context could not be created. Reason:  Could not create a WebGL context, VENDOR = 0xffff, DEVICE = 0xffff, GL_VENDOR = Disabled, GL_RENDERER = Disabled, Sandboxed = yes, Optimus = no, AMD switchable = no, Reset notification strategy = 0x0000, ErrorMessage = BindToCurrentSequence failed: .",
+      "timestamp": "2026-10-29T13:58:59.347Z",
+      "url": "http://127.0.0.1:4514/designer/a20b343a0234/tactics/vendor/three.module.js"
+    },
+    {
+      "level": "error",
+      "message": "THREE.WebGLRenderer: A WebGL context could not be created. Reason:  Could not create a WebGL context, VENDOR = 0xffff, DEVICE = 0xffff, GL_VENDOR = Disabled, GL_RENDERER = Disabled, Sandboxed = yes, Optimus = no, AMD switchable = no, Reset notification strategy = 0x0000, ErrorMessage = BindToCurrentSequence failed: .",
+      "timestamp": "2026-10-29T13:58:59.349Z",
+      "url": "http://127.0.0.1:4514/designer/a20b343a0234/tactics/vendor/three.module.js"
+    },
+    {
+      "level": "error",
+      "message": "THREE.WebGLRenderer: Error creating WebGL context.",
+      "timestamp": "2026-10-29T13:58:59.349Z",
+      "url": "http://127.0.0.1:4514/designer/a20b343a0234/tactics/vendor/three.module.js"
+    },
+    {
+      "level": "error",
+      "message": "Error: Error creating WebGL context.\n    at new WebGLRenderer (http://127.0.0.1:4514/designer/a20b343a0234/tactics/vendor/three.module.js:15221:13)\n    at new InspectionScene (http://127.0.0.1:4514/designer/a20b343a0234/tactics/editor-3d-scene.js:32:76)\n    at http://127.0.0.1:4514/designer/a20b343a0234/tactics/editor-3d.js:19:13",
+      "timestamp": "2026-10-29T13:58:59.349Z",
+      "url": "http://127.0.0.1:4514/designer/a20b343a0234/tactics/vendor/three.module.js"
+    }
+  ],
+  "proof": []
+}

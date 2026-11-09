@@ -1,0 +1,1013 @@
+{
+  "version": 1,
+  "integrationStatus": "Integrated in the tactical editor and game; explicit rules in tactics/environment.js",
+  "projection": "2:1 isometric props; overhead terrain textures",
+  "assets": [
+    {
+      "id": "crate-wood",
+      "file": "crate-wood.png",
+      "label": "crate wood",
+      "kind": "prop",
+      "description": "One closed square wooden shipping crate with diagonal bracing and iron corner straps.",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "crate-steel",
+      "file": "crate-steel.png",
+      "label": "crate steel",
+      "kind": "prop",
+      "description": "One olive-painted rectangular steel military supply chest, sturdy closed lid, metal latches and carrying handles, no weapons or markings.",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "crate-stack",
+      "file": "crate-stack.png",
+      "label": "crate stack",
+      "kind": "prop",
+      "description": "A compact stack of three weathered wooden freight crates, two on bottom and one above, varied sizes.",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "high"
+      }
+    },
+    {
+      "id": "table-wood",
+      "file": "table-wood.png",
+      "label": "table wood",
+      "kind": "prop",
+      "description": "One plain rectangular wooden factory mess table, empty plank top and four sturdy legs.",
+      "suggestedFootprint": [
+        2,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "table-steel",
+      "file": "table-steel.png",
+      "label": "table steel",
+      "kind": "prop",
+      "description": "One rectangular steel utility table with dull gray empty top, olive metal legs and lower shelf.",
+      "suggestedFootprint": [
+        2,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "workbench-vise",
+      "file": "workbench-vise.png",
+      "label": "workbench vise",
+      "kind": "prop",
+      "description": "One heavy wooden mechanics workbench with a mounted dark steel vise, a few small hand tools, storage shelf beneath, no backdrop or pegboard.",
+      "suggestedFootprint": [
+        2,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "workbench-metal",
+      "file": "workbench-metal.png",
+      "label": "workbench metal",
+      "kind": "prop",
+      "description": "One olive industrial metal workbench with drawers, scratched steel top, small open tool tray and red oil can.",
+      "suggestedFootprint": [
+        2,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "barrel-single",
+      "file": "barrel-single.png",
+      "label": "barrel single",
+      "kind": "prop",
+      "description": "Exactly ONE upright weathered dark red steel oil barrel, closed circular lid with two bung caps, two reinforcement rings.",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "barrels-cluster",
+      "file": "barrels-cluster.png",
+      "label": "barrels cluster",
+      "kind": "prop",
+      "description": "A compact cluster of THREE upright weathered steel oil barrels, two dull red and one olive, closed lids with bungs, no platform.",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "wall-concrete",
+      "file": "wall-concrete.png",
+      "label": "wall concrete",
+      "kind": "edge",
+      "description": "One straight tall solid concrete wall segment, weathered warm gray with tiny chips and seams, thin thickness. Wall follows ground axis from screen lower-left to upper-right. Clear flat ends for modular placement, no corner or return wall.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "high"
+      }
+    },
+    {
+      "id": "wall-corrugated",
+      "file": "wall-corrugated.png",
+      "label": "wall corrugated",
+      "kind": "edge",
+      "description": "One straight tall rusted corrugated galvanized metal wall panel held in thin steel frame. Opaque, vertical ribs, muted rust and steel gray. Runs screen lower-left to upper-right along isometric ground axis, no corner or return.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "high"
+      }
+    },
+    {
+      "id": "wall-brick",
+      "file": "wall-brick.png",
+      "label": "wall brick",
+      "kind": "edge",
+      "description": "One straight tall old red-brick wall segment, mortar joints, flat top, slight wear. Runs screen lower-left to upper-right along isometric ground axis, flat ends for modular placement, no corner.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "high"
+      }
+    },
+    {
+      "id": "fence-chainlink",
+      "file": "fence-chainlink.png",
+      "label": "fence chainlink",
+      "kind": "edge",
+      "description": "One straight chain-link fence segment between two thin steel posts, tightly woven diamond wire clearly see-through with genuine transparent holes showing alpha background. Runs screen lower-left to upper-right along isometric ground axis. No solid panel, no opaque fill or base, no barbed wire.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "fence-railing",
+      "file": "fence-railing.png",
+      "label": "fence railing",
+      "kind": "edge",
+      "description": "One straight waist-high industrial iron railing segment, slim upright posts, two thin horizontal rails, wide transparent gaps, blocks passage while allowing visibility. Runs screen lower-left to upper-right along isometric ground axis, no opaque fill or base.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "sandbags",
+      "file": "sandbags.png",
+      "label": "sandbags",
+      "kind": "prop",
+      "description": "One low compact sandbag barricade stacked three courses high, khaki canvas sacks, straight length along isometric ground axis from lower-left to upper-right.",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "pallet",
+      "file": "pallet.png",
+      "label": "pallet",
+      "kind": "prop",
+      "description": "One low empty weathered wooden shipping pallet, rectangular slats and support blocks.",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "orientation": "as illustrated",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ground-dirt",
+      "file": "ground-dirt.png",
+      "label": "ground dirt",
+      "kind": "terrain",
+      "description": "Compacted dry warm brown earth, fine dusty grit and occasional tiny stones.",
+      "projection": "map square texture to ground diamond",
+      "repeat": "visual repeat; exact edge matching not guaranteed",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ground-gravel",
+      "file": "ground-gravel.png",
+      "label": "ground gravel",
+      "kind": "terrain",
+      "description": "Small irregular gray and tan crushed gravel evenly scattered.",
+      "projection": "map square texture to ground diamond",
+      "repeat": "visual repeat; exact edge matching not guaranteed",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ground-grass",
+      "file": "ground-grass.png",
+      "label": "ground grass",
+      "kind": "terrain",
+      "description": "Short sparse olive grass with subdued brown soil visible between blades.",
+      "projection": "map square texture to ground diamond",
+      "repeat": "visual repeat; exact edge matching not guaranteed",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ground-concrete",
+      "file": "ground-concrete.png",
+      "label": "ground concrete",
+      "kind": "terrain",
+      "description": "Weathered warm gray poured industrial concrete with very fine cracks and subtle stains.",
+      "projection": "map square texture to ground diamond",
+      "repeat": "visual repeat; exact edge matching not guaranteed",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ground-asphalt",
+      "file": "ground-asphalt.png",
+      "label": "ground asphalt",
+      "kind": "terrain",
+      "description": "Dark charcoal weathered asphalt with fine gray aggregate, subtle wear, no markings.",
+      "projection": "map square texture to ground diamond",
+      "repeat": "visual repeat; exact edge matching not guaranteed",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ground-tiles",
+      "file": "ground-tiles.png",
+      "label": "ground tiles",
+      "kind": "terrain",
+      "description": "Old square gray factory floor tiles with narrow dark mortar lines, slight chips and subdued olive-gray patina. A perfectly regular grid aligned horizontally and vertically.",
+      "projection": "map square texture to ground diamond",
+      "repeat": "visual repeat; exact edge matching not guaranteed",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "window-concrete",
+      "file": "window-concrete.png",
+      "label": "window concrete",
+      "kind": "edge",
+      "description": "A tall straight warm-gray concrete wall section with one large rectangular industrial window centered above a waist-high solid sill. Thin olive metal window frame with four panes; the panes are empty see-through openings (no glass reflection or opaque fill). Flat wall top and ends; small chips, rust beneath frame.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      },
+      "notes": "Sight through aperture; surrounding wall remains solid. No glass or climbing mechanics implemented."
+    },
+    {
+      "id": "window-brick",
+      "file": "window-brick.png",
+      "label": "window brick",
+      "kind": "edge",
+      "description": "A tall straight weathered red-brick factory wall section with one wide six-pane industrial window above a waist-high brick sill, slender dark iron mullions, stone lintel. All six pane openings are transparent (no opaque glass or interior), flat wall ends.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      },
+      "notes": "Sight through aperture; surrounding wall remains solid. No glass or climbing mechanics implemented."
+    },
+    {
+      "id": "window-corrugated",
+      "file": "window-corrugated.png",
+      "label": "window corrugated",
+      "kind": "edge",
+      "description": "A tall straight rusted corrugated galvanized wall panel with one broad rectangular three-pane window above waist height. Olive steel frame; three genuinely transparent empty window openings, no interior backdrop or reflective glass. Vertical corrugations and slender steel wall end posts.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      },
+      "notes": "Sight through aperture; surrounding wall remains solid. No glass or climbing mechanics implemented."
+    },
+    {
+      "id": "door-steel-closed",
+      "file": "door-steel-closed-v2.png",
+      "label": "door steel closed",
+      "kind": "edge",
+      "description": "Standalone cropped door steel closed; surrounding wall removed.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "high"
+      },
+      "notes": "User-requested polygon crop of original painted art. Full tile-edge width, 72 px nominal height; originals retained. Open and closed designs are not a matched animation pair.",
+      "renderHeight": 72
+    },
+    {
+      "id": "doorway-concrete-open",
+      "file": "doorway-concrete-open-v2.png",
+      "label": "doorway concrete open",
+      "kind": "edge",
+      "description": "Standalone cropped doorway concrete open; surrounding wall removed.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      },
+      "notes": "User-requested polygon crop of original painted art. Full tile-edge width, 72 px nominal height; originals retained. Open and closed designs are not a matched animation pair.",
+      "renderHeight": 72
+    },
+    {
+      "id": "door-wood-closed",
+      "file": "door-wood-closed-v2.png",
+      "label": "door wood closed",
+      "kind": "edge",
+      "description": "Standalone cropped door wood closed; surrounding wall removed.",
+      "suggestedFootprint": null,
+      "orientation": "lower-left to upper-right; mirror for other axis",
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "high"
+      },
+      "notes": "User-requested polygon crop of original painted art. Full tile-edge width, 72 px nominal height; originals retained. Open and closed designs are not a matched animation pair.",
+      "renderHeight": 72
+    },
+    {
+      "id": "botanical-chamber",
+      "file": "facility/botanical-chamber.png",
+      "label": "botanical chamber",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "jail-bars",
+      "file": "facility/jail-bars.png",
+      "label": "jail bars",
+      "kind": "edge",
+      "suggestedFootprint": [
+        1,
+        0
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "jail-door-closed",
+      "file": "facility/jail-door-closed.png",
+      "label": "jail door closed",
+      "kind": "edge",
+      "suggestedFootprint": [
+        1,
+        0
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "lab-bench",
+      "file": "facility/lab-bench.png",
+      "label": "lab bench",
+      "kind": "prop",
+      "suggestedFootprint": [
+        2,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "lab-control-console",
+      "file": "facility/lab-control-console.png",
+      "label": "lab control console",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "medical-exam-table",
+      "file": "facility/medical-exam-table.png",
+      "label": "medical exam table",
+      "kind": "prop",
+      "suggestedFootprint": [
+        2,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "medical-surgical-table",
+      "file": "facility/medical-surgical-table.png",
+      "label": "medical surgical table",
+      "kind": "prop",
+      "suggestedFootprint": [
+        2,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "medicine-cabinet",
+      "file": "facility/medicine-cabinet.png",
+      "label": "medicine cabinet",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "bedside-monitor",
+      "file": "hospital/bedside-monitor.png",
+      "label": "bedside monitor",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "hospital-bed",
+      "file": "hospital/hospital-bed.png",
+      "label": "hospital bed",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        2
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "instrument-trolley",
+      "file": "hospital/instrument-trolley.png",
+      "label": "instrument trolley",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "iv-stand",
+      "file": "hospital/iv-stand.png",
+      "label": "iv stand",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "scrub-sink",
+      "file": "hospital/scrub-sink.png",
+      "label": "scrub sink",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        2
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "wheeled-stretcher",
+      "file": "hospital/wheeled-stretcher.png",
+      "label": "wheeled stretcher",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        2
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "medicine-cabinet-closed",
+      "file": "containers/medicine-cabinet-closed.png",
+      "label": "medicine cabinet closed",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "medicine-cabinet-open",
+      "file": "containers/medicine-cabinet-open.png",
+      "label": "medicine cabinet open",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": true,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "supply-chest-closed",
+      "file": "containers/supply-chest-closed.png",
+      "label": "supply chest closed",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "supply-chest-open",
+      "file": "containers/supply-chest-open.png",
+      "label": "supply chest open",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "toolbox-closed",
+      "file": "containers/toolbox-closed.png",
+      "label": "toolbox closed",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "toolbox-open",
+      "file": "containers/toolbox-open.png",
+      "label": "toolbox open",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "wooden-crate-closed",
+      "file": "containers/wooden-crate-closed.png",
+      "label": "wooden crate closed",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "wooden-crate-open",
+      "file": "containers/wooden-crate-open.png",
+      "label": "wooden crate open",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": true,
+        "blocksSight": false,
+        "cover": "low"
+      }
+    },
+    {
+      "id": "ammo-assault",
+      "file": "loot/ammo-assault.png",
+      "label": "ammo assault",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ammo-pistol",
+      "file": "loot/ammo-pistol.png",
+      "label": "ammo pistol",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "ammo-rifle",
+      "file": "loot/ammo-rifle.png",
+      "label": "ammo rifle",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "first-aid-kit",
+      "file": "loot/first-aid-kit.png",
+      "label": "first aid kit",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "gun-assault",
+      "file": "loot/gun-assault.png",
+      "label": "gun assault",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "gun-pistol",
+      "file": "loot/gun-pistol.png",
+      "label": "gun pistol",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "gun-rifle",
+      "file": "loot/gun-rifle.png",
+      "label": "gun rifle",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "spare-parts",
+      "file": "loot/spare-parts.png",
+      "label": "spare parts",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "wire-cutters",
+      "file": "loot/wire-cutters.png",
+      "label": "wire cutters",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "fence-cut",
+      "file": "fence-chainlink-cut.png",
+      "label": "fence cut",
+      "kind": "edge",
+      "suggestedFootprint": [
+        1,
+        0
+      ],
+      "suggestedRules": {
+        "blocksMovement": false,
+        "blocksSight": false,
+        "cover": "none"
+      }
+    },
+    {
+      "id": "tree-broadleaf",
+      "file": "foliage/tree-broadleaf.png",
+      "label": "tree broadleaf",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "tree-pine",
+      "file": "foliage/tree-pine.png",
+      "label": "tree pine",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "bush",
+      "file": "foliage/bush.png",
+      "label": "bush",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "reeds",
+      "file": "foliage/reeds.png",
+      "label": "reeds",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "roof-corrugated-flat",
+      "file": "roof-corrugated-flat.png",
+      "label": "roof corrugated flat",
+      "kind": "prop",
+      "suggestedFootprint": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "roof-corrugated-sloped",
+      "file": "roof-corrugated-sloped.png",
+      "label": "roof corrugated sloped",
+      "kind": "prop",
+      "suggestedFootprint": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "roof-flat-parapet",
+      "file": "roof-flat-parapet.png",
+      "label": "roof flat parapet",
+      "kind": "prop",
+      "suggestedFootprint": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "tree-broadleaf-large",
+      "file": "foliage/tree-broadleaf.png",
+      "label": "tree broadleaf large",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "description": "Mature 1.8x variant of tree broadleaf. Reuses the source sprite at enlarged display size; shared hybrid model and collision proxies scale together. One trunk tile, overhanging canopy."
+    },
+    {
+      "id": "tree-pine-large",
+      "file": "foliage/tree-pine.png",
+      "label": "tree pine large",
+      "kind": "prop",
+      "suggestedFootprint": [
+        1,
+        1
+      ],
+      "description": "Mature 1.8x variant of tree pine. Reuses the source sprite at enlarged display size; shared hybrid model and collision proxies scale together. One trunk tile, overhanging canopy."
+    }
+  ]
+}

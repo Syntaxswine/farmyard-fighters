@@ -1,0 +1,74 @@
+{
+  "id": "city-factory-workshop--land-road-ensw",
+  "kind": "sector-placeholder",
+  "version": 1,
+  "status": "placeholder",
+  "role": "city",
+  "facilities": [
+    "factory",
+    "workshop"
+  ],
+  "difficulties": [
+    "easy",
+    "medium",
+    "hard"
+  ],
+  "config": {
+    "feature": null,
+    "roads": [
+      "east",
+      "north",
+      "south",
+      "west"
+    ]
+  },
+  "equivalents": [
+    {
+      "feature": null,
+      "roads": [
+        "north",
+        "east",
+        "south",
+        "west"
+      ]
+    }
+  ],
+  "allowedTransforms": [
+    {
+      "turns": 0,
+      "mirror": false
+    },
+    {
+      "turns": 1,
+      "mirror": false
+    },
+    {
+      "turns": 2,
+      "mirror": false
+    },
+    {
+      "turns": 3,
+      "mirror": false
+    },
+    {
+      "turns": 0,
+      "mirror": true
+    },
+    {
+      "turns": 1,
+      "mirror": true
+    },
+    {
+      "turns": 2,
+      "mirror": true
+    },
+    {
+      "turns": 3,
+      "mirror": true
+    }
+  ],
+  "variants": [
+    "placeholder.json"
+  ],
+  "notes": []
+}

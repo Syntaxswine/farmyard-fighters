@@ -1,0 +1,9 @@
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import {BORDERLESS_WINDOW_ID,WINDOW_VERSION,WINDOW_METRICS,WINDOW_IDS,WINDOW_FINISHES,WINDOW_WALLS,describeWindow} from '../dist/art/windows/catalog.js';
+const root='sites/tactical-animal/dist',sha=b=>createHash('sha256').update(b).digest('hex');
+const inherited=['aft/tactics/hybrid-materials.js','aft/tactics/diagonal-roads.js'].map(path=>({path,sha256:sha(fs.readFileSync(root+'/'+path))}));
+const authored=['catalog.js','geometry.js','preview-renderer.js','index.html','review.js','review.css'].map(name=>({path:'art/windows/'+name,encoding:'UTF-8 with LF',sha256:sha(fs.readFileSync(root+'/art/windows/'+name,'utf8').replace(/\r\n/g,'\n'))}));
+const manifest={version:WINDOW_VERSION,metrics:WINDOW_METRICS,finishes:WINDOW_FINISHES,walls:WINDOW_WALLS,definitions:WINDOW_IDS.map(id=>describeWindow(id)),templates:[{id:BORDERLESS_WINDOW_ID,dimensions:{units:'metres',width:'positive finite number',height:'positive finite number'},paneId:'r0c0',solids:[],examples:[{width:20,height:5},{width:20,height:10.6}]}],
+ provenance:{baseFarmyardCommit:'6e47587',studyRepository:'https://github.com/Syntaxswine/animal-factory-tactics-3d',studyCommit:'ebf51393909040b61a7c40649d9d5f0ac3678735',studyFile:'dist/tactics/window-shatter.js',style:'Cyan translucent glass; framed forms retain pale reflection strokes and oiled metal. Borderless sheets have no caps, trim or repeated strokes; source effect remains with gameplay integration.',rights:'Inherited study/art license not declared; new geometry is a project contribution; Three.js has its separate MIT notice.',inherited,authored}};
+fs.writeFileSync(root+'/art/windows/catalog.json',JSON.stringify(manifest,null,2)+'\n');console.log(`Wrote ${manifest.definitions.length} industrial window definitions with individual pane bounds.`);

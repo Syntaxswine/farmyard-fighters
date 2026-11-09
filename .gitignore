@@ -1,0 +1,10 @@
+artifacts/
+outputs/
+/dist/
+.sites-artifacts/
+node_modules/
+.openai/*.local.*
+*.tar.gz
+*.tgz
+tools/maps/__pycache__/
+tests/maps/__pycache__/

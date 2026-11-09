@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "yard_bomb_permission",
+  "version": 1,
+  "facts": {
+    "reassured": false,
+    "permission": false
+  },
+  "entry": [
+    {
+      "when": {
+        "attempt": "permission",
+        "is": "success"
+      },
+      "node": "accepted"
+    },
+    {
+      "when": {
+        "attempt": "permission",
+        "is": "failure"
+      },
+      "node": "refused"
+    },
+    {
+      "node": "greeting"
+    }
+  ],
+  "nodes": {
+    "greeting": {
+      "npc": "Stop there. Someone left a bomb beside the loading yard. I'm keeping everyone back until I know who can deal with it.",
+      "choices": [
+        {
+          "id": "ask",
+          "text": "What do you know about it?",
+          "to": "facts"
+        },
+        {
+          "id": "creator",
+          "text": "I won't guess. We'll work from a plan and stop if it doesn't hold up.",
+          "requires": {
+            "archetype": "Creator",
+            "fact": {
+              "id": "reassured",
+              "is": false
+            }
+          },
+          "set": {
+            "reassured": true
+          },
+          "to": "plan"
+        },
+        {
+          "id": "offer",
+          "text": "Let me handle the bomb. I'll inspect it before attempting to disarm it.",
+          "check": {
+            "attemptId": "permission",
+            "skill": "explosives",
+            "minimum": 40,
+            "difficulty": 75,
+            "modifiers": [
+              {
+                "id": "careful_plan",
+                "fact": {
+                  "id": "reassured",
+                  "is": true
+                },
+                "add": 10
+              }
+            ]
+          },
+          "outcomes": {
+            "success": {
+              "to": "accepted",
+              "set": {
+                "permission": true
+              }
+            },
+            "failure": {
+              "to": "refused"
+            }
+          },
+          "rollText": {
+            "1": "That's the careful approach I needed to hear. Your team may inspect it. Until it's dealt with, everyone else stays back.",
+            "100": "That made me less confident, not more. Step back. Your team does not have my permission."
+          }
+        }
+      ]
+    },
+    "facts": {
+      "npc": "It appeared after the patrol left. Nobody here has touched it. I need someone who understands explosives, not someone willing to guess.",
+      "choices": [
+        {
+          "id": "facts_back",
+          "text": "Understood.",
+          "to": "greeting"
+        }
+      ]
+    },
+    "plan": {
+      "npc": "Good. Knowing when to stop matters. Tell me why your team is qualified.",
+      "choices": [
+        {
+          "id": "plan_back",
+          "text": "Understood.",
+          "to": "greeting"
+        }
+      ]
+    },
+    "accepted": {
+      "npc": "All right. Your team has my permission to inspect it. It's still live; don't mistake my permission for a promise that it's safe."
+    },
+    "refused": {
+      "npc": "No. You haven't convinced me that your team can handle this safely. Keep back."
+    }
+  }
+}

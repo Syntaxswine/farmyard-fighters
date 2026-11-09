@@ -1,0 +1,68 @@
+{
+  "title": "Painted metal and celluloid switch materials",
+  "revision": 2,
+  "created": "2026-10-27",
+  "generation": {
+    "tool": "built-in image_gen",
+    "original": "exec-7f614682-7d74-450e-ada4-0ab14561418c.png",
+    "transparent_background": false
+  },
+  "prompt": "Use case: stylized-concept. Asset type: one production raster sprite atlas for a painterly industrial retrofuturist game UI, not a mockup page. Create a perfectly square image split into an exact, seamless 2 by 2 grid of four equal square button skins. No gutters, no captions, no background outside the four tiles. Every tile fills exactly its own quadrant edge to edge. Top left: olive green switch unlit. Top right: the EXACT SAME olive green switch internally lit. Bottom left: cherry red indicator switch unlit. Bottom right: the EXACT SAME cherry red indicator switch internally lit. Within each left/right pair, shape, perspective, housing, paint wear, scratches and internal lens geometry are identical; only the internal bulb changes. Straight-on orthographic front view, perfectly square switches with near-square corners, no perspective distortion. Each quadrant has a narrow olive-painted metal mounting bezel occupying the outer 8 percent on all four sides, soft chips, worn dull steel edge highlights, oily brown wear in the recess. Do not add screws, labels or hardware that protrudes beyond a tile. Green tiles: green is aged hand-painted olive enamel metal around an inset hazy aged celluloid face. The broad inner face is warm muted dark olive, softly cloudy and fine-grained; the aged celluloid has faint uneven internal swirls and a soft waxy patina. A warm internal lamp lights the active green celluloid gently from within, without a white hotspot or neon green. Red tiles: a thick translucent oxblood/cherry-red celluloid or pressed-glass lens, with deliberately molded thickness that diffuses the internal lamp in geometrical patterns like a 1940s automobile tail light or antique street lamp. Use a clearly legible repeated broad shallow diamond/prismatic waffle geometry with nested square/chevron ribs toward the edges, visible both when unlit and when lit. The dark state remains deep brown cherry red, with the geometry visible by reflected light. The active state is rich warm orange-red and ember amber in thinner cells, deep cherry red at thicker ribs, a single soft internal tungsten source behind the entire lens, with its light repeating and scattering through molded cells. No separate dots or LED grid: the geometry belongs to the translucent material itself. Calm enough for small white markings to be legible over the center. Warm, maintained-but-well-used vintage equipment. Painterly game art with visible restrained gouache/oil brushwork and softened painted material highlights. It must look illustrated and tactile rather than photo-real, clean vector, glossy modern plastic or shiny 3D CGI. Absolutely NO text, NO lettering, NO digits, NO icons, NO symbols, NO logos, NO watermarks anywhere; those will be overlaid in code. Keep the whole face blank of markings. The outer bezel is opaque metal in all four tiles and never emits light. All geometry stays square and aligned to the exact 2x2 grid.",
+  "image": {
+    "file": "switch-skins-v2.webp",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 361972,
+    "sha256": "2894c3ebed7ffd229aea9dbc632a7ccac76b50130d98ab4ee6050eeb60f19f2b",
+    "originalSha256": "7beacd0dde23ad0ed2bab36026e6a4da9b97a9c9e8de97e95ef29ab197b47e6b",
+    "processing": "Original generated pixels encoded as WebP quality 90. No cropping, resizing, recoloring or repainting."
+  },
+  "atlas": {
+    "columns": 2,
+    "rows": 2,
+    "cells": [
+      "green unlit",
+      "green illuminated",
+      "red unlit",
+      "red illuminated"
+    ]
+  },
+  "symbols": {
+    "file": "symbols.svg",
+    "sourceBranch": "codex/industrial-button-art",
+    "sourceRevision": "d1e84684058c8d44298432a00c6ea9a6bd2b2cf6",
+    "sourcePath": "sites/tactical-animal/dist/field-radio-icons.svg",
+    "adaptations": ["Added matching zoom-in and zoom-out arrows on the original 32-unit grid.", "Added white-painted aim reticles, target-zone silhouettes, cartridge fire-mode marks and a firing symbol on the same 32-unit grid.", "Added a matching door-and-arrow Exit symbol for the CRT targeting console."]
+  },
+  "materialRules": [
+    "Green housings are worn painted olive metal around hazy celluloid faces.",
+    "Every symbol, label, stock count and AP marking inherits one shared white-paint color and one shared illumination filter.",
+    "The red lens diffuses its warm lamp through molded diamond prisms and ribs; eye, count and label remain the same white paint.",
+    "Metal mounting bezels stay opaque in both lighting states."
+  ],
+  "shootingSwitches": {
+    "file": "shooting-switch-skins-v1.webp",
+    "manifest": "shooting-switches-v1.json",
+    "usage": "Two vertical banks of golden amber prismatic aim and body-location switches; matching red glass for three insufficient-AP warning pulses."
+  },
+  "mapFrame": {
+    "title": "Worn olive-metal tactical map frame",
+    "created": "2026-10-27",
+    "generation": {
+      "prompt": "Use case: precise-object-edit. Asset type: a single production UI nine-slice metal border skin with a genuinely transparent center, for the tactical map in the same painterly industrial retrofuturist game. Input image is the approved button atlas and is the edit target/style reference. Take ONLY the worn olive painted METAL MOUNTING FRAME and its dark recessed inner metal lip from the upper-left unlit green button in the atlas. Reproduce that same chipped olive enamel, exposed dull steel edge wear, warm brown oxidation and soft painterly brushwork as ONE straight-on square hollow frame. Keep the original warm olive palette and modest hand-painted wear. Remove the entire green celluloid face and every other tile: the whole large inner opening must be genuine alpha transparency, with no glass, no film, no material, no color fill and no cast shadow in the center. There must be only one frame, edge to edge, no extra background or margin outside it. The opaque frame occupies exactly the outer 12 percent of the image on all four sides, including its dark inner bevel. The central 76 by 76 percent square opening is entirely transparent. Keep the four long border strips straight and continuous so they can stretch independently as a CSS nine-slice border around both a compact square minimap and a wide rectangular map; keep corner details fully inside the outer 12 percent corner squares. Nearly square corners with only the tiny softened corners of the approved hardware. No protruding hardware, no screws, no new decorative details. The outer painted metal does not glow. Preserve the material character of the approved button housing. No buttons, no lighted lens, no icons, no text, no numbers, no logos, no watermarks, no diagram, no mockup layout. Transparent PNG-style production texture, not a photograph of a frame or a scene.",
+      "tool": "built-in image_gen",
+      "original": "exec-ebc7edb6-b1d2-47c4-b828-8a90d44b3772.png",
+      "transparent_background": true
+    },
+    "reference": "switch-skins-v2.webp",
+    "file": "map-frame-v1.webp",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 221832,
+    "sha256": "de448296888095d958a84afe0cdafdd8f268034c380d97a0a1f5f8cd30a9aae0",
+    "originalSha256": "5d8eee0f895e39f58a09848a7a41fd2f18eb0874ae76af515655205b537ee53e",
+    "slicePercent": 16,
+    "transparentCenter": true,
+    "processing": "Full generated image encoded as WebP quality 90 with alpha quality 100; no cropping, resizing, recoloring or repainting."
+  }
+}

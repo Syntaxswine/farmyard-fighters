@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "title": "Painted forward exit spray",
+  "generation": {
+    "mode": "built-in image_gen",
+    "original": "exec-2a3fa921-845f-40a1-a222-566b69c86078.png",
+    "promptFile": "generation-prompt.txt",
+    "prompt": "Use case: stylized-concept\nAsset type: transparent production component atlas for a short forward exit-wound blood spray in the painterly tactical game Animal Factory Tactics.\nPrimary request: one square transparent RGBA atlas divided conceptually into an exact 2 by 2 equal-cell layout, containing four independent reusable painted blood effects. No actual grid. All components point from LEFT to RIGHT. Leave at least 12 percent clear transparent padding on every side of each cell.\nTop-left cell: a wide, asymmetric, energetic short forward fan of dark-crimson liquid, dense root near the left quarter, splitting into irregular broad torn lobes and many smaller separated droplets toward the right. The fan should feel fuller and wider than a small entrance splash, but retain clear negative spaces and a readable contact root.\nTop-right cell: a sparse fine-droplet spray cluster, stretched horizontally, with unequal dark-red tiny droplets distributed irregularly and a few more substantial beads; connected only by very faint translucent burgundy liquid haze. This is blood atomizing into droplets, not a smoke cloud or cottony mist. Keep substantial clear gaps. No black or grey smoke.\nBottom-left cell: a ragged elongated liquid streak, dark oxblood, with a heavy irregular leading lobe at the RIGHT and thin torn trailing tail to the LEFT; two small satellite drops. No anatomical tissue or identifiable body fragments.\nBottom-right cell: an asymmetric small group of three to five tiny irregular dark-crimson blood flecks, different sizes and spacing, useful for instanced particles. Keep this cluster compact in the middle of its cell with plentiful transparent margins.\nStyle: hand-painted game VFX with economical brush masses, soft liquid alpha edges, dark oxblood and crimson with subdued red highlights. Matches low-poly painterly animal soldiers. This will be read at 20 to 55 pixels across, so prioritize silhouette and dark colour masses over tiny noise. Larger volume than an entrance spray, no luminous glow.\nConstraints: real transparent background, straight alpha; no backdrop, labels, text, arrows, grid lines, borders, checkerboard, light burst, flames, smoke, stars, beams, perfect spheres, people, weapons, wounds, organs, bones or recognizable anatomy. Each component stays wholly within its equal quadrant. No extreme gore.\n"
+  },
+  "source": {
+    "file": "source-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "00920dec279b4bf1ef2a3b6d81f88de76a37f7b155ec56caedc400552a2e4363"
+  },
+  "runtime": {
+    "file": "exit-components-v1.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 138438,
+    "sha256": "0676d61ed67d95477e1d96713dfb9cbcda3f74875d6e7dda6a6fd676f7375a2b",
+    "alpha": "straight",
+    "alphaCutoff": 0.015,
+    "blend": "normal alpha",
+    "decodedBytesWithMipmaps": 1398102
+  },
+  "preparation": "Mechanical crop, resize and packing only; unchanged source alpha preserved with transparent cell gutters.",
+  "cells": [
+    {
+      "name": "fan",
+      "uv": [
+        0,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.093125,
+        0.501953125
+      ],
+      "sourceCrop": {
+        "left": 39,
+        "top": 148,
+        "width": 588,
+        "height": 474
+      }
+    },
+    {
+      "name": "mist",
+      "uv": [
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.093125,
+        0.501953125
+      ],
+      "sourceCrop": {
+        "left": 676,
+        "top": 242,
+        "width": 545,
+        "height": 323
+      }
+    },
+    {
+      "name": "streak",
+      "uv": [
+        0,
+        0,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 52,
+        "top": 869,
+        "width": 568,
+        "height": 222
+      }
+    },
+    {
+      "name": "flecks",
+      "uv": [
+        0.5,
+        0,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 878,
+        "top": 896,
+        "width": 189,
+        "height": 171
+      }
+    }
+  ]
+}

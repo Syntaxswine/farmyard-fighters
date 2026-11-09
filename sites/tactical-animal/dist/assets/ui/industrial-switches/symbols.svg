@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- All control marks use a 32-unit grid, solid fill and the same ivory ink. -->
+  <symbol id="look" viewBox="0 0 32 32">
+    <path fill-rule="evenodd" d="M2 16C6 9 10 5 16 5s10 4 14 11c-4 7-8 11-14 11S6 23 2 16Zm5 0c3 5 5 7 9 7s6-2 9-7c-3-5-5-7-9-7s-6 2-9 7Z"/>
+  </symbol>
+  <symbol id="movement" viewBox="0 0 32 32">
+    <circle cx="18" cy="5" r="3.2"/>
+    <path d="M14 10h5l3 6h5v4h-8l-3-5-1 6 7 6-3 3-8-7-2 7H4l5-13-2 2H3v-4h4Z"/>
+  </symbol>
+  <symbol id="stance" viewBox="0 0 32 32">
+    <circle cx="14" cy="5" r="3.2"/>
+    <path d="M11 10h6l3 6h8v4H17l-3-5-1 7h9l4 8h-5l-2-4h-8l-2 4H3l5-10Z"/>
+  </symbol>
+  <symbol id="end-turn" viewBox="0 0 32 32">
+    <path d="M4 3h13a11 11 0 0 1 0 22h-3v6L2 21l12-10v7h3a4 4 0 0 0 0-8H4Z"/>
+  </symbol>
+  <symbol id="grenade" viewBox="0 0 32 32">
+    <path fill-rule="evenodd" d="M9 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 2.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"/>
+    <path d="M13 6h10l3 15h-4L20 10h-7Z"/>
+    <rect x="12" y="9" width="8" height="5" rx="1"/>
+    <path d="M12 13h8c3 0 5 4 5 8 0 6-3 10-9 10S7 27 7 21c0-4 2-8 5-8Z"/>
+  </symbol>
+  <symbol id="options" viewBox="0 0 32 32">
+    <path d="M5 6h22v4H5Zm0 8h22v4H5Zm0 8h22v4H5Z"/>
+    <rect x="10" y="3" width="5" height="10" rx="1"/>
+    <rect x="20" y="11" width="5" height="10" rx="1"/>
+    <rect x="8" y="19" width="5" height="10" rx="1"/>
+  </symbol>
+  <symbol id="zoom-in" viewBox="0 0 32 32">
+    <path d="M4 22 16 8l12 14h-8v4h-8v-4Z"/>
+  </symbol>
+  <symbol id="zoom-out" viewBox="0 0 32 32">
+    <path d="M4 10h8V6h8v4h8L16 24Z"/>
+  </symbol>
+  <symbol id="aim-hip" viewBox="0 0 32 32">
+    <path d="M14 3h4v8h-4Zm0 18h4v8h-4ZM3 14h8v4H3Zm18 0h8v4h-8Z"/>
+    <circle cx="16" cy="16" r="2"/>
+  </symbol>
+  <symbol id="aim-aimed" viewBox="0 0 32 32">
+    <path fill-rule="evenodd" d="M16 6a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14Z"/>
+    <path d="M14.5 1h3v9h-3Zm0 21h3v9h-3ZM1 14.5h9v3H1Zm21 0h9v3h-9Z"/>
+    <circle cx="16" cy="16" r="2"/>
+  </symbol>
+  <symbol id="aim-full" viewBox="0 0 32 32">
+    <path fill-rule="evenodd" d="M16 3a13 13 0 1 0 0 26 13 13 0 0 0 0-26Zm0 3a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z"/>
+    <path d="M15 0h2v12h-2Zm0 20h2v12h-2ZM0 15h12v2H0Zm20 0h12v2H20Z"/>
+  </symbol>
+  <symbol id="target-head" viewBox="0 0 32 32">
+    <circle cx="16" cy="9" r="6"/><path d="m11 16 5 3 5-3 5 7v6H6v-6Z"/>
+  </symbol>
+  <symbol id="target-torso" viewBox="0 0 32 32">
+    <circle cx="16" cy="5" r="3"/><path d="M10 10h12l7 10-4 3-4-6v13H11V17l-4 6-4-3Z"/>
+  </symbol>
+  <symbol id="target-weapon" viewBox="0 0 32 32">
+    <path d="M2 13h16v-3h3v3h9v4h-9l-2 4h-6l-2-4H7l-3 6H1l2-8Zm11 4 2 2h2l1-2Z"/>
+  </symbol>
+  <symbol id="target-legs" viewBox="0 0 32 32">
+    <path d="M10 2h12l1 9-3 10 4 7v3h-8l-2-8 1-8-4 8v5H4v-4l5-13Z"/>
+  </symbol>
+  <symbol id="fire-single" viewBox="0 0 32 32">
+    <path d="M13 12c0-4 1-8 3-10 2 2 3 6 3 10v14h-6Zm-1 16h8v3h-8Z"/>
+  </symbol>
+  <symbol id="fire-burst" viewBox="0 0 32 32">
+    <path d="M3 12c0-4 1-8 3-10 2 2 3 6 3 10v14H3Zm-1 16h8v3H2Zm11-16c0-4 1-8 3-10 2 2 3 6 3 10v14h-6Zm-1 16h8v3h-8Zm11-16c0-4 1-8 3-10 2 2 3 6 3 10v14h-6Zm-1 16h8v3h-8Z"/>
+  </symbol>
+  <symbol id="fire-auto" viewBox="0 0 32 32">
+    <path d="M2 11 4 3l2 8v14H2Zm6 0 2-8 2 8v14H8Zm6 0 2-8 2 8v14h-4Zm6 0 2-8 2 8v14h-4Zm6 0 2-8 2 8v14h-4ZM1 27h6v3H1Zm6 0h6v3H7Zm6 0h6v3h-6Zm6 0h6v3h-6Zm6 0h6v3h-6Z"/>
+  </symbol>
+  <symbol id="fire" viewBox="0 0 32 32">
+    <path d="m15 1 4 10 10-4-6 10 8 6-12-1-3 10-4-10-11 2 7-8-7-7 11 3Z"/>
+  </symbol>
+  <symbol id="reload" viewBox="0 0 32 32">
+    <path d="M27 3v10H17l4-4a10 10 0 1 0 4 11h5A15 15 0 1 1 24 5Z"/>
+    <path d="M13 14h6v10h-6Zm-1 11h8v3h-8Z"/>
+  </symbol>
+  <symbol id="exit" viewBox="0 0 32 32">
+    <path d="M3 2h16v8h-4V6H7v20h8v-4h4v8H3Z"/>
+    <path d="m23 8 8 8-8 8v-6H11v-4h12Z"/>
+  </symbol>
+</svg>

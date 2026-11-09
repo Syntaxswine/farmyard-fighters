@@ -1,0 +1,56 @@
+name: Native window browser check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/window-browser.yml'
+      - 'sites/tactical-animal/**'
+      - 'package.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: window-browser-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  window-browser:
+    name: Chromium WebGL window workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out the exact PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Check game and build the actual app
+        run: npm run check && npm run build
+      - name: Install locked test-only dependencies
+        run: npm ci --ignore-scripts --prefix sites/tactical-animal/browser-tests
+      - name: Install the matching isolated Chromium
+        working-directory: sites/tactical-animal/browser-tests
+        run: npx playwright install --with-deps chromium
+      - name: Exercise native editor, FieldView and Web Audio
+        working-directory: sites/tactical-animal/browser-tests
+        env:
+          CI: 'true'
+          TESTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npm test
+      - name: Verify temporary server retired
+        if: always()
+        run: node sites/tactical-animal/browser-tests/verify-cleanup.mjs
+      - name: Retain native review evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: window-native-${{ github.event.pull_request.head.sha }}
+          path: artifacts/window-browser
+          if-no-files-found: warn
+          retention-days: 14

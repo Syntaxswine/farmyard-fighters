@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "id": "plateau_intro",
+  "version": 1,
+  "variables": ["has_explosives", "radio_destroyed", "sam_destroyed"],
+  "entry": [
+    {"when": {"variables": {"radio_destroyed": true, "sam_destroyed": true}}, "node": "town"},
+    {"when": {"variables": {"radio_destroyed": true}}, "node": "radio_down"},
+    {"when": {"variables": {"sam_destroyed": true}}, "node": "sam_down"},
+    {"node": "greeting"}
+  ],
+  "nodes": {
+    "greeting": {
+      "npc": "I’m so glad you made it. We didn’t know about the SAM site, but the radio tower is just up ahead. Did you bring the explosives?",
+      "choices": [
+        {"id": "brought_explosives", "text": "We have the explosives. How do we sabotage the radio tower?", "requires": {"variables": {"has_explosives": true}}, "to": "radio_instructions"},
+        {"id": "need_explosives", "text": "We don’t have the explosives with us.", "requires": {"variables": {"has_explosives": false}}, "to": "radio_supplies"}
+      ]
+    },
+    "radio_instructions": {
+      "npc": "Have the merc carrying the demolition explosives approach the radio tower’s control equipment. When you’re ready, right-click the radio tower and select Plant explosives. That uses one charge and destroys the tower. Then we still need to deal with the SAM site."
+    },
+    "radio_supplies": {
+      "npc": "I left a crate of explosives in the sector where you crashed. Search the crate, collect the demolition explosives and bring them back here to complete your mission—unless you can think of some other way to blow up the tower."
+    },
+    "radio_down": {
+      "npc": "The radio tower is destroyed. Good work. The SAM site is still intact; we need to take it out too.",
+      "choices": [
+        {"id": "sam_charge", "text": "We have explosives. How do we destroy the SAM site?", "requires": {"variables": {"has_explosives": true}}, "to": "sam_instructions"},
+        {"id": "sam_supply", "text": "We need more explosives.", "requires": {"variables": {"has_explosives": false}}, "to": "sam_supplies"}
+      ]
+    },
+    "sam_instructions": {
+      "npc": "Bring the merc carrying the demolition explosives beside the SAM site’s control equipment. Right-click the site and select Plant explosives. One charge will destroy it. Another explosive weapon or a flamethrower can destroy the site too."
+    },
+    "sam_supplies": {
+      "npc": "Check the explosives crate in the crash sector for any charges you left behind. If it’s empty, you’ll need to find more demolition explosives or destroy the SAM site with another explosive weapon or a flamethrower."
+    },
+    "sam_down": {
+      "npc": "You’ve already destroyed the SAM site. That’s one less threat to worry about. The radio tower is still standing just up ahead.",
+      "choices": [
+        {"id": "radio_after_sam", "text": "We have explosives. Tell us how to sabotage the tower.", "requires": {"variables": {"has_explosives": true}}, "to": "last_radio_instructions"},
+        {"id": "radio_supply_after_sam", "text": "We don’t have explosives with us.", "requires": {"variables": {"has_explosives": false}}, "to": "radio_supplies"}
+      ]
+    },
+    "last_radio_instructions": {
+      "npc": "Have the merc carrying the demolition explosives stand beside the radio tower’s control equipment, then right-click the tower and select Plant explosives. That uses one charge. Once it’s destroyed, both sites will be dealt with."
+    },
+    "town": {
+      "npc": "The radio tower and the SAM site are both destroyed. You’ve done what we needed up here. Head down from the plateau and liberate the town. They’re waiting for your help."
+    }
+  }
+}

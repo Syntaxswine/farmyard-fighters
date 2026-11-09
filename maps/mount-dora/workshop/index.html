@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mount Dora · Town atlas</title><link rel="stylesheet" href="./atlas.css"><script type="module" src="./atlas.js"></script></head>
+<body><header><p class="eyebrow">MOUNT DORA · AUTHORING</p><h1>Town atlas</h1><p id="summary">Loading the project…</p>
+<p><a href="../../../game.html?activity=mount-dora">Walk around Mount Dora in Farmyard Commando ↗</a></p></header>
+<main><section><h2>North ↑</h2><p>Choose a sector to inspect it. Open it explicitly when ready to replace the workshop document.</p>
+<div id="grid" aria-label="Geographic sector grid"></div><p class="note">This overview contains no 3D town geometry. The workshop opens one bounded sector at a time.</p></section>
+<section aria-labelledby="title"><h2 id="title">Select a sector</h2><p id="bounds"></p><p id="source"></p><p id="readiness"></p><ul id="reasons"></ul>
+<h3>Neighbors</h3><div id="neighbors"></div><h3>Landmarks</h3><ul id="landmarks"></ul>
+<div class="actions"><button id="download" disabled>Download sector JSON</button><button id="open" disabled>Open in workshop</button></div>
+<p id="instructions">Download JSON, then use Import in Nautilus workshop revision 2502646. A matching isolated review host enables direct opening.</p></section>
+<section id="workshop-panel" hidden><div class="heading"><h2>Nautilus map workshop</h2><button id="current" disabled>Download current workshop JSON</button></div>
+<p id="active">No atlas sector opened.</p><iframe id="workshop" title="Existing Nautilus map workshop"></iframe></section></main>
+<p id="status" role="status" aria-live="polite"></p><footer>Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
+Preview anchors are authoring aids. The walking tour is available separately in Farmyard Commando.</footer></body></html>

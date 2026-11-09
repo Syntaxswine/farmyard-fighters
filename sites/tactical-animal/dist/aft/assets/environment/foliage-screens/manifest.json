@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "scope": "Cosmetic dense-screen backing and cutout bough paint. Existing foliage presets and finite obstacles remain authoritative.",
+  "panels": {
+    "temperate": [
+      0,
+      0,
+      3,
+      2
+    ],
+    "jungle": [
+      1,
+      0,
+      3,
+      2
+    ],
+    "snow": [
+      2,
+      0,
+      3,
+      2
+    ],
+    "dry": [
+      0,
+      1,
+      3,
+      2
+    ],
+    "wetlands": [
+      1,
+      1,
+      3,
+      2
+    ],
+    "wood": [
+      2,
+      1,
+      3,
+      2
+    ]
+  },
+  "assets": {
+    "screen-atlas-v1.png": {
+      "width": 1536,
+      "height": 1024,
+      "sha256": "a86e4a70b076e037c3338a6910629d7e684344cba4b5b9830f57b2a9a26ca4a5",
+      "prompt": "PROMPT.json"
+    },
+    "fringe-atlas-v1.png": {
+      "width": 1536,
+      "height": 1024,
+      "sha256": "debdc2d32fcf5212893978a52cd7f9e5c395cc96c94df6f08cd28bcaf78545de",
+      "prompt": "FRINGE-PROMPT.json"
+    }
+  }
+}

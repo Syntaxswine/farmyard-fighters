@@ -1,0 +1,20 @@
+{
+  "edition": "Farmyard Commando Real Time",
+  "upstream": "https://github.com/Syntaxswine/farmyard-commando",
+  "upstreamCommit": "9104d55a7638bf60efd6618265e07db1faea46da",
+  "upstreamTree": "cb2f306d1da6449f6107196e5ca60b4da7a9b76c",
+  "copiedTrackedFiles": 4109,
+  "history": "Complete local Git history retained; upstream is read-only.",
+  "repository": "https://github.com/Syntaxswine/farmyard-commando-realtime",
+  "pages": "https://syntaxswine.github.io/farmyard-commando-realtime/",
+  "removedUpstreamFiles": [],
+  "toolStorageAdapter": [
+    "map-designer.html",
+    "window-yard.html",
+    "designer/a20b343a0234/tactics/battle-3d.html",
+    "designer/a20b343a0234/tactics/editor-3d.html",
+    "designer/a20b343a0234/tactics/overmap.html",
+    "designer/a20b343a0234/tactics/sector-library.html",
+    "designer/a20b343a0234/tactics/sector-library/tutorial-plateau.html"
+  ]
+}

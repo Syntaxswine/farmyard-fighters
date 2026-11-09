@@ -1,0 +1,149 @@
+# Mount Dora production art contract
+
+This pass turns the detached studies into a map-owned production kit on
+`codex/mount-dora-landmarks-playable`, based on published Farmyard
+`75a6b61a547a96edebdc456e9a42edb4f28185e4`. It supplies the artist's rendering
+and solid records; the coder's adapter and architect's integration supply the
+playable tour. No raw geography, sector, main branch, engine pin or Pages release
+is changed by this branch.
+
+## Integration
+
+Import `createMountDoraArt` and optional `loadMountDoraAtlas` from
+`sites/tactical-animal/dist/mission-art/mount-dora/kit.js`. Import
+`ATLAS_URL`, `ART_REVISION`, `SOURCE_FEATURES_SHA256`, `PLACEMENTS`,
+`REPLACEMENT_SOURCE_IDS`, `placementsForBounds` and `solidsForBounds` from the
+adjacent `manifest.js`.
+
+```js
+const textureOwner = loadMountDoraAtlas({THREE, signal});
+const atlas = await textureOwner.ready;
+const art = createMountDoraArt({THREE, atlas});
+// Every art/solid coordinate is town east/south metres. The host applies
+// game = town - (.5,.5) exactly once on its common adapter/root.
+gameArtRoot.add(art.root);
+art.updateResident([west, north, east, south]);
+art.setFocus([animalTownX, animalTownY], {camera, eyeHeight: 1.2});
+// At teardown: stop callbacks, dispose art, then the owner of its borrowed image.
+art.dispose();
+textureOwner.dispose();
+```
+
+The kit has no fetches, animation loop, private Three copy or document access.
+The optional texture owner has cancellation and disposes late completions. The
+factory borrows the image, owns one sampler clone, and pools its materials.
+Sampler UVs keep mip footprints within their painted cell to prevent neighboring
+atlas colors bleeding into distant roofs. It never disposes the borrowed image
+texture or modifies its filtering settings.
+
+`updateResident(bounds)` uses a 24 m index of **complete visual bounds**, including
+objects anchored outside the rectangle. Each global placement appears once.
+Eviction disposes that placement's geometry immediately; material and sampler
+resources are shared until factory teardown. Static parts batch by material
+within each placement, retaining independent residency and source ownership.
+There is no full-town mesh allocation. The full-data sweep rendered 1,030 records
+sequentially, with 1,082 creations/1,081 evictions before final teardown.
+
+`setFocus(townPoint,{camera,eyeHeight=1.2,opacity=.22}={})` keeps a walking
+character legible. Camera coordinates come from the host Three camera; the
+target is transformed through the art root, honoring its common parent offset.
+Ray hits fade an occluding closed building/lighthouse; an open shelter fades
+only its roof/skirt batches, preserving supports and deck. Without a camera,
+only the roof of a shelter containing the town focus fades. Geometry and solids
+stay fixed. Unchanged 0.1 m quantized focus/camera poses skip repeated raycasts.
+The native `setView` visibility mechanism cannot directly survive per-material
+static batching, so this narrow adapter retains explicit roof/body roles.
+Per-placement alpha variants copy the painted shader hooks; pooled materials
+stay opaque. Clearing with `setFocus(null)`, eviction or teardown restores the
+original material and disposes its variants. Final actor/phone legibility is
+still checked in the actual integrated game, not inferred from kit images.
+
+## Geometry and collision
+
+There are 950 exact source MultiPolygons, including holes, ten separate Inn
+records, five historical court records, three actual mapped shelter contours,
+the named lighthouse point, two explicitly approximate park structures, and
+69 pieces along the two complete source boardwalk polylines.
+
+The original building renderer receives compiled geographic wall runs without
+half-metre cell snapping, floor cells, rooms, stairs or invented entrances. Its
+2 m walls and 2.12 m floor spacing remain at scale one. Render-only direction
+normalization puts the native painted facade outside both outer and hole rings;
+the saved source rings do not change. Identical shared wall edges have one
+visual owner. Native roof surfaces are clipped against footprint triangles,
+preserving concavities and courtyard holes. Rectangular prefab roof/floor plans
+never replace actual footprints. Broad or degenerate roof envelopes use an
+explicit exact-outline flat cap.
+
+`REPLACEMENT_SOURCE_IDS` covers source **wall AND upper/roof proxy visuals**.
+Keep ground/deck support. There are 953 replacement source IDs, including the
+three mapped open shelters. Suppress a shared wall only when none of its retained
+owners still needs it.
+
+Each placement and returned solid carries `collisionPolicy`:
+
+| Policy | Host action |
+| --- | --- |
+| `retain-source-walls` | Keep native closed-house collision; avoid registering the optional footprint again. |
+| `replace-source-walls` | Remove only the mapped shelter's closed wall/cap owners; use its post circles and retain walkable ground. |
+| `additional-solids` | Add lighthouse, boardwalk rail or approximate structure posts; courts supply no solids. |
+
+`solidsForBounds(bounds)` returns `{id, placementId, sourceIds, collisionPolicy,
+...shape}`. Shapes are `{kind:'polygon',polygons}` (MultiPolygon coordinates,
+outer ring then holes), `{kind:'circle',centre:[east,south],radius}`, or
+`{kind:'segment',a:[east,south],b:[east,south],radius}` (capsule). They come from
+the same placement records used by rendering. Facade decoration adds no solids.
+
+The lighthouse stays exactly at town `(500.2877,1169.7989)`. Its 10.6 m native
+proportions are approximate. Mapped pavilion posts follow their contours; the
+Evans pavilion and Donnelly stage carry `inferred-within-mapped-park` provenance
+and explicit park uncertainty bounds. Boardwalk deck width is the same inferred
+2 m support corridor as the base generator; rails sit 1.12 m either side, radius
+0.055 m. Ends stay open, with an open side approach near the mapped Palm shelter.
+This does not manufacture connecting ground or an elevated multi-floor route.
+
+## Sources and limits
+
+[Source records](production-sources.json) distinguish facts read from primary
+city/property sources and unavailable leads. The city documents local frame and
+masonry vernacular, the Donnelly House and former depot; the Inn owner describes
+the yellow/white group and veranda. Individual repeated windows, colors and
+dimensions remain approximate. For ordinary buildings, the wall class (siding,
+plaster or brick), roof cover, roof form, pitch and ridge axis follow the county
+record and 2018 lidar where those are recorded
+([maps/mount-dora/reference](../../../maps/mount-dora/reference/README.md)). Each
+placement's `provenance.evidence` names the source, and colors stay seeded
+placeholders until surveyed. The 126 county-sketched buildings OpenStreetMap
+lacks (`county-` ids) have no OSM tags. Their county use decides the kit type: a
+store, office, shop or professional building is commercial, and the rest are
+vernacular. The Gables/Terrace treatments suggest
+the documented stucco annex typology. Source names, tags and all ten footprints
+remain separate, without claiming ten historically independent hotels.
+
+The city design guide (PDF pages 76, 77, 82 and 84) was subsequently inspected.
+Donnelly House now has yellow siding, silver metal roof treatment, native
+polygonal corner tower, intersecting clipped gables and white veranda arches/rail
+detail. The turret position, dimensions and cross-gable arrangement are bounded
+inferences inside the unchanged footprint. The depot uses white siding and a
+low gray hip roof. Shamrock has pale lower pilasters, arched window trim and a
+strong cornice based on the historical photograph; its three levels still come
+from the mapped source, not that photograph. The Inn receives veranda arches;
+the historical corner gazebo is not assigned an invented current footprint.
+Museum and surrounding assignments remain inferred local treatments. The scene is flat and has no
+surveyed interiors, elevation, precise facade inventory or reconstructed historic
+ornament. This is not a claim that all 950 buildings have been photographed or
+surveyed. No Street View imagery was traced, extracted, cached or shipped.
+
+## Verification
+
+Run `node maps/mount-dora/art/tools/build-playable.mjs` to regenerate the scoped
+bindings/copies. It refuses invalid bounds and changed court topology. Exact
+source/atlas hashes are in the production `provenance.json`.
+
+The focused test checks geography fidelity, source hashes, replacement policies,
+complete-bound queries, real native geometry bounds, source winding, roof holes,
+boardwalk continuity/clearance, eviction and texture cancellation/ownership.
+The production browser review uses the game's existing Three and renderer,
+with one 72 m resident window at a time. Native frames show geometry and
+placements; they are not evidence of completed in-game travel or phone GPU
+performance. Final route/camera/save testing belongs to the integration pass.

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Celluloid switch study · Farmyard Commando</title>
+  <link rel="stylesheet" href="industrial-switches.css">
+  <style>html,body{margin:0;background:#19241c}</style>
+  <script src="button-study.js" defer></script>
+</head>
+<body>
+<main id="farmyard-switch-study" class="switch-study" aria-label="Painted metal and celluloid button study">
+  <header><p class="study-kicker">FARMYARD COMMANDO / MATERIAL STUDY 02</p><h1>Painted metal. Hazy celluloid.</h1></header>
+  <section aria-label="Green button lighting states">
+    <p class="study-label">GREEN SWITCH · SHARED LEGEND LIGHTING</p>
+    <div class="study-grid">
+      <figure><figcaption>UNLIT</figcaption><div class="switch-zoom"><button class="industrial-switch cursor-interaction" type="button" aria-label="Unlit grenade reference" aria-pressed="false"><span class="switch-legend"><span class="switch-stock">3</span><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#grenade"/></svg></span><span class="switch-label">GRENADE</span><span class="switch-cost">5 AP</span></span></button></div></figure>
+      <figure><figcaption>PRESSED</figcaption><div class="switch-zoom"><button class="industrial-switch is-pressed cursor-interaction" type="button" aria-label="Pressed grenade reference" aria-pressed="false"><span class="switch-legend"><span class="switch-stock">3</span><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#grenade"/></svg></span><span class="switch-label">GRENADE</span><span class="switch-cost">5 AP</span></span></button></div></figure>
+      <figure><figcaption>ILLUMINATED</figcaption><div class="switch-zoom"><button class="industrial-switch cursor-interaction" type="button" aria-label="Illuminated grenade reference" aria-pressed="true"><span class="switch-legend"><span class="switch-stock">3</span><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#grenade"/></svg></span><span class="switch-label">GRENADE</span><span class="switch-cost">5 AP</span></span></button></div></figure>
+      <figure><figcaption>DISABLED</figcaption><div class="switch-zoom"><button class="industrial-switch" type="button" aria-label="Disabled grenade reference" aria-pressed="false" disabled><span class="switch-legend"><span class="switch-stock">3</span><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#grenade"/></svg></span><span class="switch-label">GRENADE</span><span class="switch-cost">5 AP</span></span></button></div></figure>
+    </div>
+  </section>
+  <section class="study-section" aria-label="Molded red lens with matching white painted eye and labels">
+    <p class="study-label">RED LENS · MOLDED PRISMATIC DIFFUSION</p>
+    <div class="study-grid study-grid-red">
+      <figure><figcaption>UNLIT</figcaption><div class="switch-zoom"><button class="industrial-switch cursor-interaction" data-face="red" type="button" aria-label="Unlit guard indicator reference" aria-pressed="false"><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#look"/></svg><b class="eye-count">0</b></span><span class="switch-label">LOOK</span><span class="switch-cost" aria-hidden="true">&nbsp;</span></span></button></div></figure>
+      <figure><figcaption>ILLUMINATED</figcaption><div class="switch-zoom"><button class="industrial-switch cursor-interaction" data-face="red" type="button" aria-label="Illuminated guard indicator reference, two guards" aria-pressed="true"><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#look"/></svg><b class="eye-count">2</b></span><span class="switch-label">LOOK</span><span class="switch-cost" aria-hidden="true">&nbsp;</span></span></button></div></figure>
+    </div>
+  </section>
+  <section class="study-section" aria-label="Interactive buttons at their actual size">
+    <p class="study-label">ACTUAL SIZE · 72 × 72 PX</p>
+    <div class="study-live">
+      <button class="industrial-switch cursor-interaction" id="study-green" type="button" aria-label="Toggle grenade illumination" aria-pressed="true"><span class="switch-legend"><span class="switch-stock">3</span><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#grenade"/></svg></span><span class="switch-label">GRENADE</span><span class="switch-cost">5 AP</span></span></button>
+      <button class="industrial-switch cursor-interaction" id="study-red" data-face="red" type="button" aria-label="Toggle red guard indicator" aria-pressed="true"><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#look"/></svg><b class="eye-count">2</b></span><span class="switch-label">LOOK</span><span class="switch-cost" aria-hidden="true">&nbsp;</span></span></button>
+      <button class="industrial-switch cursor-interaction" data-study-toggle type="button" aria-label="Toggle movement illumination" aria-pressed="false"><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#movement"/></svg></span><span class="switch-label">MOVE</span><span class="switch-cost">0 AP</span></span></button>
+      <button class="industrial-switch cursor-interaction" data-study-toggle type="button" aria-label="Toggle stance illumination" aria-pressed="false"><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#stance"/></svg></span><span class="switch-label">STAND</span><span class="switch-cost">0 AP</span></span></button>
+      <button class="industrial-switch cursor-interaction" data-study-toggle type="button" aria-label="Toggle end turn illumination" aria-pressed="false"><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#end-turn"/></svg></span><span class="switch-label">END TURN</span><span class="switch-cost" aria-hidden="true">&nbsp;</span></span></button>
+      <button class="industrial-switch cursor-interaction" data-study-toggle type="button" aria-label="Toggle options illumination" aria-pressed="false"><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#options"/></svg></span><span class="switch-label">OPTIONS</span><span class="switch-cost" aria-hidden="true">&nbsp;</span></span></button>
+    </div>
+    <p id="study-light-status" class="study-status" aria-live="polite">Green light on · red light on</p>
+  </section>
+</main>
+</body>
+</html>

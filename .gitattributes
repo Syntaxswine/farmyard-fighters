@@ -1,0 +1,14 @@
+# Keep imported source bytes and line endings for provenance hashes on every OS.
+sites/tactical-animal/dist/designer/** -text -whitespace
+sites/tactical-animal/dist/aft/** -text -whitespace
+sites/tactical-animal/aft-provenance.json text eol=lf
+sites/tactical-animal/dist/art/library/book-spines.svg text eol=lf
+sites/tactical-animal/dist/mount-dora-source/** -text -whitespace
+sites/tactical-animal/dist/mission-art/mount-dora/source/** -text -whitespace
+sites/tactical-animal/dist/mission-art/mount-dora/placements.js -text -whitespace
+
+# Retain raw geographic inputs and deterministic editor-map output byte for byte.
+maps/mount-dora/** -text -whitespace
+tools/maps/*.py text eol=lf
+tests/maps/*.py text eol=lf
+tests/maps/*.mjs text eol=lf

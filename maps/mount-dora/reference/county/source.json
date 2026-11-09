@@ -1,0 +1,172 @@
+{
+  "kind": "mount-dora-county-records-source",
+  "version": 1,
+  "release": "100626",
+  "envelopeWGS84": {
+    "xmin": -81.6495496,
+    "ymin": 28.7898406,
+    "xmax": -81.6339792,
+    "ymax": 28.8057208,
+    "spatialReference": {
+      "wkid": 4326
+    }
+  },
+  "envelopeMarginM": 40,
+  "altKeys": 1463,
+  "layers": {
+    "footprints": {
+      "layer": "https://gis.lakecountyfl.gov/lakegis/rest/services/InteractiveMap/MapServer/66",
+      "retrievedAt": "2026-11-03T17:04:36.352Z",
+      "count": 1304,
+      "pages": [
+        {
+          "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/InteractiveMap/MapServer/66/query?where=1%3D1&geometry=%7B%22xmin%22%3A-81.6495496%2C%22ymin%22%3A28.7898406%2C%22xmax%22%3A-81.6339792%2C%22ymax%22%3A28.8057208%2C%22spatialReference%22%3A%7B%22wkid%22%3A4326%7D%7D&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2CAltKey%2CBuildingNumber&returnGeometry=true&outSR=4326&orderByFields=OBJECTID&resultOffset=0&resultRecordCount=1000&f=geojson",
+          "bytes": 708649,
+          "sha256": "63eeb836b90d26287f90c58568f370e724e4da8cd59b7a56109e258aecd61baa",
+          "features": 1000
+        },
+        {
+          "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/InteractiveMap/MapServer/66/query?where=1%3D1&geometry=%7B%22xmin%22%3A-81.6495496%2C%22ymin%22%3A28.7898406%2C%22xmax%22%3A-81.6339792%2C%22ymax%22%3A28.8057208%2C%22spatialReference%22%3A%7B%22wkid%22%3A4326%7D%7D&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2CAltKey%2CBuildingNumber&returnGeometry=true&outSR=4326&orderByFields=OBJECTID&resultOffset=1000&resultRecordCount=1000&f=geojson",
+          "bytes": 217510,
+          "sha256": "0b90ff294acd5720a56142737e750777a2664ffec64241a0926d92fd3f33fb2c",
+          "features": 304
+        }
+      ],
+      "fields": [
+        "OBJECTID",
+        "AltKey",
+        "BuildingNumber"
+      ],
+      "kept": {
+        "file": "footprints.geojson",
+        "bytes": 888008,
+        "sha256": "335808db2d84ed8e5bec3bf6e17a1ab3792e00f4a696f4809fc5ef15bc135e0d"
+      }
+    },
+    "parcels": {
+      "layer": "https://gis.lakecountyfl.gov/lakegis/rest/services/InteractiveMap/MapServer/20",
+      "retrievedAt": "2026-11-03T17:04:36.989Z",
+      "count": 1451,
+      "pages": [
+        {
+          "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/InteractiveMap/MapServer/20/query?where=1%3D1&geometry=%7B%22xmin%22%3A-81.6495496%2C%22ymin%22%3A28.7898406%2C%22xmax%22%3A-81.6339792%2C%22ymax%22%3A28.8057208%2C%22spatialReference%22%3A%7B%22wkid%22%3A4326%7D%7D&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2CAltKey%2CParcelNumber%2CPropertyAddress%2CPropertyName%2CYearBuilt%2CLandUseCode%2CLandUseDescription%2CNumberOfBuildings%2CTotalLivingArea%2CVacant%2CComResStatus&returnGeometry=true&outSR=4326&orderByFields=OBJECTID&resultOffset=0&resultRecordCount=1000&f=geojson",
+          "bytes": 982755,
+          "sha256": "fa5678a7cfb07c2fe4f5b6784ccfdd727e87a55af033b72fd1ffebf2393a6fff",
+          "features": 1000
+        },
+        {
+          "url": "https://gis.lakecountyfl.gov/lakegis/rest/services/InteractiveMap/MapServer/20/query?where=1%3D1&geometry=%7B%22xmin%22%3A-81.6495496%2C%22ymin%22%3A28.7898406%2C%22xmax%22%3A-81.6339792%2C%22ymax%22%3A28.8057208%2C%22spatialReference%22%3A%7B%22wkid%22%3A4326%7D%7D&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2CAltKey%2CParcelNumber%2CPropertyAddress%2CPropertyName%2CYearBuilt%2CLandUseCode%2CLandUseDescription%2CNumberOfBuildings%2CTotalLivingArea%2CVacant%2CComResStatus&returnGeometry=true&outSR=4326&orderByFields=OBJECTID&resultOffset=1000&resultRecordCount=1000&f=geojson",
+          "bytes": 1021082,
+          "sha256": "9ba5e6e28f58da69aa6a1ac9cfaa012ec6dcbda7f3d30dbc21aad142bb17a051",
+          "features": 451
+        }
+      ],
+      "fields": [
+        "OBJECTID",
+        "AltKey",
+        "ParcelNumber",
+        "PropertyAddress",
+        "PropertyName",
+        "YearBuilt",
+        "LandUseCode",
+        "LandUseDescription",
+        "NumberOfBuildings",
+        "TotalLivingArea",
+        "Vacant",
+        "ComResStatus"
+      ],
+      "kept": {
+        "file": "parcels.geojson",
+        "bytes": 1940558,
+        "sha256": "15f88c184858a6b56d07f8c6d3f584cded4aee8fd425ccf9b78b41e090011f7c"
+      }
+    }
+  },
+  "tables": [
+    {
+      "table": "Bldg",
+      "url": "https://c.lakecountyfl.gov/ftp/PA_office/data/Bldg_100626.txt",
+      "retrievedAt": "2026-11-03T17:04:42.443Z",
+      "bytes": 39974226,
+      "sha256": "ea59574286d1d84319e3bfe128f59abcd5cb46e9f9cbac39d9e466460a793656",
+      "rowsInFile": 177410,
+      "kept": {
+        "file": "buildings.csv",
+        "rows": 1427,
+        "columns": [
+          "ALT_KEY",
+          "PARCEL_NUM",
+          "BLDG_NUM",
+          "CNS_STYLE",
+          "CNS_STYLE_DESC",
+          "CNS_MDL_DESC",
+          "CNS_EXT_WALL_1",
+          "CNS_EXT_WALL_1_DESC",
+          "FOUNDATION_DESC",
+          "ROOF_COVER",
+          "ROOF_COVER_DESC",
+          "ACTUAL_YEAR_BUILT",
+          "EFFECTIVE_YEAR_BUILT",
+          "EFFECTIVE_AREA",
+          "LIVING_AREA",
+          "STORIES"
+        ],
+        "bytes": 211004,
+        "sha256": "fe633fcdf4377229df83caffbbd6649732ac5d19c7763fe781a0e8ff7d8d4bfd"
+      }
+    },
+    {
+      "table": "Area",
+      "url": "https://c.lakecountyfl.gov/ftp/PA_office/data/Area_100626.txt",
+      "retrievedAt": "2026-11-03T17:04:48.026Z",
+      "bytes": 49244267,
+      "sha256": "e92ca6ede1251ec664ee6f887526593402cc0d719fedd7f50490a690802ca759",
+      "rowsInFile": 647160,
+      "kept": {
+        "file": "subareas.csv",
+        "rows": 4278,
+        "columns": [
+          "REM_PID",
+          "BLD_BLDG_NUM",
+          "SUB_CODE",
+          "SUB_DESC",
+          "Eff Area",
+          "Gross Area",
+          "Heated Area"
+        ],
+        "bytes": 189192,
+        "sha256": "c22742dc68c1e7a04edb4e5079ba293e093e54d9f7dcac25a4378c10e6eb193d"
+      }
+    },
+    {
+      "table": "Xfob",
+      "url": "https://c.lakecountyfl.gov/ftp/PA_office/data/Xfob_100626.txt",
+      "retrievedAt": "2026-11-03T17:04:50.322Z",
+      "bytes": 19354786,
+      "sha256": "4a472e6cd0153e673cace14a960dce612c8c0a7b1c2931c62297dc15608eacf4",
+      "rowsInFile": 191885,
+      "kept": {
+        "file": "extra-features.csv",
+        "rows": 1321,
+        "columns": [
+          "REM_PID",
+          "OXF_LINE_NUM",
+          "OXF_CODE",
+          "OXF_DESC",
+          "OXF_MEASURE_1",
+          "OXF_MEASURE_2",
+          "OXF_QUANTITY",
+          "OXF_YR"
+        ],
+        "bytes": 65491,
+        "sha256": "7fb924defb594de5b5ef10dac4b5e870d471e4a3a68f27a7e2fa0388c63cd77e"
+      }
+    }
+  ],
+  "publisher": "Lake County Property Appraiser (tax roll, building sketches) and Lake County GIS (parcels)",
+  "terms": [
+    "Florida public records (Chapter 119, Florida Statutes). The appraiser publishes the tax-roll files free on its FTP site and the GIS layers through the county map service.",
+    "Building Footprints layer, as published: as-is, no accuracy guarantee, only the portion of the county completed so far, residential building sketches only."
+  ],
+  "excluded": "Owner names and mailing addresses, sale prices and dates, appraised and taxable values, exemptions, bedrooms and bathrooms are never requested or written."
+}

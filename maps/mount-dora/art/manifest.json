@@ -1,0 +1,349 @@
+{
+  "schema": "mount-dora-landmark-art/1",
+  "status": "authoring recipe for architect review; no game/engine adoption",
+  "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
+  "farmyardBase": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+  "geography": "geography.json",
+  "assetCatalogue": "source/selected-assets.json",
+  "provenance": "source/provenance.json",
+  "world": {
+    "units": "metres",
+    "north": "up / negative y",
+    "extent": [
+      1440,
+      1680
+    ],
+    "sectorMetres": 240,
+    "columns": 6,
+    "rows": 7,
+    "projection": "architect-owned WGS84 ECEF local tangent plane",
+    "referenceWGS84": {
+      "lat": 28.8010291,
+      "lon": -81.6442229
+    },
+    "townOffset": [
+      480,
+      480
+    ],
+    "legacyTileCentre": "town = sectorOrigin + local integer + .5; do not apply .5 again to town anchors"
+  },
+  "palettes": {
+    "yellow-veranda": {
+      "sourceMaterials": [
+        "yellow-siding",
+        "plaster",
+        "green-metal",
+        "wood"
+      ],
+      "nativeBoundaryFallback": "wood"
+    },
+    "civic-park": {
+      "sourceMaterials": [
+        "cream-siding",
+        "plaster",
+        "green-metal",
+        "concrete"
+      ],
+      "nativeBoundaryFallback": "concrete"
+    },
+    "lakefront-timber": {
+      "sourceMaterials": [
+        "wood",
+        "dark-wood",
+        "green-metal"
+      ],
+      "nativeBoundaryFallback": "wood"
+    },
+    "historic-retail": {
+      "sourceMaterials": [
+        "brick",
+        "cream-siding",
+        "green-metal",
+        "plaster"
+      ],
+      "nativeBoundaryFallback": "brick"
+    },
+    "lighthouse-stripes": {
+      "sourceMaterials": [
+        "red-timber",
+        "plaster",
+        "green-metal"
+      ],
+      "nativeBoundaryFallback": "concrete"
+    }
+  },
+  "landmarks": [
+    {
+      "id": "md:donnelly-park",
+      "name": "Donnelly Park / building, deck and courts",
+      "geographicAnchor": {
+        "sourceFeatureId": "osm:way/468920884",
+        "townPoint": [
+          480.0538,
+          484.1839
+        ],
+        "method": "source footprint bounds centre, a reference point rather than an entrance or surveyed building centre"
+      },
+      "sourceFeatureIds": [
+        "osm:way/468920884",
+        "osm:way/557051180",
+        "osm:way/557051194",
+        "osm:way/561136643",
+        "osm:way/561136644",
+        "osm:way/1215493446",
+        "osm:way/557051202"
+      ],
+      "palette": "civic-park",
+      "catalogueAssetIds": [
+        "building:branchline-depot",
+        "terrain:ground-concrete",
+        "boundaries:fence-chainlink",
+        "objects:streetlight",
+        "objects:tree-broadleaf-large"
+      ],
+      "treatmentMode": "palette-over-host-footprints",
+      "previewOnly": true,
+      "heightPolicy": "native kit dimensions only; no surveyed height or interiors",
+      "placementPolicy": "Keep source geometry and global identity; source footprint wins over the illustrative prefab. Host owns sector pieces; do not cap seams.",
+      "limitations": [
+        "No surveyed building interiors or heights.",
+        "Court/stage use is city-confirmed; five mapped court footprints are preserved as mapped, not asserted to be the current complete count.",
+        "Stage/deck shape and court paint remain explicit authoring studies, not invented native presets."
+      ]
+    },
+    {
+      "id": "md:lakeside-inn",
+      "name": "Lakeside Inn / historic hotel group",
+      "geographicAnchor": {
+        "sourceFeatureId": "osm:way/560095897",
+        "townPoint": [
+          283.8612,
+          802.216
+        ],
+        "method": "source footprint bounds centre, a reference point rather than an entrance or surveyed building centre"
+      },
+      "sourceFeatureIds": [
+        "osm:way/560095890",
+        "osm:way/560095892",
+        "osm:way/560095893",
+        "osm:way/560095895",
+        "osm:way/560095896",
+        "osm:way/560095897",
+        "osm:way/560095898",
+        "osm:way/560095899"
+      ],
+      "palette": "yellow-veranda",
+      "catalogueAssetIds": [
+        "building:branchline-depot",
+        "building:estuary-cottage",
+        "building:coach-yard-inn"
+      ],
+      "treatmentMode": "palette-over-host-footprints",
+      "previewOnly": true,
+      "heightPolicy": "native kit dimensions only; no surveyed height or interiors",
+      "placementPolicy": "Keep source geometry and global identity; source footprint wins over the illustrative prefab. Host owns sector pieces; do not cap seams.",
+      "limitations": [
+        "Anchor is one small associated building, not the complete hotel outline.",
+        "Eight OSM associated structures remain independent footprint identities. OSM labels are retained, not asserted as current hotel operation names.",
+        "Yellow/white facade, deep porch and green roof/awning are visual treatment; catalogue plans and rooms are not surveyed inn interiors."
+      ]
+    },
+    {
+      "id": "md:elizabeth-evans",
+      "name": "Elizabeth Evans Park / lakefront pavilion",
+      "geographicAnchor": {
+        "sourceFeatureId": "osm:way/486656245",
+        "townPoint": [
+          448.7391,
+          934.6568
+        ],
+        "method": "source footprint bounds centre, a reference point rather than an entrance or surveyed building centre"
+      },
+      "sourceFeatureIds": [
+        "osm:way/486656245",
+        "osm:way/559770164",
+        "osm:way/559770165",
+        "osm:way/559770166",
+        "osm:way/559770167",
+        "osm:way/559770171",
+        "osm:way/559770172",
+        "osm:way/559770175",
+        "osm:way/559770178",
+        "osm:way/559770191",
+        "osm:way/559770193",
+        "osm:way/559770196"
+      ],
+      "palette": "lakefront-timber",
+      "catalogueAssetIds": [
+        "terrain:ground-wood-planks",
+        "boundaries:fence-railing",
+        "objects:reeds"
+      ],
+      "treatmentMode": "palette-over-host-footprints",
+      "previewOnly": true,
+      "heightPolicy": "native kit dimensions only; no surveyed height or interiors",
+      "placementPolicy": "Keep source geometry and global identity; source footprint wins over the illustrative prefab. Host owns sector pieces; do not cap seams.",
+      "limitations": [
+        "Source park is named Evans Park; the city name is Elizabeth Evans Park.",
+        "Mapped lawn-bowling shelters are not silently relabelled as the lakefront pavilion.",
+        "The lakefront pavilion has no independently verified point/footprint in this source subset: retain park anchor and defer precise pavilion placement."
+      ]
+    },
+    {
+      "id": "md:grantham-lighthouse",
+      "name": "Grantham Point lighthouse",
+      "geographicAnchor": {
+        "sourceFeatureId": "osm:node/2704687214",
+        "townPoint": [
+          500.2877,
+          1169.7989
+        ],
+        "method": "architect supplied verified point"
+      },
+      "sourceFeatureIds": [
+        "osm:node/2704687214"
+      ],
+      "palette": "lighthouse-stripes",
+      "catalogueAssetIds": [
+        "terrain:ground-concrete"
+      ],
+      "treatmentMode": "bespoke-static-reference-required",
+      "previewOnly": true,
+      "heightPolicy": "five 2.12m kit intervals = 10.6m visual proxy, not a survey",
+      "placementPolicy": "One global landmark at the supplied point. No fabricated interior or functioning beacon.",
+      "limitations": [
+        "No lighthouse preset exists in the reviewed catalogue. A map-owned static red/ivory tower study is retained separately and must not masquerade as an engine preset."
+      ]
+    },
+    {
+      "id": "md:gilbert-park",
+      "name": "Gilbert Park / pavilions",
+      "geographicAnchor": {
+        "sourceFeatureId": "osm:way/468921011",
+        "townPoint": [
+          754.5629,
+          1191.5847
+        ],
+        "method": "source footprint bounds centre, a reference point rather than an entrance or surveyed building centre"
+      },
+      "sourceFeatureIds": [
+        "osm:way/468921011",
+        "osm:way/557154683",
+        "osm:way/557154684",
+        "osm:way/557349878"
+      ],
+      "palette": "civic-park",
+      "catalogueAssetIds": [
+        "terrain:ground-concrete",
+        "objects:table-wood",
+        "objects:tree-broadleaf-large"
+      ],
+      "treatmentMode": "palette-over-host-footprints",
+      "previewOnly": true,
+      "heightPolicy": "native kit dimensions only; no surveyed height or interiors",
+      "placementPolicy": "Keep source geometry and global identity; source footprint wins over the illustrative prefab. Host owns sector pieces; do not cap seams.",
+      "limitations": [
+        "Two mapped pavilion footprints are retained separately from the restrooms.",
+        "Open-sided shelters use roof/column art studies; no invented pavilion prop ID."
+      ]
+    },
+    {
+      "id": "md:palm-island",
+      "name": "Palm Island / wooden boardwalk and wetlands",
+      "geographicAnchor": {
+        "sourceFeatureId": "osm:way/688219167",
+        "townPoint": [
+          469.8794,
+          1435.3082
+        ],
+        "method": "source footprint bounds centre, a reference point rather than an entrance or surveyed building centre"
+      },
+      "sourceFeatureIds": [
+        "osm:way/548471563",
+        "osm:way/688219167",
+        "osm:way/557051211"
+      ],
+      "palette": "lakefront-timber",
+      "catalogueAssetIds": [
+        "terrain:ground-wood-planks",
+        "boundaries:fence-railing",
+        "foliage:wetland-v1",
+        "objects:reeds"
+      ],
+      "treatmentMode": "palette-over-host-footprints",
+      "previewOnly": true,
+      "heightPolicy": "native kit dimensions only; no surveyed height or interiors",
+      "placementPolicy": "Keep source geometry and global identity; source footprint wins over the illustrative prefab. Host owns sector pieces; do not cap seams.",
+      "limitations": [
+        "Follow mapped wood footway centreline; do not straighten/rescale it or move the shoreline.",
+        "OSM bridge layer is not a surveyed deck elevation. Native storey pitch is only an edit-friendly approximation.",
+        "Wetland foliage exists; a named public cabbage-palm preset and boardwalk-rail generator do not exist in the reviewed workshop catalogue."
+      ]
+    },
+    {
+      "id": "md:historic-shopfronts",
+      "name": "Donnelly / Fifth Avenue shopfront palette",
+      "geographicAnchor": {
+        "sourceFeatureId": "osm:way/556562391",
+        "townPoint": [
+          352.334,
+          650.0718
+        ],
+        "method": "source footprint bounds centre, a reference point rather than an entrance or surveyed building centre"
+      },
+      "sourceFeatureIds": [
+        "osm:way/556562391",
+        "osm:way/556562396",
+        "osm:way/556562397",
+        "osm:way/556562398",
+        "osm:way/556562399",
+        "osm:way/556562400",
+        "osm:way/556562408",
+        "osm:way/556562409",
+        "osm:way/556562410",
+        "osm:way/556809462",
+        "osm:way/556809463",
+        "osm:way/556809464",
+        "osm:way/556809467",
+        "osm:way/556809468",
+        "osm:way/556809469",
+        "osm:way/558337882",
+        "osm:way/558337883",
+        "osm:way/558337884",
+        "osm:way/558337885",
+        "osm:way/558337886",
+        "osm:way/558337887",
+        "osm:way/558337888",
+        "osm:way/558337889",
+        "osm:way/558337890",
+        "osm:way/558337891",
+        "osm:way/558337892",
+        "osm:way/558337893",
+        "osm:way/558337894",
+        "osm:way/558337896",
+        "osm:way/558337897",
+        "osm:way/558337898",
+        "osm:way/558337899",
+        "osm:way/558337900"
+      ],
+      "palette": "historic-retail",
+      "catalogueAssetIds": [
+        "building:pepper-corner-shop",
+        "building:batten-general-store",
+        "building:market-terrace",
+        "boundaries:window-brick",
+        "objects:streetlight"
+      ],
+      "treatmentMode": "palette-over-host-footprints",
+      "previewOnly": true,
+      "heightPolicy": "native kit dimensions only; no surveyed height or interiors",
+      "placementPolicy": "Keep source geometry and global identity; source footprint wins over the illustrative prefab. Host owns sector pieces; do not cap seams.",
+      "limitations": [
+        "Selected OSM footprints retain global IDs and actual street position.",
+        "Catalogue shopfronts/awnings are typology studies, not identical copies of individual businesses.",
+        "Do not stretch a whole prefab to fit a mapped polygon or create artificial walls at sector cuts."
+      ]
+    }
+  ],
+  "failurePolicy": "Retain all source features and recipes. Unsupported bindings must be reported, never dropped or replaced with unknown native preset IDs."
+}

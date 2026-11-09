@@ -1,0 +1,67 @@
+{
+  "ammo": 29,
+  "AP": 10,
+  "dimensions": {
+    "width": 20,
+    "height": 10.6
+  },
+  "broken": {
+    "borderless-five-storeys": [
+      "r0c0"
+    ]
+  },
+  "acceptedBreaks": 1,
+  "transientReceipts": 1,
+  "effects": {
+    "pending": 0,
+    "active": 1,
+    "triangles": 64,
+    "voices": 1
+  },
+  "visibleMeshes": {
+    "clear-a": [
+      "r0c0"
+    ],
+    "grid-a": [
+      "r0c0",
+      "r0c1",
+      "r0c2",
+      "r1c0",
+      "r1c1",
+      "r1c2"
+    ],
+    "waist-clear": [
+      "r0c0"
+    ],
+    "waist-grid": [
+      "r0c0",
+      "r0c1",
+      "r1c0",
+      "r1c1"
+    ],
+    "clear-b": [
+      "r0c0"
+    ],
+    "seam-grid": [
+      "r0c0",
+      "r0c1",
+      "r0c2"
+    ],
+    "borderless-five-storeys": [],
+    "borderless-five-metres": [
+      "r0c0"
+    ],
+    "borderless-repeat": [
+      "r0c0"
+    ]
+  },
+  "shots": [
+    {
+      "shot": 0,
+      "glass": true,
+      "windowSequences": [
+        1
+      ]
+    }
+  ]
+}

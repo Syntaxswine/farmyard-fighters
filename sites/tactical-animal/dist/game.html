@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e8dfc9">
+  <meta name="description" content="Choose your soldier and loadout, sneak past patrols, and fight in real time in Farmyard Fighters.">
+  <title>Farmyard Fighters</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="touch-controls.css">
+  <link rel="stylesheet" href="original-art.css">
+  <link rel="stylesheet" href="map-frame.css">
+  <link rel="stylesheet" href="industrial-switches.css">
+  <link rel="stylesheet" href="field-hardware.css">
+  <link rel="stylesheet" href="realtime.css">
+</head>
+<body data-realtime="true">
+  <main id="prep">
+    <header class="masthead"><a class="brand" href="./" aria-label="Farmyard Fighters home"><span class="brand-mark" aria-hidden="true">★</span><span>FARMYARD<br><b>FIGHTERS</b></span></a><span class="edition"><i></i> REAL-TIME OPERATIONS</span></header>
+    <section class="intro"><div><p class="eyebrow">ONE SOLDIER. ONE WAY OUT.</p><h1>FARMYARD<br><span>FIGHTERS.</span></h1></div><p class="intro-copy">Choose your animal.<br>Make the loadout yours.<br>Bring something back.</p></section>
+    <label class="operation-picker" for="operation-select">OPERATION<select id="operation-select"><option value="night-ledger">The Night Ledger</option><option value="short-measure">Short Measure</option><option value="road-checkpoint">Road Checkpoint</option></select></label>
+    <div class="preparation">
+      <section class="operative-panel" aria-labelledby="animal-heading"><div class="section-label"><span>01 / THE OPERATIVE</span><span>6 AVAILABLE</span></div><div class="portrait-stage"><span class="portrait-rule">WORKER IDENTIFICATION</span><span class="portrait-number" aria-hidden="true">01</span><img id="hero-portrait" alt=""><div class="portrait-caption"><p id="hero-species"></p><h2 id="hero-name"></h2><span id="hero-role"></span></div><span class="portrait-stamp">CLEARED<br>FOR FIELD DUTY</span></div><div class="stats" id="stats"></div><h3 id="animal-heading" class="sr-only">Choose your animal</h3><div class="animal-grid" id="animals"></div></section>
+      <section class="loadout-panel" aria-labelledby="loadout-heading"><div class="section-label"><span id="loadout-heading">02 / YOUR LOADOUT</span><span>ANY ANIMAL. ANY WEAPON.</span></div><div class="loadout-heading"><h2>Tools of the trade.</h2><p>Your animal brings the skills.<br>You choose what they carry.</p></div><fieldset><legend><span>PRIMARY WEAPON</span><span id="primary-summary"></span></legend><div id="primary" class="weapon-grid"></div></fieldset>
+        <label id="loadout-fire-mode-picker" class="operation-picker" for="loadout-fire-mode" hidden>DEFAULT FIRE MODE
+          <select id="loadout-fire-mode">
+            <option value="single">Single shot</option>
+            <option value="burst">3-round burst</option>
+            <option value="auto" selected>Full auto</option>
+          </select>
+        </label>
+        <div class="loadout-bottom"><fieldset><legend>SIDEARM</legend><div id="secondary" class="secondary-grid"></div></fieldset><fieldset><legend>UTILITY</legend><div id="utility" class="utility-grid"></div></fieldset></div><p class="equipment-note" id="equipment-note"></p></section>
+      <section class="briefing-panel" aria-labelledby="mission-heading"><div class="section-label"><span>03 / THE ASSIGNMENT</span><span id="operation-number">OP. 001</span></div><div class="mission-map"><canvas id="mission-preview" width="380" height="280" role="img" aria-label="Operation layout"></canvas></div><p class="eyebrow" id="mission-location">MILL 04 / RECORDS OFFICE</p><h2 id="mission-heading">The Night Ledger</h2><p class="brief-copy" id="briefing-text"></p><ol class="mission-steps" id="mission-steps"></ol><div class="rhythm"><span class="rhythm-dot"></span><p>Explore in real time.<br><b>Choose when to open fire.</b></p></div><button id="resume" class="resume" hidden>Resume your operation ↗</button></section>
+    </div>
+    <p id="tour-launch-status" class="tour-launch-status" role="status" hidden></p>
+    <footer class="deploy-bar"><div><span class="eyebrow">DEPLOYMENT READY</span><p id="build-summary"></p></div><button id="deploy" class="deploy">DEPLOY SOLO <span>↗</span></button></footer>
+    <p class="source-note">Farmyard Fighters · Built on Farmyard Commando Real Time.</p>
+  </main>
+  <section id="battle" hidden aria-label="Solo operation">
+    <div id="viewport" role="application" aria-label="Tactical map. Tap ground to move. Drag to look around. Tap a visible guard to target."></div>
+    <button id="interaction-hand" class="interaction-hand" type="button" hidden aria-haspopup="dialog" aria-label="Interact with nearby object. Hold for choices."><span id="interaction-icon" aria-hidden="true"></span><strong id="interaction-label"></strong><small id="interaction-cost"></small></button>
+    <div class="view-controls"><button id="zoom-out" class="industrial-switch" type="button" aria-label="Zoom out"><span class="switch-legend" aria-hidden="true"><span class="switch-icon"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#zoom-out"/></svg></span></span></button><span>ZOOM</span><button id="zoom-in" class="industrial-switch" type="button" aria-label="Zoom in"><span class="switch-legend" aria-hidden="true"><span class="switch-icon"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#zoom-in"/></svg></span></span></button></div>
+    <button id="minimap-button" class="map-metal-frame" aria-label="Open tactical map showing your current location"><canvas id="minimap" width="190" height="140" role="img" aria-label="Map. The bright arrow marks your current location and facing direction."></canvas><span>MAP ↗</span></button>
+    <div id="tour-stream-status" class="tour-stream-status" role="status" hidden><span id="tour-stream-copy"></span><button id="tour-retry" type="button">Retry</button></div>
+    <div id="loading" role="status">Preparing the field…</div>
+    <div class="hero-strip"><div class="hero-identity"><strong id="battle-name"></strong><span id="battle-species"></span></div><div class="vitals"><span id="hp-label"></span><div class="meter"><i id="hp-bar"></i></div></div><div class="ap-block"><strong id="ap"></strong><small id="ap-label">AP</small></div></div>
+    <div class="battle-bottom">
+    <div id="grenade-aim" class="grenade-aim" hidden aria-label="Grenade aiming">
+      <div class="grenade-aim-heading"><strong>GRENADE AIM</strong><button id="cancel-grenade" type="button">Cancel <span aria-hidden="true">×</span></button></div>
+      <output id="grenade-detail" aria-live="polite"></output>
+      <p id="grenade-warning" class="danger-note" role="status" hidden></p>
+      <p>Release to hold aim, then tap THROW. Enter throws; Esc cancels.</p>
+      <p class="blast-key">Fill: exposed explored ground · outline: maximum blast</p>
+    </div>
+    <div id="flame-aim" class="grenade-aim" hidden aria-label="Flamethrower cone aiming">
+      <div class="grenade-aim-heading"><strong>FLAMETHROWER CONE</strong><button id="cancel-flame" type="button">Cancel <span aria-hidden="true">×</span></button></div>
+      <output id="flame-detail" aria-live="polite"></output>
+      <p id="flame-warning" class="danger-note" role="status" hidden></p>
+      <p>Joystick rotates the cone. Release, then tap FIRE. Enter fires; Esc cancels.</p>
+      <p class="blast-key">Highlighted area stops at walls and fog. Firing spends one fuel charge.</p>
+    </div><div class="thumb-layout">
+      <div class="left-controls">
+        <button id="look" class="square-control industrial-switch" data-face="red" data-lit="false" type="button" aria-label="0 visible opponents. Recenter on your animal." disabled><span class="switch-legend"><span class="switch-icon eye-symbol" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#look"/></svg><strong id="visible-count" class="eye-count">0</strong></span><span class="switch-label">LOOK</span></span></button>
+        <button id="movement-cycle" class="square-control cycle-control industrial-switch" data-lit="false" type="button" aria-label="Movement: off. Tap to cycle; hold for choices." aria-haspopup="dialog" aria-controls="control-picker" aria-expanded="false"><span class="switch-legend"><span id="movement-icon" class="switch-icon control-icon" aria-hidden="true"></span><span id="movement-label" class="switch-label">OFF</span><span class="switch-cost">FREE</span><span id="sneak-indicator" class="sneak-indicator" aria-hidden="true" hidden></span></span></button>
+        <button id="stance-cycle" class="square-control cycle-control industrial-switch" data-lit="false" type="button" aria-label="Stance: standing. Tap to cycle; hold for choices." aria-haspopup="dialog" aria-controls="control-picker" aria-expanded="false"><span class="switch-legend"><span id="stance-icon" class="switch-icon control-icon" aria-hidden="true"></span><span id="stance-label" class="switch-label">STAND</span><span class="switch-cost">FREE</span></span></button>
+      </div>
+      <div class="stick-column">
+        <div id="realtime-tools" class="realtime-tools" hidden>
+          <button id="realtime-aim" class="industrial-switch" type="button"><span class="switch-legend"><span id="realtime-aim-label" class="switch-label">HIP FIRE</span></span></button>
+          <button id="weapons" class="industrial-switch" type="button" aria-label="Open weapons menu" aria-haspopup="dialog" aria-controls="overlay"><span class="switch-legend"><span class="switch-label">WEAPONS</span></span></button>
+        </div><output id="realtime-status" class="realtime-status" hidden></output><output id="realtime-target" class="realtime-target" hidden></output><div id="joystick" role="group" aria-label="Movement thumbstick. Drag from the center to move. Keyboard: W A S D or arrow keys."><div class="stick-ring"></div><span class="stick-north">▲</span><div id="stick-knob"></div></div><span id="stick-caption" class="stick-caption">MOVE</span></div>
+      <div class="right-controls">
+        <button id="end-turn" class="square-control end-turn industrial-switch" data-face="red" data-lit="false" type="button" aria-label="End turn" disabled><span class="switch-legend"><span class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#fire"/></svg></span><span id="turn-label" class="switch-label">END<br>TURN</span></span></button>
+        <button id="grenade" class="square-control industrial-switch" data-face="yellow" data-lit="false" data-ready="false" type="button" aria-label="Aim grenade. Hold to switch weapon." aria-pressed="false" aria-haspopup="dialog" aria-controls="control-picker" aria-expanded="false" disabled><span class="switch-legend"><span id="grenade-count" class="switch-stock" aria-hidden="true">0</span><span id="area-icon" class="switch-icon" aria-hidden="true"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#grenade"/></svg></span><span id="grenade-label" class="switch-label">GRENADE</span><small id="grenade-cost" class="switch-cost">5 AP</small></span></button>
+        <button id="menu" class="square-control industrial-switch" type="button" aria-label="Open options"><span class="switch-legend" aria-hidden="true"><span class="switch-icon"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#options"/></svg></span><span class="switch-label">OPTIONS</span></span></button>
+      </div>
+    </div></div>
+  </section>
+  <div id="guard-alert-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="sneak-status" class="sr-only" role="status" aria-atomic="true"></div>
+  <dialog id="control-picker" class="control-picker" aria-labelledby="control-picker-title"><div class="picker-heading"><strong id="control-picker-title"></strong><span id="control-picker-cost">FREE SWITCH · FREE</span><button id="close-picker" aria-label="Close choices">×</button></div><div id="control-choices" class="control-choices"></div><p id="control-picker-hint"></p></dialog>
+  <dialog id="overlay"><div id="overlay-content"></div><div class="context-panel" id="context" hidden></div><div id="overlay-actions" class="dialog-actions"></div></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script type="importmap">{"imports":{"./designer/a20b343a0234/tactics/vendor/":"./aft/tactics/vendor/"}}</script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

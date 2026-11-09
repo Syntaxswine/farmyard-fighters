@@ -1,0 +1,57 @@
+{
+  "created": "2026-10-12",
+  "tileWorldSize": 2,
+  "pixels": 512,
+  "colorSpace": "sRGB",
+  "north": "Top of image is north (-Z).",
+  "variants": 4,
+  "source": "../ground-atlas-v1.png",
+  "recipe": "tactics/biome-foliage-paint.js",
+  "usage": "Unlit albedo. Any of the four variants in one family can neighbor any other without rotation. Cross-family blending and automatic selection belong to gameplay integration.",
+  "maximumBorderChannelErrors": {
+    "jungle": 0,
+    "temperate": 0,
+    "snow": 1,
+    "dry": 1,
+    "wetlands": 1,
+    "mud": 0
+  },
+  "families": {
+    "jungle": [
+      "jungle/ground-0.png",
+      "jungle/ground-1.png",
+      "jungle/ground-2.png",
+      "jungle/ground-3.png"
+    ],
+    "temperate": [
+      "temperate/ground-0.png",
+      "temperate/ground-1.png",
+      "temperate/ground-2.png",
+      "temperate/ground-3.png"
+    ],
+    "snow": [
+      "snow/ground-0.png",
+      "snow/ground-1.png",
+      "snow/ground-2.png",
+      "snow/ground-3.png"
+    ],
+    "dry": [
+      "dry/ground-0.png",
+      "dry/ground-1.png",
+      "dry/ground-2.png",
+      "dry/ground-3.png"
+    ],
+    "wetlands": [
+      "wetlands/ground-0.png",
+      "wetlands/ground-1.png",
+      "wetlands/ground-2.png",
+      "wetlands/ground-3.png"
+    ],
+    "mud": [
+      "mud/ground-0.png",
+      "mud/ground-1.png",
+      "mud/ground-2.png",
+      "mud/ground-3.png"
+    ]
+  }
+}

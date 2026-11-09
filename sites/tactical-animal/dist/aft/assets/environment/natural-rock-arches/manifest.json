@@ -1,0 +1,158 @@
+{
+  "title": "Natural limestone arch skins",
+  "created": "2026-10-20",
+  "generation": {
+    "mode": "built-in image_gen",
+    "original": "exec-99b6c57a-e36b-43fd-a634-dd625c9d9d17.png",
+    "prompt": "Use case: stylized-concept\nAsset type: production diffuse-color texture atlas for two matching low-poly natural limestone arches in the painterly tactical game Animal Factory Tactics.\nPrimary request: paint the stone skin, with most cracks, strata, weathering, restrained moss, small highlights and crevice shading in the paint rather than geometry.\nComposition: square atlas containing exactly four equal square panels in a precise 2 by 2 arrangement. The panels touch along the central horizontal and vertical divisions. No borders, gaps, labels or perspective. Each panel is a close-up planar material surface, not an object, arch, building or landscape.\nTop-left panel: exposed weathered limestone face, warm muted gray and buff, broad horizontal geological beds gently bent and interrupted, irregular hairline vertical fractures, a few deeper dark crevices, subtle ochre erosion and cool gray recesses. Large quiet stone areas between marks, confident visible hand-painted brushwork.\nTop-right panel: another matching weathered limestone face from the same rock formation, with different natural crack placement, broad overlapping gray-buff stone masses, varied muted value patches and sparse subdued olive moss in sheltered fissures. This is a rear and end-face material; just as finished as the front.\nBottom-left panel: matching limestone underside and sheltered soffit, cooler gray taupe, broad irregular strata and shallow concave erosion pockets, painted crevice darkness with restrained reflected warm light. Keep overall midtones usable; no uniform black area and no strong directional cast shadow.\nBottom-right panel: matching upper limestone walking surface, flat worn stone slabs formed by natural geology, muted warm gray-buff, sparse moss near a few cracks, fine weathering and pale dry highlights. Mostly stone, no large plants, grass, soil carpet or paving pattern.\nStyle: hand-painted environmental game art, loose but deliberate broad brush texture, restrained fine grain; matches low-poly painterly foliage and warm stone cliffs. Substantial naturally weathered rock feeling inspired by the stone masses in Frederic Edwin Church's The Natural Bridge, Virginia, adapted as a material.\nLighting: neutral diffuse material lighting, low-contrast painted relief only. No strong universal light direction, specular glare, hard cast shadows or baked edge vignette.\nConstraints: opaque raster, high resolution. Exactly four equal aligned panels. Avoid photographic micro-noise, repeated bricks, stacked masonry blocks, regular grid cracks, decorative symbols, text, letters, numbers, arrows, annotations, monitor UI or frames. The stone should not resemble a manufactured bridge."
+  },
+  "reference": "https://americanart.si.edu/exhibitions/humboldt/online/frederic-edwin-church-natural-bridge",
+  "panels": {
+    "front": [
+      0,
+      0
+    ],
+    "rearAndEnds": [
+      1,
+      0
+    ],
+    "underside": [
+      0,
+      1
+    ],
+    "top": [
+      1,
+      1
+    ]
+  },
+  "processing": "Original generated PNG retained unchanged. Runtime WebP encoded from complete atlas, no repainting or cropping.",
+  "models": [
+    {
+      "kind": "large",
+      "detail": "author",
+      "triangles": 2968,
+      "json": "large-author.json",
+      "obj": "large-author.obj",
+      "jsonSha256": "8534956181faba3b4fdf7d9921e4d6e068e9914236dad194df5d1658799adcce",
+      "objSha256": "14c02b46a02eb2ae93eaa7c021fe929b4c69e4a6a2f18774c3b445892f40fdcd",
+      "bounds": {
+        "min": [
+          -6,
+          0,
+          -1.965000033378601
+        ],
+        "max": [
+          6,
+          6.860227108001709,
+          1.965000033378601
+        ]
+      },
+      "walkableTop": 6.36,
+      "layer": 4
+    },
+    {
+      "kind": "large",
+      "detail": "runtime",
+      "triangles": 994,
+      "json": "large-runtime.json",
+      "obj": "large-runtime.obj",
+      "jsonSha256": "d0e6863755781c2b15bf3557aa4a60297bec5691333028166d99b74f65154a63",
+      "objSha256": "f2c83beb3469349de2538b3f7c67aa8d666a6bfbdbeba2768f0e5dab0da8197c",
+      "bounds": {
+        "min": [
+          -6,
+          0,
+          -1.965000033378601
+        ],
+        "max": [
+          6,
+          6.860227108001709,
+          1.965000033378601
+        ]
+      },
+      "walkableTop": 6.36,
+      "layer": 4
+    },
+    {
+      "kind": "small",
+      "detail": "author",
+      "triangles": 2770,
+      "json": "small-author.json",
+      "obj": "small-author.obj",
+      "jsonSha256": "2bc84c21b03893ccc26305d4d542d94b437d5daee7ceae45eae8d3c51c36807e",
+      "objSha256": "21f75155b04d6994b68c156ed13eca2c7abeafaf765f6350b207fe9db83ba722",
+      "bounds": {
+        "min": [
+          -3,
+          0,
+          -1.965000033378601
+        ],
+        "max": [
+          3,
+          2.5147652626037598,
+          1.965000033378601
+        ]
+      },
+      "walkableTop": 2.12,
+      "layer": 2
+    },
+    {
+      "kind": "small",
+      "detail": "runtime",
+      "triangles": 952,
+      "json": "small-runtime.json",
+      "obj": "small-runtime.obj",
+      "jsonSha256": "7dbdb7b164cfb6d4520989b1a35c2b7e579fe2565e42988a4c14d98c5ea0c491",
+      "objSha256": "98c9b380001d2fe5ff625ab93e9b50a6e449b7d6e16d2f09bd4644e2a5ef1c1a",
+      "bounds": {
+        "min": [
+          -3,
+          0,
+          -1.965000033378601
+        ],
+        "max": [
+          3,
+          2.5147652626037598,
+          1.965000033378601
+        ]
+      },
+      "walkableTop": 2.12,
+      "layer": 2
+    }
+  ],
+  "elevationPlan": {
+    "ordinaryLayers": 4,
+    "totalLayers": 5,
+    "roofLayer": 4,
+    "spacing": 2.12
+  },
+  "textures": [
+    {
+      "file": "paint-atlas-v1.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 3211382,
+      "sha256": "75b907d5d6a65df091e639976eb3b8b84fd6642ce908c18c3d509e4a954e1fbb"
+    },
+    {
+      "file": "paint-atlas-v1.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 564670,
+      "sha256": "5bb3ad5a227ba7ed6244b792683afe7313f8ce4884d22f5dda251d54da5ab2ae"
+    }
+  ],
+  "geometryWorkflow": "Approximately 3,000 author triangles reduced to approximately 1,000 runtime triangles (exact counts recorded per model). Reduced samples of the same constrained rock volume preserve the exact top route, end contacts and protected opening; tiny cap slivers are not subdivided further. Fine cracks, strata and moss are painted.",
+  "shading": {
+    "faces": "Shared planar normals and painted relief; broad front/rear faces do not receive dynamic shadows to avoid cap-triangulation self-shadow stripes.",
+    "otherSurfaces": "Geometric normals and normal shadow reception on the top, ends and underside. All rock casts shadows.",
+    "surfaceAttribute": {
+      "front": 0,
+      "rear": 1,
+      "underside": 2,
+      "top": 3,
+      "end": 4
+    },
+    "portability": "JSON includes surface classifications. OBJ includes geometry, UVs and normals; reproduce the runtime library material policy for equivalent shadows."
+  }
+}

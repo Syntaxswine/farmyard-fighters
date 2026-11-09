@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
+  "engineBaselineOnly": true,
+  "farmyardBase": "251bf8094b5f9ebe44208443084c1a6d6658512a",
+  "geodataInputs": {
+    "osm-downtown-snapshot.json": {
+      "bytes": 3385887,
+      "sha256": "b23d6838d52b393670781cdacc0146b8bc0b83c9bbf6e0503a7bd77ecbfcbef0"
+    },
+    "osm-source.json": {
+      "bytes": 1198,
+      "sha256": "016b9dd567f3d35a149a77a77ed936b40a8563c4d7066fdceaabaff27b4a397a"
+    },
+    "projected-ways.json": {
+      "bytes": 595783,
+      "sha256": "3c77e895969fdef026199ea2140bde955931885d765702997fc07416db9ebf04"
+    },
+    "survey.json": {
+      "bytes": 18443,
+      "sha256": "312ec79608869dd4fa4fa7a5939f5d08b1229afd33ea25a0a96b405ab50dcd2b"
+    }
+  },
+  "files": [
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/assets/catalogue.js",
+      "local": "source/nautilus/packages/assets/catalogue.js",
+      "bytes": 180321,
+      "sha256": "ccc52c40670f9f4b149cf6e5a8d0eb66cc83f9660a37618b03f1d703e16c4d25"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/building-catalog/designs.js",
+      "local": "source/nautilus/packages/building-catalog/designs.js",
+      "bytes": 12266,
+      "sha256": "87b20add713c321ac7a69a1ff16365c07657929d2200b7e82ba520f752bb24f6"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/building-catalog/index.js",
+      "local": "source/nautilus/packages/building-catalog/index.js",
+      "bytes": 11005,
+      "sha256": "6a13677421fe00a22e5cec55a29b7012b65566006e6b2a413866943c83fd9108"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/building-catalog/three.js",
+      "local": "source/nautilus/packages/building-catalog/three.js",
+      "bytes": 21570,
+      "sha256": "a6a71831c674c28b48ac25d4675708f9069329a759067ac08c5727002b38c6ba"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/roof-core/index.js",
+      "local": "source/nautilus/packages/roof-core/index.js",
+      "bytes": 13011,
+      "sha256": "18d0698ce666bc727a04571391ec58e7a96dc57c717750182f800aaf5ed3490c"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/roof-core/three.js",
+      "local": "source/nautilus/packages/roof-core/three.js",
+      "bytes": 5435,
+      "sha256": "96fe9556e429d86169db25005d939c58c2e5f72f595b15c34f4fb51b16187539"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "assets/buildings/painted-materials-v2.png",
+      "local": "source/nautilus/assets/buildings/painted-materials-v2.png",
+      "bytes": 2558637,
+      "sha256": "bbe33709a63362a13e509131c11f358d286b3d55ffcb86ca0ca1def4934ccdb2"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "NOTICE.md",
+      "local": "source/nautilus/NOTICE.md",
+      "bytes": 8106,
+      "sha256": "04579b40906420c34979a34771e6361adce4738b30bcca11703ff1951ef5590c"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "apps/editor/asset-catalog.js",
+      "referenceOnly": true,
+      "bytes": 4935,
+      "sha256": "d29ff3c01d2c2f62756b0e535f0618d5488fb9efd80d7bf982f2011c6e845c14"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/prefab-core/index.js",
+      "referenceOnly": true,
+      "bytes": 13696,
+      "sha256": "1dbbd0bfd17b79d0d93d38880e78d10f362ec8aba7c45b7a1c481e3aea8bec1c"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "packages/map-core/wall-runs.js",
+      "referenceOnly": true,
+      "bytes": 8795,
+      "sha256": "6d01eb4b49d6ba20ae71e4bb2cab095c80e63be5d14b6ff43f509a9cfc76633d"
+    },
+    {
+      "repository": "Nautilus Engine",
+      "revision": "2502646482218524fd5129641da769bb82462e4d",
+      "path": "apps/editor/editor.js",
+      "referenceOnly": true,
+      "bytes": 6486,
+      "sha256": "eb0faace266a635950b17ab88f790aef0aa9938cc46643d42fe13d97794f581b"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Industrial windows · Farmyard Commando</title><link rel="icon" href="../../icon.svg" type="image/svg+xml"><link rel="stylesheet" href="review.css">
+<body><header><div class="eyebrow">FARMYARD COMMANDO <span>ARCHITECTURE COLLECTION 03</span></div><h1>Light on the factory floor</h1><p>Borderless glass from edge to edge. Framed and divided windows for the rest.</p><div class="count">39 presets + resizable sheets · 1 m tiles · 2.12 m storeys</div></header>
+<form id="filters" aria-label="Window review controls">
+ <label>Height<select id="height"><option value="full">Full-height glazing</option><option value="waist">Waist-up glazing</option><option value="all">Compare both heights</option></select></label>
+ <label>Span<select id="span"><option value="1" selected>1 metre</option><option value="2">2 metres</option><option value="3">3 metres</option><option value="all">All preset spans</option><option value="custom">Resizable sheet</option></select></label>
+ <label>Pattern<select id="pattern"><option value="all">All patterns</option><option value="borderless" selected>Borderless · 2.12 m</option><option value="clear">Framed clear glass</option><option value="vertical-2">Two vertical lights</option><option value="vertical-3">Three vertical lights</option><option value="horizontal-2">Two horizontal bands</option><option value="grid-2x2">Four-pane grid</option><option value="grid-3x2">Six-pane grid</option></select></label>
+ <label>Frame<select id="finish"><option value="steel">Oiled factory steel</option><option value="sage">Sage enamel</option><option value="ivory">Aged ivory enamel</option></select></label>
+ <label>Lower wall<select id="wall"><option value="brick">Brick</option><option value="concrete">Concrete</option><option value="corrugated">Corrugated</option></select></label>
+ <label>View<select id="view"><option value="oblique">Oblique</option><option value="front">Front</option><option value="back">Back</option></select></label>
+ <label>Removed pane<select id="pane"><option value="r0c0">r0c0 · lower left</option><option value="r0c1">r0c1</option><option value="r0c2">r0c2</option><option value="r1c0">r1c0 · upper left</option><option value="r1c1">r1c1</option><option value="r1c2">r1c2</option></select></label>
+ <label>Width (metres)<input id="width" type="number" value="20" min="0.01" step="0.01" disabled></label>
+ <label>Sheet height<input id="sheet-height" type="number" value="5" min="0.01" step="0.01" disabled></label>
+ <label>Height unit<select id="height-unit" disabled><option value="storeys">Storeys · 2.12 m</option><option value="metres">Metres · 1 m tile</option></select></label>
+</form>
+<div class="catalog-bar"><p>Intact left, selected pane removed right. A borderless sheet is one pane across its whole width and height.</p><span id="status" role="status">Preparing window geometry…</span></div>
+<main id="catalog" aria-label="Industrial window catalog"></main>
+<footer><p>The reference grid is behind the glass: metre lines, amber 8 m chunk lines and blue 2.12 m storey lines. It remains when the glass is removed.</p><p class="note">Borderless sheets have no frame, internal edge faces or repeating reflections. Framed walls are 2 m high. Static art review; gameplay and shatter timing are integrated separately.</p></footer>
+<script type="module" src="review.js"></script></body></html>

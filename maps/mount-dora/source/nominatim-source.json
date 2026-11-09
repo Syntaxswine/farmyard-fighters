@@ -1,0 +1,9 @@
+{
+  "retrievedAt": "2026-11-02T05:49:34.150929+00:00",
+  "url": "https://nominatim.openstreetmap.org/search?q=Donnelly+Park%2C+Mount+Dora%2C+Florida&format=jsonv2&limit=3",
+  "sha256": "60c7df55db76ad44570b00d508c74c8891d361c95a5d8b7705abd05212361a51",
+  "bytes": 459,
+  "source": "OpenStreetMap Nominatim",
+  "attribution": "OpenStreetMap contributors",
+  "licence": "https://www.openstreetmap.org/copyright"
+}

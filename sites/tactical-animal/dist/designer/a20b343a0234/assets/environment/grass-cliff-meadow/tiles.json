@@ -1,0 +1,26 @@
+{
+  "id": "grass-cliff-meadow",
+  "name": "Cliff meadow grass",
+  "version": 1,
+  "tileWorldSize": 2,
+  "pixels": 512,
+  "colorSpace": "sRGB",
+  "usage": "Unlit albedo; shared procedural source in tactics/painted-grass.js. Any variant can neighbor any other without rotation. Top of image is north (-Z).",
+  "tiles": [
+    "grass-0.png",
+    "grass-1.png",
+    "grass-2.png",
+    "grass-3.png"
+  ],
+  "atlas": {
+    "file": "atlas.png",
+    "columns": 2,
+    "rows": 2
+  },
+  "maximumBorderChannelErrors": [
+    0,
+    0,
+    0,
+    0
+  ]
+}

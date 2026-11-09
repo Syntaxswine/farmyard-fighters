@@ -1,0 +1,55 @@
+/* AFT 3D's printed title screen and olive/gold battle HUD, fitted to one phone. */
+:root{--ink:#e8dfc9;--panel:#ded3b9;--panel2:#d4c7a9;--cream:#24231f;--muted:#65624f;--rust:#bd3225;--line:#24231f38;--mono:Consolas,'Courier New',monospace;--display:Impact,'Arial Narrow',sans-serif;--body:Arial,Helvetica,sans-serif;color-scheme:light}
+body{background:repeating-linear-gradient(0deg,#38200c04 0 1px,transparent 1px 4px),var(--ink)}
+.masthead{border-bottom:3px solid #24231f;height:88px}
+.brand{font-weight:700;letter-spacing:1.2px}.brand b{color:#65624f}
+.brand-mark{transform:rotate(-7deg);font:900 32px Arial;letter-spacing:0;color:#e8dfc9;background:#bd3225}
+.edition{color:#65624f}.edition i{background:#bd3225}
+.intro{position:relative;isolation:isolate;overflow:clip}.intro:after{content:'';position:absolute;right:2%;top:0;bottom:0;width:16%;background:repeating-linear-gradient(0deg,#38200c08 0 1px,transparent 1px 4px),#bd3225;transform:skewX(-24deg);z-index:-1;opacity:.9}
+.intro-copy{position:relative;background:#e8dfc9ed;padding:12px 16px}
+h1{font-weight:900;letter-spacing:-.025em;font-size:clamp(75px,7.9vw,130px);line-height:.87}
+.section-label{font-weight:700}.section-label span:last-child{color:#71684e}
+.portrait-stage{background:radial-gradient(ellipse at 65% 60%,#e8dfc9,#cec09a);color:#24231f;border:1px solid #9c8f6c}
+.portrait-stage:after{opacity:.06}.portrait-number{opacity:.09}
+.portrait-caption h2{font-family:Georgia,serif;font-weight:700;font-size:42px;text-transform:none;letter-spacing:-2px}
+.portrait-stamp{border-color:#84774f;color:#544c35}.portrait-rule{color:#756548}
+.stat strong{font-family:Georgia,serif;font-size:25px}.stat span{color:#65624f}
+.animal-choice{background:#e0d4b9}.animal-choice strong{font-family:Georgia,serif;font-size:16px;font-weight:700;text-transform:capitalize;letter-spacing:0}
+.animal-choice small{color:#65624f}.animal-choice[aria-pressed=true]{background:#c8bd96;border-color:#8a6a38;box-shadow:inset 0 0 0 1px #a0895d}
+.animal-choice[aria-pressed=true]:after{color:#bd3225}
+.animal-choice:hover,.small-choice:hover{background:#d5c8a7}
+.weapon-choice{min-height:92px;background:#ddd1b5;border-color:#a99b76;justify-content:flex-end;gap:5px;padding:43px 11px 10px}
+.weapon-choice:hover{background:#d5c6a2}.weapon-choice[aria-pressed=true]{background:#c8bd96;border-color:#8a6a38;box-shadow:inset 0 0 0 1px #a0895d}
+.weapon-choice[aria-pressed=true]:before{background:#bd3225}.weapon-choice strong{font:700 13px Georgia,serif;letter-spacing:0}.weapon-choice small{font-size:8px;color:#56513e}
+.weapon-choice .weapon-paint{position:absolute;left:11px;right:11px;top:5px;width:calc(100% - 22px);height:35px;opacity:1;justify-content:flex-start!important}
+.small-choice{background:#e0d4b9;min-height:46px;gap:7px}.small-choice small{color:#65624f;white-space:nowrap;font-size:7px}
+.small-choice[aria-pressed=true]{background:#c8bd96;border-color:#8a6a38}.sidearm-paint{flex:0 0 34px!important;width:34px!important}.small-choice>span:not(.weapon-sprite){margin-right:auto}
+.loadout-heading h2{font-family:Georgia,serif;font-size:27px;font-weight:700}.loadout-heading p{color:#65624f}
+.mission-map{background:#263b2d;border-color:#817453}.map-grid{background-image:linear-gradient(#e9e2cc13 1px,transparent 1px),linear-gradient(90deg,#e9e2cc13 1px,transparent 1px)}
+.map-room{border-color:#a89868;background:#716c45}.map-start{color:#efe6ce}.map-route{border-color:#e2bf70}.map-objective{color:#e2bf70}.map-coordinate{color:#cec7aa}
+.briefing-panel h2{font-family:Georgia,serif;font-size:39px;font-weight:700}.brief-copy,.mission-steps,.rhythm p{color:#65624f}.rhythm b{color:#24231f}
+.deploy-bar{background:#e8dfc9f5}.deploy{background:#bd3225;color:#fff0ce;font-size:23px;letter-spacing:.8px;box-shadow:3px 3px 0 #24231f}.deploy:hover{background:#a62a20}
+.source-note{color:#6b644d}.resume{color:#8a2e21}.toast{background:#efe6ce;color:#24231f}
+body.in-battle{--ink:#17241e;--panel:#25342a;--panel2:#354330;--cream:#efe6ce;--muted:#b2b7a5;--rust:#e2bf70;--line:#6c7057;color-scheme:dark;background:#17241e;color:var(--cream)}
+#battle{background:#17241e}#battle>.hero-strip{background:linear-gradient(110deg,#354330ed,#1a2922ed);border:1px solid #788165;border-top:2px solid #a08e5c;box-shadow:0 3px 8px #08140d40}
+#battle .hero-identity strong{font:700 18px Georgia,serif;text-transform:none}#battle .meter{background:#0e1d17;border:1px solid #8792714a;height:6px}#battle .meter i{background:#c27357}
+#battle .ap-block strong{font:700 23px Georgia,serif;color:#f3d590}
+.square-control,#battle .view-controls button,#minimap-button{border:1px solid #818868;background:linear-gradient(#354330ed,#1a2922f0);box-shadow:0 2px 5px #08140d50;border-radius:3px;color:#efe6ce}
+#battle .square-control.end-turn{background:#6d3929;border-color:#ba8060;color:#ffe6c0}
+#look.inspecting,#grenade[aria-pressed=true]{background:#686345;border-color:#efcf83}
+#look.guard-alert{border-color:#ff7669;background:#572721;box-shadow:0 0 0 1px #ff766966,0 2px 5px #08140d50}
+#look.guard-alert .eye-symbol{animation:guard-contact-blink .5s step-end 4}
+#look.guard-alert .control-caption{color:#ffc4b6}
+@keyframes guard-contact-blink{0%,49%{color:#ff7669}50%,100%{color:var(--cream)}}
+@media(prefers-reduced-motion:reduce){#look.guard-alert .eye-symbol{animation:none;color:#ff7669}}
+#joystick{border-color:#818868;background:radial-gradient(circle,#35433070,#17241e40)}#stick-knob{background:radial-gradient(circle at 35% 30%,#d2c292,#897747);border:2px solid #e4d19a;box-shadow:0 4px 14px #08140d80}
+.stick-caption,.stick-north{color:#efe6ce}.control-icon .original-stance,.control-choices .original-stance{fill:currentColor;stroke:none}
+.grenade-art{display:flex;align-items:center;justify-content:center;height:31px;width:28px}#grenade .grenade-art .weapon-sprite{height:31px}
+dialog{border:1px solid #7b8068;box-shadow:0 10px 50px #08140dcc}dialog h2{font-family:Georgia,serif;font-size:31px;line-height:1.1}
+.control-picker{background:#213127fa;border-color:#7b8068}.control-choices button{background:#354330;border-color:#818868;border-radius:3px}.control-choices button[aria-pressed=true]{background:#d2ba7b;border-color:#efcf83;color:#20291f}
+dialog button.primary,.context-panel button{background:#d2ba7b;border-color:#e2bf70;color:#20291f}.context-panel .cancel-context{color:#b2b7a5;background:transparent}
+@media(max-width:1100px){.intro:after{right:4%;width:18%}.intro-copy{max-width:190px}.briefing-panel h2{font-size:35px}}
+@media(max-width:650px){.masthead{height:75px}.brand-mark{width:35px;height:35px;font-size:29px}.intro{padding:27px 0 26px}.intro:after{width:8%;right:2%;opacity:.22}.intro h1{font-size:clamp(48px,16.8vw,84px);line-height:.89}.portrait-caption h2{font-size:45px}.portrait-caption{left:20px}.portrait-stage img{right:5px}.portrait-rule{left:20px}.stat strong{font-size:24px}.animal-choice strong{font-size:16px}.loadout-heading h2{font-size:26px}.weapon-choice{min-height:99px;padding-top:46px}.weapon-choice strong{font-size:14px}.weapon-choice small{font-size:8px}.briefing-panel h2{font-size:34px}.deploy-bar{border-color:#8a7b56}.deploy{min-width:155px;min-height:48px;font-size:20px}.edition{font-size:7px}.small-choice{font-size:11px;padding:8px}.loadout-bottom{gap:10px}#battle .hero-identity strong{font-size:17px}}
+@media(max-width:350px){#prep{padding-inline:13px}.brand{letter-spacing:.5px}.edition{letter-spacing:0;font-size:6px}.sidearm-paint{flex-basis:25px!important;width:25px!important}.small-choice{gap:4px}.weapon-choice small{font-size:7px}.deploy{flex-shrink:0;min-width:145px;font-size:18px;gap:8px;white-space:nowrap}.deploy span{font-size:24px}.deploy-bar{padding-inline:13px;gap:8px}.deploy-bar p{font-size:9px}}
+@media(max-width:650px){.portrait-stage img{height:230px;bottom:6px;right:0}.portrait-caption h2{font-size:clamp(32px,10.5vw,41px)}}
+@media(max-width:420px){#battle>.hero-strip{display:grid;grid-template-columns:minmax(0,1fr) 30px;gap:4px 6px}#battle .hero-identity{grid-column:1;grid-row:1}#battle .hero-identity span{display:none}#battle .vitals{grid-column:1;grid-row:2;min-width:0}#battle .vitals>span{margin-bottom:4px}#battle .ap-block{grid-column:2;grid-row:1/span 2;min-width:0;align-self:center}}

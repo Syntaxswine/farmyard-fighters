@@ -1,0 +1,10 @@
+.merc-portrait{position:relative;display:block;isolation:isolate}
+.merc-portrait.deceased img{filter:grayscale(1) brightness(.65);opacity:.8}
+.deceased-stamp{position:absolute;z-index:1;inset:43% 3% auto;display:block;transform:rotate(-12deg);border:2px solid currentColor;padding:4px 1px;background:#e4decded;color:#3e3c36;font:900 clamp(10px,1vw,14px)/1.2 system-ui,sans-serif;letter-spacing:.045em;text-align:center;text-transform:uppercase;pointer-events:none}
+.deceased-stamp[hidden]{display:none}
+.defeat-notice{width:min(460px,85vw);border:3px solid #1c2a24;background:#e7ddc0;color:#242820;padding:30px;box-shadow:10px 10px #0005;font-family:system-ui,sans-serif}
+.defeat-notice::backdrop{background:#10201dbb}
+.defeat-notice h2{font-size:32px;text-transform:uppercase;margin:12px 0}
+.defeat-kicker{color:#9c352b;text-transform:uppercase;font-size:12px;font-weight:800;letter-spacing:.15em}
+.defeat-actions{display:flex;gap:10px}.defeat-actions[hidden]{display:none}
+.defeat-actions button{background:#a23529;color:#fff1d4;border:1px solid #67362d;padding:10px;cursor:pointer}

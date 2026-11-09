@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "title": "Painted persistent body stains",
+  "generation": {
+    "mode": "built-in image_gen",
+    "original": "exec-873d7f53-5875-4659-98ff-3f8c686eb296.png",
+    "promptFile": "generation-prompt.txt",
+    "prompt": "Use case: stylized-concept\nAsset type: transparent RGBA painted blood-stain decal atlas for clothing and fur on low-poly animal soldiers in Animal Factory Tactics.\nPrimary request: paint four reusable surface stains in an exact two by two equal-cell square atlas on genuine transparent alpha. These are flat stains worn on top of existing painted character skins, not wounds shown on a body. NO body, clothing sample, skin patch or background in the image. Only blood paint and transparent spaces. Generous transparent gutters, at least 16 percent padding inside each equal cell. No drawn grid.\nTop-left cell: a small compact irregular entry stain. Dark dried oxblood centre, uneven crimson soaked fringe, a few short radial wicks and a subtle narrow downward bleed. Flat pigment absorbed into fabric, not a raised glob. No hole or anatomical detail.\nTop-right cell: a larger uneven exit stain, a dense dark-maroon centre with asymmetrical torn feathered edges and two or three short uneven downward streaks. Broad economical crimson patches and restrained darker creases, transparent broken edges showing the original fabric underneath. No exposed flesh or identifiable tissue.\nBottom-left cell: a second compact entry stain variation, a slightly diagonal irregular dark-red blot with one restrained drip, different silhouette from the first. Small scattered flecks close to the blot only.\nBottom-right cell: a second larger exit stain variation, an irregular oxblood smear with an off-centre burgundy mass and a few short uneven descending brush streaks, different silhouette from top-right.\nStyle: painterly game texture, hand-brushed and matte, absorbed colour on a surface. Rich dark oxblood, burgundy, muted crimson. No shiny spheres, no glossy liquid beads or white specular highlights. Use small restrained red accents so it reads on olive, cream and red uniforms. Stains should remain readable at 8–18 pixels tall in gameplay. Keep the centre opaque and the irregular edges partly transparent. Similar painted economy to our environment and character skins.\nConstraints: real transparent background, straight alpha, no beige border, no square backing, no checkerboard, text, labels, people, anatomy, cuts, holes, organs, bones, flames, smoke, bright neon glow or extreme gore. All four stains must be wholly isolated in their own equal cell.\n"
+  },
+  "source": {
+    "file": "source-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "ccfca524265b4782b28aeb78bbd34065a907f39ace0ca4ba515519e4e8e598d2"
+  },
+  "runtime": {
+    "file": "stain-components-v1.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 240663,
+    "sha256": "42b7f1387b07388883bedd2968502136c22f4a87046c0d0db6af45e7a9fefdbe",
+    "alpha": "straight",
+    "alphaCutoff": 0.015,
+    "blend": "normal alpha",
+    "decodedBytesWithMipmaps": 1398102
+  },
+  "preparation": "Mechanical crop, resize and packing only; unchanged source alpha preserved with transparent cell gutters.",
+  "cells": [
+    {
+      "name": "entry-a",
+      "uv": [
+        0,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 139,
+        "top": 132,
+        "width": 347,
+        "height": 372
+      }
+    },
+    {
+      "name": "exit-a",
+      "uv": [
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 656,
+        "top": 35,
+        "width": 554,
+        "height": 569
+      }
+    },
+    {
+      "name": "entry-b",
+      "uv": [
+        0,
+        0,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 153,
+        "top": 699,
+        "width": 344,
+        "height": 413
+      }
+    },
+    {
+      "name": "exit-b",
+      "uv": [
+        0.5,
+        0,
+        0.5,
+        0.5
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceCrop": {
+        "left": 652,
+        "top": 663,
+        "width": 569,
+        "height": 537
+      }
+    }
+  ]
+}

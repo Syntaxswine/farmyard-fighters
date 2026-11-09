@@ -1,0 +1,49 @@
+{
+ "kind": "mount-dora-bare-earth",
+ "version": 1,
+ "inputs": {
+  "file": "maps/mount-dora/reference/lidar/source.json",
+  "sha256": "e9712f29c3b1f637e8c1742a95ed40f0321748e023b9b7fed8d2dda664586e4f"
+ },
+ "grid": {
+  "originM": [
+   0,
+   0
+  ],
+  "cellM": 1,
+  "columns": 1440,
+  "rows": 1680,
+  "axes": {
+   "x": "east",
+   "y": "south"
+  },
+  "cell": "column i, row j covers town x in [i, i+1) and y in [j, j+1); row 0 is the northern edge"
+ },
+ "elevation": {
+  "file": "bare-earth.png",
+  "encoding": "16-bit grayscale PNG; sample = elevation in centimetres above NAVD88 (GEOID12B)",
+  "samplesSha256": "e55ea6f299363ff03eb53166836587f865d66e81913d850eb973c050be419572"
+ },
+ "source": {
+  "file": "bare-earth-source.png",
+  "encoding": "8-bit grayscale PNG; 0 = mean of the ground returns in the cell, 1 = filled (push-pull interpolation under buildings, trees and gaps), 2 = water (Lake Dora at the lidar water level)",
+  "samplesSha256": "2ad471651095e7b971e6b5ee365ed8d6a5515448b325320669abda395400da9c"
+ },
+ "stats": {
+  "minM": 18.53,
+  "maxM": 54.72,
+  "measuredShare": 0.659,
+  "filledShare": 0.155,
+  "waterShare": 0.186,
+  "lakeLevelM": 18.82,
+  "lakeLevelFt": 61.75,
+  "lakeWaterReturns": 4512436
+ },
+ "collection": {
+  "dataset": "FL_Peninsular_Lake_2018",
+  "acquired": [
+   "2018-12-06",
+   "2018-12-06"
+  ]
+ }
+}

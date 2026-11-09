@@ -1,0 +1,12 @@
+{
+  "name": "farmyard-fighters",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "node sites/tactical-animal/tools/build.mjs",
+    "serve": "node sites/tactical-animal/tools/serve.mjs",
+    "check": "node sites/tactical-animal/tools/check.mjs && node --test sites/tactical-animal/tests/*.test.mjs"
+  },
+  "engines": {"node": ">=22"}
+}

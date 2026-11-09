@@ -1,0 +1,3032 @@
+{
+  "schemaVersion": 1,
+  "scope": "Art assets only. Gameplay owns terrain IDs, automatic biome selection, placement, collision and density.",
+  "units": {
+    "gameTile": 1,
+    "groundTextureRepeatWorldSize": 2,
+    "groundTextureRepeatGameCells": [
+      2,
+      2
+    ],
+    "matureTreeScale": 1.8
+  },
+  "placement": "Each returned root starts at [0,0,0], with the lowest actual vertex at local Y=0. root.position.set(tileX, groundY, tileZ) is safe. Bounds describe the local art extent, not a collision footprint.",
+  "families": {
+    "jungle": {
+      "label": "Jungle",
+      "ground": "jungle",
+      "trees": [
+        "jungle-canopy",
+        "jungle-palm"
+      ],
+      "low": [
+        "jungle-broadleaf",
+        "jungle-fern"
+      ],
+      "reuse": [],
+      "description": "Buttressed crowns, arching palms and broad understory leaves."
+    },
+    "temperate": {
+      "label": "Temperate",
+      "ground": "temperate",
+      "trees": [
+        "temperate-broadleaf",
+        "temperate-pine"
+      ],
+      "low": [
+        "temperate-shrub",
+        "temperate-tuft"
+      ],
+      "reuse": [
+        "tree-broadleaf",
+        "tree-pine"
+      ],
+      "description": "The established broadleaf and pine, with meadow shrubs and tufts."
+    },
+    "snow": {
+      "label": "Snow",
+      "ground": "snow",
+      "trees": [
+        "snow-spruce",
+        "snow-alpine-pine"
+      ],
+      "low": [
+        "snow-scrub",
+        "snow-grass"
+      ],
+      "reuse": [
+        "pine-tier geometry"
+      ],
+      "description": "Narrow snowy spruce, open alpine boughs and low winter plants."
+    },
+    "dry": {
+      "label": "Dry grassland",
+      "ground": "dry",
+      "trees": [
+        "dry-acacia",
+        "dry-scrub-tree"
+      ],
+      "low": [
+        "dry-tussock",
+        "dry-shrub"
+      ],
+      "reuse": [
+        "shared bark and crown primitives"
+      ],
+      "description": "Flat spreading acacia, angular scrub and straw tussocks."
+    },
+    "wetlands": {
+      "label": "Wetlands",
+      "ground": "wetlands",
+      "trees": [
+        "wetland-cypress",
+        "wetland-willow"
+      ],
+      "low": [
+        "wetland-reeds",
+        "wetland-marsh-leaves"
+      ],
+      "reuse": [
+        "shared bark and crown primitives"
+      ],
+      "description": "Flared cypress, hanging willow, reeds and broad marsh leaves."
+    }
+  },
+  "treeMixes": {
+    "jungle": {
+      "jungle-canopy": 4,
+      "jungle-palm": 3,
+      "temperate-broadleaf": 2
+    },
+    "temperate": {
+      "temperate-broadleaf": 4,
+      "temperate-pine": 3,
+      "wetland-willow": 2,
+      "dry-scrub-tree": 1
+    },
+    "snow": {
+      "snow-spruce": 4,
+      "snow-alpine-pine": 3,
+      "temperate-pine": 2
+    },
+    "dry": {
+      "dry-acacia": 4,
+      "dry-scrub-tree": 3,
+      "temperate-pine": 2
+    },
+    "wetlands": {
+      "wetland-cypress": 4,
+      "wetland-willow": 4,
+      "temperate-broadleaf": 2
+    }
+  },
+  "plants": {
+    "jungle-canopy": {
+      "biome": "jungle",
+      "category": "tree",
+      "label": "canopy",
+      "appearances": [
+        {
+          "id": "jungle-canopy",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 784,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.4521733065710438,
+              0,
+              -1.387580661108553
+            ],
+            "max": [
+              1.551881138120099,
+              3,
+              1.285726449252488
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "moss"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-canopy",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 784,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.4206829929504,
+              0,
+              -1.4629442680142555
+            ],
+            "max": [
+              1.364406373793722,
+              3,
+              1.4019263199093261
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "moss"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-canopy",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 784,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.2704292134994621,
+              0,
+              -1.3495353288128027
+            ],
+            "max": [
+              1.4078851037802684,
+              3,
+              1.379723576912512
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "moss"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-canopy",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 784,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.613911951827879,
+              0,
+              -2.4976451899953958
+            ],
+            "max": [
+              2.7933860486161786,
+              5.3999999999999995,
+              2.3143076086544787
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "moss"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-canopy",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 784,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.557229387310719,
+              0,
+              -2.63329968242566
+            ],
+            "max": [
+              2.4559314728286994,
+              5.3999999999999995,
+              2.523467375836787
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "moss"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-canopy",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 784,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.286772584299032,
+              0,
+              -2.4291635918630448
+            ],
+            "max": [
+              2.534193186804483,
+              5.3999999999999995,
+              2.4835024384425215
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "moss"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "jungle-palm": {
+      "biome": "jungle",
+      "category": "tree",
+      "label": "palm",
+      "appearances": [
+        {
+          "id": "jungle-palm",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 448,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.2338780154719429,
+              0,
+              -1.5423001676159254
+            ],
+            "max": [
+              1.8138780154719427,
+              2.8112067411353343,
+              1.6246316420181355
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-palm",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 448,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.240533789679755,
+              0,
+              -1.6294446749028466
+            ],
+            "max": [
+              1.8495238821842568,
+              2.8112067411353343,
+              1.5227110918989193
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-palm",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 448,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.361057149960419,
+              0,
+              -1.7600772065198633
+            ],
+            "max": [
+              1.780479910942073,
+              2.8112067411353343,
+              1.3456309738487193
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-palm",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 448,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.220980427849497,
+              0,
+              -2.7761403017086654
+            ],
+            "max": [
+              3.2649804278494967,
+              5.060172134043602,
+              2.924336955632644
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-palm",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 448,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.232960821423559,
+              0,
+              -2.933000414825124
+            ],
+            "max": [
+              3.3291429879316623,
+              5.060172134043602,
+              2.7408799654180545
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-palm",
+          "biome": "jungle",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 448,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.449902869928754,
+              0,
+              -3.168138971735754
+            ],
+            "max": [
+              3.204863839695732,
+              5.060172134043602,
+              2.422135752927695
+            ]
+          },
+          "materials": [
+            "bark",
+            "jungle",
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "jungle-broadleaf": {
+      "biome": "jungle",
+      "category": "low",
+      "label": "broadleaf",
+      "appearances": [
+        {
+          "id": "jungle-broadleaf",
+          "biome": "jungle",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 96,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.4810491765976474,
+              0,
+              -0.5323007241654842
+            ],
+            "max": [
+              0.5203065848835152,
+              0.7865260974658037,
+              0.5388105367336248
+            ]
+          },
+          "materials": [
+            "jungle"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-broadleaf",
+          "biome": "jungle",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 96,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.5256476162622966,
+              0,
+              -0.5329231653805719
+            ],
+            "max": [
+              0.4939831751163716,
+              0.7865260974658037,
+              0.45790082232577906
+            ]
+          },
+          "materials": [
+            "jungle"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-broadleaf",
+          "biome": "jungle",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 96,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.5405624773890467,
+              0,
+              -0.53636962058242
+            ],
+            "max": [
+              0.47485255585137254,
+              0.7865260974658037,
+              0.5209293905784211
+            ]
+          },
+          "materials": [
+            "jungle"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "jungle-fern": {
+      "biome": "jungle",
+      "category": "low",
+      "label": "fern",
+      "appearances": [
+        {
+          "id": "jungle-fern",
+          "biome": "jungle",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 216,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.9611472673549368,
+              0,
+              -0.8445101751251554
+            ],
+            "max": [
+              0.7246655237370097,
+              0.36555414246422174,
+              0.9062047192449654
+            ]
+          },
+          "materials": [
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-fern",
+          "biome": "jungle",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 216,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8339548310022327,
+              0,
+              -0.7836598785115616
+            ],
+            "max": [
+              0.9630911915907869,
+              0.3655541424642217,
+              0.9148963255914933
+            ]
+          },
+          "materials": [
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "jungle-fern",
+          "biome": "jungle",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 216,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8576176806101612,
+              0,
+              -0.8597252777173117
+            ],
+            "max": [
+              0.948766277246521,
+              0.3655541424642217,
+              0.8264692323214937
+            ]
+          },
+          "materials": [
+            "frond"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "temperate-broadleaf": {
+      "biome": "temperate",
+      "category": "tree",
+      "label": "broadleaf",
+      "appearances": [
+        {
+          "id": "temperate-broadleaf",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 1336,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.750357666685246,
+              0,
+              -0.6406127758896587
+            ],
+            "max": [
+              0.8665685677710419,
+              2.52,
+              0.9731580301372142
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-broadleaf",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 1336,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8099060156662112,
+              0,
+              -0.7371557162537935
+            ],
+            "max": [
+              0.8536895708709953,
+              2.52,
+              0.9727597649467468
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-broadleaf",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 1336,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.7755282508438942,
+              0,
+              -0.8778267479325318
+            ],
+            "max": [
+              0.8227805565455558,
+              2.52,
+              0.8461777695154798
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-broadleaf",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 1336,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.3506438000334429,
+              0,
+              -1.1531029966013857
+            ],
+            "max": [
+              1.5598234219878753,
+              4.5360000000000005,
+              1.7516844542469858
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-broadleaf",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 1336,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.45783082819918,
+              0,
+              -1.3268802892568283
+            ],
+            "max": [
+              1.5366412275677912,
+              4.5360000000000005,
+              1.7509675769041437
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-broadleaf",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 1336,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.3959508515190098,
+              0,
+              -1.5800881462785574
+            ],
+            "max": [
+              1.4810050017820005,
+              4.5360000000000005,
+              1.5231199851278636
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "temperate-pine": {
+      "biome": "temperate",
+      "category": "tree",
+      "label": "pine",
+      "appearances": [
+        {
+          "id": "temperate-pine",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 460,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.7326794975143809,
+              0,
+              -0.6903939696674357
+            ],
+            "max": [
+              0.7178190376906568,
+              2.525,
+              0.6715908080738687
+            ]
+          },
+          "materials": [
+            "bark",
+            "pine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-pine",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 460,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.7479845047807553,
+              0,
+              -0.7155799172623475
+            ],
+            "max": [
+              0.6923765342025358,
+              2.525,
+              0.6698811514022199
+            ]
+          },
+          "materials": [
+            "bark",
+            "pine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-pine",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 460,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.7949748790382711,
+              0,
+              -0.6992955764889436
+            ],
+            "max": [
+              0.5942728664972713,
+              2.525,
+              0.7514259312732452
+            ]
+          },
+          "materials": [
+            "bark",
+            "pine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-pine",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 460,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.3188230955258855,
+              0,
+              -1.2427091454013843
+            ],
+            "max": [
+              1.2920742678431822,
+              4.545,
+              1.2088634545329637
+            ]
+          },
+          "materials": [
+            "bark",
+            "pine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-pine",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 460,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.3463721086053595,
+              0,
+              -1.2880438510722254
+            ],
+            "max": [
+              1.2462777615645644,
+              4.545,
+              1.205786072523996
+            ]
+          },
+          "materials": [
+            "bark",
+            "pine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-pine",
+          "biome": "temperate",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 460,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.4309547822688882,
+              0,
+              -1.2587320376800986
+            ],
+            "max": [
+              1.0696911596950887,
+              4.545,
+              1.3525666762918414
+            ]
+          },
+          "materials": [
+            "bark",
+            "pine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "temperate-shrub": {
+      "biome": "temperate",
+      "category": "low",
+      "label": "shrub",
+      "appearances": [
+        {
+          "id": "temperate-shrub",
+          "biome": "temperate",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 408,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.3588375736086996,
+              0,
+              -0.45416945391384844
+            ],
+            "max": [
+              0.486534634111006,
+              0.6461926677557515,
+              0.4131815717442545
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-shrub",
+          "biome": "temperate",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 408,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.40877398389487174,
+              0,
+              -0.49319553836206875
+            ],
+            "max": [
+              0.43331339128996255,
+              0.6462335658603102,
+              0.42215339212160297
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-shrub",
+          "biome": "temperate",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 408,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.43426387568479996,
+              0,
+              -0.45196612618600224
+            ],
+            "max": [
+              0.4879117983533138,
+              0.6461193850568322,
+              0.3735760421609283
+            ]
+          },
+          "materials": [
+            "bark",
+            "leaves"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "temperate-tuft": {
+      "biome": "temperate",
+      "category": "low",
+      "label": "tuft",
+      "appearances": [
+        {
+          "id": "temperate-tuft",
+          "biome": "temperate",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 144,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.2862880407973682,
+              0,
+              -0.2149297472751317
+            ],
+            "max": [
+              0.331991299350536,
+              0.4638124947335479,
+              0.28813775665447405
+            ]
+          },
+          "materials": [
+            "blade"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-tuft",
+          "biome": "temperate",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 144,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.2875550438717147,
+              0,
+              -0.21734299188332434
+            ],
+            "max": [
+              0.3384215736676778,
+              0.4638124947335478,
+              0.16656367237321146
+            ]
+          },
+          "materials": [
+            "blade"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "temperate-tuft",
+          "biome": "temperate",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 144,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.3564873357558642,
+              0,
+              -0.24162089722167893
+            ],
+            "max": [
+              0.30643634414309295,
+              0.4638124947335479,
+              0.16165327855041048
+            ]
+          },
+          "materials": [
+            "blade"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "snow-spruce": {
+      "biome": "snow",
+      "category": "tree",
+      "label": "spruce",
+      "appearances": [
+        {
+          "id": "snow-spruce",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 540,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.75,
+              0,
+              -0.6900000000000001
+            ],
+            "max": [
+              0.75,
+              3.2226143092278363,
+              0.6900000000000001
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-spruce",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 540,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8005134661897033,
+              0,
+              -0.7041776288961914
+            ],
+            "max": [
+              0.6221114834767167,
+              3.223046947471965,
+              0.7623288069276788
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-spruce",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 540,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.7116097222150538,
+              0,
+              -0.6850359012536045
+            ],
+            "max": [
+              0.7041800554451513,
+              3.223712394158071,
+              0.7829419528320174
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-spruce",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 540,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.35,
+              2.7755575615628914e-17,
+              -1.2420000000000002
+            ],
+            "max": [
+              1.35,
+              5.800705756610106,
+              1.2420000000000002
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-spruce",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 540,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.4409242391414658,
+              0,
+              -1.2675197320131444
+            ],
+            "max": [
+              1.11980067025809,
+              5.801484505449537,
+              1.3721918524698218
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-spruce",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 540,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.2808974999870968,
+              -2.7755575615628914e-17,
+              -1.2330646222564885
+            ],
+            "max": [
+              1.2675240998012725,
+              5.802682309484528,
+              1.4092955150976316
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "snow-alpine-pine": {
+      "biome": "snow",
+      "category": "tree",
+      "label": "alpine pine",
+      "appearances": [
+        {
+          "id": "snow-alpine-pine",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 1904,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8629937526166407,
+              0,
+              -0.9537575154452301
+            ],
+            "max": [
+              1.179801951166509,
+              2.737614309227837,
+              0.7813926355828786
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-alpine-pine",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 1904,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.9373156446091657,
+              0,
+              -0.9852241860294739
+            ],
+            "max": [
+              1.037209280744865,
+              2.7380469474719655,
+              0.8592782191551736
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-alpine-pine",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 1904,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.0354180329656006,
+              0,
+              -0.8323149495756439
+            ],
+            "max": [
+              1.1048581629068117,
+              2.7387123941580716,
+              0.8581325715592006
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-alpine-pine",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 1904,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.5533887547099532,
+              2.7755575615628914e-17,
+              -1.7167635278014144
+            ],
+            "max": [
+              2.1236435120997164,
+              4.927705756610107,
+              1.4065067440491816
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-alpine-pine",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 1904,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.687168160296498,
+              0,
+              -1.773403534853053
+            ],
+            "max": [
+              1.866976705340757,
+              4.928484505449538,
+              1.5467007944793123
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-alpine-pine",
+          "biome": "snow",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 1904,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.8637524593380816,
+              -2.7755575615628914e-17,
+              -1.4981669092361591
+            ],
+            "max": [
+              1.9887446932322614,
+              4.929682309484529,
+              1.544638628806561
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "snow-scrub": {
+      "biome": "snow",
+      "category": "low",
+      "label": "scrub",
+      "appearances": [
+        {
+          "id": "snow-scrub",
+          "biome": "snow",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 708,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.3588375736086996,
+              0,
+              -0.45416945391384844
+            ],
+            "max": [
+              0.486534634111006,
+              0.6661926677557515,
+              0.4131815717442545
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-scrub",
+          "biome": "snow",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 708,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.40877398389487174,
+              0,
+              -0.49319553836206875
+            ],
+            "max": [
+              0.43331339128996255,
+              0.6662335658603102,
+              0.42215339212160297
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-scrub",
+          "biome": "snow",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 708,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.43426387568479996,
+              0,
+              -0.45196612618600224
+            ],
+            "max": [
+              0.4879117983533138,
+              0.6661193850568322,
+              0.3735760421609283
+            ]
+          },
+          "materials": [
+            "bark",
+            "snowPine",
+            "snow"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "snow-grass": {
+      "biome": "snow",
+      "category": "low",
+      "label": "grass",
+      "appearances": [
+        {
+          "id": "snow-grass",
+          "biome": "snow",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 60,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.16271267430255268,
+              0,
+              -0.2039250693935008
+            ],
+            "max": [
+              0.331991299350536,
+              0.41743124526019304,
+              0.28813775665447405
+            ]
+          },
+          "materials": [
+            "straw"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-grass",
+          "biome": "snow",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 60,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.2750884525053443,
+              0,
+              -0.15173642922042885
+            ],
+            "max": [
+              0.3384215736676778,
+              0.4174312452601931,
+              0.1236541371980964
+            ]
+          },
+          "materials": [
+            "straw"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "snow-grass",
+          "biome": "snow",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 60,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.31428209581979133,
+              0,
+              -0.24162089722167893
+            ],
+            "max": [
+              0.2621488898876024,
+              0.4174312452601931,
+              0.09906326770748666
+            ]
+          },
+          "materials": [
+            "straw"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "dry-acacia": {
+      "biome": "dry",
+      "category": "tree",
+      "label": "acacia",
+      "appearances": [
+        {
+          "id": "dry-acacia",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 824,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.5374410235805618,
+              0,
+              -1.307925290255271
+            ],
+            "max": [
+              1.641881138120099,
+              2.3006825658087076,
+              1.245033908420006
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-acacia",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 824,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.3642116834677906,
+              0,
+              -1.49720336760626
+            ],
+            "max": [
+              1.3345605755341323,
+              2.30116327496885,
+              1.436444775972586
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-acacia",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 824,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.2744179296901192,
+              0,
+              -1.333985529353758
+            ],
+            "max": [
+              1.4027968980963577,
+              2.301902660175635,
+              1.348603600581071
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-acacia",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 824,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.7673938424450113,
+              -2.7755575615628914e-17,
+              -2.354265522459488
+            ],
+            "max": [
+              2.9553860486161785,
+              4.141228618455673,
+              2.2410610351560107
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-acacia",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 824,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.455581030242023,
+              -2.7755575615628914e-17,
+              -2.694966061691268
+            ],
+            "max": [
+              2.402209035961438,
+              4.1420938949439305,
+              2.5856005967506555
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-acacia",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 824,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.2939522734422146,
+              0,
+              -2.4011739528367646
+            ],
+            "max": [
+              2.525034416573444,
+              4.1434247883161435,
+              2.427486481045928
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "dry-scrub-tree": {
+      "biome": "dry",
+      "category": "tree",
+      "label": "scrub tree",
+      "appearances": [
+        {
+          "id": "dry-scrub-tree",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 752,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8749124162456514,
+              0,
+              -0.8064858255958574
+            ],
+            "max": [
+              0.9331682926387577,
+              1.9555820664861316,
+              0.670603448492475
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-scrub-tree",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 752,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.826562671945911,
+              0,
+              -0.8528379102607893
+            ],
+            "max": [
+              0.8148897867160269,
+              1.9555820664861316,
+              0.7861405026880859
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-scrub-tree",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 752,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8351426087645283,
+              0,
+              -0.7802972232424235
+            ],
+            "max": [
+              0.8098965183214689,
+              1.9555820664861316,
+              0.8433416801626975
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-scrub-tree",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 752,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.5748423492421726,
+              0,
+              -1.4516744860725432
+            ],
+            "max": [
+              1.6797029267497638,
+              3.520047719675037,
+              1.207086207286455
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-scrub-tree",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 752,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.48781280950264,
+              0,
+              -1.5351082384694208
+            ],
+            "max": [
+              1.4668016160888482,
+              3.520047719675037,
+              1.4150529048385545
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-scrub-tree",
+          "biome": "dry",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 752,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.503256695776151,
+              0,
+              -1.4045350018363623
+            ],
+            "max": [
+              1.4578137329786442,
+              3.520047719675037,
+              1.5180150242928554
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "dry-tussock": {
+      "biome": "dry",
+      "category": "low",
+      "label": "tussock",
+      "appearances": [
+        {
+          "id": "dry-tussock",
+          "biome": "dry",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 144,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.3917120490977779,
+              0,
+              -0.32405145796220575
+            ],
+            "max": [
+              0.4511953696779406,
+              0.6678899924163091,
+              0.38007744297226376
+            ]
+          },
+          "materials": [
+            "straw"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-tussock",
+          "biome": "dry",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 144,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.3705106720587914,
+              0,
+              -0.3512269985853974
+            ],
+            "max": [
+              0.4703150612511866,
+              0.6678899924163089,
+              0.27384092076646627
+            ]
+          },
+          "materials": [
+            "straw"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-tussock",
+          "biome": "dry",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 144,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.4696574013977355,
+              0,
+              -0.3915219297905117
+            ],
+            "max": [
+              0.40552789894347663,
+              0.6678899924163091,
+              0.2767549307147259
+            ]
+          },
+          "materials": [
+            "straw"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "dry-shrub": {
+      "biome": "dry",
+      "category": "low",
+      "label": "shrub",
+      "appearances": [
+        {
+          "id": "dry-shrub",
+          "biome": "dry",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 408,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.3588375736086996,
+              0,
+              -0.45416945391384844
+            ],
+            "max": [
+              0.486534634111006,
+              0.6461926677557515,
+              0.4131815717442545
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-shrub",
+          "biome": "dry",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 408,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.40877398389487174,
+              0,
+              -0.49319553836206875
+            ],
+            "max": [
+              0.43331339128996255,
+              0.6462335658603102,
+              0.42215339212160297
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "dry-shrub",
+          "biome": "dry",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 408,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.43426387568479996,
+              0,
+              -0.45196612618600224
+            ],
+            "max": [
+              0.4879117983533138,
+              0.6461193850568322,
+              0.3735760421609283
+            ]
+          },
+          "materials": [
+            "bark",
+            "dry"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "wetland-cypress": {
+      "biome": "wetlands",
+      "category": "tree",
+      "label": "cypress",
+      "appearances": [
+        {
+          "id": "wetland-cypress",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 1356,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.6980139943104455,
+              0,
+              -0.7926748391545526
+            ],
+            "max": [
+              0.9269702763850731,
+              3.1350000000000002,
+              0.628534822308715
+            ]
+          },
+          "materials": [
+            "bark",
+            "cypress"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-cypress",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 1356,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.7588490599135278,
+              0,
+              -0.8196545628748328
+            ],
+            "max": [
+              0.8262427942639782,
+              3.1350000000000002,
+              0.7419558394798268
+            ]
+          },
+          "materials": [
+            "bark",
+            "cypress"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-cypress",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 1356,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.8381751696203601,
+              0,
+              -0.6911236929336828
+            ],
+            "max": [
+              0.8633804829309991,
+              3.1350000000000002,
+              0.7350599678823126
+            ]
+          },
+          "materials": [
+            "bark",
+            "cypress"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-cypress",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 1356,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.256425189758802,
+              0,
+              -1.4268147104781947
+            ],
+            "max": [
+              1.6685464974931317,
+              5.643000000000001,
+              1.131362680155687
+            ]
+          },
+          "materials": [
+            "bark",
+            "cypress"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-cypress",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 1356,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.36592830784435,
+              0,
+              -1.4753782131746993
+            ],
+            "max": [
+              1.4872370296751607,
+              5.643000000000001,
+              1.335520511063688
+            ]
+          },
+          "materials": [
+            "bark",
+            "cypress"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-cypress",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 1356,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.508715305316648,
+              0,
+              -1.244022647280629
+            ],
+            "max": [
+              1.5540848692757985,
+              5.643000000000001,
+              1.3231079421881629
+            ]
+          },
+          "materials": [
+            "bark",
+            "cypress"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "wetland-willow": {
+      "biome": "wetlands",
+      "category": "tree",
+      "label": "willow",
+      "appearances": [
+        {
+          "id": "wetland-willow",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 0,
+          "mature": false,
+          "triangles": 1232,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.0543662072357038,
+              0,
+              -1.0405127598102535
+            ],
+            "max": [
+              1.1767524552480395,
+              2.5429555921321905,
+              0.9908431619891852
+            ]
+          },
+          "materials": [
+            "bark",
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-willow",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 1,
+          "mature": false,
+          "triangles": 1232,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.1360597226692448,
+              0,
+              -1.1427185063265537
+            ],
+            "max": [
+              1.0766122391689477,
+              2.5436285849563904,
+              1.0564882719474475
+            ]
+          },
+          "materials": [
+            "bark",
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-willow",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 2,
+          "mature": false,
+          "triangles": 1232,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.0612241135339364,
+              0,
+              -1.0825294035630186
+            ],
+            "max": [
+              1.1801213819837648,
+              2.5446637242458894,
+              1.0975555737448797
+            ]
+          },
+          "materials": [
+            "bark",
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-willow",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 0,
+          "mature": true,
+          "triangles": 1232,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.8978591730242669,
+              0,
+              -1.8729229676584565
+            ],
+            "max": [
+              2.1181544194464714,
+              4.577320065837943,
+              1.7835176915805333
+            ]
+          },
+          "materials": [
+            "bark",
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-willow",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 1,
+          "mature": true,
+          "triangles": 1232,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -2.0449075008046407,
+              5.551115123125783e-17,
+              -2.0568933113877965
+            ],
+            "max": [
+              1.9379020305041057,
+              4.578531452921503,
+              1.9016788895054053
+            ]
+          },
+          "materials": [
+            "bark",
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-willow",
+          "biome": "wetlands",
+          "category": "tree",
+          "variant": 2,
+          "mature": true,
+          "triangles": 1232,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -1.9102034043610856,
+              0,
+              -1.9485529264134338
+            ],
+            "max": [
+              2.1242184875707766,
+              4.580394703642601,
+              1.9756000327407837
+            ]
+          },
+          "materials": [
+            "bark",
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "wetland-reeds": {
+      "biome": "wetlands",
+      "category": "low",
+      "label": "reeds",
+      "appearances": [
+        {
+          "id": "wetland-reeds",
+          "biome": "wetlands",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 528,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.38212804834319525,
+              0,
+              -0.2786796313232714
+            ],
+            "max": [
+              0.44035863601181297,
+              1.0102767920820828,
+              0.37171928967064655
+            ]
+          },
+          "materials": [
+            "blade",
+            "moss",
+            "bark"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-reeds",
+          "biome": "wetlands",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 528,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.3487856079630214,
+              0,
+              -0.3390557252488453
+            ],
+            "max": [
+              0.4583247441981404,
+              1.0102767920820828,
+              0.20091060203440186
+            ]
+          },
+          "materials": [
+            "blade",
+            "moss",
+            "bark"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-reeds",
+          "biome": "wetlands",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 528,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.4342549664070001,
+              0,
+              -0.37789456319334513
+            ],
+            "max": [
+              0.33229567865553733,
+              1.0102767920820828,
+              0.2662911441543335
+            ]
+          },
+          "materials": [
+            "blade",
+            "moss",
+            "bark"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    },
+    "wetland-marsh-leaves": {
+      "biome": "wetlands",
+      "category": "low",
+      "label": "marsh leaves",
+      "appearances": [
+        {
+          "id": "wetland-marsh-leaves",
+          "biome": "wetlands",
+          "category": "low",
+          "variant": 0,
+          "mature": false,
+          "triangles": 96,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.4810491765976474,
+              0,
+              -0.5323007241654842
+            ],
+            "max": [
+              0.5203065848835152,
+              0.7865260974658037,
+              0.5388105367336248
+            ]
+          },
+          "materials": [
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-marsh-leaves",
+          "biome": "wetlands",
+          "category": "low",
+          "variant": 1,
+          "mature": false,
+          "triangles": 96,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.5256476162622966,
+              0,
+              -0.5329231653805719
+            ],
+            "max": [
+              0.4939831751163716,
+              0.7865260974658037,
+              0.45790082232577906
+            ]
+          },
+          "materials": [
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        },
+        {
+          "id": "wetland-marsh-leaves",
+          "biome": "wetlands",
+          "category": "low",
+          "variant": 2,
+          "mature": false,
+          "triangles": 96,
+          "anchor": [
+            0,
+            0,
+            0
+          ],
+          "bounds": {
+            "min": [
+              -0.5405624773890467,
+              0,
+              -0.53636962058242
+            ],
+            "max": [
+              0.47485255585137254,
+              0.7865260974658037,
+              0.5209293905784211
+            ]
+          },
+          "materials": [
+            "wet"
+          ],
+          "note": "Visual bounds only; gameplay owns passability and collision."
+        }
+      ]
+    }
+  },
+  "ground": {
+    "manifest": "ground-tiles/tiles.json",
+    "families": {
+      "jungle": [
+        "jungle/ground-0.png",
+        "jungle/ground-1.png",
+        "jungle/ground-2.png",
+        "jungle/ground-3.png"
+      ],
+      "temperate": [
+        "temperate/ground-0.png",
+        "temperate/ground-1.png",
+        "temperate/ground-2.png",
+        "temperate/ground-3.png"
+      ],
+      "snow": [
+        "snow/ground-0.png",
+        "snow/ground-1.png",
+        "snow/ground-2.png",
+        "snow/ground-3.png"
+      ],
+      "dry": [
+        "dry/ground-0.png",
+        "dry/ground-1.png",
+        "dry/ground-2.png",
+        "dry/ground-3.png"
+      ],
+      "wetlands": [
+        "wetlands/ground-0.png",
+        "wetlands/ground-1.png",
+        "wetlands/ground-2.png",
+        "wetlands/ground-3.png"
+      ],
+      "mud": [
+        "mud/ground-0.png",
+        "mud/ground-1.png",
+        "mud/ground-2.png",
+        "mud/ground-3.png"
+      ]
+    },
+    "usage": "Unlit albedo. Any of the four variants in one family can neighbor any other without rotation. Cross-family blending and automatic selection belong to gameplay integration."
+  },
+  "sourceHashFormat": "SHA-256 of UTF-8 text with LF line endings",
+  "sources": {
+    "dist/tactics/biome-tree-mix.js": "405ec7c70010ae2dec927b9144479b376e5cbae72a65fece64b26b9d6d674abf",
+    "dist/tactics/foliage-obstacles.js": "259a875f480260282210e74847f3eee993f15dcd55db550eec4e3ac92aef6a33",
+    "dist/tactics/biome-terrain.js": "6863ade2d7098550ebcdc2251f47681cddd67a174cac58b515ed6f3b4df55ba4",
+    "dist/tactics/foliage-screen-paint.js": "a14cb24ab2325bbc63722c36ad08f7c9c8a6622494287953348eff5ee01dded0",
+    "dist/tactics/foliage-screen-surface.js": "8e452f6138a481e5b6a4bdbad2403d196939ea7bdc2d5d76490fe0d25ae02292",
+    "dist/tactics/foliage-screen-scene.js": "8026317a5b08c5d785acc75837191372903e49d83c46d40a196aa62f25dd98c4",
+    "dist/tactics/biome-scene.js": "cba6775762efc3e3cac2fe9135a2ad0a3b26cb7bd7c52dd7a48320eee08e4713",
+    "dist/tactics/biome-atlas-lod.js": "877304c162ec30aa771a35fac67bc40a9847ed38bd9c663129ae58b7fb4fe415",
+    "dist/tactics/biome-foliage-data.js": "05c500352b3ecef1be47b1341e700d0099e720f1f42680eb4787a5d5a7e482f4",
+    "dist/tactics/biome-foliage-models.js": "51f8f91e3a61b2fbb64c2e93e54698e06f34deeb0b040f5e11ee77a4fb8032bf",
+    "dist/tactics/biome-plant-parts.js": "fccc60ca74f51ae22b517351c1887ce4355f1b983fb1e916f23ca65efc9a6e6c",
+    "dist/tactics/biome-foliage-paint.js": "add6527e4b1e3af85510b95de74b7ea85fd9ead2267a38f78ef7f9dd297b83d1",
+    "dist/tactics/foliage-models.js": "e179c77117a69cb56aa1144105f7ba2eb00878c3158d023cc82a097e775530b6",
+    "dist/tactics/environment-geometry.js": "82e34231b7acd7b8f04499a5d68a95e772b875b7f3d22b6b844d5a0bc212238b",
+    "dist/tactics/foliage-tree-cover.js": "480284a6d25787fa26712f4e6b68f377d84d9e5c91256c970f49923d2ea07e74",
+    "dist/tactics/foliage-cutaway.js": "a05e944dc5a5af5ba8f2a4828081d37f056429c17f482043385c68c89fbdb3da"
+  }
+}

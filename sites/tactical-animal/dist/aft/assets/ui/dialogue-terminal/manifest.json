@@ -1,0 +1,32 @@
+{
+  "title": "Painted field terminal",
+  "created": "2026-10-20",
+  "generation": {
+    "mode": "built-in image_gen",
+    "transparent_background": false
+  },
+  "assets": [
+    {
+      "file": "field-terminal.webp",
+      "original": "exec-c0a8ddb2-bbff-4fab-8aa8-dab7b4e040da.png",
+      "prompt": "Use case: stylized-concept\nAsset type: production raster UI skin, one square nine-slice panel texture for a painterly military industrial retrofuturist game's conversation terminal.\nPrimary request: a battered field-terminal faceplate, dirty but carefully readable.\nComposition: exactly straight-on orthographic front surface, square 1024 by 1024. The object fills the entire image edge to edge. Narrow continuous metal bezel occupying only the outer 7 percent on each side, with small slotted screws contained in the four corner squares. The inner 86 percent is one uninterrupted flat dark desaturated olive-green painted metal surface, quiet enough to put cream interface text over it.\nStyle: hand-painted game art, visible broad soft gouache/oil brushwork and deliberate painted edge highlights, like an illustrated 1960s military communications console. NOT photorealistic, NOT vector, NOT a clean 3D render.\nMaterials: chipped olive enamel, small exposed dull steel nicks, a little oily brown grime and charcoal rubbed dirt mostly around the outer rim, subtle warm brass oxidation at corner hardware. Rounded inner bevel, restrained scratches.\nThe broad center must remain dark, low contrast, empty and calm, with very subtle brushed paint wear only. The center has no openings, panels, controls, vents, seams, ornament or bright marks. Bezel straight along each side so the side strips can stretch independently.\nConstraints: no text, no letters, no numbers, no logos, no UI contents, no portraits, no buttons, no screens, no perspective, no cast shadow outside the image, no background beyond the object, no bright neon, no hazard stripes. Opaque texture.",
+      "role": "Nine-slice olive enamel shell and worn control surfaces",
+      "slicePercent": 7,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 240362,
+      "sha256": "e6c8a143aad37e9de019bbe57a2adbdc65c4485b0f7d749d4f5ce6c51563c3d5"
+    },
+    {
+      "file": "message-paper.webp",
+      "original": "exec-0b7dbaad-bc63-4840-a574-26f5c01ff922.png",
+      "prompt": "Use case: stylized-concept\nAsset type: production raster UI message-card texture for a hand-painted military industrial retrofuturist game.\nPrimary request: a blank, worn pale buff communications slip, as if thick cream paper came out of an old field teleprinter, carefully kept readable.\nComposition: exactly straight-on, flat square surface, 1024 by 1024, edge-to-edge opaque. No perspective, no tabletop, no shadow outside, no folded corners. Thin worn edges within the outer 3 percent; the broad inner 94 percent is clean, quiet warm grey-ivory paper. Treat this as a stretchable UI material, not a photograph of stationery.\nStyle/medium: fine painterly gouache and oil-brush game texture, simplified visible hand-painted surface, restrained soft fibers. Dirty-industrial wear at edges: a few faint graphite scuffs, ochre grime and slight handling smudges, absolutely no dark stain in the text area.\nPalette: light muted cream, grey ivory, faded khaki at the edge. Enough pale uniformity for dark green dialogue text to be comfortably readable.\nConstraints: Entire surface remains solid paper, no holes, no burnt edges. No text, no handwriting, no printed lines, no typography, no symbols, no markings, no logos, no tape, no objects, no ruled graph pattern. Not orange medieval parchment, not photorealistic, not glossy.",
+      "role": "Quiet ivory stock for live message cards",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 252780,
+      "sha256": "9086285a933e986a7be3a9e4ef097db6d17df55ac6680327386b53b9c8095a55"
+    }
+  ],
+  "processing": "Full generated images encoded as WebP quality 90, no repainting, cropping, or added text. Original PNG outputs retained in Codex generated_images."
+}

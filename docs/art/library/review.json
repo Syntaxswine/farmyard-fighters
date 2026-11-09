@@ -1,0 +1,329 @@
+{
+  "schema": 1,
+  "reviewedAt": "2026-10-29T02:54:37.579Z",
+  "branch": "codex/library-furniture",
+  "baseCommit": "60aeeed5e7f4283d46253c46654fb44af7636e6d",
+  "collection": {
+    "forms": 8,
+    "finishes": 6,
+    "contents": [
+      "empty",
+      "books"
+    ],
+    "assetCount": 96,
+    "quarterTurnCasesChecked": 384,
+    "tableReservations": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        4
+      ]
+    ]
+  },
+  "checks": {
+    "build": "npm run build: passed",
+    "targeted": "11 furniture/catalog tests passed",
+    "repository": "npm run check: 296 passed, 0 failed",
+    "browser": {
+      "surface": "Codex in-app browser",
+      "previewMode": "software",
+      "status": "96 models shown · 6 finishes · software preview · ready",
+      "pairImages": 48,
+      "allImagesLoaded": true,
+      "thumbnailPixels": [
+        768,
+        500
+      ],
+      "consoleErrors": 0,
+      "consoleWarnings": 0,
+      "mobileViewport": [
+        390,
+        844
+      ],
+      "mobileDocumentWidth": 390,
+      "largeTableCardBounds": [
+        16,
+        374
+      ],
+      "viewsReviewed": [
+        "front",
+        "back",
+        "top"
+      ],
+      "webglVisuallyVerified": false,
+      "lighting": "Software snapshot of native triangles and inherited/original atlases with per-pixel depth. Approximate lighting; WebGL shading and shadows still need an in-game check.",
+      "pngDownloadVerified": false,
+      "mobileModel": "bookcase-double-ornate.walnut"
+    }
+  },
+  "integration": {
+    "nativeThreeFactory": true,
+    "missionPlacementsChanged": false,
+    "upstreamSnapshotChanged": false
+  },
+  "helper": {
+    "previewStopped": true,
+    "portReleased": true,
+    "ownedBrowserTabClosed": true,
+    "temporaryViewportReset": true
+  },
+  "sourceHashes": [
+    {
+      "path": "sites/tactical-animal/dist/art/library/catalog.js",
+      "sha256": "13d93f27a83998efab8976bfa6df1f75e0ec68bba3b652a089f7b63f74951133"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/library/catalog.json",
+      "sha256": "e8bd14d8045506b0b45462e14037c11aab83af27bb9b058467680ce6234cbbea"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/library/furniture.js",
+      "sha256": "4282617463c526bee92e53946d5f6a0c1e3db504f228e112320781ee7098e3ab"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/library/index.html",
+      "sha256": "25987f0ba2ba048ea1a68c95723d4f9d5ef614ac6691f03ad86b8bc65e775f5d"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/library/review.css",
+      "sha256": "f494d1c6dfe861b41f453a48a5b0f997e6b3c75b8c4f273880b1d0ab545cca92"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/library/review.js",
+      "sha256": "6878321f162e753ce578dafcf24ab7a2c5733c11df4e13c9dd066e5e74eeeb81"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/library/thumbnail-renderer.js",
+      "sha256": "300dbf4641b6a73a1a24dcaee3f16ff1a32c288ae1e21f5aadd9b3358723b8a7"
+    },
+    {
+      "path": "sites/tactical-animal/tests/library-furniture.test.mjs",
+      "sha256": "9a0ce430ffbae50c14af063f4a9f97bc1f880d3ce411b635ecccfaf4675699ae"
+    },
+    {
+      "path": "sites/tactical-animal/tools/library-catalog.mjs",
+      "sha256": "e0ac945abd478b588cd2df32ca31c7b423c977d8d741d30125cc091c65f779db"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/library/book-spines.svg",
+      "sha256": "29800c9984ac7b5baed29ec55e8e29834e3bfcaf1d743e2b4fd725963a153d53"
+    },
+    {
+      "path": "sites/tactical-animal/tools/library-book-skins.mjs",
+      "sha256": "ea48782fa1beeec573b0c3a7c80ef96320689ae7511b05a847e03dae286f3a1b"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "79cb3b41c56d1eab307c56f8d5b478e4a0d061f6799af3debfbe2e35ef6c0dc5"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "bookcase-skins-bottom.jpg",
+      "sha256": "67c487a2e98e4cb53ed923f436036f18437ddacef3eb7e98e4328d32339e27ac",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "bookcase-skins.jpg",
+      "sha256": "e760b519923fc919248fa36e73bc80e1163795c93dcfe7014f66ba118d9c4f44",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "double-back.jpg",
+      "sha256": "d2f74a8aedea5cdff6deb50c787ef0ba88b1b054d087e4c5a4fba81dc1301782",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "fulltile-back.jpg",
+      "sha256": "10dd375d839b0126339bbec3177494bf15bf7cd4cb4a44a57db13345dc6f562a",
+      "pass": "Full-tile double bookcase pass"
+    },
+    {
+      "path": "fulltile-comparison.jpg",
+      "sha256": "15b3d4e7c0ef0b9342706d72cda59f0e00871e8df36e57fed08a3b85d8c3fbe2",
+      "pass": "Full-tile double bookcase pass"
+    },
+    {
+      "path": "fulltile-ornate-skins-bottom.jpg",
+      "sha256": "77ff496daca3ca4279f49f843222928c8f5f7c932b8ee967a0fb608694714603",
+      "pass": "Full-tile double bookcase pass"
+    },
+    {
+      "path": "fulltile-ornate-skins.jpg",
+      "sha256": "804e8f09844bc285036e65e20d5fcdf40b4166e583a395e4640ad98322bc1ec2",
+      "pass": "Full-tile double bookcase pass"
+    },
+    {
+      "path": "fulltile-phone.jpg",
+      "sha256": "2ee4a8827cf7ebc11fcbc9a52bff3ded2e09fa9d84019f99570b1d148125da85",
+      "pass": "Full-tile double bookcase pass"
+    },
+    {
+      "path": "fulltile-top.jpg",
+      "sha256": "f9357105d2e256303aab0765156fd8e3650a1cb335c07d86e1cbd13e05ed0593",
+      "pass": "Full-tile double bookcase pass"
+    },
+    {
+      "path": "large-table-skins.jpg",
+      "sha256": "63ef7c2870cd282201b871fee8f34eb8374aa3862dc6f9670df8b61e840d1e35",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "large-table-top.jpg",
+      "sha256": "4f9db34bdde3d8b4618407c0e8103ba76c347e026ddb583f3c98651edce94751",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "overview.jpg",
+      "sha256": "a4f6facd5ffdfd2d9bd8271178dac1a30a0888685189cd9c4dfda68eca10072b",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "phone-bookcase.jpg",
+      "sha256": "0d7951f9ecf5a7d5a316eb6b19141d573cef2ec557a2c92a1d4551aaaa6b6939",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "phone-table.jpg",
+      "sha256": "4e441b9d23bfab18d957245af911cef0e0c1812805839601062cf25ab8e7ee29",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    },
+    {
+      "path": "table-skins.jpg",
+      "sha256": "efa453e8e0156cf5edda13da43148560687d1fa39239bd37d1ee8e2cff0ce630",
+      "pass": "Retained earlier cabinet/table evidence; corresponding geometry unchanged"
+    }
+  ],
+  "sourceHashFormat": "UTF-8 source normalized to LF, matching committed owned text; inherited AFT hashes use preserved source bytes in catalog.json",
+  "modelVersion": "library-furniture/3",
+  "revisionBase": "f7620dca6073cfa0f586536006a3986deeb9ba2b",
+  "performance": {
+    "bookcase-tall": {
+      "before": {
+        "parts": 213,
+        "triangles": 3916,
+        "batches": 13
+      },
+      "after": {
+        "parts": 21,
+        "triangles": 252,
+        "batches": 9
+      },
+      "triangleReductionPercent": 93.6
+    },
+    "bookcase-wide": {
+      "before": {
+        "parts": 410,
+        "triangles": 6360,
+        "batches": 13
+      },
+      "after": {
+        "parts": 26,
+        "triangles": 312,
+        "batches": 9
+      },
+      "triangleReductionPercent": 95.1
+    },
+    "bookcase-low": {
+      "before": {
+        "parts": 210,
+        "triangles": 3640,
+        "batches": 13
+      },
+      "after": {
+        "parts": 18,
+        "triangles": 216,
+        "batches": 8
+      },
+      "triangleReductionPercent": 94.1
+    },
+    "bookcase-double": {
+      "before": {
+        "parts": 812,
+        "triangles": 11984,
+        "batches": 13
+      },
+      "after": {
+        "parts": 44,
+        "triangles": 528,
+        "batches": 9
+      },
+      "triangleReductionPercent": 95.6
+    }
+  },
+  "bookcaseSkins": {
+    "atlas": "sites/tactical-animal/dist/art/library/book-spines.svg",
+    "dimensions": [
+      1024,
+      768
+    ],
+    "finishPalettes": 6,
+    "rowLayoutsPerFinish": 4,
+    "geometry": "One 12-triangle box per shelf bay; front/back spine region and page regions on other faces; no individually modeled shelf books"
+  },
+  "fullTileBookcases": {
+    "bookcase-double-thick": {
+      "empty": {
+        "parts": 34,
+        "triangles": 408,
+        "batches": 5,
+        "size": [
+          0.98,
+          1.9,
+          1.98
+        ],
+        "tiles": [
+          1,
+          2
+        ]
+      },
+      "books": {
+        "parts": 50,
+        "triangles": 600,
+        "batches": 9,
+        "size": [
+          0.98,
+          1.9,
+          1.98
+        ],
+        "tiles": [
+          1,
+          2
+        ]
+      }
+    },
+    "bookcase-double-ornate": {
+      "empty": {
+        "parts": 114,
+        "triangles": 1368,
+        "batches": 5,
+        "size": [
+          0.98,
+          1.98,
+          1.98
+        ],
+        "tiles": [
+          1,
+          2
+        ]
+      },
+      "books": {
+        "parts": 130,
+        "triangles": 1560,
+        "batches": 9,
+        "size": [
+          0.98,
+          1.98,
+          1.98
+        ],
+        "tiles": [
+          1,
+          2
+        ]
+      }
+    }
+  }
+}

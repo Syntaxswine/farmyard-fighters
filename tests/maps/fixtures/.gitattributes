@@ -1,0 +1,2 @@
+# Lidar fixtures are compared by SHA-256 with reference/lidar/source.json.
+*.laz binary

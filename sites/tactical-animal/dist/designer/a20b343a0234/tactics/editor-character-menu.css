@@ -1,0 +1,6 @@
+.waypoint-flags{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:3}
+#scene.pathing{cursor:crosshair}
+.waypoint-options{border:1px solid #c4a16b;border-left:4px solid #b73124;padding:12px;margin-bottom:20px}
+.waypoint-options h2{margin:0 0 8px}.waypoint-options p{font-size:12px;margin:8px 0}.patrol-actions{display:flex;flex-wrap:wrap;gap:6px}
+.waypoint-points{list-style:none;padding:0;max-height:250px;overflow:auto;font-size:12px}
+.waypoint-points li{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid #62776a;padding:7px 0}.waypoint-points span{flex-basis:100%}.waypoint-points button{font-size:11px;padding:3px 6px}

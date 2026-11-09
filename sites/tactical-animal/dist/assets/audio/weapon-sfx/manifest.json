@@ -1,0 +1,853 @@
+{
+  "version": 1,
+  "source": "Babble Lab 0df4be4, Animal Factory sound audition",
+  "sampleRate": 44100,
+  "channels": 1,
+  "treatment": {
+    "amount": 0.7,
+    "sliceLevel": 0.2
+  },
+  "bank": {
+    "name": "glades-of-arcadia",
+    "source": "glades-of-arcadia.mp3",
+    "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+    "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+  },
+  "usage": "In-game effects; not a standalone sound library. Each source retains the licence recorded in its recipe. The music bank retains its owner-provided non-commercial source note.",
+  "effects": [
+    {
+      "id": "tt33",
+      "file": "tt33.wav",
+      "sha256": "6020cda4fd90c5e5836ccdf0cd956d8383318d99e1fada546893361f8ffe1a1a",
+      "frames": 75411,
+      "input": {
+        "id": "tt33",
+        "sha256": "6020cda4fd90c5e5836ccdf0cd956d8383318d99e1fada546893361f8ffe1a1a"
+      },
+      "preparation": null,
+      "recipe": {
+        "babbleMorph": 2,
+        "algorithm": "cepstral-envelope-v1",
+        "name": "tt33",
+        "sampleRate": 44100,
+        "settings": {
+          "amount": 0.7,
+          "windowSize": 2048,
+          "hopSize": 256,
+          "envelopeMs": 1,
+          "fadeMs": 2,
+          "peakLimit": 0.9
+        },
+        "timing": {
+          "duration": 1.71,
+          "cues": [
+            [
+              0,
+              1.71
+            ]
+          ]
+        },
+        "sourceAlignment": "pad-end-with-silence",
+        "sliceLayer": {
+          "algorithm": "rms-overlay-v1",
+          "level": 0.2
+        },
+        "bank": {
+          "name": "glades-of-arcadia",
+          "source": "glades-of-arcadia.mp3",
+          "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+          "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+        },
+        "sourceAsset": {
+          "publisher": "Pole Position",
+          "library": "Tokarev TT-33 semi-automatic pistol",
+          "archiveUrl": "https://ftpmirror.your.org/pub/misc/sonniss2020/Sonniss.com%20-%20GDC%202020%20-%20Game%20Audio%20Bundle%20Part9of14.zip",
+          "archiveEntry": "Pole Position - Tokarev TT-33 semi-automatic pistol/TT33, Firing, t1, Inside Car, Omni, CMC6.wav",
+          "zip": {
+            "name": "Pole Position - Tokarev TT-33 semi-automatic pistol/TT33, Firing, t1, Inside Car, Omni, CMC6.wav",
+            "method": 8,
+            "crc": 1161730396,
+            "compressedSize": 42336948,
+            "size": 66583006,
+            "offset": 1086821124
+          },
+          "sha256": "b8214c42ee028934f767999c09e9f8e05bb8b6e7b894a7bd6145b4eb151fa509"
+        },
+        "license": {
+          "id": "Sonniss-GDC",
+          "url": "https://sonniss.com/gdc-bundle-license/",
+          "version": "2.0, effective 2026-08-27",
+          "page": "https://sonniss.com/gameaudiogdc/",
+          "note": "Use and modification in games are permitted; standalone asset redistribution is restricted."
+        },
+        "preparation": {
+          "trim": {
+            "from": 1.14,
+            "seconds": 1.65
+          },
+          "gain": 2.9696982620748478,
+          "preSilence": 0.01,
+          "preparedSha256": "162c6e5964b26e610a408480a63a2759ad620397fbc0144f0ca922c9772875b7"
+        },
+        "slicePerformance": {
+          "texture": {
+            "look": "struck",
+            "pitch": 280
+          },
+          "events": [
+            [
+              0.049999999999999996,
+              1.71
+            ]
+          ],
+          "used": [
+            {
+              "unit": 0,
+              "segment": 442,
+              "look": "struck",
+              "origin": 559,
+              "time": 139.87,
+              "pieces": 14
+            }
+          ],
+          "envelope": "effect-rms-10ms-v1"
+        },
+        "sources": [
+          {
+            "id": "tt33.original",
+            "label": "TT-33 pistol",
+            "role": "carrier",
+            "engine": "recording"
+          },
+          {
+            "id": "tt33.slices",
+            "label": "Glades music slices",
+            "role": "colour",
+            "engine": "sampler"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mosin-m38",
+      "file": "mosin-m38.wav",
+      "sha256": "f6d995444a2b9ddee61d32b973b3571f697daa1e09c5f935d51f566d8011680b",
+      "frames": 126126,
+      "input": {
+        "id": "mosin-m38",
+        "sha256": "f6d995444a2b9ddee61d32b973b3571f697daa1e09c5f935d51f566d8011680b"
+      },
+      "preparation": null,
+      "recipe": {
+        "babbleMorph": 2,
+        "algorithm": "cepstral-envelope-v1",
+        "name": "mosin-m38",
+        "sampleRate": 44100,
+        "settings": {
+          "amount": 0.7,
+          "windowSize": 2048,
+          "hopSize": 256,
+          "envelopeMs": 1,
+          "fadeMs": 2,
+          "peakLimit": 0.9
+        },
+        "timing": {
+          "duration": 2.86,
+          "cues": [
+            [
+              0,
+              2.86
+            ]
+          ]
+        },
+        "sourceAlignment": "pad-end-with-silence",
+        "sliceLayer": {
+          "algorithm": "rms-overlay-v1",
+          "level": 0.2
+        },
+        "bank": {
+          "name": "glades-of-arcadia",
+          "source": "glades-of-arcadia.mp3",
+          "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+          "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+        },
+        "sourceAsset": {
+          "publisher": "Pole Position",
+          "library": "Mosin-Nagant M38 bolt-action rifle",
+          "archiveUrl": "https://ftpmirror.your.org/pub/misc/sonniss2020/Sonniss.com%20-%20GDC%202020%20-%20Game%20Audio%20Bundle%20Part7of14.zip",
+          "archiveEntry": "Pole Position - Mosin-Nagant M38 bolt-action rifle/M38, Firing, t2, BP4027.wav",
+          "zip": {
+            "name": "Pole Position - Mosin-Nagant M38 bolt-action rifle/M38, Firing, t2, BP4027.wav",
+            "method": 8,
+            "crc": 4090631160,
+            "compressedSize": 16822013,
+            "size": 30823278,
+            "offset": 663762202
+          },
+          "sha256": "2f6cb294de00e0961814d96ad80337e33a95e55fefc8c7f0e3d6f78f72ef0f7b"
+        },
+        "license": {
+          "id": "Sonniss-GDC",
+          "url": "https://sonniss.com/gdc-bundle-license/",
+          "version": "2.0, effective 2026-08-27",
+          "page": "https://sonniss.com/gameaudiogdc/",
+          "note": "Use and modification in games are permitted; standalone asset redistribution is restricted."
+        },
+        "preparation": {
+          "trim": {
+            "from": 1.61,
+            "seconds": 2.8
+          },
+          "gain": 0.85,
+          "preSilence": 0.01,
+          "preparedSha256": "400e10ec57bda04871b7c4f035b1c86c3be08113c7473df855ba2c462c844567"
+        },
+        "slicePerformance": {
+          "texture": {
+            "look": "struck",
+            "pitch": 140
+          },
+          "events": [
+            [
+              0.049999999999999996,
+              2.86
+            ]
+          ],
+          "used": [
+            {
+              "unit": 0,
+              "segment": 522,
+              "look": "struck",
+              "origin": 368,
+              "time": 92.187,
+              "pieces": 12
+            }
+          ],
+          "envelope": "effect-rms-10ms-v1"
+        },
+        "sources": [
+          {
+            "id": "mosin-m38.original",
+            "label": "Mosin M38 rifle",
+            "role": "carrier",
+            "engine": "recording"
+          },
+          {
+            "id": "mosin-m38.slices",
+            "label": "Glades music slices",
+            "role": "colour",
+            "engine": "sampler"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ak47-shot",
+      "file": "ak47-shot.wav",
+      "sha256": "b7bf100df3e00d0f88b770c5941dfca1a1581c102f6c14d0acaff34706c0f5b0",
+      "frames": 5954,
+      "input": {
+        "id": "ak47-burst",
+        "sha256": "3f4b1f7a4122d970ad5833bc5136a4f07781cb32b989f036ee5123ae1189e42d"
+      },
+      "preparation": {
+        "from": 0,
+        "seconds": 0.135,
+        "fadeOutSeconds": 0.015,
+        "note": "First report only; each committed automatic-weapon discharge plays one report, never the entire recorded burst."
+      },
+      "recipe": {
+        "babbleMorph": 2,
+        "algorithm": "cepstral-envelope-v1",
+        "name": "ak47-burst",
+        "sampleRate": 44100,
+        "settings": {
+          "amount": 0.7,
+          "windowSize": 2048,
+          "hopSize": 256,
+          "envelopeMs": 1,
+          "fadeMs": 2,
+          "peakLimit": 0.9
+        },
+        "timing": {
+          "duration": 3.86,
+          "cues": [
+            [
+              0,
+              3.86
+            ]
+          ]
+        },
+        "sourceAlignment": "pad-end-with-silence",
+        "sliceLayer": {
+          "algorithm": "rms-overlay-v1",
+          "level": 0.2
+        },
+        "bank": {
+          "name": "glades-of-arcadia",
+          "source": "glades-of-arcadia.mp3",
+          "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+          "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+        },
+        "sourceAsset": {
+          "publisher": "Watson Wu",
+          "library": "Battle Rifles & Pistols",
+          "archiveUrl": "https://ftpmirror.your.org/pub/misc/sonniss2018/Sonniss.com%20-%20GDC%202018%20-%20Game%20Audio%20Bundle%20Part%208of8.zip",
+          "archiveEntry": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 8of8/Watson Wu - Battle Rifles & Pistols/BR AK47 Burst With Tail.wav",
+          "zip": {
+            "name": "Sonniss.com - GDC 2018 - Game Audio Bundle Part 8of8/Watson Wu - Battle Rifles & Pistols/BR AK47 Burst With Tail.wav",
+            "method": 8,
+            "crc": 3196880041,
+            "compressedSize": 13948638,
+            "size": 24852282,
+            "offset": 1114255948
+          },
+          "sha256": "a6e159961841e8aab9728fb986770516dc7fdd186e790be6527428e75f9a1b61"
+        },
+        "license": {
+          "id": "Sonniss-GDC",
+          "url": "https://sonniss.com/gdc-bundle-license/",
+          "version": "2.0, effective 2026-08-27",
+          "page": "https://sonniss.com/gameaudiogdc/",
+          "note": "Use and modification in games are permitted; standalone asset redistribution is restricted."
+        },
+        "preparation": {
+          "trim": {
+            "from": 0.96,
+            "seconds": 3.8
+          },
+          "gain": 0.8500259407330546,
+          "preSilence": 0.01,
+          "preparedSha256": "3e63b4747f3b9b6ed4cc58c5caf9869147fd2f45cd819843665d47850fa2acf0"
+        },
+        "slicePerformance": {
+          "texture": {
+            "look": "struck",
+            "pitch": 210
+          },
+          "events": [
+            [
+              0.049999999999999996,
+              3.86
+            ]
+          ],
+          "used": [
+            {
+              "unit": 0,
+              "segment": 465,
+              "look": "struck",
+              "origin": 429,
+              "time": 107.476,
+              "pieces": 24
+            }
+          ],
+          "envelope": "effect-rms-10ms-v1"
+        },
+        "sources": [
+          {
+            "id": "ak47-burst.original",
+            "label": "AK-47 burst",
+            "role": "carrier",
+            "engine": "recording"
+          },
+          {
+            "id": "ak47-burst.slices",
+            "label": "Glades music slices",
+            "role": "colour",
+            "engine": "sampler"
+          }
+        ]
+      }
+    },
+    {
+      "id": "shotgun-fire",
+      "file": "shotgun-fire.wav",
+      "sha256": "e88a172c79f3bfff16c101f22fea232bd454da29d8c7ebbd5fd239275842c327",
+      "frames": 104076,
+      "input": {
+        "id": "shotgun-fire",
+        "sha256": "e88a172c79f3bfff16c101f22fea232bd454da29d8c7ebbd5fd239275842c327"
+      },
+      "preparation": null,
+      "recipe": {
+        "babbleMorph": 2,
+        "algorithm": "cepstral-envelope-v1",
+        "name": "shotgun-fire",
+        "sampleRate": 44100,
+        "settings": {
+          "amount": 0.7,
+          "windowSize": 2048,
+          "hopSize": 256,
+          "envelopeMs": 1,
+          "fadeMs": 2,
+          "peakLimit": 0.9
+        },
+        "timing": {
+          "duration": 2.36,
+          "cues": [
+            [
+              0,
+              2.36
+            ]
+          ]
+        },
+        "sourceAlignment": "pad-end-with-silence",
+        "sliceLayer": {
+          "algorithm": "rms-overlay-v1",
+          "level": 0.2
+        },
+        "bank": {
+          "name": "glades-of-arcadia",
+          "source": "glades-of-arcadia.mp3",
+          "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+          "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+        },
+        "sourceAsset": {
+          "publisher": "Wav Junction Sound Effects",
+          "library": "Shotguns",
+          "archiveUrl": "https://ftpmirror.your.org/pub/misc/sonniss2020/Sonniss.com%20-%20GDC%202020%20-%20Game%20Audio%20Bundle%20Part14of14.zip",
+          "archiveEntry": "Wav Junction Sound Effects - Shotguns/0003_Shotgun_Fire_3.wav",
+          "zip": {
+            "name": "Wav Junction Sound Effects - Shotguns/0003_Shotgun_Fire_3.wav",
+            "method": 8,
+            "crc": 4044985343,
+            "compressedSize": 329244,
+            "size": 806628,
+            "offset": 160037183
+          },
+          "sha256": "7edd18958cc251ab6a6c4a8c61f4eb2978a26c042d976ce418c12777afab9f8c"
+        },
+        "license": {
+          "id": "Sonniss-GDC",
+          "url": "https://sonniss.com/gdc-bundle-license/",
+          "version": "2.0, effective 2026-08-27",
+          "page": "https://sonniss.com/gameaudiogdc/",
+          "note": "Use and modification in games are permitted; standalone asset redistribution is restricted."
+        },
+        "preparation": {
+          "trim": {
+            "from": 0.42,
+            "seconds": 2.3
+          },
+          "gain": 1.1672939105653577,
+          "preSilence": 0.01,
+          "preparedSha256": "68421e025a35ec1a86ad462e8515b8588ad320b262ba7f96da88fc4b9bccb5d4"
+        },
+        "slicePerformance": {
+          "texture": {
+            "look": "struck",
+            "pitch": 196
+          },
+          "events": [
+            [
+              0.049999999999999996,
+              2.36
+            ]
+          ],
+          "used": [
+            {
+              "unit": 0,
+              "segment": 451,
+              "look": "struck",
+              "origin": 509,
+              "time": 127.271,
+              "pieces": 14
+            }
+          ],
+          "envelope": "effect-rms-10ms-v1"
+        },
+        "sources": [
+          {
+            "id": "shotgun-fire.original",
+            "label": "Shotgun blast",
+            "role": "carrier",
+            "engine": "recording"
+          },
+          {
+            "id": "shotgun-fire.slices",
+            "label": "Glades music slices",
+            "role": "colour",
+            "engine": "sampler"
+          }
+        ]
+      }
+    },
+    {
+      "id": "explosion-deep",
+      "file": "explosion-deep.wav",
+      "sha256": "c1edacabeb24aa87aa5f0769a10392185f4f5e885fc110804cffdbac8bde3680",
+      "frames": 240728,
+      "input": {
+        "id": "explosion-deep",
+        "sha256": "c1edacabeb24aa87aa5f0769a10392185f4f5e885fc110804cffdbac8bde3680"
+      },
+      "preparation": null,
+      "recipe": {
+        "babbleMorph": 2,
+        "algorithm": "cepstral-envelope-v1",
+        "name": "explosion-deep",
+        "sampleRate": 44100,
+        "settings": {
+          "amount": 0.7,
+          "windowSize": 2048,
+          "hopSize": 256,
+          "envelopeMs": 1,
+          "fadeMs": 2,
+          "peakLimit": 0.9
+        },
+        "timing": {
+          "duration": 5.458684807256236,
+          "cues": [
+            [
+              0,
+              5.458684807256236
+            ]
+          ]
+        },
+        "sourceAlignment": "pad-end-with-silence",
+        "sliceLayer": {
+          "algorithm": "rms-overlay-v1",
+          "level": 0.2
+        },
+        "bank": {
+          "name": "glades-of-arcadia",
+          "source": "glades-of-arcadia.mp3",
+          "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+          "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+        },
+        "sourceAsset": {
+          "publisher": "Stefano Cremona",
+          "library": "Explosions",
+          "archiveUrl": "https://ftpmirror.your.org/pub/misc/sonniss2020/Sonniss.com%20-%20GDC%202020%20-%20Game%20Audio%20Bundle%20Part12of14.zip",
+          "archiveEntry": "Stefano Cremona - Explosions/DeepExplosion02.wav",
+          "zip": {
+            "name": "Stefano Cremona - Explosions/DeepExplosion02.wav",
+            "method": 8,
+            "crc": 557013722,
+            "compressedSize": 2825970,
+            "size": 3121100,
+            "offset": 829576235
+          },
+          "sha256": "871cd92855deb1e21540b139a8b85ae17cbc36492fea5509015ffe719bbfff9f"
+        },
+        "license": {
+          "id": "Sonniss-GDC",
+          "url": "https://sonniss.com/gdc-bundle-license/",
+          "version": "2.0, effective 2026-08-27",
+          "page": "https://sonniss.com/gameaudiogdc/",
+          "note": "Use and modification in games are permitted; standalone asset redistribution is restricted."
+        },
+        "preparation": {
+          "trim": {
+            "from": 0,
+            "seconds": 5.3986848072562355
+          },
+          "gain": 0.8590974985349003,
+          "preSilence": 0.01,
+          "preparedSha256": "e38988243e8168558a4d997485f8ea7d8e217a65b1767c93c45a000e0a941bfc"
+        },
+        "slicePerformance": {
+          "texture": {
+            "look": "wash",
+            "pitch": 98
+          },
+          "events": [
+            [
+              0.01,
+              5.458684807256236
+            ]
+          ],
+          "used": [
+            {
+              "unit": 0,
+              "segment": 756,
+              "look": "wash",
+              "origin": 628,
+              "time": 157,
+              "pieces": 16
+            }
+          ],
+          "envelope": "effect-rms-10ms-v1"
+        },
+        "sources": [
+          {
+            "id": "explosion-deep.original",
+            "label": "Deep explosion",
+            "role": "carrier",
+            "engine": "recording"
+          },
+          {
+            "id": "explosion-deep.slices",
+            "label": "Glades music slices",
+            "role": "colour",
+            "engine": "sampler"
+          }
+        ]
+      }
+    },
+    {
+      "id": "explosion-large",
+      "file": "explosion-large.wav",
+      "sha256": "bf9957ce624c72549b13fdae78faaecc716c36573c6cece10b6145f23438a9f9",
+      "frames": 159698,
+      "input": {
+        "id": "explosion-large",
+        "sha256": "bf9957ce624c72549b13fdae78faaecc716c36573c6cece10b6145f23438a9f9"
+      },
+      "preparation": null,
+      "recipe": {
+        "babbleMorph": 2,
+        "algorithm": "cepstral-envelope-v1",
+        "name": "explosion-large",
+        "sampleRate": 44100,
+        "settings": {
+          "amount": 0.7,
+          "windowSize": 2048,
+          "hopSize": 256,
+          "envelopeMs": 1,
+          "fadeMs": 2,
+          "peakLimit": 0.9
+        },
+        "timing": {
+          "duration": 3.621269841269841,
+          "cues": [
+            [
+              0,
+              3.621269841269841
+            ]
+          ]
+        },
+        "sourceAlignment": "pad-end-with-silence",
+        "sliceLayer": {
+          "algorithm": "rms-overlay-v1",
+          "level": 0.2
+        },
+        "bank": {
+          "name": "glades-of-arcadia",
+          "source": "glades-of-arcadia.mp3",
+          "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+          "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+        },
+        "sourceAsset": {
+          "publisher": "Bluezone",
+          "library": "Tank - Explosion Sound Effects",
+          "archiveUrl": "https://ftpmirror.your.org/pub/misc/sonniss2020/Sonniss.com%20-%20GDC%202020%20-%20Game%20Audio%20Bundle%20Part2of14.zip",
+          "archiveEntry": "Bluezone - Tank - Explosion Sound Effects/Bluezone_BC0271_explosion_outdoors_large_005.wav",
+          "zip": {
+            "name": "Bluezone - Tank - Explosion Sound Effects/Bluezone_BC0271_explosion_outdoors_large_005.wav",
+            "method": 8,
+            "crc": 3366961060,
+            "compressedSize": 1876450,
+            "size": 2051512,
+            "offset": 986811595
+          },
+          "sha256": "d7950df12f86c71a77be7768787e4b5e3ced31d63582b2919a615f208d777072"
+        },
+        "license": {
+          "id": "Sonniss-GDC",
+          "url": "https://sonniss.com/gdc-bundle-license/",
+          "version": "2.0, effective 2026-08-27",
+          "page": "https://sonniss.com/gameaudiogdc/",
+          "note": "Use and modification in games are permitted; standalone asset redistribution is restricted."
+        },
+        "preparation": {
+          "trim": {
+            "from": 0,
+            "seconds": 3.561269841269841
+          },
+          "gain": 0.9087966588358131,
+          "preSilence": 0.01,
+          "preparedSha256": "630b08cd8e45e86660f21af4321c1dc820272a5b757bb4dfd4e84e47f13ce1cf"
+        },
+        "slicePerformance": {
+          "texture": {
+            "look": "wash",
+            "pitch": 112
+          },
+          "events": [
+            [
+              0.01,
+              1.29
+            ],
+            [
+              1.29,
+              3.621269841269841
+            ]
+          ],
+          "used": [
+            {
+              "unit": 0,
+              "segment": 734,
+              "look": "wash",
+              "origin": 899,
+              "time": 224.838,
+              "pieces": 5
+            },
+            {
+              "unit": 1,
+              "segment": 728,
+              "look": "wash",
+              "origin": 902,
+              "time": 225.58,
+              "pieces": 8
+            }
+          ],
+          "envelope": "effect-rms-10ms-v1"
+        },
+        "sources": [
+          {
+            "id": "explosion-large.original",
+            "label": "Large explosion",
+            "role": "carrier",
+            "engine": "recording"
+          },
+          {
+            "id": "explosion-large.slices",
+            "label": "Glades music slices",
+            "role": "colour",
+            "engine": "sampler"
+          }
+        ]
+      }
+    },
+    {
+      "id": "shotgun-pump",
+      "file": "shotgun-pump.wav",
+      "sha256": "a98f15ff563da14f9f777d8b09763c35b64af630ed863b55b52f571003da63f8",
+      "frames": 41144,
+      "input": {
+        "id": "shotgun-pump",
+        "sha256": "a98f15ff563da14f9f777d8b09763c35b64af630ed863b55b52f571003da63f8"
+      },
+      "preparation": null,
+      "recipe": {
+        "babbleMorph": 2,
+        "algorithm": "cepstral-envelope-v1",
+        "name": "shotgun-pump",
+        "sampleRate": 44100,
+        "settings": {
+          "amount": 0.7,
+          "windowSize": 2048,
+          "hopSize": 256,
+          "envelopeMs": 1,
+          "fadeMs": 2,
+          "peakLimit": 0.9
+        },
+        "timing": {
+          "duration": 0.9329705215419501,
+          "cues": [
+            [
+              0,
+              0.9329705215419501
+            ]
+          ]
+        },
+        "sourceAlignment": "pad-end-with-silence",
+        "sliceLayer": {
+          "algorithm": "rms-overlay-v1",
+          "level": 0.2
+        },
+        "bank": {
+          "name": "glades-of-arcadia",
+          "source": "glades-of-arcadia.mp3",
+          "note": "Glades of Arcadia score; owner-provided Suno track, non-commercial per project README.",
+          "sha256": "bd9d41a1fbdf4db1032b653cf55122cf21e5309273658f7381c72d518f2ac63a"
+        },
+        "sourceAsset": {
+          "publisher": "Wav Junction Sound Effects",
+          "library": "Shotguns",
+          "archiveUrl": "https://ftpmirror.your.org/pub/misc/sonniss2020/Sonniss.com%20-%20GDC%202020%20-%20Game%20Audio%20Bundle%20Part14of14.zip",
+          "archiveEntry": "Wav Junction Sound Effects - Shotguns/0019_Shotgun_Pump_Action_1.wav",
+          "zip": {
+            "name": "Wav Junction Sound Effects - Shotguns/0019_Shotgun_Pump_Action_1.wav",
+            "method": 8,
+            "crc": 3359320060,
+            "compressedSize": 165990,
+            "size": 383982,
+            "offset": 160366518
+          },
+          "sha256": "7be43af37abc891030983d132a99416c95d5043519b7cf47ecfd14a274a9bf6b"
+        },
+        "license": {
+          "id": "Sonniss-GDC",
+          "url": "https://sonniss.com/gdc-bundle-license/",
+          "version": "2.0, effective 2026-08-27",
+          "page": "https://sonniss.com/gameaudiogdc/",
+          "note": "Use and modification in games are permitted; standalone asset redistribution is restricted."
+        },
+        "preparation": {
+          "trim": {
+            "from": 0.42,
+            "seconds": 0.8729705215419501
+          },
+          "gain": 1.4812167623909807,
+          "preSilence": 0.01,
+          "preparedSha256": "d865b368cc4da116d28425c3b2cbeeb39e807cf4b36026f08488a7736c5203f7"
+        },
+        "slicePerformance": {
+          "texture": {
+            "look": "struck",
+            "pitch": 210
+          },
+          "events": [
+            [
+              0.049999999999999996,
+              0.43
+            ],
+            [
+              0.43,
+              0.9329705215419501
+            ]
+          ],
+          "used": [
+            {
+              "unit": 0,
+              "segment": 460,
+              "look": "struck",
+              "origin": 573,
+              "time": 143.472,
+              "pieces": 4
+            },
+            {
+              "unit": 1,
+              "segment": 548,
+              "look": "struck",
+              "origin": 558,
+              "time": 139.565,
+              "pieces": 4
+            }
+          ],
+          "envelope": "effect-rms-10ms-v1"
+        },
+        "sources": [
+          {
+            "id": "shotgun-pump.original",
+            "label": "Shotgun pump",
+            "role": "carrier",
+            "engine": "recording"
+          },
+          {
+            "id": "shotgun-pump.slices",
+            "label": "Glades music slices",
+            "role": "colour",
+            "engine": "sampler"
+          }
+        ]
+      }
+    }
+  ],
+  "originalFoley": [
+    {
+      "id": "flame-ignite",
+      "file": "flame-ignite.wav",
+      "sha256": "0b0fb2a0143b862e370f97119331539fe4c9888e8174e39174bbafeb035d7487"
+    },
+    {
+      "id": "melee-swing",
+      "file": "melee-swing.wav",
+      "sha256": "ccd777ef25c948ee8b8d5946a1b6cfb7e86ec4021e0dbc836a376afa69581ae7"
+    }
+  ],
+  "aftRevision": "a20b343a0234b5d8b365a4e1668961ca1bf37653",
+  "originalFoleyDescription": "Original Farmyard game cues synthesized from seeded noise with shaped envelopes."
+}

@@ -1,0 +1,17 @@
+{
+  "retrievedAt": "2026-11-02T05:51:18.366207+00:00",
+  "url": "https://api.openstreetmap.org/api/0.6/map.json?bbox=-81.6535,28.7895,-81.6345,28.8075",
+  "selectionIntent": "[out:json][timeout:35];\n(\n way[\"highway\"](28.7895,-81.6535,28.8075,-81.6345);\n way[\"building\"](28.7895,-81.6535,28.8075,-81.6345);\n relation[\"building\"](28.7895,-81.6535,28.8075,-81.6345);\n way[\"leisure\"](28.7895,-81.6535,28.8075,-81.6345);\n way[\"landuse\"](28.7895,-81.6535,28.8075,-81.6345);\n way[\"natural\"](28.7895,-81.6535,28.8075,-81.6345);\n relation[\"natural\"=\"water\"](28.7895,-81.6535,28.8075,-81.6345);\n way[\"waterway\"](28.7895,-81.6535,28.8075,-81.6345);\n node[\"name\"](28.7895,-81.6535,28.8075,-81.6345);\n node[\"natural\"=\"tree\"](28.7895,-81.6535,28.8075,-81.6345);\n);\nout body geom;",
+  "queryBoundsWGS84": {
+    "south": 28.7895,
+    "west": -81.6535,
+    "north": 28.8075,
+    "east": -81.6345
+  },
+  "sha256": "b23d6838d52b393670781cdacc0146b8bc0b83c9bbf6e0503a7bd77ecbfcbef0",
+  "bytes": 3385887,
+  "osmBase": null,
+  "source": "OpenStreetMap API 0.6",
+  "attribution": "OpenStreetMap contributors",
+  "licence": "https://www.openstreetmap.org/copyright"
+}

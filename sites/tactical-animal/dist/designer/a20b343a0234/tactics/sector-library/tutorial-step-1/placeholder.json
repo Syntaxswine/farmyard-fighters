@@ -1,0 +1,53 @@
+{
+  "id": "tutorial-step-1",
+  "kind": "sector-placeholder",
+  "version": 1,
+  "status": "in-progress",
+  "role": "tutorial",
+  "facilities": [],
+  "difficulties": [
+    "easy"
+  ],
+  "config": {
+    "feature": null,
+    "roads": []
+  },
+  "tutorialStep": 1,
+  "travel": [
+    "north",
+    "west"
+  ],
+  "allowedTransforms": [
+    {
+      "turns": 0,
+      "mirror": false
+    },
+    {
+      "turns": 1,
+      "mirror": false
+    },
+    {
+      "turns": 2,
+      "mirror": false
+    },
+    {
+      "turns": 3,
+      "mirror": false
+    }
+  ],
+  "variants": [
+    "rough-plateau-01-four-high.json",
+    "rough-plateau.json",
+    "placeholder.json"
+  ],
+  "notes": [
+    "Layout reservation only. Author plateau perimeter, elevations and the town connection as one six-sector group (town 5/6, plateau 4/3, plateau 2/1)."
+  ],
+  "preview": "rough-plateau-01-four-high.svg",
+  "variantDetails": {
+    "rough-plateau-01-four-high.json": {
+      "status": "in-progress",
+      "preview": "rough-plateau-01-four-high.svg"
+    }
+  }
+}

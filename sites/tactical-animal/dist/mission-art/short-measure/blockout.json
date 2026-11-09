@@ -1,0 +1,339 @@
+{
+  "sourceCommit": "5524d91b3971328f27ccc9bb50b41ce7d2a19482",
+  "sourcePath": "docs/missions/first-shift.maps.json",
+  "wallHeight": 2,
+  "coordinates": "x east, y south; north is top of atlas",
+  "id": "short-measure",
+  "order": 2,
+  "title": "Short Measure",
+  "location": "East feed mill",
+  "stage": "first new playable slice",
+  "revelation": "Full grain loads leave while the workers receive empty sacks.",
+  "spawn": [
+    4,
+    25
+  ],
+  "extraction": [
+    35,
+    25
+  ],
+  "objectives": [
+    {
+      "id": "shipping-manifest",
+      "name": "Shipping manifest",
+      "at": [
+        32,
+        7
+      ],
+      "action": "collect",
+      "required": true
+    }
+  ],
+  "rooms": [
+    {
+      "id": "ration-shed",
+      "name": "Ration shed",
+      "rect": [
+        6,
+        17,
+        6,
+        6
+      ],
+      "doors": [
+        [
+          5.5,
+          20
+        ],
+        [
+          9,
+          22.5
+        ],
+        [
+          11.5,
+          20
+        ]
+      ]
+    },
+    {
+      "id": "packing-hall",
+      "name": "Packing hall",
+      "rect": [
+        14,
+        8,
+        11,
+        10
+      ],
+      "doors": [
+        [
+          13.5,
+          13
+        ],
+        [
+          19,
+          17.5
+        ],
+        [
+          24.5,
+          13
+        ],
+        [
+          19,
+          7.5
+        ]
+      ]
+    },
+    {
+      "id": "dispatch-office",
+      "name": "Dispatch office",
+      "rect": [
+        28,
+        4,
+        8,
+        8
+      ],
+      "doors": [
+        [
+          27.5,
+          8
+        ],
+        [
+          32,
+          11.5
+        ]
+      ]
+    }
+  ],
+  "walls": [],
+  "cover": [
+    [
+      8,
+      10,
+      2,
+      2
+    ],
+    [
+      11,
+      5,
+      3,
+      1
+    ],
+    [
+      16,
+      10,
+      2,
+      2
+    ],
+    [
+      21,
+      14,
+      2,
+      1
+    ],
+    [
+      27,
+      19,
+      2,
+      2
+    ],
+    [
+      31,
+      17,
+      2,
+      1
+    ],
+    [
+      34,
+      21,
+      2,
+      1
+    ]
+  ],
+  "routes": [
+    {
+      "id": "direct",
+      "name": "Through the packing hall",
+      "points": [
+        [
+          4,
+          25
+        ],
+        [
+          13,
+          25
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          19,
+          17.5
+        ],
+        [
+          19,
+          13
+        ],
+        [
+          24.5,
+          13
+        ],
+        [
+          26,
+          13
+        ],
+        [
+          26,
+          8
+        ],
+        [
+          27.5,
+          8
+        ],
+        [
+          30,
+          8
+        ],
+        [
+          32,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "alternate",
+      "name": "West sack bays and north wall",
+      "points": [
+        [
+          4,
+          25
+        ],
+        [
+          4,
+          14
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          9,
+          4
+        ],
+        [
+          25,
+          3
+        ],
+        [
+          26,
+          8
+        ],
+        [
+          27.5,
+          8
+        ],
+        [
+          30,
+          8
+        ],
+        [
+          32,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "departure",
+      "name": "East loading gate",
+      "points": [
+        [
+          32,
+          7
+        ],
+        [
+          32,
+          10
+        ],
+        [
+          32,
+          11.5
+        ],
+        [
+          35,
+          14
+        ],
+        [
+          37,
+          19
+        ],
+        [
+          37,
+          25
+        ],
+        [
+          35,
+          25
+        ]
+      ]
+    }
+  ],
+  "guardPosts": [
+    {
+      "at": [
+        13,
+        20
+      ],
+      "weapon": "pistol",
+      "heading": 270
+    },
+    {
+      "at": [
+        21,
+        12
+      ],
+      "weapon": "pistol",
+      "heading": 180
+    },
+    {
+      "at": [
+        30,
+        14
+      ],
+      "weapon": "rifle",
+      "heading": 0
+    }
+  ],
+  "storyPoints": [
+    {
+      "id": "worker-scale",
+      "name": "Rigged ration scale",
+      "at": [
+        8,
+        20
+      ],
+      "decorative": true
+    },
+    {
+      "id": "sealed-load",
+      "name": "Full Reserve 7 sacks",
+      "at": [
+        28,
+        20
+      ],
+      "decorative": true
+    },
+    {
+      "id": "supply-chest",
+      "name": "Supply chest",
+      "at": [
+        4,
+        22
+      ],
+      "decorative": false
+    }
+  ],
+  "newRuntimeNeeds": [
+    "Selected mission definition in state",
+    "Mission-aware save migration and scene/menu/minimap",
+    "Optional inspect text through the hand"
+  ]
+}

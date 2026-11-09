@@ -1,0 +1,85 @@
+{
+  "id": "town-workshop--land-road-e",
+  "kind": "sector-placeholder",
+  "version": 1,
+  "status": "placeholder",
+  "role": "town",
+  "facilities": [
+    "workshop"
+  ],
+  "difficulties": [
+    "easy",
+    "medium",
+    "hard"
+  ],
+  "config": {
+    "feature": null,
+    "roads": [
+      "east"
+    ]
+  },
+  "equivalents": [
+    {
+      "feature": null,
+      "roads": [
+        "north"
+      ]
+    },
+    {
+      "feature": null,
+      "roads": [
+        "east"
+      ]
+    },
+    {
+      "feature": null,
+      "roads": [
+        "south"
+      ]
+    },
+    {
+      "feature": null,
+      "roads": [
+        "west"
+      ]
+    }
+  ],
+  "allowedTransforms": [
+    {
+      "turns": 0,
+      "mirror": false
+    },
+    {
+      "turns": 1,
+      "mirror": false
+    },
+    {
+      "turns": 2,
+      "mirror": false
+    },
+    {
+      "turns": 3,
+      "mirror": false
+    },
+    {
+      "turns": 0,
+      "mirror": true
+    },
+    {
+      "turns": 1,
+      "mirror": true
+    },
+    {
+      "turns": 2,
+      "mirror": true
+    },
+    {
+      "turns": 3,
+      "mirror": true
+    }
+  ],
+  "variants": [
+    "placeholder.json"
+  ],
+  "notes": []
+}

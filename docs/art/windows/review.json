@@ -1,0 +1,298 @@
+{
+  "schema": 2,
+  "reviewedAt": "2026-10-29T13:49:13.779Z",
+  "branch": "codex/window-family",
+  "baseCommit": "6e47587",
+  "revisionBase": "0ef5b7186970a32397a0c61bdedca2ba24c17c79",
+  "modelVersion": "industrial-windows/2",
+  "collection": {
+    "presets": 39,
+    "retainedFramedPresets": 36,
+    "borderlessStoreyPresets": 3,
+    "presetDefinitionJoinRotationCases": 624,
+    "templateId": "window.full.borderless",
+    "templateParameters": "dimensions:{width,height} in metres; positive finite values, no preset size ceiling",
+    "borderlessPresetMetres": [
+      1,
+      2.12
+    ],
+    "largeExamplesMetres": [
+      [
+        20,
+        5
+      ],
+      [
+        20,
+        10.6
+      ]
+    ],
+    "tileMetres": 1,
+    "storeyMetres": 2.12,
+    "logicalPanesPerSheet": 1,
+    "borderlessSolids": 0
+  },
+  "checks": {
+    "build": "npm run build: passed",
+    "repository": "npm run check: 307 passed, 0 failed",
+    "windowTests": 11,
+    "borderlessGeometry": "Only broad front/back glass faces; no frame, cap faces, mullions, repeated reflection lines or texture map.",
+    "continuity": "A 2 x 2 grid of 1 x 2.12 m sheets matches one 2 x 4.24 m sheet pixel-for-pixel in front/back/oblique software renders. Separate placements keep independent pane identity.",
+    "wholeSheetRemoval": true,
+    "browser": {
+      "surface": "Codex in-app browser",
+      "previewMode": "software",
+      "status": "39 designs · 78 window states · software preview · ready",
+      "pairImages": 39,
+      "windowStates": 78,
+      "allImagesLoaded": true,
+      "thumbnailPixels": [
+        768,
+        480
+      ],
+      "consoleErrors": 0,
+      "consoleWarnings": 0,
+      "largeSheetViews": [
+        "front",
+        "back",
+        "oblique"
+      ],
+      "largeSheetDetail": "Whole pane and intact/removed close-ups around the 8 m chunk line and 2.12 m storey line. Reference geometry is behind the glass.",
+      "dimensionsReviewedMetres": [
+        [
+          1,
+          2.12
+        ],
+        [
+          20,
+          5
+        ],
+        [
+          20,
+          10.6
+        ]
+      ],
+      "mobileViewport": [
+        390,
+        844
+      ],
+      "mobileDocumentWidth": 375,
+      "mobileCardBounds": [
+        16,
+        359
+      ],
+      "horizontalOverflow": false,
+      "mobileDefinition": "window.full.borderless.1m",
+      "webglVisuallyVerified": false,
+      "lighting": "Software rasterization of actual native triangles, alpha glass and generated textures. Lighting is approximate; native WebGL shading and in-game shadows remain for runtime review."
+    }
+  },
+  "integration": {
+    "nativeThreeFactory": true,
+    "descriptorApi": "describeWindow(id, joins={}, dimensions?)",
+    "factoryApi": "library.build(id,{dimensions,...})",
+    "dimensionsUnits": "metres",
+    "geometryCacheIncludesDimensions": true,
+    "saveIdentity": "Placement id + definitionId + validated metre dimensions + r0c0 damage state; derived bounds are authoritative.",
+    "residency": "One logical pane and asset/effect owner across complete bounds; no overlapping per-chunk clones.",
+    "gameplayShatterAdaptationOwnedByCoder": true,
+    "missionPlacementsChanged": false,
+    "upstreamSnapshotChanged": false
+  },
+  "provenance": {
+    "baseFarmyardCommit": "6e47587",
+    "studyRepository": "https://github.com/Syntaxswine/animal-factory-tactics-3d",
+    "studyCommit": "ebf51393909040b61a7c40649d9d5f0ac3678735",
+    "studyFile": "dist/tactics/window-shatter.js",
+    "style": "Cyan translucent glass; framed forms retain pale reflection strokes and oiled metal. Borderless sheets have no caps, trim or repeated strokes; source effect remains with gameplay integration.",
+    "rights": "Inherited study/art license not declared; new geometry is a project contribution; Three.js has its separate MIT notice.",
+    "inherited": [
+      {
+        "path": "aft/tactics/hybrid-materials.js",
+        "sha256": "1dca85ff2eeb36cf61bc1ae7e16ccae7c82ec9fb7f624b13dadc7b4c65954953"
+      },
+      {
+        "path": "aft/tactics/diagonal-roads.js",
+        "sha256": "427e412356e9cdaa72a4ec581af1e2eb4b203357456f5ed562c7b4bdf99acaeb"
+      }
+    ],
+    "authored": [
+      {
+        "path": "art/windows/catalog.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "3b542522d18f27ec98f069a546c5f13b5e5b3fe499cead4465b44b965672dd70"
+      },
+      {
+        "path": "art/windows/geometry.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "ceca3bc128ae627308bf15f0fca043025874d767864bca84008d775e3b2f4065"
+      },
+      {
+        "path": "art/windows/preview-renderer.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "39f40b55ed5309e761bfe95f064a6b162e99e40b28968836f5031dce23cfa799"
+      },
+      {
+        "path": "art/windows/index.html",
+        "encoding": "UTF-8 with LF",
+        "sha256": "b80d09eb32c5870199f4c0af33b3c8f7eb3c24e4e954172c4a6abac928cc10f6"
+      },
+      {
+        "path": "art/windows/review.js",
+        "encoding": "UTF-8 with LF",
+        "sha256": "052a96698743b63577f14f340d8ed020183b1979e692b084cd6df9ab69e808e4"
+      },
+      {
+        "path": "art/windows/review.css",
+        "encoding": "UTF-8 with LF",
+        "sha256": "5985f080840d5500757a883dbb6ebd539ca5fb54675b3cae0d1da70b3ae72524"
+      }
+    ]
+  },
+  "helper": {
+    "previewStopped": true,
+    "portReleased": true,
+    "ownedBrowserTabsClosed": true,
+    "temporaryViewportReset": true
+  },
+  "priorFramedPass": {
+    "reviewedAt": "2026-10-29T07:41:00.269Z",
+    "modelVersion": "industrial-windows/1",
+    "repositoryTests": 304,
+    "geometryUnchanged": true
+  },
+  "sourceHashFormat": "Owned UTF-8 source normalized to LF; inherited AFT source hashes preserve bytes in catalog.json.",
+  "sourceHashes": [
+    {
+      "path": "sites/tactical-animal/dist/art/windows/catalog.js",
+      "sha256": "3b542522d18f27ec98f069a546c5f13b5e5b3fe499cead4465b44b965672dd70"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/windows/catalog.json",
+      "sha256": "5b3f04475945a4747b8fac051f0d36ba941af927e7c76a05c8b8cf999dac3341"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/windows/geometry.js",
+      "sha256": "ceca3bc128ae627308bf15f0fca043025874d767864bca84008d775e3b2f4065"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/windows/index.html",
+      "sha256": "b80d09eb32c5870199f4c0af33b3c8f7eb3c24e4e954172c4a6abac928cc10f6"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/windows/preview-renderer.js",
+      "sha256": "39f40b55ed5309e761bfe95f064a6b162e99e40b28968836f5031dce23cfa799"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/windows/review.css",
+      "sha256": "5985f080840d5500757a883dbb6ebd539ca5fb54675b3cae0d1da70b3ae72524"
+    },
+    {
+      "path": "sites/tactical-animal/dist/art/windows/review.js",
+      "sha256": "052a96698743b63577f14f340d8ed020183b1979e692b084cd6df9ab69e808e4"
+    },
+    {
+      "path": "sites/tactical-animal/tests/window-art.test.mjs",
+      "sha256": "629337cef814fa34987dc21bec4516faf55f9fd105ece4730cedfa34c109d0e2"
+    },
+    {
+      "path": "sites/tactical-animal/tools/window-catalog.mjs",
+      "sha256": "312b9e33a170065bddcccbcdf055ec15dd2af2c967e973ed3bd1b6fd5b4ffaf4"
+    },
+    {
+      "path": "docs/art/windows/README.md",
+      "sha256": "31aed41c4742fe91a0fa3f14109afb0e1f7be08aed24140862a7403e9d08fb60"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "back-selected-pane.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "c1f0c560382ec282d74f06bbc4084df4dae767f02ba170617c51f9ec5c33f360"
+    },
+    {
+      "file": "borderless-1x2.12.jpg",
+      "pass": "Borderless v2",
+      "sha256": "829a138621aaaac2a22c4cbadf69b2b4f44e92291d54a6d5d8624c2e0c4c74cc"
+    },
+    {
+      "file": "borderless-20x5-metres-back.jpg",
+      "pass": "Borderless v2",
+      "sha256": "bf78e94729005eb820bf9fdbd7c42108ba7221f7291ec5e44be0b896084f4a79"
+    },
+    {
+      "file": "borderless-20x5-metres-front.jpg",
+      "pass": "Borderless v2",
+      "sha256": "f14b64ae23b9efeaf192e949bf31b96dcadd05a8fd0541619fd48aff7c97a121"
+    },
+    {
+      "file": "borderless-20x5-metres-oblique.jpg",
+      "pass": "Borderless v2",
+      "sha256": "e8b8766ca7afe2b91703c1c6869ab2c11df6a33a5f2f62de314e43ce5f071342"
+    },
+    {
+      "file": "borderless-20x5-storeys-back.jpg",
+      "pass": "Borderless v2",
+      "sha256": "9894a3f2239defcad53b0e9f4ad8908e010cd783a364418f5c2cdf7e04ba0f7c"
+    },
+    {
+      "file": "borderless-20x5-storeys-front.jpg",
+      "pass": "Borderless v2",
+      "sha256": "f710ec85e98e47103c321a332ce81330b9d6836eea9fd1a882ddc35400981e8e"
+    },
+    {
+      "file": "borderless-20x5-storeys-oblique.jpg",
+      "pass": "Borderless v2",
+      "sha256": "a2619f1bd13da7f7a1c3dc4e69e0010010e0f5ecb69d3a5e1d692085e092c0bb"
+    },
+    {
+      "file": "borderless-phone.jpg",
+      "pass": "Borderless v2",
+      "sha256": "e75fc1662af487ddc4b2e3f98e490c200c0cf9ce7741b83e3b96c24267f22224"
+    },
+    {
+      "file": "clear-heights-3m.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "9218dd251f7d3cb8a06cc5f5fbd7cf738c9dbdae026a9698a71967e4510fdcd5"
+    },
+    {
+      "file": "front-selected-pane.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "9ef63f9dcc3740a737288f78353d719a381e5baa085aab4e80719106861fb40e"
+    },
+    {
+      "file": "full-patterns-bottom.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "fe8548e992737d0a7d53e330aa970ed0c2be58f620446a05be171fbfa175f256"
+    },
+    {
+      "file": "full-patterns.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "01bc8a2b7a1eae936196d2346a4a5e132cbf0a2ca2cc1c2ff3279cc1973c9bb4"
+    },
+    {
+      "file": "ivory-concrete.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "8327ab80238e8f007107b3ec38cb4fe81a6eb19f622c2ea889020b768b50c48a"
+    },
+    {
+      "file": "phone.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "cc3f504425edc431eb4f93b4aa2892760d4a0a7bc94c66d697e8bee749b1ced9"
+    },
+    {
+      "file": "sage-corrugated.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "e5c0bf1b2adcb3a2259f01b681c53c376bfff15b39cdd9bc5b4ffbb922082483"
+    },
+    {
+      "file": "waist-patterns-bottom.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "a8091d875d42df63162bf12260df3a5cf6f0ab9be88ea1351eb821c44ddae0f7"
+    },
+    {
+      "file": "waist-patterns.jpg",
+      "pass": "Retained framed v1 geometry evidence",
+      "sha256": "47db933e00faddabbacdd81c905943cbe25f670e67b9cffb0f618107c081852b"
+    }
+  ]
+}

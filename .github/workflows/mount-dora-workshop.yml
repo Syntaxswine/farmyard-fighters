@@ -1,0 +1,86 @@
+name: Mount Dora workshop review
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'maps/mount-dora/**'
+      - 'tools/*mount-dora-workshop.mjs'
+      - 'tools/maps/**'
+      - 'tests/maps/**'
+      - 'sites/tactical-animal/tools/build.mjs'
+      - 'sites/tactical-animal/dist/mount-dora*'
+      - 'sites/tactical-animal/dist/mount-dora-source/**'
+      - 'sites/tactical-animal/dist/mission-art/mount-dora/**'
+      - '.github/workflows/mount-dora-workshop.yml'
+      - 'docs/maps/mount-dora*'
+permissions:
+  contents: read
+concurrency:
+  group: mount-dora-workshop-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  workshop:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - name: Check the atlas model
+        run: node --test maps/mount-dora/workshop/model.test.mjs
+      - name: Reproduce and check the geographic base
+        if: ${{ hashFiles('maps/mount-dora/project.json') != '' }}
+        run: |
+          python3 -B tools/maps/build-mount-dora.py --check
+          python3 -B -m unittest discover -s tests/maps -p 'test_*.py' -v
+          node tests/maps/validate-native-baseline.mjs
+      - name: Check the house reference, lidar, county-building and survey records
+        if: ${{ hashFiles('maps/mount-dora/project.json') != '' }}
+        run: node --test tests/maps/*.test.mjs
+      - name: Verify continuous travel with production landmark solids
+        if: ${{ hashFiles('sites/tactical-animal/dist/mount-dora-world.js') != '' }}
+        run: |
+          node tools/maps/review-mount-dora-routes.mjs
+          git diff --exit-code -- maps/mount-dora/playable/route-fixtures.json
+          node tools/maps/review-mount-dora-travel.mjs
+      - name: Check out the public workshop at its reviewed immutable commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Syntaxswine/nautilus-engine
+          ref: 2502646482218524fd5129641da769bb82462e4d
+          path: artifacts/mount-dora-workshop/nautilus-2502646
+          persist-credentials: false
+      - name: Build the fixed workshop and verify source and round trips
+        run: node tools/prepare-mount-dora-workshop.mjs --source artifacts/mount-dora-workshop/nautilus-2502646 --fixtures
+      - name: Install locked native review dependencies
+        run: npm ci --ignore-scripts --prefix sites/tactical-animal/browser-tests
+      - name: Install isolated Chromium
+        working-directory: sites/tactical-animal/browser-tests
+        run: npx playwright install --with-deps chromium
+      - name: Exercise the house survey page in Chromium
+        run: node tools/maps/house-reference/test-survey-page.mjs
+      - name: Exercise actual workshop controls in Chromium WebGL
+        run: node tools/test-mount-dora-workshop.mjs --source artifacts/mount-dora-workshop/nautilus-2502646 --fixtures
+      - name: Validate all final geographic sectors when present
+        shell: bash
+        run: |
+          if [ -f maps/mount-dora/project.json ]; then
+            node tools/review-mount-dora-workshop.mjs --source artifacts/mount-dora-workshop/nautilus-2502646 --project maps/mount-dora/project.json --out artifacts/mount-dora-workshop/town
+            node tools/test-mount-dora-workshop.mjs --source artifacts/mount-dora-workshop/nautilus-2502646 --project maps/mount-dora/project.json --out artifacts/mount-dora-workshop/town
+          fi
+      - name: Retain review evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: mount-dora-workshop-${{ github.event.pull_request.head.sha }}
+          path: |
+            artifacts/mount-dora-workshop/audit.json
+            artifacts/mount-dora-workshop/prepared.json
+            artifacts/mount-dora-workshop/helper*.json
+            artifacts/mount-dora-workshop/native
+            artifacts/mount-dora-workshop/town
+          retention-days: 14

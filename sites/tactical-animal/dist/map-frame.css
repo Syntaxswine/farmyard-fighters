@@ -1,0 +1,36 @@
+/* Nine-slice painted metal keeps the button-family corners at every map size. */
+.map-metal-frame,
+#minimap-button.map-metal-frame {
+  --map-border: 10px;
+  border: var(--map-border) solid transparent;
+  border-image: url('assets/ui/industrial-switches/map-frame-v1.webp') 16% / var(--map-border) / 0 stretch;
+  border-radius: 0;
+  background: #16251c;
+  box-shadow: 0 3px 8px #08140d60;
+}
+#minimap-button.map-metal-frame {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 12px;
+  gap: 2px;
+  padding: 0;
+}
+#minimap-button.map-metal-frame #minimap {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+#minimap-button.map-metal-frame > span {
+  font: 700 8px/12px var(--mono);
+  letter-spacing: 1px;
+  color: #efe6ce;
+}
+.map-expanded-frame { --map-border: 14px; width: 100%; min-width: 0; }
+.map-expanded-frame > canvas { display: block; width: 100%; height: auto; border: 0; }
+@media (max-width: 380px), (max-height: 580px) and (min-width: 600px) {
+  #minimap-button.map-metal-frame { --map-border: 9px; }
+}
+@media (forced-colors: active) {
+  .map-metal-frame, #minimap-button.map-metal-frame { border-image: none; border-color: ButtonText; }
+}

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">
+<defs>
+ <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#c7af83"/><stop offset="1" stop-color="#8b7955"/></linearGradient>
+ <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#68744f"/><stop offset="1" stop-color="#374c36"/></linearGradient>
+ <pattern id="brick" width="28" height="14" patternUnits="userSpaceOnUse"><path d="M0 0H28M0 14H28M14 0V14" fill="none" stroke="#5f533d" stroke-width="1" opacity=".3"/></pattern>
+</defs>
+<g stroke="#4a4732" stroke-width="2" stroke-linejoin="round">
+ <path d="M10 235 160 160 310 235 160 312Z" fill="#726e4e"/>
+ <path d="M10 231 160 156 310 231 160 306Z" fill="#b1a07a"/>
+ <path d="M38 159 159 99 280 159V235L159 295 38 235Z" fill="url(#wall)"/>
+ <path d="M38 159 159 218V295L38 235Z" fill="#9f8860"/>
+ <path d="M159 218 280 159V235L159 295Z" fill="#c0ab7c"/>
+ <path d="M38 159 159 218V295L38 235Z" fill="url(#brick)"/>
+ <path d="M159 218 280 159V235L159 295Z" fill="url(#brick)"/>
+ <path d="M22 153 147 88 294 151 161 220Z" fill="url(#roof)"/>
+ <path d="M22 153 161 213 294 151V160L161 229 22 163Z" fill="#48523a"/>
+ <path d="M147 88 161 213M74 128 208 189M121 104 253 174M47 146 177 206" fill="none" stroke="#8c9670" opacity=".55"/>
+ <path d="M61 192 125 224V260L61 228Z" fill="#342f23"/>
+ <path d="M59 227 127 260 139 254 71 220Z" fill="#d7b57b"/>
+ <path d="M47 178 137 221 144 240 45 193Z" fill="#872f27"/>
+ <path d="M45 193 144 240V248L45 201Z" fill="#b5553b"/>
+ <path d="M50 199V247M139 243V286" stroke="#624831" stroke-width="5"/>
+ <path d="M208 216 253 194V248L208 271Z" fill="#686646"/>
+ <path d="M215 220 246 205V243L215 258Z" fill="#aaa26b"/>
+ <path d="M215 240 246 225M230 212V250" stroke="#6c704b"/>
+ <path d="M88 126V69" stroke="#61513b" stroke-width="4"/>
+ <path d="M90 69 133 79 133 109 90 97Z" fill="#a2382b"/>
+ <path d="m108 79 2 7 7 2-5 3 2 7-6-5-5 2 2-6-5-5 7 2Z" fill="#e3c98d" stroke="none"/>
+ <g fill="#bda16e"><path d="M168 271 189 260 211 271 189 282Z"/><path d="M168 271 189 282V301L168 290Z" fill="#8d734b"/><path d="M189 282 211 271V290L189 301Z"/><path d="M190 249 211 238 233 249 211 260Z"/><path d="M190 249 211 260V279L190 268Z" fill="#8d734b"/><path d="M211 260 233 249V268L211 279Z"/></g>
+ <path d="M174 277 185 294M195 287 205 277M216 265 228 255" fill="none" stroke="#dbc18b"/>
+ <path d="M71 221V208Q80 191 88 211V231ZM96 234V220Q105 203 115 226V243Z" fill="#c8bd89"/>
+ <path d="M173 227 200 214V230L173 244Z" fill="#8b3229"/>
+ <path d="M181 229 193 223M181 234 193 228" stroke="#eed499" stroke-width="3"/>
+</g>
+</svg>

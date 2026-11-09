@@ -1,0 +1,42 @@
+# Mount Dora workshop shortcomings and art handoff
+
+Target: reviewed Nautilus `2502646482218524fd5129641da769bb82462e4d`. These findings distinguish missing authoring support from missing geographical evidence. No engine upgrade or capability registration is proposed by this PR. The architect owns the town generator and topology; the coder owns the actual workshop import/export evidence.
+
+## Reuse first
+
+The public shared catalogue contains 407 entries, including the existing original architecture and Gross collections. This pass uses 24 verified entries. Original `createBuildingModel` and `createRoofGroup` render the buildings and roof shells without changing their source. Existing AFT factories supply shade/wetland trees, reeds, tables and streetlights; static parts sharing paint are merged at build time. The gallery reuses the released Farmyard thumbnail renderer and supplies its same Three instance.
+
+The current browser supports WebGL 2, unlike the earlier Coldwell review environment. Native frames are inspected and saved for these seven detached studies. They demonstrate materials and shapes, not correct placement of a complete town or device performance. The original lighthouse proxy is justified by the absent lighthouse kit; the architect explicitly accepted a scoped static visual reference. It remains unregistered.
+
+## Concrete limits
+
+| Finding / evidence at the fixed revision | Consequence for Mount Dora | First-pass handling / useful next capability |
+|---|---|---|
+| Workshop public `open/export` operates on one complete map. Root independently reports no town-wide sector overview. | Authoring a 6 × 7 town requires keeping geographic context outside the active sector. | Root owns the town atlas and topology. Art sidecar only returns conservative references, not a second sector/editor system. |
+| `packages/prefab-core/index.js:buildingTransform` accepts integer `turns` 0–3, derives reserved lots, and `MAX_BUILDINGS` is 32. | Whole catalogue buildings cannot be freely rotated or stretched onto arbitrary OSM polygons. Reserved lots can also overlap adjacent narrow downtown properties. | Preserve mapped footprints as plain editable geometry. Apply palette/typology references selectively; never stretch or silently substitute a complete prefab. Count actual lots before proposing dense prefab placement. |
+| `roofErrors` requires the full sloped roof including overhang to fit within `[0,240]`. The focused test invokes the real source validator for a roof crossing x=240. Whole-prefab lots must also fit a complete map. | A building/roof crossing a project-sector seam cannot become several newly capped complete buildings. | One global source ID and host-owned pieces. Keep roof/study references explicit until the town host supports shared ownership across maps. Gallery roofs are created at a valid local point then translated as reference objects. |
+| Public asset catalogue has no lighthouse, standalone pavilion/gazebo, park bench or boardwalk railing generator entry. | An attractive landmark mesh is not automatically an editable registered workshop asset. | Lighthouse, open roof/support and rail studies remain in the map-owned sidecar. Reuse the existing roof API and painted materials. Keep unsupported bindings visible; do not invent `objects:lighthouse` or `objects:pavilion`. A small reusable outdoor kit would address several real cases. |
+| Shopfronts and awnings exist on actual buildings such as `building:pepper-corner-shop` and `building:batten-general-store`; no standalone awning asset is exposed by the shared catalogue. | Placing one awning on a mapped shop facade does not justify replacing its whole footprint with the source shop's room plan. | Reuse the reference appearance; retain the host footprint. A facade-component binding would be preferable to another whole-building substitution. |
+| Native court surfaces/ground and fences exist, but there is no public pickleball/tennis paint or non-colliding court-line preset. | Using walls or fences to draw narrow white lines would change physical meaning. Source also contains overlapping/historical sports labels. | Retain all five mapped polygons with original sport tags. Gallery outlines are visual reference marks only. Add an explicit paint/decal route if exact markings become a target; do not assert a current court inventory. |
+| `foliage:wetland-v1` and actual wetland renderer models exist. No named public cabbage-palm placement entry exists. | A Florida palm silhouette is not something the author can select by inventing an internal plant ID in portable props. | Reuse actual wetland/cypress/willow/reed kit now, and disclose the missing palm selector. Do not claim the resulting vegetation is a botanical survey. |
+| `objects:streetlight` is rendered by the existing painted furniture/lighting path, not `environmentVisuals`. A build-time assertion caught an empty model from the wrong path. | Merely finding an asset ID does not prove that a chosen renderer can display it. | Source geometry comes from `createFurnitureLibrary('streetlight')`; the final prototype must contain geometry. No lighting schedule or lamp simulation is copied into this static art study. |
+| Arbitrary wall runs **are supported**: 0.1–64 m segments, wood/brick/concrete, five stories within six layers, explicit segment/panel ceilings. | Accurate oblique footprint boundaries have a useful existing path; rebuilding a wall system is unnecessary. | Prefer existing wall runs over stretched whole-prefabs where the host supports them. Split long runs using source identity, not new closing walls at project-sector cuts. |
+
+Line references above name stable functions; exact source hashes are in art provenance. Availability statements were checked against the actual 407-entry shared catalogue and source API, not guessed from model filenames. Source tests cover the roof rejection, supported asset lookup, global identity retention and no silent empty prototype.
+
+## Data gaps, separate from editor gaps
+
+- The OSM label `Evans Park` maps to the city's Elizabeth Evans Park. The lakefront pavilion has no independently verified point in this subset. Nearby mapped lawn-bowling shelters remain those shelters; do not relabel them to fill the gap. The pavilion gallery is a shape/material reference anchored to the park record, with exact placement deferred.
+- Small hotel way 560095897 is one associated building. Grand Lobby, Gables, Tavern, Gatehouse, Lake House, Terrace and Sunset retain separate OSM identities and labels. The association and the yellow/white veranda character do not prove the complete property boundary, current room use or surveyed interiors.
+- Bridge `layer=1`, source `ele` tags and native floor pitch are not a terrain-height survey. Native kit intervals are 2.12 m; the 10.6 m lighthouse is a five-interval visual proxy. No road grades, decks, interiors or visitor access are certified.
+- The actor-free authoring project is not a playable Farmyard mission. Missing game support should be refused explicitly rather than silently flattening features.
+
+## Recommendation under the shared design criteria
+
+**Accuracy:** favour original geographic footprints/shoreline and stable OSM identity over stretching a visually richer whole-building model. Apply the existing painted palette and selective porch/shop treatments. Clearly retain unverified pavilion and height details as references.
+
+**Efficiency:** keep original source LODs, merge only static parts sharing paint, reuse atlases, and instantiate only representative landmark treatments. Geometry/resource counts are measured in the gallery and tests; no GPU timing or phone-frame-rate claim follows from them. A town packed with bespoke interiors would add work without evidence that the user needs it.
+
+**Narrative:** the yellow veranda, covered green park roofs, red/ivory lighthouse, timber walkway and readable shop awnings provide useful visual landmarks for a single-character town. This is an aesthetic judgment, checked against official site references and actual rendered examples. It does not make the generic catalogue floor plans historically accurate.
+
+The preferred first pass is the architect's complete editable map plus this separate art recipe. Add targeted facade/outdoor/cross-map bindings after review demonstrates the need; preserve the reviewed engine target while discovering those gaps.

@@ -1,0 +1,251 @@
+{
+  "native": {
+    "artRevision": "2b3755d3dcc427e7007e6c58f6ddf29772a8bbb2",
+    "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
+    "renderer": "WebGL",
+    "nativeRendererUsed": true,
+    "createdStudies": 7,
+    "disposedStudies": 7,
+    "temporaryRendererDisposed": true,
+    "borrowedImageTexturesReleased": true,
+    "sourceFeatures": 68,
+    "studyRows": [
+      {
+        "id": "md:donnelly-park",
+        "renderer": "WebGL",
+        "drawObjects": 34,
+        "triangles": 13468,
+        "geometries": 34,
+        "materials": 23,
+        "textures": 3,
+        "geometryBytes": 1292356,
+        "bounds": {
+          "min": [
+            -28.457830786705017,
+            -0.12999999523162842,
+            -29.68090057373047
+          ],
+          "max": [
+            18.46900001168251,
+            5.427000045776367,
+            16.750967621803284
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:lakeside-inn",
+        "renderer": "WebGL",
+        "drawObjects": 52,
+        "triangles": 19864,
+        "geometries": 52,
+        "materials": 20,
+        "textures": 3,
+        "geometryBytes": 1906944,
+        "bounds": {
+          "min": [
+            -6.457830786705017,
+            -0.12999999523162842,
+            -2.6500000953674316
+          ],
+          "max": [
+            31.649999618530273,
+            5.67519998550415,
+            8.750967621803284
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:elizabeth-evans",
+        "renderer": "WebGL",
+        "drawObjects": 45,
+        "triangles": 6376,
+        "geometries": 30,
+        "materials": 7,
+        "textures": 1,
+        "geometryBytes": 120464,
+        "bounds": {
+          "min": [
+            -2.4576739370822906,
+            -0.11999999865889549,
+            -6.032499998807907
+          ],
+          "max": [
+            6.299999237060547,
+            3.874641180038452,
+            7.33500000834465
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:grantham-lighthouse",
+        "renderer": "WebGL",
+        "drawObjects": 29,
+        "triangles": 620,
+        "geometries": 29,
+        "materials": 3,
+        "textures": 1,
+        "geometryBytes": 38760,
+        "bounds": {
+          "min": [
+            -1.4500000476837158,
+            5.7220459037665705e-8,
+            -1.4500000476837158
+          ],
+          "max": [
+            1.4500000476837158,
+            10.599999990463257,
+            1.4500000476837158
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": false,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:gilbert-park",
+        "renderer": "WebGL",
+        "drawObjects": 16,
+        "triangles": 2016,
+        "geometries": 14,
+        "materials": 8,
+        "textures": 3,
+        "geometryBytes": 164368,
+        "bounds": {
+          "min": [
+            -6.457830786705017,
+            -0.11999999865889549,
+            -0.2999992370605469
+          ],
+          "max": [
+            10.299999237060547,
+            4.535999774932861,
+            8.299999237060547
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:palm-island",
+        "renderer": "WebGL",
+        "drawObjects": 61,
+        "triangles": 9108,
+        "geometries": 46,
+        "materials": 10,
+        "textures": 4,
+        "geometryBytes": 378992,
+        "bounds": {
+          "min": [
+            -6.365928292274475,
+            -0.11999999865889549,
+            -6.032499998807907
+          ],
+          "max": [
+            6.937901973724365,
+            5.64300012588501,
+            12.299999237060547
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      },
+      {
+        "id": "md:historic-shopfronts",
+        "renderer": "WebGL",
+        "drawObjects": 73,
+        "triangles": 38982,
+        "geometries": 73,
+        "materials": 23,
+        "textures": 1,
+        "geometryBytes": 3742272,
+        "bounds": {
+          "min": [
+            -0.15000000596046448,
+            -0.12999999523162842,
+            -2.6500000953674316
+          ],
+          "max": [
+            25.329999923706055,
+            8.119999885559082,
+            14.279999732971191
+          ]
+        },
+        "actualThreeGeometry": true,
+        "sourceRendererReused": true,
+        "registeredWholePreset": false,
+        "geographicallyPlaced": false
+      }
+    ],
+    "measurement": "CPU geometry/resource counts, not GPU timing or phone performance"
+  },
+  "mobile": {
+    "documentWidth": 375,
+    "errors": "",
+    "height": 844,
+    "images": [
+      {
+        "height": 222,
+        "id": "md:donnelly-park",
+        "loaded": true,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "id": "md:lakeside-inn",
+        "loaded": true,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "id": "md:elizabeth-evans",
+        "loaded": true,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "id": "md:grantham-lighthouse",
+        "loaded": true,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "id": "md:gilbert-park",
+        "loaded": true,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "id": "md:palm-island",
+        "loaded": true,
+        "width": 341
+      },
+      {
+        "height": 222,
+        "id": "md:historic-shopfronts",
+        "loaded": true,
+        "width": 341
+      }
+    ],
+    "scrollY": 0,
+    "status": "7 / 7 studies · native WebGL",
+    "width": 390
+  },
+  "consoleWarningsOrErrors": []
+}
