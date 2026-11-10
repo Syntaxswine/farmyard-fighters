@@ -3,7 +3,7 @@ import {FieldView} from '../dist/field-view.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {visualTravelDistance,movementPresentation} from '../dist/locomotion-sample.js';
+import {crawlTravel,visualTravelDistance,movementPresentation} from '../dist/locomotion-sample.js';
 import {ANIMAL_MOTION_CATALOG} from '../dist/aft/tactics/animal-motion-catalog.js';
 import {createWorkerLocomotion} from '../dist/aft/tactics/worker-locomotion.js';
 import {createBattlePosture} from '../dist/aft/tactics/battle-posture.js';
@@ -19,6 +19,23 @@ test('new Walk and adapted Run reproduce liked old7.2m/s Run cadence and frozen 
 });
 test('visual phase stays continuous across run/walk, idle and visits while actual travel is untouched',()=>{
   let previous={travelled:0,distance:0};for(const [travelled,running,distance]of [[2,false,2],[4,true,3],[4,true,3],[4,false,3],[5,false,4]]){const unit={travelled,running,x:500,y:1000},before={...unit};assert.equal(visualTravelDistance(unit,previous),distance);assert.deepEqual(unit,before);previous={...unit,distance};}
+});
+
+test('prone crawl follows accepted distance, including stops and reverse travel',()=>{
+  let previous={x:2,y:4,travelled:100,stance:'kneeling',crawlDistance:12};
+  const sample=(x,y,travelled,heading,stance='prone')=>{
+    const unit={x,y,travelled,heading,stance};
+    const crawlDistance=crawlTravel(unit,previous);
+    previous={...unit,crawlDistance};
+    return crawlDistance;
+  };
+  assert.equal(sample(2,4,100,0),0);
+  assert.equal(sample(2.5,4,100.5,0),.5);
+  assert.equal(sample(2.5,4,100.5,90),.5);
+  assert.equal(sample(2.5,3.75,100.75,90),.25);
+  assert.equal(sample(2.5,3.75,0,90),.25);
+  assert.equal(sample(2.5,3.75,0,90,'standing'),0);
+  assert.equal(sample(2.5,3.75,0,90),0);
 });
 test('same-phase catch-up retains every enemy attack cue with ordered playback offsets',()=>{
   const s=createSoloGame(),u=hero(s),g=s.units[1];u.x=4;u.y=25;u.hp=u.maxHp=10000;g.x=4;g.y=22;g.weapon='pistol';g.ammo.pistol=8;g.ap=20;g.alert=true;for(const other of s.units.slice(2))other.hp=0;s.phase='enemy';s.enemyIndex=1;s.enemyDelay=0;

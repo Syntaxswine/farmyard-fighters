@@ -6,6 +6,7 @@ import {ANIMAL_MOTION_CATALOG} from '../dist/aft/tactics/animal-motion-catalog.j
 import {createWeaponModel} from '../dist/aft/tactics/weapon-models.js';
 import {createWorkerLocomotion} from '../dist/aft/tactics/worker-locomotion.js';
 import {createBattlePosture} from '../dist/aft/tactics/battle-posture.js';
+import {createCrawlPose} from '../dist/crawl-pose.js';
 import {createWeaponPose} from '../dist/weapon-pose.js';
 import {V,Q,weaponGrip} from '../dist/weapon-pose-rig.js';
 import {FieldView} from '../dist/field-view.js';
@@ -21,7 +22,7 @@ function sheepRig(weapon){
   worker.equipWeapon(gun);
   const gait=createWorkerLocomotion(worker,profile),posture=createBattlePosture(worker,profile);
   const action=createWeaponPose(worker,profile),bones=Object.fromEntries(worker.bones.map(b=>[b.name,b]));
-  return {gun,action,bones,worker,locomotion:gait,posture,prepare(sample){
+  return {gun,action,bones,worker,profile,locomotion:gait,posture,prepare(sample){
     gait.apply({...sample,blend:0});posture.apply(sample);action.crawl(sample);posture.ground();
   },dispose(){gait.dispose();gun.dispose();worker.dispose();}};
 }
@@ -50,6 +51,34 @@ test('prone HMG keeps the carry handle in the support hand and the bipod clear t
       }
     }
   }finally{rig.dispose();}
+});
+
+test('a prone flamer releases its crawl rig and hose to the normal pose, then resumes the same cycle',()=>{
+  const {profile,worker,posture,locomotion,gun,dispose}=sheepRig('flamethrower');
+  const updateHose=gun.updateHose;
+  const crawl=createCrawlPose(worker,profile,posture,gun.id);
+  const sample={heading:62,stance:'prone',pose:{prone:1,kneel:0},blend:1,crawlDistance:.213,distance:.213};
+  try{
+    const normalHose=gun.hose.geometry;
+    const first=crawl.apply(sample);
+    assert.equal(first.pose,'Loaded backpack crawl');
+    assert.ok(worker.root.position.length()<1e-8);
+    assert.ok(gun.hose.visible);
+    const fittedHose=gun.hose.geometry;
+    assert.notEqual(fittedHose,normalHose);
+
+    crawl.suspend();
+    assert.equal(gun.updateHose,updateHose);
+    assert.equal(gun.hose.geometry,normalHose);
+    locomotion.apply({...sample,blend:0});posture.apply(sample);
+    const replacement=gun.hose.geometry;
+    assert.notEqual(replacement,normalHose);
+    assert.deepEqual(crawl.apply(sample),first);
+    assert.equal(gun.hose.geometry,fittedHose);
+    crawl.suspend();
+    assert.equal(gun.updateHose,updateHose);
+    assert.equal(gun.hose.geometry,replacement);
+  }finally{crawl.dispose();dispose();}
 });
 
 function wallYard(){

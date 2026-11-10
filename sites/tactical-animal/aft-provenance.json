@@ -5980,6 +5980,18 @@
       "sha256": "d9de4d8cde50262e1889a4e19a457da1a39e32e2eb21b8e97d38fa097ae93bb5",
       "bytes": 1757,
       "source": "tactics/core/engine.js: WEAPONS and AIM_ZONES"
+    },
+    {
+      "path": "tactics/crawl-state.js",
+      "sha256": "b1e8b2d41ec363e287a996994c1d50751170cd6e7b66e4fa73fed935a5f662a6",
+      "bytes": 4537,
+      "sourceCommit": "aa61ffa11c36c21aaa53b7ee48a4f24e4ccc5d4b"
+    },
+    {
+      "path": "tactics/painted-fire-equipment.js",
+      "sha256": "9db792c683361a42d388860907240aa9f4fd9dce53588a16c8539ecfb6545af9",
+      "bytes": 3874,
+      "sourceCommit": "aa61ffa11c36c21aaa53b7ee48a4f24e4ccc5d4b"
     }
   ]
 }

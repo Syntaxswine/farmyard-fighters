@@ -1,4 +1,4 @@
-import {movementPresentation} from './locomotion-sample.js';
+import {crawlTravel,movementPresentation} from './locomotion-sample.js';
 import {drawPlayerMapMarker} from './map-player-marker.js';
 import {boundedElapsed} from './frame-timing.js';
 import {getTourWorld} from './mount-dora-activity.js';
@@ -8,6 +8,7 @@ import {createAnimalPaint} from './aft/tactics/animal-motion-paint.js';
 import {createWeaponModel} from './aft/tactics/weapon-models.js';
 import {createWorkerLocomotion} from './aft/tactics/worker-locomotion.js';
 import {createBattlePosture} from './aft/tactics/battle-posture.js';
+import {createCrawlPose} from './crawl-pose.js';
 import {createGrenadeModel} from './aft/tactics/grenade-model.js';
 import {DaylightRig} from './aft/tactics/daylight-rig.js';
 import {OriginalEnvironment} from './original-art.js';
@@ -296,6 +297,7 @@ export class FieldView {
       const throwPose=u.team==='squad'||u.weapon==='grenade'?createGrenadePose(worker,profile):null;
       const a={worker,paint,profile,locomotion,posture,root,pick,ring,shadow,weapon:u.weapon,equipment:worker.weapon,
         flameOperator:createFlameOperator(worker,profile),weaponPose,throwPose};
+      if(u.team==='squad')a.crawl=createCrawlPose(worker,profile,posture,u.weapon);
       if(preload){root.visible=false;this.parkedActors.set(u.id,a);}
       else{this.actors.set(u.id,a);this.scene.add(root);}
     }catch(error){paint?.dispose();worker?.weapon?.dispose();worker?.dispose();if(generation===this.generation&&this.pending.get(u.id)===ticket){this.failed.add(u.id);console.error('Animal model failed',error);this.onError(error.message||'An animal texture could not load.');}}
@@ -312,7 +314,7 @@ export class FieldView {
     // full of GPU rigs. All simulation units remain untouched in state.units.
     while(this.parkedActors.size>MAX_PARKED_ACTORS){const [id,actor]=this.parkedActors.entries().next().value;this.parkedActors.delete(id);this.samples.delete(id);this.disposeActor(actor);}
   }
-  disposeActor(a){for(const [id,session]of this.burnEffects?.sessions||[])if(session.actor===a)this.burnEffects.remove(id);this.scene.remove(a.root);a.throwPose?.dispose();a.flameOperator?.dispose();a.locomotion?.dispose();a.paint.dispose();a.equipment.dispose();a.worker.dispose();for(const o of [a.pick,a.ring,a.shadow]){o.geometry.dispose();o.material.dispose();}}
+  disposeActor(a){for(const [id,session]of this.burnEffects?.sessions||[])if(session.actor===a)this.burnEffects.remove(id);this.scene.remove(a.root);a.crawl?.dispose();a.throwPose?.dispose();a.flameOperator?.dispose();a.locomotion?.dispose();a.paint.dispose();a.equipment.dispose();a.worker.dispose();for(const o of [a.pick,a.ring,a.shadow]){o.geometry.dispose();o.material.dispose();}}
   queueEffects(effect,now){
     this.effectAt=now;const previousRounds=new Map();
     for(const event of effect.sequence||[effect]){
@@ -456,27 +458,40 @@ export class FieldView {
     const throwAction=grenadeAction(sample,preview,throwing,now);
     const action=alive&&!throwAction&&!fire&&!flameReady&&displayedWeapon!=='flamethrower'
       ?weaponAction(a.action,displayedWeapon,aim,shot,now,elapsed):null;
-    const signature=[displayedWeapon,sample.heading,sample.blend,sample.distance,JSON.stringify(sample.pose)].join(':');
     const posing=!!(throwAction||action),flaming=!!(fire||flameReady);
-    let result;
+    const crawling=alive&&sample.stance==='prone'&&sample.pose.prone>=.98&&!posing&&!flaming;
+    const signature=[displayedWeapon,sample.heading,sample.blend,sample.distance,sample.crawlDistance,crawling,JSON.stringify(sample.pose)].join(':');
+    let result=a.crawlResult;
     if(a.signature!==signature||posing||a.posing||flaming||a.hadFlame){
       a.signature=signature;
+      a.root.position.set(0,0,0);
       if(a.weapon!==displayedWeapon){
         this.burnEffects?.release(v.id);const old=a.equipment;
+        a.crawl?.dispose();a.crawl=null;
         a.equipment=createWeaponModel(displayedWeapon);a.worker.equipWeapon(a.equipment);old.dispose();a.weapon=displayedWeapon;
+        if(player&&alive){a.root.updateMatrixWorld(true);a.crawl=createCrawlPose(a.worker,a.profile,a.posture,displayedWeapon);}
       }
-      a.root.position.set(0,0,0);
-      a.locomotion.apply({...sample,blend:sample.pose.prone||sample.pose.down?0:sample.blend});
-      a.posture.apply(sample);
-      if(alive)a.weaponPose?.crawl(sample);
-      if(sample.pose.prone||sample.pose.kneel||sample.pose.down)a.posture.ground();
-      if(throwAction){
-        result=a.throwPose?.apply(sample,throwAction);
-        if(throwing&&result&&!throwing.flightStarted)throwing.releaseOrigin=result.origin.clone().add(V(sample.x,0,sample.y));
-      }else{
+      if(crawling){
+        a.root.updateMatrixWorld(true);
+        a.crawl ||= createCrawlPose(a.worker,a.profile,a.posture,displayedWeapon);
         a.throwPose?.clear();
-        if(!fire&&!flameReady&&alive)result=a.weaponPose?.apply(sample,action);
+        result=a.crawl.apply(sample);
+      }else{
+        a.crawl?.suspend();
+        result=undefined;
+        a.locomotion.apply({...sample,blend:sample.pose.prone||sample.pose.down?0:sample.blend});
+        a.posture.apply(sample);
+        if(alive)a.weaponPose?.crawl(sample);
+        if(sample.pose.prone||sample.pose.kneel||sample.pose.down)a.posture.ground();
+        if(throwAction){
+          result=a.throwPose?.apply(sample,throwAction);
+          if(throwing&&result&&!throwing.flightStarted)throwing.releaseOrigin=result.origin.clone().add(V(sample.x,0,sample.y));
+        }else{
+          a.throwPose?.clear();
+          if(!fire&&!flameReady&&alive)result=a.weaponPose?.apply(sample,action);
+        }
       }
+      a.crawlResult=crawling?result:undefined;
     }
     a.action=action;a.posing=posing;a.hadFlame=flaming;
     a.root.position.set(sample.x,0,sample.y);a.root.updateMatrixWorld(true);a.worker.skeleton.update();
@@ -513,8 +528,8 @@ export class FieldView {
     }
     if(player)this.playerWeaponPose=result?{weapon:throwAction?'grenade':displayedWeapon,
       phase:throwAction?(throwAction.released?(throwAction.time>2.14?'recover':'release'):'ready'):
-        fire?(fire.seconds>=FIRE_TIME.cutoff+FIRE_TIME.travel?'recover':fire.seconds<FIRE_TIME.ignite?'ready':'discharge'):flameReady?'ready':action?.phase??'carry',
-      pose:result.pose,stance:sample.stance,moving:!!sample.blend,reason:result.reason??null}:null;
+        fire?(fire.seconds>=FIRE_TIME.cutoff+FIRE_TIME.travel?'recover':fire.seconds<FIRE_TIME.ignite?'ready':'discharge'):flameReady?'ready':action?.phase??(result.crawl?'crawl':'carry'),
+      pose:result.pose,stance:sample.stance,moving:!!sample.blend,reason:result.reason??null,...(result.crawl&&{crawl:result.crawl})}:null;
     this.burnEffects?.pose(a,v,this.camera);
   }
   updateFollowCamera(s,now){this.state=s;const u=hero(s),elapsed=this.lastFrameAt===undefined?1/60:boundedElapsed((now-this.lastFrameAt)/1000),followBlend=T.MathUtils.damp(0,1,-60*Math.log(.82),elapsed),zoomBlend=T.MathUtils.damp(0,1,-60*Math.log(.86),elapsed);this.lastFrameAt=now;
@@ -550,7 +565,15 @@ export class FieldView {
     this.tankEffects?.observe(s,now,visible,burnStart);this.tankEffects?.captureOrigins(this.actors);
     this.burnEffects?.observe(s,now,visible,burnStart);if(this.burnEffects)this.burnEffects.tankEffects=this.tankEffects;
     for(const [id,a] of this.actors)a.root.visible=visible.some(v=>v.id===id);
-    for(const v of visible){let a=this.actors.get(v.id);if(!a){this.actor(v);continue;}const motion=movementPresentation(v,this.samples.get(v.id)),old=this.samples.get(v.id)||{blend:0,pose:{kneel:0,prone:0,down:v.hp<=0?1:0,dead:v.hp<=0?1:0}},blend=old.blend+((motion.moving?1:0)-old.blend)*motionBlend,goal={kneel:v.stance==='kneeling'?1:0,prone:v.stance==='prone'?1:0,down:v.hp<=0?1:0,dead:v.hp<=0?1:0};const pose=Object.fromEntries(Object.entries(goal).map(([k,value])=>[k,Math.abs(value-old.pose[k])<.005?value:old.pose[k]+(value-old.pose[k])*poseBlend]));const sample={...v,distance:motion.distance,blend:blend<.001?0:blend,pose};this.samples.set(v.id,sample);a.root.visible=true;a.pick.visible=true;a.ring.visible=v.hp>0;a.pick.scale.set(v.hp>0?1:1.6,v.hp>0?1:.2,v.hp>0?1:1.6);a.pick.position.set(0,v.hp>0?.9:.18,0);a.ring.position.set(0,.018,0);a.shadow.position.set(0,.01,0);a.pick.userData.interactionId=v.hp<=0?'body:'+v.id:null;
+    for(const v of visible){
+      const a=this.actors.get(v.id);if(!a){this.actor(v);continue;}
+      const previous=this.samples.get(v.id),motion=movementPresentation(v,previous);
+      const old=previous||{blend:0,pose:{kneel:0,prone:0,down:v.hp<=0?1:0,dead:v.hp<=0?1:0}};
+      const blend=old.blend+((motion.moving?1:0)-old.blend)*motionBlend;
+      const goal={kneel:v.stance==='kneeling'?1:0,prone:v.stance==='prone'?1:0,down:v.hp<=0?1:0,dead:v.hp<=0?1:0};
+      const pose=Object.fromEntries(Object.entries(goal).map(([k,value])=>[k,Math.abs(value-old.pose[k])<.005?value:old.pose[k]+(value-old.pose[k])*poseBlend]));
+      const sample={...v,distance:motion.distance,crawlDistance:crawlTravel(v,previous),blend:blend<.001?0:blend,pose};
+      this.samples.set(v.id,sample);a.root.visible=true;a.pick.visible=true;a.ring.visible=v.hp>0;a.pick.scale.set(v.hp>0?1:1.6,v.hp>0?1:.2,v.hp>0?1:1.6);a.pick.position.set(0,v.hp>0?.9:.18,0);a.ring.position.set(0,.018,0);a.shadow.position.set(0,.01,0);a.pick.userData.interactionId=v.hp<=0?'body:'+v.id:null;
       // An emitted spray may kill its own operator through a fuel blast. Fit
       // the recorded pre-impact discharge without reviving simulation state.
       const operator=v.hp<=0&&v.burnedRemains?{...v,hp:1}:v;
