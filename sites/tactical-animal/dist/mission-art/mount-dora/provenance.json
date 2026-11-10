@@ -5,7 +5,7 @@
   "railwayBranch": "codex/railway-route-tool",
   "farmyardBase": "75a6b61a547a96edebdc456e9a42edb4f28185e4",
   "featuresSHA256": "a291c59e3bbc2a9e5cb66f375d66ce543d6273c0dd1b8f18620167aa1b5cbad5",
-  "artRevision": "820ed28ef9a086ca7da4cd71cf1754aebaf5354134fd8a5884b847b05cc317a6",
+  "artRevision": "b00761cc336bd95b3af5f82751468d273b8cbb21295ae2720b54ccf8eb787434",
   "files": [
     {
       "path": "source/packages/building-catalog/three.js",

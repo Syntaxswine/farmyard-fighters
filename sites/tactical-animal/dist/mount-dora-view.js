@@ -10,6 +10,7 @@ import {WALL_KIT} from './mount-dora-source/wall-runs.js';
 import {windowChanges} from './render-residency.js';
 import {blockWindow} from './world-grid.js';
 import {getTourWorld} from './mount-dora-activity.js';
+import {WALKER_RADIUS} from './mount-dora-world.js';
 const origin=new URL('./aft/tactics/',import.meta.url);
 const surfaceFiles={
   'ground-grass':'ground-grass.png',woodland:'ground-grass.png','ground-dirt':'ground-dirt.png','ground-gravel':'ground-gravel.png',
@@ -126,7 +127,12 @@ export class TownEnvironment{
   // A walker on a raised pier deck stands at the deck's height. The walker's cell
   // decides, as it decides walking: field cell centres are integers, half a cell
   // from town metres (as for the landmarks above).
-  surfaceHeight(x,y){return this.artModule?.deckHeightAt?.([Math.floor(x+.5)+.5,Math.floor(y+.5)+.5])??0;}
+  // A walker stands on a raised deck wherever their body overlaps the drawn deck, and
+  // anywhere on a deck cell over water (bridge) whose centre the deck covers, so no
+  // walker stands at water level on a pier's walkable cells. Field cell centres are
+  // integers, half a cell from town metres.
+  surfaceHeight(x,y){const art=this.artModule;if(!art?.deckHeightAt)return 0;const cx=Math.floor(x+.5),cy=Math.floor(y+.5);
+    return Math.max(art.deckHeightAt([x+.5,y+.5],WALKER_RADIUS),this.world?.tile(cx,cy)==='bridge'?art.deckHeightAt([cx+.5,cy+.5]):0);}
   setFocus(unit,camera){
     const eyeHeight=unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2;
     this.landmarks?.setFocus?.([unit.x+.5,unit.y+.5],{camera,eyeHeight});

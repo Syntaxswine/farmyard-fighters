@@ -1088,10 +1088,15 @@ class PierAndRailwayUnits(unittest.TestCase):
         blocked = bytearray(size * size)
         first = BUILDER.preview_anchors(terrain, blocked, [], (0, 0), size, size)
         self.assertEqual({p["y"] for p in first}, {1, 2})
-        guards = [{"x": 1, "y": 4, "patrol": [{"x": 1, "y": 4}, {"x": 1, "y": 6}]}]
+        # The sentry stands at (1, 4) and walks through (3, 4): the markers keep off both.
+        guards = [{"x": 1, "y": 4, "patrol": [{"x": 1, "y": 4}, {"x": 3, "y": 4}]}]
         moved = BUILDER.anchors_with_sentries(terrain, blocked, [], (0, 0), size, size, first, guards)
         cells = [(p["x"], p["y"]) for p in moved]
-        self.assertEqual(cells, [(2, 4), (3, 4), (2, 5), (4, 4), (3, 5)])
+        self.assertEqual(cells, [(2, 4), (2, 5), (3, 5), (2, 6), (1, 5)])
+        # Land that touches the deck only at a corner does not join them: the validator walks four ways.
+        corner = bytearray(terrain)
+        corner[3 * size + 9] = code["ground-grass"]
+        self.assertTrue(all(p["y"] >= 3 for p in BUILDER.anchors_with_sentries(corner, blocked, [], (0, 0), size, size, first, guards)))
         # Markers already in the sentry's area stay where they are, as do a sector's without sentries.
         self.assertIs(BUILDER.anchors_with_sentries(terrain, blocked, [], (0, 0), size, size, moved, guards), moved)
         self.assertIs(BUILDER.anchors_with_sentries(terrain, blocked, [], (0, 0), size, size, first, []), first)
@@ -1159,21 +1164,25 @@ class PierAndRailwayUnits(unittest.TestCase):
         terrain = bytearray([BUILDER.CODE["water"]] * (width * depth))
         BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth, [good])
         self.assertEqual(pier["nativePier"]["lines"][-1], good["addLine"])
-        stray = {**good, "addLine": [[15.0, 2.5], [15.0, 5.5]]}
-        with self.assertRaises(ValueError):
-            BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth, [stray])
         # The added line starts on a vertex of the way (not merely near its deck), is one
-        # straight line, and does not run back over a mapped deck line.
-        for bad in ([[9.9, 2.5], [9.9, 5.5]], [[10.0, 2.5], [10.0, 4.0], [12.0, 5.0]], [[10.0, 2.5], [10.0, 2.5]], [[10.0, 2.5], [4.0, 2.5]]):
-            with self.assertRaises(ValueError, msg=str(bad)):
+        # straight line of two distinct points, and does not run back over a mapped deck line.
+        for bad, message in (([[15.0, 2.5], [15.0, 5.5]], "no longer starts on a vertex"), ([[9.9, 2.5], [9.9, 5.5]], "no longer starts on a vertex"),
+                             ([[10.0, 2.5], [10.0, 4.0], [12.0, 5.0]], "must add one straight line"), ([[10.0, 2.5], [10.0, 2.5]], "must add one straight line"),
+                             ([[10.0, 2.5], [4.0, 2.5]], "runs over a mapped deck line")):
+            with self.assertRaisesRegex(ValueError, message, msg=str(bad)):
                 BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth, [{**good, "addLine": bad}])
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "name ways the town has no pier for"):
             BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth,
                                 [{**good, "source": {"type": "way", "id": 8}}])
+        # A stem added at a vertex inside a straight run makes a T: three line ends, one joint.
+        run = {**pier, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [5.0, 2.5], [10.0, 2.5]]}}
+        BUILDER.paint_piers(bytearray([BUILDER.CODE["water"]] * (width * depth)), bytearray(width * depth), [run], bytearray(width * depth), bytearray(width * depth), width, depth,
+                            [{**good, "addLine": [[5.0, 2.5], [5.0, 5.5]]}])
+        self.assertEqual(run["nativePier"]["joints"], [[5.0, 2.5]])
         # A long added line that runs out over a short mapped one (3 degrees off it, its far
         # end 0.9 m to the side) is refused, as seen from either line; 8 degrees off is a new line.
         short = {**pier, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [3.0, 2.5]]}}
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "runs over a mapped deck line"):
             BUILDER.paint_piers(terrain, bytearray(width * depth), [short], bytearray(width * depth), bytearray(width * depth), width, depth,
                                 [{**good, "addLine": [[1.0, 2.5], [19.0, 3.4]]}])
         BUILDER.paint_piers(terrain, bytearray(width * depth), [short], bytearray(width * depth), bytearray(width * depth), width, depth,
@@ -1181,7 +1190,7 @@ class PierAndRailwayUnits(unittest.TestCase):
         self.assertEqual(short["nativePier"]["lines"][-1], [[1.0, 2.5], [19.0, 5.0]])
         # A platform outline has no deck line to extend.
         platform = {**pier, "geometry": {"type": "MultiPolygon", "coordinates": [[[[1.0, 1.0], [5.0, 1.0], [5.0, 4.0], [1.0, 4.0], [1.0, 1.0]]]]}}
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "may only extend a deck line"):
             BUILDER.paint_piers(terrain, bytearray(width * depth), [platform], bytearray(width * depth), bytearray(width * depth), width, depth, [good])
 
     def test_a_path_meeting_a_pier_keeps_the_shared_vertex(self):

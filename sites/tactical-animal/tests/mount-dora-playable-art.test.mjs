@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as T from '../dist/aft/tactics/vendor/three.module.js';
 import {PLACEMENTS,ART_REVISION,SOURCE_FEATURES_SHA256,REPLACEMENT_SOURCE_IDS,placementsForBounds,solidsForBounds,boundsIntersect,deckHeightAt,deckCovers} from '../dist/mission-art/mount-dora/manifest.js';
+import {WALKER_RADIUS} from '../dist/mount-dora-world.js';
 import {createMountDoraArt,loadMountDoraAtlas,trellisBoxes} from '../dist/mission-art/mount-dora/kit.js';
 import {TRELLIS_BEAMS} from '../dist/aft/tactics/bridge-trellis.js';
 import {TownEnvironment} from '../dist/mount-dora-view.js';
@@ -70,9 +71,11 @@ test('orthographic camera uses parallel view rays and reacts to rotation without
  const kit=createMountDoraArt({THREE:T});kit.updateResident([464,1133,536,1205]);const [x,z]=PLACEMENTS.find(p=>p.id==='md:lighthouse').anchor,camera=new T.OrthographicCamera(-30,30,20,-20,.1,100);camera.position.set(x-10,3,z);camera.lookAt(x,0,z);kit.setFocus([x+4,z],{camera});assert.ok(kit.metrics().fadedPlacements.includes('md:lighthouse'));camera.lookAt(x-10,2,z-10);kit.setFocus([x+4,z],{camera});assert.equal(kit.metrics().fadedPlacements.length,0);kit.dispose();
 });
 const r6=v=>Math.round(v*1e6)/1e6,span=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]);
+const unit=(p,q)=>{const d=[q[0]-p[0],q[1]-p[1]],l=Math.hypot(...d);return [d[0]/l,d[1]/l];};
+const toSegment=(q,[s,e])=>{const d=[e[0]-s[0],e[1]-s[1]],t=Math.max(0,Math.min(1,((q[0]-s[0])*d[0]+(q[1]-s[1])*d[1])/(d[0]**2+d[1]**2)));return span(q,[s[0]+d[0]*t,s[1]+d[1]*t]);};
 test('every mapped pier draws raised deck pieces end to end along each deck line, with no railing',()=>{
- const piers=features.filter(f=>f.nativePier),pieces=PLACEMENTS.filter(p=>p.kind==='pier'),unit=(p,q)=>{const d=[q[0]-p[0],q[1]-p[1]],l=Math.hypot(...d);return [d[0]/l,d[1]/l];},same=(p,q)=>p[0]===q[0]&&p[1]===q[1];
- let straightJointEnds=0,gentleBendEnds=0;
+ const piers=features.filter(f=>f.nativePier),pieces=PLACEMENTS.filter(p=>p.kind==='pier'),same=(p,q)=>p[0]===q[0]&&p[1]===q[1];
+ const turns=[],freeEndsOnADeck=[];
  assert.equal(piers.length,19);assert.equal(features.filter(f=>f.tags.man_made==='pier').length,19);
  for(const f of piers){
   const n=f.id.replace('osm-way-',''),lines=f.nativePier.lines,own=pieces.filter(p=>p.sourceIds[0]===f.id),joints=new Set(f.nativePier.joints.map(p=>p.join(',')));assert.ok(own.length,f.id);
@@ -88,24 +91,45 @@ test('every mapped pier draws raised deck pieces end to end along each deck line
     // Joints, extensions and caps belong to a line's own two ends only; a joint is never capped.
     const atEnd=[k===0,k===line.length-1],isJoint=[atEnd[0]&&joints.has(a.join(',')),atEnd[1]&&joints.has(b.join(','))];
     assert.deepEqual(p.deck.joints,isJoint,p.id);
-    for(const e of [0,1]){if(!atEnd[e])assert.ok(!p.trellis.caps[e]&&p.deck.extend[e]===0,p.id);if(isJoint[e])assert.equal(p.trellis.caps[e],false,p.id);if(p.deck.extend[e])assert.ok(isJoint[e]&&p.deck.extend[e]===p.width/2,p.id);}
-    // A line runs on past a joint exactly where another of the pier's lines leaves it more
-    // than 1 degree off this line's axis (or folds back along it); straight on, it stops square.
+    for(const e of [0,1]){if(!atEnd[e])assert.ok(!p.trellis.caps[e]&&p.deck.extend[e]===0,p.id);if(isJoint[e])assert.equal(p.trellis.caps[e],false,p.id);if(p.deck.extend[e])assert.ok(isJoint[e],p.id);}
+    // At a joint the straightest pair of lines mitres: each runs on half the width times
+    // tan(turn / 2), the turn being 0 straight on. Any other line (a T's stem) ends at the joint.
     for(const e of [0,1])if(isJoint[e]){
-     const joint=e===0?a:b,out=e===0?unit(a,b):unit(b,a),others=lines.filter((l,j)=>j!==i&&l.some(q=>same(q,joint))).map(l=>unit(joint,same(l[0],joint)?l[1]:l[0]));
-     const off=others.map(w=>[Math.abs(out[0]*w[1]-out[1]*w[0]),out[0]*w[0]+out[1]*w[1]]),bends=off.some(([cross,dot])=>cross>Math.sin(Math.PI/180)||dot>0);
-     assert.equal(p.deck.extend[e],bends?p.width/2:0,p.id+' end '+e);
-     if(!bends)straightJointEnds++;else if(off.every(([cross,dot])=>cross<.5&&dot<0))gentleBendEnds++;
+     const joint=e===0?a:b,at=lines.map((l,j)=>({j,l})).filter(({l})=>l.some(q=>same(q,joint))).map(({j,l})=>({j,dir:unit(joint,same(l[0],joint)?l[1]:l[0])}));
+     let best=null;for(let x=0;x<at.length;x++)for(let y=x+1;y<at.length;y++){const turn=Math.PI-Math.acos(Math.max(-1,Math.min(1,at[x].dir[0]*at[y].dir[0]+at[x].dir[1]*at[y].dir[1])));if(!best||turn<best.turn)best={turn,pair:[at[x].j,at[y].j]};}
+     const expected=best.pair.includes(i)?p.width/2*Math.tan(best.turn/2):0;
+     assert.ok(Math.abs(p.deck.extend[e]-expected)<2e-6,`${p.id} end ${e}: ${p.deck.extend[e]} against ${expected}`);
+     turns.push({id:p.id,end:e,joint:joint.join(','),lines:at.length,turn:best.turn*180/Math.PI,stem:!best.pair.includes(i)});
+    }
+    // A free end without a cap stands on another deck line, of this pier or another.
+    for(const e of [0,1])if(atEnd[e]&&!isJoint[e]&&!p.trellis.caps[e]){
+     const end=e===0?a:b,on=features.filter(g=>g.nativePier).flatMap(g=>g.nativePier.lines.map((l,j)=>({g,j,l}))).filter(({g,j,l})=>!(g===f&&j===i)&&toSegment(end,l)<p.width/2);
+     assert.ok(on.length,p.id+' end '+e);freeEndsOnADeck.push({id:p.id,ownPier:on.some(({g})=>g===f)});
     }
    }
   }
   assert.equal(own.length,lines.reduce((s,[a,b])=>s+Math.ceil(span(a,b)/8),0));
   for(const p of own){assert.equal(p.width,2);assert.deepEqual(p.rails,[]);assert.deepEqual(p.solids,[]);assert.equal(p.collisionPolicy,'additional-solids');assert.match(p.provenance.railing,/none/);assert.equal(p.deck.heightM,.4);assert.ok(Number.isInteger(p.deck.level)&&p.deck.level>=0);assert.equal(p.deck.topM,r6(.4+.002*p.deck.level));}
  }
- // Mount Dora has both kinds: joints within 1 degree of straight, and gentle bends (1.1 and 5.2 degrees) under 30.
- assert.ok(straightJointEnds>=10&&gentleBendEnds>=4,straightJointEnds+' straight, '+gentleBendEnds+' gentle');
- // The walkway's west end bends at the Rusty Anchor's leg: it runs on 1 m and takes no cap.
- const walkway=pieces.find(p=>p.id==='md:pier:556100376:0:3');assert.deepEqual([walkway.deck.extend[1],walkway.trellis.caps[1],walkway.deck.joints[1]],[1,false,true]);
+ // Mount Dora has joints within a degree of straight, square bends, and the Rusty Anchor's T,
+ // whose stem ends at the crossbar while the straight crossbar halves barely run on.
+ assert.ok(turns.some(t=>t.lines===2&&t.turn<1)&&turns.some(t=>t.lines===2&&t.turn>89),JSON.stringify(turns.slice(0,4)));
+ const tee=turns.filter(t=>t.lines===3);assert.equal(tee.length,3);assert.equal(tee.filter(t=>t.stem).length,1);
+ for(const t of tee)assert.ok(pieces.find(p=>p.id===t.id).deck.extend[t.end]<1e-5,t.id);
+ // Where two lines meet, their outer corners meet: no notch on the outside, and nothing sticking out.
+ const corners=(p,e)=>{const [a,b]=p.ends,u=unit(a,b),n=[-u[1],u[0]],end=e===0?a.map((v,k)=>v-u[k]*p.deck.extend[0]):b.map((v,k)=>v+u[k]*p.deck.extend[1]);return [1,-1].map(side=>end.map((v,k)=>v+n[k]*side*p.width/2));};
+ const byJoint=new Map();for(const t of turns.filter(t=>t.lines===2)){if(!byJoint.has(t.joint))byJoint.set(t.joint,[]);byJoint.get(t.joint).push(t);}
+ assert.ok(byJoint.size>=10);
+ for(const [joint,[s,t]]of byJoint){const cs=corners(pieces.find(p=>p.id===s.id),s.end),ct=corners(pieces.find(p=>p.id===t.id),t.end);
+  assert.ok(Math.min(...cs.flatMap(c=>ct.map(d=>span(c,d))))<1e-4,'outer corners apart at '+joint);}
+ // The walkway is the Rusty Anchor T's stem: it meets the dock's north-south leg (mapped, then carried
+ // on south by the observation) at the leg's centre line, with no run-on and no cap. The leg's
+ // north end turns 91.4 degrees into the next line and runs on the mitre, 1.025 m.
+ const walkway=pieces.find(p=>p.id==='md:pier:556100376:0:3');assert.deepEqual([walkway.deck.extend[1],walkway.trellis.caps[1],walkway.deck.joints[1]],[0,false,true]);
+ assert.ok(tee.some(t=>t.stem&&t.id===walkway.id));
+ const leg=pieces.find(p=>p.id==='md:pier:556100376:1:0');assert.ok(Math.abs(leg.deck.extend[1]-Math.tan(91.41/2*Math.PI/180))<2e-3);
+ // A stem that ends on a crossbar takes no cap, whether the crossbar is its own pier's line or another pier's.
+ assert.ok(freeEndsOnADeck.some(e=>e.ownPier)&&freeEndsOnADeck.some(e=>!e.ownPier),JSON.stringify(freeEndsOnADeck));
  // A stem that ends on its crossbar takes no cap; a finger's free far end does.
  const stem=pieces.filter(p=>p.sourceIds[0]==='osm-way-623947049').sort((p,q)=>p.id.localeCompare(q.id)).at(-1);assert.equal(stem.trellis.caps[1],false);
  const finger=pieces.filter(p=>p.sourceIds[0]==='osm-way-556100384');assert.equal(finger.length,1);assert.deepEqual(finger[0].trellis.caps,[false,true]);
@@ -133,34 +157,69 @@ test('no two pier decks share more than a junction square, and overlapping decks
  let shared=0,crossing=0;for(const ps of inner.values())for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++)if(line(ps[i])!==line(ps[j])){crossing++;if(ps[i].deck.topM===ps[j].deck.topM)shared++;}
  assert.ok(crossing>100);assert.equal(shared,0);
 });
-test('a walker stands wherever the drawn deck covers their cell, and the town view asks by cell',()=>{
+test('a walker stands on a deck wherever their body overlaps it, and on any deck cell over water',()=>{
  const pier=PLACEMENTS.find(p=>p.id==='md:pier:556100376:0:0'),[a,b]=pier.ends,mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=span(a,b),n=[-(b[1]-a[1])/len,(b[0]-a[0])/len],u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
- assert.equal(deckHeightAt(mid),.4);assert.equal(deckHeightAt([mid[0]+n[0]*.98,mid[1]+n[1]*.98]),.4);assert.equal(deckHeightAt([mid[0]+n[0]*1.02,mid[1]+n[1]*1.02]),0);
- // The shore end is free: the deck stops square there, so just past it is the path.
- assert.deepEqual([pier.deck.joints[0],pier.deck.extend[0]],[false,0]);assert.equal(deckHeightAt([a[0]+u[0]*.02,a[1]+u[1]*.02]),.4);assert.equal(deckHeightAt([a[0]-u[0]*.02,a[1]-u[1]*.02]),0);
- // At a bend the deck runs on 1 m past the joint and covers the outer corner, round within 1 m of it.
- const legs=PLACEMENTS.filter(p=>p.sourceIds[0]==='osm-way-548471565'&&(p.deck.joints[0]||p.deck.joints[1])),incoming=legs.find(p=>p.deck.joints[1]),joint=incoming.ends[1],v=[(joint[0]-incoming.ends[0][0])/span(...incoming.ends),(joint[1]-incoming.ends[0][1])/span(...incoming.ends)];
- assert.equal(incoming.deck.extend[1],1);assert.equal(deckHeightAt([joint[0]+v[0]*.9,joint[1]+v[1]*.9]),.4);assert.equal(deckHeightAt([joint[0]+v[0]*1.3,joint[1]+v[1]*1.3]),0);
- for(const angle of [0,1,2,3,4,5])assert.equal(deckHeightAt([joint[0]+Math.cos(angle)*.95,joint[1]+Math.sin(angle)*.95]),.4,angle);
- // Out at the outer corner of the run, beyond the joint's disc and off the other leg, the run alone carries the walker.
- const outgoing=legs.find(p=>p.deck.joints[0]),w=[(outgoing.ends[1][0]-joint[0])/span(...outgoing.ends),(outgoing.ends[1][1]-joint[1])/span(...outgoing.ends)],side=(-v[1]*w[0]+v[0]*w[1])>0?-1:1,corner=[joint[0]+v[0]*.95-v[1]*side*.9,joint[1]+v[1]*.95+v[0]*side*.9];
- assert.ok(span(corner,joint)>1.2&&!onPiece(outgoing,corner)&&onPiece(incoming,corner));assert.equal(deckHeightAt(corner),.4);
- // Declared synthetic pieces through the same predicate: at a nearly straight joint (0.5 degrees, no
- // run past it) the two square ends leave a hairline wedge on the outside; within half the width of
- // the joint it still counts as deck, and a free end does not.
- const turn=.5*Math.PI/180,first={ends:[[0,0],[10,0]],width:2,deck:{extend:[0,0],joints:[false,true]}},second={ends:[[10,0],[10+10*Math.cos(turn),10*Math.sin(turn)]],width:2,deck:{extend:[0,0],joints:[true,false]}},free=q=>({...q,deck:{...q.deck,joints:[false,false]}});
- const wedge=[10+.9*Math.sin(turn/2),-.9*Math.cos(turn/2)];assert.ok(!deckCovers(wedge,free(first))&&!deckCovers(wedge,free(second)));assert.ok(deckCovers(wedge,first)&&deckCovers(wedge,second));
- assert.ok(!deckCovers([10.5,.5],free(first))&&deckCovers([10.5,.5],first)&&!deckCovers([10.5,1.2],first));
- const piers=PLACEMENTS.filter(p=>p.kind==='pier'),toSegment=(q,[s,e])=>{const d=[e[0]-s[0],e[1]-s[1]],t=Math.max(0,Math.min(1,((q[0]-s[0])*d[0]+(q[1]-s[1])*d[1])/(d[0]**2+d[1]**2)));return span(q,[s[0]+d[0]*t,s[1]+d[1]*t]);};
- const board=PLACEMENTS.find(p=>p.kind==='boardwalk'&&piers.every(q=>toSegment(p.ends[0],q.ends)>3));assert.ok(board);assert.equal(deckHeightAt(board.ends[0]),0);assert.equal(deckHeightAt([480,480]),0);
- assert.throws(()=>deckHeightAt([1,NaN]));assert.throws(()=>deckHeightAt([1]));
- // The town view asks about the centre of the walker's cell: field cell centres are integers, half a cell from town metres.
- const asked=[],probe={artModule:{deckHeightAt:q=>{asked.push(q);return .4;}}};
- for(const [x,y,cell]of [[10.4,20.6,[10.5,21.5]],[10.49,20.51,[10.5,21.5]],[-.4,.49,[.5,.5]]]){asked.length=0;assert.equal(TownEnvironment.prototype.surfaceHeight.call(probe,x,y),.4);assert.deepEqual(asked,[cell]);}
- assert.equal(TownEnvironment.prototype.surfaceHeight.call({artModule:{deckHeightAt}},mid[0]-.5,mid[1]-.5),.4);assert.equal(TownEnvironment.prototype.surfaceHeight.call({},mid[0]-.5,mid[1]-.5),0);
+ const at=(across,along=0,from=mid)=>[from[0]+n[0]*across+u[0]*along,from[1]+n[1]*across+u[1]*along],R=WALKER_RADIUS;
+ assert.equal(R,.23);
+ // A point counts on the drawn deck, to its edge; a body counts within its radius of it, round at the corners.
+ assert.equal(deckHeightAt(mid),.4);assert.equal(deckHeightAt(at(.98)),.4);assert.equal(deckHeightAt(at(1.02)),0);
+ assert.equal(deckHeightAt(at(1.2),R),.4);assert.equal(deckHeightAt(at(1.25),R),0);
+ // 1.22 m off this east-west piece's line lies outside its 1.2 m bounds, so the lookup widens by the radius.
+ assert.ok(at(1.22)[1]>pier.bounds[3]||at(1.22)[1]<pier.bounds[1]);assert.equal(deckHeightAt(at(1.22),R),.4);
+ // The shore end is free: the deck stops square there.
+ assert.deepEqual([pier.deck.joints[0],pier.deck.extend[0]],[false,0]);
+ assert.equal(deckHeightAt(at(0,.02,a)),.4);assert.equal(deckHeightAt(at(0,-.02,a)),0);assert.equal(deckHeightAt(at(0,-.2,a),R),.4);assert.equal(deckHeightAt(at(0,-.25,a),R),0);
+ assert.equal(deckHeightAt(at(1.15,-.15,a),R),.4);assert.equal(deckHeightAt(at(1.2,-.2,a),R),0);
+ // At the 64.6 degree bend of 548471565 each leg runs on its mitre, and each run carries deck no other piece draws.
+ const legs=PLACEMENTS.filter(p=>p.sourceIds[0]==='osm-way-548471565'&&(p.deck.joints[0]||p.deck.joints[1])),incoming=legs.find(p=>p.deck.joints[1]),outgoing=legs.find(p=>p.deck.joints[0]),joint=incoming.ends[1];
+ assert.ok(Math.abs(incoming.deck.extend[1]-Math.tan(64.62/2*Math.PI/180))<2e-3&&incoming.deck.extend[1]===outgoing.deck.extend[0]);
+ const others=PLACEMENTS.filter(o=>o.kind==='pier'&&o!==incoming&&o!==outgoing);
+ for(const [p,k]of [[incoming,1],[outgoing,0]]){
+  const trimmed={...p,deck:{...p.deck,extend:p.deck.extend.map((x,j)=>j===k?0:x)}},other=p===incoming?outgoing:incoming;let found=null;
+  for(let x=-1.3;x<=1.3&&!found;x+=.05)for(let y=-1.3;y<=1.3&&!found;y+=.05){const q=[joint[0]+x,joint[1]+y];if(deckCovers(q,p)&&!deckCovers(q,trimmed)&&!deckCovers(q,other)&&!others.some(o=>deckCovers(q,o)))found=q;}
+  assert.ok(found,p.id+' has deck of its own past the joint');assert.equal(deckHeightAt(found),.4);
+ }
+ const v=[(joint[0]-incoming.ends[0][0])/span(...incoming.ends),(joint[1]-incoming.ends[0][1])/span(...incoming.ends)];
+ assert.equal(deckHeightAt([joint[0]+v[0]*1.3,joint[1]+v[1]*1.3]),0);
+ // A boardwalk stays at the water; far from any deck is 0; a point must be a point.
+ const piers=PLACEMENTS.filter(p=>p.kind==='pier');
+ const board=PLACEMENTS.find(p=>p.kind==='boardwalk'&&piers.every(q=>toSegment(p.ends[0],q.ends)>3));assert.ok(board);assert.equal(deckHeightAt(board.ends[0],R),0);assert.equal(deckHeightAt([480,480],R),0);
+ assert.throws(()=>deckHeightAt([1,NaN]));assert.throws(()=>deckHeightAt([1]));assert.throws(()=>deckHeightAt([1,1],-1));
+ // The town view asks with the walker's position (town metres are field + 0.5) and body; on a deck
+ // cell over water it also asks about the cell's centre, so a walker never stands at water level there.
+ const asked=[],probe=tile=>({world:{tile:()=>tile},artModule:{deckHeightAt:(q,r)=>{asked.push([q,r??0]);return 0;}}});
+ TownEnvironment.prototype.surfaceHeight.call(probe('ground-grass'),10.25,20.75);assert.deepEqual(asked,[[[10.75,21.25],R]]);
+ asked.length=0;TownEnvironment.prototype.surfaceHeight.call(probe('bridge'),10.25,20.75);assert.deepEqual(asked,[[[10.75,21.25],R],[[10.5,21.5],0]]);
+ asked.length=0;TownEnvironment.prototype.surfaceHeight.call(probe('bridge'),-.375,.5);assert.deepEqual(asked,[[[.125,1],R],[[.5,1.5],0]]);
+ assert.equal(TownEnvironment.prototype.surfaceHeight.call({},0,0),0);
+ const land={world:{tile:()=>'ground-grass'},artModule:{deckHeightAt}},water={world:{tile:()=>'bridge'},artModule:{deckHeightAt}},field=q=>[q[0]-.5,q[1]-.5];
+ assert.equal(TownEnvironment.prototype.surfaceHeight.call(land,...field(at(1.2))),.4);assert.equal(TownEnvironment.prototype.surfaceHeight.call(land,...field(at(1.3))),0);
+ // Off the free far end of 548471565's leg over water, a walker more than a radius past the deck still
+ // stands on it while their cell's centre is under the deck; on land they would step down.
+ const far=PLACEMENTS.filter(p=>p.sourceIds[0]==='osm-way-548471565').find(p=>!p.deck.joints[1]&&p.trellis.caps[1]),fe=far.ends[1],fu=unit(far.ends[0],fe);let past=null;
+ for(let t=.24;t<=.6&&!past;t+=.01)for(let side=-.9;side<=.9&&!past;side+=.05){const q=[fe[0]+fu[0]*t-fu[1]*side,fe[1]+fu[1]*t+fu[0]*side],c=[Math.floor(q[0])+.5,Math.floor(q[1])+.5];if(deckHeightAt(q,R)===0&&deckHeightAt(c)>0)past=q;}
+ assert.ok(past,'a position past the far end whose cell centre is under the deck');
+ assert.equal(TownEnvironment.prototype.surfaceHeight.call(water,...field(past)),.4);assert.equal(TownEnvironment.prototype.surfaceHeight.call(land,...field(past)),0);
  const view=fs.readFileSync(new URL('../dist/mount-dora-view.js',import.meta.url),'utf8');assert.match(view,/constructor\(renderer,state,\{[^\n]*\bartModule\b[^\n]*\}=\{\}\)\{\r?\n[^\n]*\bthis\.artModule=artModule;/);
- const field=fs.readFileSync(new URL('../dist/field-view.js',import.meta.url),'utf8');
- assert.match(field,/a\.root\.position\.set\(sample\.x,this\.art\?\.surfaceHeight\?\.\(sample\.x,sample\.y\)\?\?0,sample\.y\);a\.root\.updateMatrixWorld\(true\);/);
+ const fieldView=fs.readFileSync(new URL('../dist/field-view.js',import.meta.url),'utf8');
+ assert.match(fieldView,/a\.root\.position\.set\(sample\.x,this\.art\?\.surfaceHeight\?\.\(sample\.x,sample\.y\)\?\?0,sample\.y\);a\.root\.updateMatrixWorld\(true\);/);
+});
+test('every walkable pier cell over water has its centre under the drawn deck',()=>{
+ // The generator's band: cell centres within 0.75 m of a deck line (square at its ends) or of a joint.
+ // Read against the generated terrain, so the generator and the art agree on every pier cell.
+ const project=JSON.parse(fs.readFileSync(new URL('../../../maps/mount-dora/project.json',import.meta.url))),width=project.extent.widthM,terrain=new Map(),loaded=new Set();
+ const tileAt=(x,y)=>{const s=project.sectors.find(s=>x>=s.origin.x&&x<s.origin.x+240&&y>=s.origin.y&&y<s.origin.y+240);if(!s)return null;
+  if(!loaded.has(s.id)){loaded.add(s.id);const m=JSON.parse(fs.readFileSync(new URL('../../../maps/mount-dora/'+s.file,import.meta.url)));for(let j=0;j<240;j++)for(let i=0;i<240;i++)terrain.set((s.origin.y+j)*width+s.origin.x+i,m.terrain[j][i]);}
+  return terrain.get(y*width+x);};
+ let checked=0;
+ for(const f of features.filter(f=>f.nativePier&&f.nativePier.lines)){const {lines,joints}=f.nativePier;
+  const xs=lines.flat().map(p=>p[0]),ys=lines.flat().map(p=>p[1]);
+  for(let y=Math.floor(Math.min(...ys)-1);y<=Math.ceil(Math.max(...ys)+1);y++)for(let x=Math.floor(Math.min(...xs)-1);x<=Math.ceil(Math.max(...xs)+1);x++){
+   const q=[x+.5,y+.5],inBand=lines.some(([a,b])=>{const d=[b[0]-a[0],b[1]-a[1]],l2=d[0]**2+d[1]**2,t=((q[0]-a[0])*d[0]+(q[1]-a[1])*d[1])/l2;return t>=0&&t<=1&&toSegment(q,[a,b])<=.75+1e-9;})||joints.some(j=>span(q,j)<=.75+1e-9);
+   if(!inBand||tileAt(x,y)!=='bridge')continue;checked++;
+   assert.ok(deckHeightAt(q)>0,`${f.id} cell ${x},${y}`);
+  }}
+ assert.ok(checked>1000,checked+' cells');
 });
 test('AFT trellis panels stand under the deck edges, tilted within their panels',()=>{
  // trellisBoxes: AFT's six beams per one-metre panel, heights scaled to the space under the deck.
@@ -171,9 +230,10 @@ test('AFT trellis panels stand under the deck edges, tilted within their panels'
  assert.ok(Math.abs(trellisBoxes([0,0],[0,2],.3)[0].yaw+Math.PI/2)<1e-9);assert.equal(trellisBoxes([0,0],[2.6,0],.3).length,18);assert.deepEqual(trellisBoxes([0,0],[3,0],0),[]);
  // The drawn geometry of a diagonal piece is exactly its deck slab and these trellis boxes,
  // each turned by yaw about Y and then rolled within its panel (Three's XYZ order).
- const diagonal=q=>Math.abs(Math.sin(2*Math.atan2(q.ends[1][1]-q.ends[0][1],q.ends[1][0]-q.ends[0][0])))>.3,capped=PLACEMENTS.find(q=>q.kind==='pier'&&diagonal(q)&&q.trellis.caps.some(Boolean)),running=PLACEMENTS.find(q=>q.kind==='pier'&&diagonal(q)&&q.deck.extend.some(Boolean));
- assert.ok(capped,'a diagonal, capped pier piece');assert.ok(running,'a diagonal piece that runs on past a bend');
- for(const p of [capped,running]){
+ const diagonal=q=>Math.abs(Math.sin(2*Math.atan2(q.ends[1][1]-q.ends[0][1],q.ends[1][0]-q.ends[0][0])))>.3,capped=PLACEMENTS.find(q=>q.kind==='pier'&&diagonal(q)&&q.trellis.caps.some(Boolean));
+ const runsOnAtStart=PLACEMENTS.find(q=>q.kind==='pier'&&diagonal(q)&&q.deck.extend[0]>.1),runsOnAtEnd=PLACEMENTS.find(q=>q.kind==='pier'&&diagonal(q)&&q.deck.extend[1]>.1);
+ assert.ok(capped,'a diagonal, capped pier piece');assert.ok(runsOnAtStart&&runsOnAtEnd,'diagonal pieces that run on past a joint at each end');
+ for(const p of [capped,runsOnAtStart,runsOnAtEnd]){
  const kit=createMountDoraArt({THREE:T});kit.updateResident(p.bounds);const group=kit.root.getObjectByName(p.id);
  const [a,b]=p.ends.map(q=>q.map((v,i)=>v-p.anchor[i])),len=span(a,b),u=[(b[0]-a[0])/len,(b[1]-a[1])/len],n=[-u[1],u[0]],yaw=-Math.atan2(b[1]-a[1],b[0]-a[0]),top=p.deck.topM,inset=1-.032,under=top-.1,[before,after]=p.deck.extend,s=a.map((v,i)=>v-u[i]*before),e=b.map((v,i)=>v+u[i]*after);
  const boxes=[{centre:[(s[0]+e[0])/2,top-.05,(s[1]+e[1])/2],size:[len+before+after,.1,2],yaw,roll:0}];
@@ -181,9 +241,11 @@ test('AFT trellis panels stand under the deck edges, tilted within their panels'
  for(const [k,end]of [a,b].entries())if(p.trellis.caps[k])boxes.push(...trellisBoxes(end.map((v,i)=>v-n[i]*inset),end.map((v,i)=>v+n[i]*inset),under));
  const drawn=[];for(const m of group.children){const s=m.geometry.attributes.position;for(let i=0;i<s.count;i++)drawn.push([s.getX(i),s.getY(i),s.getZ(i)]);}
  assert.equal(drawn.length,36*boxes.length);
- const key=v=>v.map(x=>Math.round(x*1e4)).join(','),have=new Set(drawn.map(key));
+ // Each expected corner must have a drawn vertex within a micrometre (bucketed by millimetre, neighbours searched).
+ const bucket=v=>v.map(x=>Math.floor(x*1e3)),buckets=new Map();for(const v of drawn){const k=bucket(v).join(',');if(!buckets.has(k))buckets.set(k,[]);buckets.get(k).push(v);}
+ const near=c=>{const [i,j,k]=bucket(c);for(let x=i-1;x<=i+1;x++)for(let y=j-1;y<=j+1;y++)for(let z=k-1;z<=k+1;z++)for(const v of buckets.get(x+','+y+','+z)||[])if(Math.hypot(v[0]-c[0],v[1]-c[1],v[2]-c[2])<1e-6)return true;return false;};
  for(const box of boxes){const m=new T.Matrix4().compose(new T.Vector3(...box.centre),new T.Quaternion().setFromEuler(new T.Euler(0,box.yaw,box.roll,'XYZ')),new T.Vector3(1,1,1));
-  for(const sx of [-1,1])for(const sy of [-1,1])for(const sz of [-1,1]){const c=new T.Vector3(sx*box.size[0]/2,sy*box.size[1]/2,sz*box.size[2]/2).applyMatrix4(m).toArray();assert.ok(have.has(key(c)),`corner ${c} of a box at ${box.centre}`);}}
+  for(const sx of [-1,1])for(const sy of [-1,1])for(const sz of [-1,1]){const c=new T.Vector3(sx*box.size[0]/2,sy*box.size[1]/2,sz*box.size[2]/2).applyMatrix4(m).toArray();assert.ok(near(c),`${p.id}: corner ${c} of a box at ${box.centre}`);}}
  const bounds=new T.Box3().setFromObject(group,true);assert.ok(Math.abs(bounds.max.y-top)<1e-6&&bounds.min.y>-.02);
  kit.dispose();
  }

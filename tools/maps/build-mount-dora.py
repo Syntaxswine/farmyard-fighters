@@ -56,10 +56,12 @@ PIER_WIDTH = 2
 # Lake Dora (most 0.37 to 0.46 m, four 0.7 to 1.4 m).
 PIER_DECK_HEIGHT = .4
 # The cells a walker crosses on a pier: centres within 0.75 m of a deck line,
-# not past its free ends, and round at the joints where two of its lines meet.
-# A walker in such a cell stands at most 0.25 m (a square deck) to 0.46 m (a
-# diagonal one) beyond the drawn 2 m deck's edge, against 0.5 to 0.71 m at a
-# 1 m band. A straight band stays joined side to side at any angle (the overlap
+# not past its free ends, and round at the joints where two of its lines meet
+# (joints are found within one way; where two ways meet, every contact on this
+# map is a T). The cells reach past the drawn 2 m deck, 0.25 m sideways on a
+# square deck and more on a diagonal one or past a free end, so the town decides
+# a walker's height from their body, not their cell: see deckHeightAt in the art
+# manifest. A straight band stays joined side to side at any angle (the overlap
 # between neighbouring columns is (1.5 - sin a) / cos a >= 1.12 cells); a bend's
 # outer corner falls past both lines' square ends, which is why joints round off.
 PIER_WALK_WIDTH = 1.5

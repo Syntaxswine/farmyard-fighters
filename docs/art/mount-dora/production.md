@@ -110,15 +110,24 @@ railing is mapped or surveyed. The deck stands at `deck.heightM` (0.4 m, the
 owner's choice of a low deck; the 2018 lidar puts the real decks a median
 0.43 m over the lake).
 
-Where another of a pier's lines leaves a joint more than 1° off a line's axis,
-that line's deck runs on half its width past the joint (`deck.extend`), so the
-bend's outer corner is covered. Within 1° of straight it stops square, and the
-two square ends leave a hairline wedge (under 2 cm) on the outside of the joint.
+Where two of a pier's lines meet at a joint, both decks run on past it by the
+mitre length (`deck.extend`): half the width times tan(turn / 2), where the turn
+is 0 straight on. Their outer corners then meet exactly. So a bend has no notch
+on the outside and nothing sticking out, and a nearly straight joint leaves no
+wedge. The runs are 0.63 m at 548471565's 64.6° bend and 1.0 m at the square
+bends, down to millimetres where a walkway kinks by a fraction of a degree.
+
+At a joint of three or more lines, the straightest pair mitres, and the others
+end at the joint, inside that pair's deck. At the Rusty Anchor T, the walkway
+meets the dock's straight leg on its centre line. A turn over 135°, or a
+junction with no pair within 30° of straight, stops the art build, because it
+needs a corner rule of its own; Mount Dora's sharpest is 91.4°.
 
 Decks that overlap by more than a centimetre stand at different levels, 2 mm
-apart (`deck.level`), so no two overlapping tops share a plane. Each line takes
-the lowest level that no overlapping line already has: a greedy colouring of the
-overlap graph, over all piers.
+apart (`deck.level`). Each line takes the lowest level that no overlapping line
+already has: a greedy colouring of the overlap graph, over all piers. Slivers
+under a centimetre wide may share a top, as at the walkway's nearly straight
+joints, where they are millimetres wide and do not show.
 
 Beneath each deck, AFT's timber trellis panel stands under both long edges: the
 `TRELLIS_BEAMS` of the game's vendored `aft/tactics/bridge-trellis.js`, built by
@@ -127,19 +136,26 @@ to the space under the deck and beam sections at 0.4 of AFT's, so they still
 read. Caps close only free ends: not joints, and not an end that stands on
 another deck, such as a stem meeting its crossbar.
 
-A walker stands at deck height wherever the drawn deck covers the centre of
-their cell, and within half the deck's width of a joint (which closes the
-hairline wedge). `deckHeightAt` in `manifest.js` answers from the same records
-(`deckCovers`), and the town view asks it about the walker's cell
-(`surfaceHeight`). That lifts a walker on the 11 path cells (6 ways, one of
-them the wooden footbridge 508450238) the deck covers where paths meet piers,
-and on land cells beside the walkable band but under the deck.
-
 The generator paints walkable deck cells only where a cell's centre lies within
-0.75 m of a deck line: not past its free ends, round at its joints. A walker in
-such a cell stands at most 0.25 m (square decks) to 0.46 m (diagonal ones)
-beyond the deck's edge. Those stepped cell edges show their wood texture at
-water level beside the raised deck.
+0.75 m of a deck line: not past its free ends, and round at its joints. The
+cells reach beyond the drawn deck: 0.25 m sideways on a square deck, more on a
+diagonal one or past a free end. Those stepped cell edges show their wood
+texture at water level beside the raised deck.
+
+So a walker's height follows their body, not their cell. `deckHeightAt(point,
+radius)` in `manifest.js` (through `deckCovers`) gives the deck's height
+wherever the drawn deck lies within `radius` of the point. The town view
+(`surfaceHeight`) asks it with the walker's position and `WALKER_RADIUS`, the
+0.23 m body that `pointClear` keeps clear, exported by `mount-dora-world.js`.
+
+- **On land,** including the 11 path cells (6 ways, one of them the wooden
+  footbridge 508450238) and the land cells beside the band that the deck
+  covers, a walker stands on the deck wherever their body overlaps it. That is
+  at most 0.23 m past its edge, and never inside the drawn deck at ground height.
+- **On a deck cell over water** (bridge) whose centre the deck covers, a walker
+  always stands on the deck, so no one stands at water level on a pier's
+  walkable cells. They stand at most 0.26 m past the deck's edge, at a free end
+  over water. On the footbridge cell under 508450229's end it is up to 0.44 m.
 
 Shots and sight still treat a walker on a deck at ground height, and the shore
 end is a single 0.4 m step. A `pier-deck` kind draws a mapped platform outline;

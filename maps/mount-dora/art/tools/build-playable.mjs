@@ -99,10 +99,14 @@ for(const n of [548471563,688219167]){
 // on AFT's timber trellis, along each of the generator's deck lines
 // (nativePier.lines; the last ones may come from reviewed observations). No
 // railing is mapped or surveyed.
-// - At a joint (nativePier.joints), a line's deck runs on half its width past the
-//   joint (deck.extend) where another line leaves it more than 1 degree off its
-//   axis, so a bend's outer corner is covered; nearly straight on, it stops square.
-//   The generator rounds the walkable cells at every joint.
+// - At a joint (nativePier.joints) where a line turns into another, both decks run
+//   on past the joint by the mitre length (deck.extend): half the width times
+//   tan(turn / 2). The two outer corners then meet exactly, so a bend leaves no
+//   notch and nothing sticks out, and a nearly straight joint leaves no wedge. At a
+//   joint of three or more lines the straightest pair mitres, and the others (a T's
+//   stem) end at the joint, inside that pair's deck. A turn over 135 degrees, or a
+//   junction with no pair within 30 degrees of straight, stops the build: it needs a
+//   corner rule of its own. The generator rounds the walkable cells at every joint.
 // - Trellis caps close only free ends: not joints, and not ends standing on
 //   another deck (a stem meeting its crossbar).
 // - Decks that overlap by more than 1 cm stand at different 2 mm levels: each line
@@ -116,14 +120,24 @@ for(const f of source.features.filter(f=>f.nativePier)){
  for(const [i,[a,b]]of pier.lines.entries())deckLines.push({f,pier,i,a,b,joints,position:i<firstObserved?'original-polyline-subdivision':'reviewed-observation:'+observed[i-firstObserved].id});
 }
 const toLine=(p,a,b)=>{const d=[b[0]-a[0],b[1]-a[1]],t=Math.max(0,Math.min(1,((p[0]-a[0])*d[0]+(p[1]-a[1])*d[1])/(d[0]**2+d[1]**2)));return Math.hypot(p[0]-a[0]-d[0]*t,p[1]-a[1]-d[1]*t);};
+// The turn between two lines through a joint, from the directions leaving the joint along
+// each: 0 straight on, a right angle at a square corner.
+const leaving=(o,p)=>{const q=o.a[0]===p[0]&&o.a[1]===p[1]?o.b:o.a,w=[q[0]-p[0],q[1]-p[1]],l=Math.hypot(...w);return [w[0]/l,w[1]/l];};
+const turnAt=(s,t)=>Math.PI-Math.acos(Math.max(-1,Math.min(1,s[0]*t[0]+s[1]*t[1])));
 for(const line of deckLines){
  const {a,b,pier,joints}=line,len=Math.hypot(b[0]-a[0],b[1]-a[1]),u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
- // An end bends where another line of the pier leaves the joint off this line's axis (more than 1 degree).
- const end=(p,out)=>{const joint=joints.has(p.join(','));const others=joint?deckLines.filter(o=>o!==line&&o.pier===pier&&[o.a,o.b].some(q=>q[0]===p[0]&&q[1]===p[1])):[];
-  const bends=others.some(o=>{const q=o.a[0]===p[0]&&o.a[1]===p[1]?o.b:o.a,w=[q[0]-p[0],q[1]-p[1]],l=Math.hypot(...w);return Math.abs(out[0]*w[1]/l-out[1]*w[0]/l)>Math.sin(Math.PI/180)||out[0]*w[0]+out[1]*w[1]>0;});
+ const end=p=>{
+  const joint=joints.has(p.join(','));let extend=0;
+  if(joint){
+   const at=deckLines.filter(o=>o.pier===pier&&[o.a,o.b].some(q=>q[0]===p[0]&&q[1]===p[1])),pairs=[];
+   for(let i=0;i<at.length;i++)for(let j=i+1;j<at.length;j++)pairs.push({lines:[at[i],at[j]],turn:turnAt(leaving(at[i],p),leaving(at[j],p))});
+   const straightest=pairs.reduce((m,q)=>q.turn<m.turn?q:m);
+   if(straightest.turn>Math.PI*135/180||at.length>2&&straightest.turn>Math.PI/6)throw Error(`Pier ${line.f.id} turns ${(straightest.turn*180/Math.PI).toFixed(1)} degrees at ${p}: add a corner rule.`);
+   if(straightest.lines.includes(line))extend=pier.widthM/2*Math.tan(straightest.turn/2);
+  }
   const onDeck=!joint&&deckLines.some(o=>o!==line&&toLine(p,o.a,o.b)<pier.widthM/2);
-  return {joint,extend:bends?pier.widthM/2:0,cap:!joint&&!onDeck};};
- line.ends=[end(a,u),end(b,[-u[0],-u[1]])];
+  return {joint,extend:r(extend),cap:!joint&&!onDeck};};
+ line.ends=[end(a),end(b)];
  line.footprint=[[-line.ends[0].extend,-pier.widthM/2],[len+line.ends[1].extend,-pier.widthM/2],[len+line.ends[1].extend,pier.widthM/2],[-line.ends[0].extend,pier.widthM/2]].map(([s,t])=>[a[0]+u[0]*s-u[1]*t,a[1]+u[1]*s+u[0]*t]);
 }
 // Two convex footprints overlap if no edge normal separates them by more than a centimetre.
