@@ -42,6 +42,45 @@ item says where it lives and how it was measured.
     - `osm-way-1240419511`;
   - the diamond-shaped house `osm-way-560095904`, below.
 
+## The lakefront against the lidar
+
+On 2026-11-09 the owner compared the game with a satellite view of Lake Dora
+Road between W 5th and W 4th Avenue: "theres still quite a bit of disparity".
+Checked against the 2018 USGS lidar already cached for the house work
+(`artifacts/lidar/`, read with `loadPoints` from
+`tools/maps/lidar/points.mjs`; box x 20–340, y 430–770), the gaps have
+seven causes:
+
+- **Turned houses.** The county outline of 330 Lake Dora Rd sits on its lidar
+  roof (92% of it) at −35.6°, the road's angle. The grid fit draws it as a
+  16-corner staircase. Map-wide, 42 buildings stand 10° or more off the grid:
+  12 are drawn as staircases and 30 are squared to the grid. Fix: houses as
+  separate assets, above, placed at their true angle with angled wall runs.
+- **County sketches can leave parts out.** 320 Lake Dora Rd, a duplex, is
+  sketched as two blocks joined by a 1.2 m neck. The lidar roof joins them
+  and continues east of the sketch.
+- **Piers are never drawn.** `category()` in `tools/maps/build-mount-dora.py`
+  has no case for `man_made=pier`, so all 19 mapped piers fall into
+  "context", which is never painted. That includes the T-dock, the Mount Dora
+  Dock and its slips, and the Rusty Anchor's dock. The brown stubs at the
+  shore are footpaths cut off at the waterline.
+- **Roofs over the water.** Where our map has open water, the lidar sees
+  about 800 m² of roof: boathouses and covered slips. It also sees a roofed
+  structure at the T-dock's shore end. No OpenStreetMap or county outline
+  exists for any of them.
+- **The tree belt.** Between Lake Dora Road and McDonald Street, unclassified
+  returns 2.5 m or more above the ground cover 2,936 of 5,423 m² (54%). This
+  vendor has no vegetation class, and a little of that area is overhead wire.
+  Our map has 1 tree and 1 bush there, because greenery is seeded by
+  declared density rather than placed from evidence.
+- **The railway.** The Sorrento Subdivision runs between the road and the
+  trees. OpenStreetMap tags it `railway=disused`, but the rails still show.
+  As "context" it is never drawn.
+- **Diagonal ground.** Lake Dora Road's centreline is OpenStreetMap's own,
+  but terrain is one material per 1 m tile, so its edges step every metre.
+  Walls can turn; ground cannot. A smooth road surface would have to be drawn
+  over the tiles.
+
 ## Known shape and placement limits
 
 - **Long clusters drift from their own field.**
