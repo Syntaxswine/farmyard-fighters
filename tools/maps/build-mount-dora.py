@@ -47,7 +47,18 @@ STREET_SNAP_LIMIT = 5        # metres a street may move to sit on one grid line;
 STREET_BRIDGE_ALONG = 40     # metres: same-named runs this close end to end may share a line
 STREET_BRIDGE_ACROSS = 2.5   # metres: ...when their ends are this nearly in line
 STREET_STRAIGHT = .025       # across/along: runs within about 1.4 degrees of the grid are fitted first
-PALETTE = {"ground-grass": "#87956c", "water": "#64899a", "woodland": "#426148",
+# A mapped pier is a wooden deck as wide as a mapped boardwalk: an unsurveyed
+# proxy, since OpenStreetMap records no width for any Mount Dora pier.
+PIER_WIDTH = 2
+# Railways whose rails are still in place. A disused line keeps its track; an
+# abandoned or razed one does not. The bed is the Nautilus branch-line track
+# bed (packages/railway-visuals, ballastWidthM 2), which the 3D track is drawn on.
+RAILWAY_KINDS = ("rail", "disused", "preserved", "narrow_gauge", "light_rail")
+RAIL_BED_WIDTH = 2
+RAIL_CLEARANCE = 1.25        # metres: a 3D track run keeps road, building, deck and water cell centres this far from its centreline
+RAIL_SAMPLE = .5             # metres between the samples that decide where a 3D track run may lie
+RAIL_RUN_MIN = 2             # metres: the shortest 3D track run, one Nautilus straight piece
+PALETTE ={"ground-grass": "#87956c", "water": "#64899a", "woodland": "#426148",
            "ground-dirt": "#bcad83", "ground-gravel": "#b3b0a1", "ground-asphalt": "#676c68",
            "ground-concrete": "#d5cfb8", "ground-wood-planks": "#a28b60", "bridge": "#c3a875", "floor": "#d0c0a1"}
 WATER = CODE["water"]
@@ -92,6 +103,10 @@ def bounds(points):
 
 def intersects_extent(box, width, depth, padding=0):
     return box[2] + padding >= 0 and box[3] + padding >= 0 and box[0] - padding <= width and box[1] - padding <= depth
+
+
+def ring_area(ring):
+    return abs(sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(ring, ring[1:]))) / 2
 
 
 def point_in_ring(point, ring):
@@ -142,6 +157,10 @@ def category(tags):
         return "beach"
     if tags.get("leisure") in ("park", "garden", "nature_reserve", "playground", "pitch") or tags.get("landuse") in ("grass", "orchard") or tags.get("natural") == "scrub":
         return "park"
+    if tags.get("man_made") == "pier":
+        return "pier"
+    if tags.get("railway") in RAILWAY_KINDS:
+        return "railway"
     return "context"
 
 
@@ -232,7 +251,12 @@ def load_source(project=PROJECT):
             continue
         points = [xy[i] for i in refs]
         closed = len(refs) >= 4 and refs[0] == refs[-1]
-        area = closed and (category(tags) not in ("road", "context") or tags.get("area") == "yes" or tags.get("landuse"))
+        # A closed pier way outlines a platform, unless it encloses no deck:
+        # Mount Dora's cross-docks are mapped out and back along one line
+        # (A-B-C-A, under 2 m2). A closed railway is still a track.
+        area = closed and (category(tags) not in ("road", "context", "railway") or tags.get("area") == "yes" or tags.get("landuse"))
+        if area and category(tags) == "pier" and ring_area(points) < PIER_WIDTH ** 2:
+            area = False
         feature(way, {"type": "MultiPolygon", "coordinates": [[points]]} if area else {"type": "LineString", "coordinates": points}, refs=refs)
     for osm_id, node in sorted(nodes.items()):
         if node.get("tags"):
@@ -284,7 +308,17 @@ def paint_polygon(grid, polygons, code, width, depth, *, land_only=False, mask=N
                         mask[index] = 1
 
 
-def paint_line(grid, points, width_m, code, width, depth, *, land_only=False, water_code=None, offset=0):
+def paint_line(grid, points, width_m, code, width, depth, *, land_only=False, water_code=None, offset=0, mask=None):
+    for index in line_cells(points, width_m, width, depth, offset=offset):
+        if not land_only or grid[index] != WATER:
+            grid[index] = water_code if water_code is not None and grid[index] == WATER else code
+            if mask is not None:
+                mask[index] = 1
+
+
+def line_cells(points, width_m, width, depth, *, offset=0):
+    """Cells whose centres lie within width_m / 2 of the polyline (a cell on
+    two segments comes once per segment)."""
     radius = width_m / 2
     for a, b in zip(points, points[1:]):
         dx, dy = b[0] - a[0], b[1] - a[1]
@@ -303,9 +337,7 @@ def paint_line(grid, points, width_m, code, width, depth, *, land_only=False, wa
                 px = x + .5
                 t = max(0, min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / length2))
                 if (px - a[0] - t * dx) ** 2 + (py - a[1] - t * dy) ** 2 <= radius * radius:
-                    index = y * width + x
-                    if not land_only or grid[index] != WATER:
-                        grid[index] = water_code if water_code is not None and grid[index] == WATER else code
+                    yield y * width + x
 
 
 def road_style(feature):
@@ -609,20 +641,22 @@ def park_follow(field, features):
     return moved
 
 
-def follow_streets(roads, moves, field):
+def follow_streets(roads, moves, field, decks=()):
     """Carry every other road with the straightened streets.
 
     A vertex the street snap placed keeps that line on each axis it moved;
     every other source vertex takes the town's move, so paths and curved
-    roads keep their shape and stay joined. Bridges and boardwalks keep
-    their mapped place over the water, and so does every vertex another road
-    shares with them. A segment whose two ends took different lines (a street
-    that really turns off the grid, in the east and southeast) crosses between
-    them as the field does, so the town beside it moves with it."""
-    # A road that meets a bridge or boardwalk keeps the shared vertex where the
-    # bridge is, so the two stay joined.
+    roads keep their shape and stay joined. Bridges, boardwalks and piers
+    (`decks`: their source points) keep their mapped place over the water,
+    and so does every vertex another road shares with them. A segment whose
+    two ends took different lines (a street that really turns off the grid,
+    in the east and southeast) crosses between them as the field does, so
+    the town beside it moves with it."""
+    # A road that meets a bridge, boardwalk or pier keeps the shared vertex
+    # where the deck is, so the two stay joined.
     moored = {tuple(p) for f in roads if f["nativeRoad"]["bridge"] or f["nativeRoad"]["woodSurface"]
               if f["geometry"]["type"] == "LineString" for p in f["geometry"]["coordinates"]}
+    moored |= {tuple(p) for p in decks}
     for feature in roads:
         style, geometry = feature["nativeRoad"], feature["geometry"]
         if geometry["type"] != "LineString" or style["bridge"] or style["woodSurface"]:
@@ -639,8 +673,10 @@ def follow_streets(roads, moves, field):
             style.pop("centerline", None)
 
 
-def paint_roads(terrain, roads, width, depth):
+def paint_roads(terrain, roads, width, depth, mask=None):
     # All sidewalks go down before carriageways so intersections stay open.
+    # `mask` gathers every cell a road or sidewalk painted (where a railway
+    # crosses, the road keeps its surface).
     for feature in roads:
         style, geometry = feature["nativeRoad"], feature["geometry"]
         if geometry["type"] != "LineString":
@@ -652,20 +688,168 @@ def paint_roads(terrain, roads, width, depth):
         if len(sides) == 2 and style["widthSource"] == "standard-game-street":
             # One outer ribbon keeps sidewalks joined at bends.
             paint_line(terrain, points, style["widthM"] + 2 * walk_width,
-                       CODE["ground-concrete"], width, depth, land_only=True)
+                       CODE["ground-concrete"], width, depth, land_only=True, mask=mask)
         else:
             for side in sides:
                 paint_line(terrain, points, walk_width, CODE["ground-concrete"], width, depth,
-                           land_only=True, offset=side * (style["widthM"] + walk_width) / 2)
+                           land_only=True, offset=side * (style["widthM"] + walk_width) / 2, mask=mask)
     for feature in sorted(roads, key=lambda f: f["nativeRoad"]["widthSource"] == "standard-game-street"):
         style, geometry = feature["nativeRoad"], feature["geometry"]
         if geometry["type"] == "MultiPolygon":
-            paint_polygon(terrain, geometry["coordinates"], CODE[style["terrain"]], width, depth, land_only=not style["bridge"])
+            paint_polygon(terrain, geometry["coordinates"], CODE[style["terrain"]], width, depth, land_only=not style["bridge"], mask=mask)
         else:
             bridge, wooden = style["bridge"], style["woodSurface"]
             paint_line(terrain, style.get("centerline", geometry["coordinates"]), style["widthM"],
                        CODE["bridge"] if bridge else CODE[style["terrain"]], width, depth,
-                       land_only=not (bridge or wooden), water_code=CODE["bridge"] if wooden else None)
+                       land_only=not (bridge or wooden), water_code=CODE["bridge"] if wooden else None, mask=mask)
+
+
+def geometry_points(geometry):
+    coordinates = geometry["coordinates"]
+    if geometry["type"] == "LineString":
+        return coordinates
+    return [p for polygon in coordinates for ring in polygon for p in ring]
+
+
+def pier_deck(points):
+    """The centreline of a pier's deck. A closed way that encloses no deck is
+    a line mapped out and back (A-B-C-A, with A on the line between B and C):
+    its deck is the chord between its two farthest vertices, drawn once."""
+    if len(points) >= 4 and points[0] == points[-1]:
+        return list(max(((p, q) for i, p in enumerate(points) for q in points[i + 1:]), key=lambda pair: math.dist(*pair)))
+    return points
+
+
+def paint_piers(terrain, green, piers, corridor, width, depth):
+    """Lay every mapped pier as a wooden deck: bridge over open water, planks
+    on open ground. A pier keeps its mapped place over the water, as a
+    boardwalk does. A line is a deck PIER_WIDTH wide along pier_deck; a
+    closed pier way is the outline of a platform. A pier never replaces a
+    road or sidewalk, a building, another deck or the street corridor, and no
+    plant grows on it."""
+    soft = {CODE[k] for k in ("ground-grass", "woodland", "ground-dirt")}
+    for feature in piers:
+        geometry = feature["geometry"]
+        if geometry["type"] == "LineString":
+            line = pier_deck(geometry["coordinates"])
+            cells = set(line_cells(line, PIER_WIDTH, width, depth))
+        else:
+            cells = {y * width + x for y, left, right in polygon_spans(geometry["coordinates"], width, depth)
+                     for x in range(left, right)}
+        water = land = 0
+        for index in sorted(cells):
+            if corridor[index]:
+                continue
+            if terrain[index] == WATER:
+                terrain[index] = CODE["bridge"]
+                water += 1
+            elif terrain[index] in soft:
+                terrain[index] = CODE["ground-wood-planks"]
+                land += 1
+            else:
+                continue
+            green[index] = 0
+        feature["nativePier"] = {
+            "shape": "deck-line" if geometry["type"] == "LineString" else "platform-outline",
+            **({"line": line, "widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy"} if geometry["type"] == "LineString" else {}),
+            "bridgeCells": water, "plankCells": land,
+            "policy": "Mapped pier at its source place: bridge over open water, planks on open ground; roads, sidewalks, buildings and other decks keep their surface. No surveyed width, height or railing."}
+
+
+def rail_line(feature, follow):
+    """A railway's centreline moved with the town vertex by vertex, as the
+    curved roads are (follow_streets), so it keeps its level crossings and the
+    buildings beside it."""
+    return [[round(x + dx, 4), round(y + dy, 4)] for (x, y), (dx, dy) in
+            ((point, follow(point)) for point in feature["geometry"]["coordinates"])]
+
+
+def _segment_distance(point, a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    t = max(0, min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / (dx * dx + dy * dy or 1)))
+    return math.hypot(point[0] - a[0] - t * dx, point[1] - a[1] - t * dy)
+
+
+def rail_runs(line, open_at):
+    """The stretches of a polyline where every RAIL_SAMPLE sample is open,
+    each at least RAIL_RUN_MIN long, as polylines (the source vertices inside
+    a stretch are kept, so a run bends where the railway does)."""
+    lengths = [0.0]
+    for a, b in zip(line, line[1:]):
+        lengths.append(lengths[-1] + math.dist(a, b))
+    total = lengths[-1]
+
+    def at(s):
+        i = max(0, min(len(line) - 2, next((k for k in range(1, len(lengths)) if lengths[k] >= s), len(lengths) - 1) - 1))
+        a, b, span = line[i], line[i + 1], lengths[i + 1] - lengths[i]
+        t = (s - lengths[i]) / span if span else 0
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+
+    stations = [k * RAIL_SAMPLE for k in range(int(total / RAIL_SAMPLE) + 1)]
+    if total - stations[-1] > 1e-6:
+        stations.append(total)
+    runs, start, last = [], None, None
+    for s in stations + [None]:
+        if s is not None and open_at(at(s)):
+            start = s if start is None else start
+            last = s
+            continue
+        if start is not None and last - start >= RAIL_RUN_MIN - 1e-9:
+            inner = [line[k] for k in range(1, len(line) - 1) if start < lengths[k] < last]
+            runs.append([[round(v, 4) for v in p] for p in [at(start), *inner, at(last)]])
+        start = None
+    return runs
+
+
+def paint_railways(terrain, green, railways, road_mask, corridor, follow, width, depth):
+    """Lay each railway whose rails remain as a gravel bed RAIL_BED_WIDTH wide,
+    and find where its 3D track may lie (nativeRailway.runs).
+
+    The bed moves with the town (rail_line). Roads and sidewalks keep their
+    surface where the railway crosses them, as do buildings, decks and
+    water. A track run covers only the stretches where no road, building,
+    deck or water cell centre comes within RAIL_CLEARANCE of the centreline,
+    so the track stops short of every level crossing; a siding also stops
+    where its bed would meet a main line's (no turnout is drawn)."""
+    keep = {WATER, CODE["floor"], CODE["bridge"], CODE["ground-wood-planks"]}
+    lines = {f["id"]: rail_line(f, follow) for f in railways}
+    for feature in railways:
+        gravel = 0
+        for index in sorted(set(line_cells(lines[feature["id"]], RAIL_BED_WIDTH, width, depth))):
+            if road_mask[index] or corridor[index] or terrain[index] in keep:
+                continue
+            gravel += terrain[index] != CODE["ground-gravel"]
+            terrain[index] = CODE["ground-gravel"]
+            green[index] = 0
+        feature["nativeRailway"] = {"centerline": lines[feature["id"]], "bedWidthM": RAIL_BED_WIDTH,
+                                    "bedWidthSource": "nautilus.railway.branch-line ballastWidthM", "terrain": "ground-gravel",
+                                    "gravelCells": gravel}
+    mains = [lines[f["id"]] for f in railways if not f["tags"].get("service")]
+
+    def blocked(point):
+        cx, cy = math.floor(point[0]), math.floor(point[1])
+        for y in range(cy - 1, cy + 2):
+            for x in range(cx - 1, cx + 2):
+                if (x + .5 - point[0]) ** 2 + (y + .5 - point[1]) ** 2 > RAIL_CLEARANCE ** 2:
+                    continue
+                if not (0 <= x < width and 0 <= y < depth):
+                    return True
+                index = y * width + x
+                if road_mask[index] or corridor[index] or terrain[index] in keep:
+                    return True
+        return False
+
+    for feature in railways:
+        others = [] if not feature["tags"].get("service") else mains
+
+        def open_at(point):
+            return not blocked(point) and all(_segment_distance(point, a, b) >= RAIL_BED_WIDTH
+                                              for line in others for a, b in zip(line, line[1:]))
+        runs = rail_runs(lines[feature["id"]], open_at)
+        feature["nativeRailway"].update(runs=runs, runLengthM=round(sum(math.dist(a, b) for run in runs for a, b in zip(run, run[1:])), 2),
+                                        policy="Rails still in place (railway=%s): a gravel bed on open ground; roads, sidewalks, buildings, decks and water keep their surface where the railway meets them. "
+                                               "The 3D track (Nautilus railway-visuals) is drawn only on runs and stops short of every road, so level crossings and the bridge over a road show the road; "
+                                               "no turnout, crossing panel or bridge structure is drawn." % feature["tags"]["railway"])
 
 
 def street_corridor(roads, width, depth):
@@ -1057,6 +1241,17 @@ def render_atlas(features, config):
         for feature in features:
             if feature["category"] == kind and feature["geometry"]["type"] == "MultiPolygon":
                 out.append(f'<path d="{paths(feature["geometry"]["coordinates"])}" fill="{color}" fill-rule="evenodd"/>')
+    # Piers and the railway bed go under the roads, which keep their surface where they meet.
+    for feature in features:
+        if "nativePier" in feature and feature["geometry"]["type"] == "MultiPolygon":
+            out.append(f'<path d="{paths(feature["geometry"]["coordinates"])}" fill="{PALETTE["bridge"]}" fill-rule="evenodd"/>')
+        elif "nativePier" in feature:
+            points = " ".join(f"{p[0]},{p[1]}" for p in feature["nativePier"]["line"])
+            out.append(f'<polyline points="{points}" fill="none" stroke="{PALETTE["bridge"]}" stroke-width="{PIER_WIDTH}" stroke-linejoin="round"/>')
+        elif "nativeRailway" in feature:
+            points = " ".join(f"{p[0]},{p[1]}" for p in feature["nativeRailway"]["centerline"])
+            out.append(f'<polyline points="{points}" fill="none" stroke="{PALETTE["ground-gravel"]}" stroke-width="{RAIL_BED_WIDTH}" stroke-linejoin="round"/>')
+            out.append(f'<polyline points="{points}" fill="none" stroke="#5f584d" stroke-width=".9" stroke-dasharray=".25 .25" stroke-linejoin="round"/>')
     roads = [f for f in features if f.get("nativeRoad") and f["geometry"]["type"] == "LineString"]
 
     def road_line(feature, color, width_m):
@@ -1127,13 +1322,16 @@ def build_project(project=PROJECT):
         elif feature["category"] == "building" and feature["geometry"]["type"] == "MultiPolygon":
             feature["nativeProxy"] = building_style(feature, evidence)
             buildings.append(feature)
-    # Straighten the grid streets first. Every other road, every building and
-    # every park, pitch and car park then moves with them (street_follow_field),
-    # so each keeps its place in its block instead of being pushed off a moved
-    # sidewalk. Woods, wetlands, beaches and the lake keep the mapped shoreline.
+    piers = [f for f in features if f["category"] == "pier"]
+    railways = [f for f in features if f["category"] == "railway" and f["geometry"]["type"] == "LineString"]
+    # Straighten the grid streets first. Every other road, every building,
+    # every park, pitch and car park and every railway then moves with them
+    # (street_follow_field), so each keeps its place in its block instead of
+    # being pushed off a moved sidewalk. Woods, wetlands, beaches, piers and
+    # the lake keep the mapped shoreline.
     moves = author_streets(roads, width, depth)
     follow = park_follow(street_follow_field(roads, features, width, depth), features)
-    follow_streets(roads, moves, follow)
+    follow_streets(roads, moves, follow, [p for f in piers for p in geometry_points(f["geometry"])])
     # Park, pitch and car-park outlines move vertex by vertex with the town, so
     # their edges stay on the paths and streets around them; a block park's
     # inside moves as one piece (nativeShiftM).
@@ -1187,7 +1385,8 @@ def build_project(project=PROJECT):
             paint_polygon(terrain, polygons, CODE[surface], width, depth, land_only=True)
         for y, left, right in polygon_spans(polygons, width, depth):
             green[y * width + left:y * width + right] = bytes(right - left)
-    paint_roads(terrain, roads, width, depth)
+    road_cells = bytearray(width * depth)
+    paint_roads(terrain, roads, width, depth, mask=road_cells)
     # A county building stands on its 2018 lidar roof. Where the mapped Lake
     # Dora shoreline runs through one, its outline already supports itself
     # over that water, as a mapped footprint may; let the one-metre fit also
@@ -1284,6 +1483,11 @@ def build_project(project=PROJECT):
                     raise ValueError('Grid shelter overlaps a closed building: ' + structure['id'])
                 terrain[index] = CODE['bridge'] if source_water[index] else CODE['ground-wood-planks']
                 green[index] = 0
+    # Piers and railways go down after the building fit, which treats gravel,
+    # planks and decks as cells a footprint must clear: they take only what the
+    # fitted town leaves open.
+    paint_piers(terrain, green, piers, corridor, width, depth)
+    paint_railways(terrain, green, railways, road_cells, corridor, follow, width, depth)
     walls = deduplicated_walls(buildings)
     wall_pieces = split_walls(walls, extent, diagnostics)
     # A source boundary can enter a neighbouring sector by less than one cell.
@@ -1356,7 +1560,7 @@ def build_project(project=PROJECT):
                             "bounds": {"x": ox, "y": oy, "widthM": size, "depthM": size}, "nativeImport": native_import, "metrics": metrics,
                             "buildingIds": sorted(sector_buildings[sid]), "guards": guards})
     feature_database = {"kind": "mount-dora-source-features", "version": 1, "id": config["id"], "projection": config["projection"],
-                        "coordinates": "Local east/south metres. Buildings, parks and car parks that moved with their streets retain geographicGeometry, and a block-sized park that moved as one piece records nativeShiftM; street geometry retains the source line with playable adjustments in nativeRoad.centerline.",
+                        "coordinates": "Local east/south metres. Buildings, parks and car parks that moved with their streets retain geographicGeometry, and a block-sized park that moved as one piece records nativeShiftM; street geometry retains the source line with playable adjustments in nativeRoad.centerline, and a railway its moved bed and 3D track runs in nativeRailway. Piers keep their source place.",
                         "authoredLayoutSHA256": layout_digest,
                         "authoredStructures": structures,
                         "sources": source_records, "features": features, "diagnostics": diagnostics}
@@ -1375,6 +1579,10 @@ def build_project(project=PROJECT):
                                            "snapLimitMPerAxis": STREET_SNAP_LIMIT, "policy": "Near-cardinal street runs align to a common metre line. Connected source nodes stay joined. Bridge and boardwalk points stay fixed."},
                                "approachMovesM": approaches,
                                "defaultRoadWidthsM": WIDTHS,
+                               "piers": {"widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy",
+                                         "policy": "Every man_made=pier way is a wooden deck at its source place: bridge over open water, planks on open ground. A closed way outlines a platform. Roads, sidewalks, buildings and other decks keep their surface."},
+                               "railways": {"kinds": list(RAILWAY_KINDS), "bedWidthM": RAIL_BED_WIDTH, "trackClearanceM": RAIL_CLEARANCE, "track": "Nautilus railway-visuals branch-line profile",
+                                            "policy": "Railways whose rails remain move with the town and lie as a gravel bed on open ground. The 3D track covers only runs clear of roads, buildings, decks and water, so it stops at level crossings; a siding stops short of its main line."},
                                "waterPolicy": "Fill complete source polygons first; land cover never creates land in water. Only mapped building footprints, bridges or wooden-surface paths can provide source-backed support over water; a county building on its lidar roof is such a footprint, and its one-metre fit may take the mapped water within three cells of it.",
                                "vegetation": {"seed": 1947, "brush": "woodland-v1",
                                               "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas. Individual plants are gameplay scenery."},
@@ -1404,7 +1612,8 @@ def build_project(project=PROJECT):
                                  "changes are recorded in authored-buildings.json." % authored_by_id["osm-way-557494933"]["metrics"]["centreShiftM"]),
                                 "Native wall butt joints and per-run texture phases retain the workshop's existing limits; curved decorative parts and the lighthouse remain curved.",
                                 "Water-only sectors remain complete in the atlas/source but the existing four-start/one-exit native validator refuses them.",
-                                "Street widths, sidewalk widths, bridge/steps heights and seeded vegetation are declared authoring approximations.",
+                                "Street widths, sidewalk widths, pier widths, bridge/steps heights and seeded vegetation are declared authoring approximations.",
+                                "Railways keep their mapped line and a declared 2 m bed. Level crossings, a railway bridge over a road, turnouts and crossing panels are not drawn: the 3D track stops short of each road.",
                                 "No suggested future roads or gameplay objectives are authored."]}
     outputs["project.json"] = encoded(manifest, pretty=True)
     return outputs, manifest, feature_database, terrain

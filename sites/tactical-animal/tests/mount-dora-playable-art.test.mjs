@@ -7,7 +7,7 @@ import {PLACEMENTS,ART_REVISION,SOURCE_FEATURES_SHA256,REPLACEMENT_SOURCE_IDS,pl
 import {createMountDoraArt,loadMountDoraAtlas} from '../dist/mission-art/mount-dora/kit.js';
 const base=new URL('../dist/mission-art/mount-dora/',import.meta.url),raw=fs.readFileSync(new URL('../../../maps/mount-dora/features.json',import.meta.url)),features=JSON.parse(raw).features;
 const sha=b=>createHash('sha256').update(b).digest('hex');
-const cases=[['donnelly',[444,444,516,516]],['inn',[276,768,348,840]],['lighthouse',[468,1140,540,1212]],['gilbert',[720,1152,792,1224]],['palm',[528,1344,600,1416]],['evans',[432,972,504,1044]],['shops',[384,528,456,600]],['donnelly-house',[363,442,435,514]],['courtyard',[240,432,312,504]],['north',[984,96,1056,168]]];
+const cases=[['donnelly',[444,444,516,516]],['inn',[276,768,348,840]],['lighthouse',[468,1140,540,1212]],['gilbert',[720,1152,792,1224]],['palm',[528,1344,600,1416]],['evans',[432,972,504,1044]],['shops',[384,528,456,600]],['donnelly-house',[363,442,435,514]],['courtyard',[240,432,312,504]],['north',[984,96,1056,168]],['lakefront',[140,580,212,652]]];
 test('production bindings preserve the complete geography and explicit replacement policies',()=>{
  assert.equal(SOURCE_FEATURES_SHA256,sha(raw));assert.equal(ART_REVISION,sha(JSON.stringify(PLACEMENTS)));assert.equal(new Set(PLACEMENTS.map(p=>p.id)).size,PLACEMENTS.length);
  for(const p of PLACEMENTS)assert.ok(p.bounds.length===4&&p.bounds.every(Number.isFinite),p.id);
@@ -66,4 +66,64 @@ test('camera occlusion respects the common parent offset and clears when the ray
 });
 test('orthographic camera uses parallel view rays and reacts to rotation without moving',()=>{
  const kit=createMountDoraArt({THREE:T});kit.updateResident([464,1133,536,1205]);const [x,z]=PLACEMENTS.find(p=>p.id==='md:lighthouse').anchor,camera=new T.OrthographicCamera(-30,30,20,-20,.1,100);camera.position.set(x-10,3,z);camera.lookAt(x,0,z);kit.setFocus([x+4,z],{camera});assert.ok(kit.metrics().fadedPlacements.includes('md:lighthouse'));camera.lookAt(x-10,2,z-10);kit.setFocus([x+4,z],{camera});assert.equal(kit.metrics().fadedPlacements.length,0);kit.dispose();
+});
+const r6=v=>Math.round(v*1e6)/1e6,span=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]);
+test('every mapped pier draws deck pieces end to end along its deck line, with no railing',()=>{
+ const piers=features.filter(f=>f.nativePier),pieces=PLACEMENTS.filter(p=>p.kind==='pier');
+ assert.equal(piers.length,19);assert.equal(features.filter(f=>f.tags.man_made==='pier').length,19);
+ for(const f of piers){
+  const n=f.id.replace('osm-way-',''),line=f.nativePier.line,own=pieces.filter(p=>p.sourceIds[0]===f.id);assert.ok(own.length,f.id);
+  let drawn=0;
+  for(let j=1;j<line.length;j++){
+   const seg=own.filter(p=>p.id.startsWith(`md:pier:${n}:${j}:`)).sort((a,b)=>Number(a.id.split(':').at(-1))-Number(b.id.split(':').at(-1)));
+   assert.deepEqual(seg[0].ends[0],line[j-1].map(r6));assert.deepEqual(seg.at(-1).ends[1],line[j].map(r6));
+   for(let k=1;k<seg.length;k++)assert.deepEqual(seg[k].ends[0],seg[k-1].ends[1]);
+   for(const p of seg){assert.ok(span(...p.ends)<=8+1e-9);drawn+=span(...p.ends);}
+  }
+  assert.ok(Math.abs(drawn-line.slice(1).reduce((s,q,i)=>s+span(line[i],q),0))<1e-4,f.id);
+  for(const p of own){assert.equal(p.width,2);assert.deepEqual(p.rails,[]);assert.deepEqual(p.solids,[]);assert.equal(p.collisionPolicy,'additional-solids');assert.match(p.provenance.railing,/none/);}
+ }
+ // A cross-dock mapped out and back (A-B-C-A) is drawn once, along its chord.
+ const cross=features.find(f=>f.id==='osm-way-556100378'),ring=cross.geometry.coordinates;
+ assert.equal(cross.geometry.type,'LineString');assert.deepEqual(ring[0],ring.at(-1));assert.equal(cross.nativePier.line.length,2);
+ const drawn=pieces.filter(p=>p.sourceIds[0]===cross.id).reduce((s,p)=>s+span(...p.ends),0);assert.ok(Math.abs(drawn-span(...cross.nativePier.line))<1e-4&&drawn<.6*ring.slice(1).reduce((s,q,i)=>s+span(ring[i],q),0));
+});
+test('railway pieces cover every track run end to end in chords of about two metres',()=>{
+ const rails=features.filter(f=>f.nativeRailway),placed=PLACEMENTS.filter(p=>p.kind==='railway');
+ assert.equal(rails.length,4);assert.ok(rails.every(f=>f.tags.railway==='disused'));
+ let runs=0;
+ for(const f of rails)for(const [i,run]of f.nativeRailway.runs.entries()){
+  runs++;const n=f.id.replace('osm-way-',''),parts=placed.filter(p=>p.id.startsWith(`md:railway:${n}:${i}:`)).sort((a,b)=>Number(a.id.split(':').at(-1))-Number(b.id.split(':').at(-1)));
+  const pieces=parts.flatMap(p=>p.pieces),arc=run.slice(1).reduce((s,q,k)=>s+span(run[k],q),0);
+  assert.equal(pieces.length,Math.max(1,Math.round(arc/2)));
+  assert.deepEqual(pieces[0][0],run[0].map(r6));assert.deepEqual(pieces.at(-1)[1],run.at(-1).map(r6));
+  for(let k=1;k<pieces.length;k++)assert.deepEqual(pieces[k][0],pieces[k-1][1]);
+  for(const [a,b]of pieces){const d=span(a,b);assert.ok(d>1.3&&d<=arc/pieces.length+1e-5,`${f.id} run ${i}: chord ${d}`);}
+  for(const p of parts){assert.equal(p.asset,'railway:track-straight');assert.ok(p.pieces.length>=1&&p.pieces.length<=12);assert.deepEqual(p.solids,[]);for(const q of p.pieces.flat())assert.ok(q[0]>=p.bounds[0]+1.5-1e-6&&q[0]<=p.bounds[2]-1.5+1e-6&&q[1]>=p.bounds[1]+1.5-1e-6&&q[1]<=p.bounds[3]-1.5+1e-6);}
+ }
+ // Every railway placement belongs to a run: nothing is drawn off the runs.
+ assert.equal(placed.length,placed.filter(p=>rails.some(f=>p.sourceIds[0]===f.id&&f.nativeRailway.runs[Number(p.id.split(':')[3])])).length);
+ assert.ok(runs>=10);
+ const provenance=JSON.parse(fs.readFileSync(new URL('provenance.json',base)));assert.equal(provenance.railwayRevision,'ed951ba4723ce4cdb87db25d226ad1ceaead7f46');
+ for(const name of ['catalogue','paint','route','three'])assert.ok(provenance.files.some(f=>f.path===`source/packages/railway-visuals/${name}.js`),name);
+});
+test('a railway placement instances the pinned Nautilus piece on each chord and leaves the kit shared',()=>{
+ const p=PLACEMENTS.find(p=>p.kind==='railway'&&p.pieces.length===12),kit=createMountDoraArt({THREE:T});kit.updateResident(p.bounds);
+ const group=kit.root.getObjectByName(p.id),meshes=[...group.children];
+ assert.equal(meshes.length,5);assert.ok(meshes.every(m=>m.isInstancedMesh&&m.userData.sharedGeometry));
+ assert.deepEqual(meshes.map(m=>m.count).sort((a,b)=>a-b),[12,12,12,48,96]);
+ const bed=meshes.find(m=>/ballast/.test(m.name)),matrix=new T.Matrix4();
+ for(const [k,[a,b]]of p.pieces.entries()){
+  bed.getMatrixAt(k,matrix);const start=new T.Vector3(0,0,0).applyMatrix4(matrix),end=new T.Vector3(0,0,2).applyMatrix4(matrix);
+  assert.ok(Math.hypot(start.x+p.anchor[0]-a[0],start.z+p.anchor[1]-a[1])<1e-4&&Math.abs(start.y)<1e-9);
+  assert.ok(Math.hypot(end.x+p.anchor[0]-b[0],end.z+p.anchor[1]-b[1])<1e-4&&Math.abs(end.y)<1e-9);
+ }
+ const box=new T.Box3().setFromObject(group,true);assert.ok(box.min.x>=p.bounds[0]-.002&&box.max.x<=p.bounds[2]+.002&&box.min.z>=p.bounds[1]-.002&&box.max.z<=p.bounds[3]+.002,`${box.min.toArray()} / ${box.max.toArray()}`);
+ assert.ok(box.max.y>.4&&box.max.y<.45);
+ let geometries=0,instances=0;for(const m of meshes){m.geometry.addEventListener('dispose',()=>geometries++);m.addEventListener('dispose',()=>instances++);}
+ kit.updateResident([0,0,1,1]);assert.equal(instances,5);assert.equal(geometries,0);
+ kit.updateResident(p.bounds);const again=kit.root.getObjectByName(p.id);assert.ok(again!==group&&again.children.every(c=>meshes.some(m=>m.geometry===c.geometry&&m.material===c.material)));
+ const pier=PLACEMENTS.find(q=>q.kind==='pier');kit.updateResident(pier.bounds);const deck=kit.root.getObjectByName(pier.id),deckBox=new T.Box3().setFromObject(deck,true);
+ assert.ok(deck.children.length>=1&&deck.children.every(m=>m.isMesh&&!m.isInstancedMesh));assert.ok(deckBox.max.y<.01&&deckBox.min.y>-.1);
+ kit.dispose();assert.equal(geometries,5);assert.equal(kit.root.children.length,0);
 });

@@ -63,7 +63,8 @@ seven causes:
   has no case for `man_made=pier`, so all 19 mapped piers fall into
   "context", which is never painted. That includes the T-dock, the Mount Dora
   Dock and its slips, and the Rusty Anchor's dock. The brown stubs at the
-  shore are footpaths cut off at the waterline.
+  shore are footpaths cut off at the waterline. *Drawn on the stacked branch
+  `claude/mount-dora-piers-rail`.*
 - **Roofs over the water.** Where our map has open water, the lidar sees
   about 800 m² of roof: boathouses and covered slips. It also sees a roofed
   structure at the T-dock's shore end. No OpenStreetMap or county outline
@@ -75,7 +76,8 @@ seven causes:
   declared density rather than placed from evidence.
 - **The railway.** The Sorrento Subdivision runs between the road and the
   trees. OpenStreetMap tags it `railway=disused`, but the rails still show.
-  As "context" it is never drawn.
+  As "context" it is never drawn. *Drawn on the stacked branch
+  `claude/mount-dora-piers-rail`, with the Nautilus railway kit.*
 - **Diagonal ground.** Lake Dora Road's centreline is OpenStreetMap's own,
   but terrain is one material per 1 m tile, so its edges step every metre.
   Walls can turn; ground cannot. A smooth road surface would have to be drawn

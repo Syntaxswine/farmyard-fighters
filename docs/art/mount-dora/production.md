@@ -62,8 +62,10 @@ still checked in the actual integrated game, not inferred from kit images.
 
 There are 950 exact source MultiPolygons, including holes, ten separate Inn
 records, five historical court records, three actual mapped shelter contours,
-the named lighthouse point, two explicitly approximate park structures, and
-69 pieces along the two complete source boardwalk polylines.
+the named lighthouse point, two explicitly approximate park structures,
+69 pieces along the two complete source boardwalk polylines, 108 deck pieces
+along the 19 mapped piers, and 89 railway placements holding 992 Nautilus track
+pieces along the railway's track runs.
 
 The original building renderer receives compiled geographic wall runs without
 half-metre cell snapping, floor cells, rooms, stairs or invented entrances. Its
@@ -86,7 +88,7 @@ Each placement and returned solid carries `collisionPolicy`:
 | --- | --- |
 | `retain-source-walls` | Keep native closed-house collision; avoid registering the optional footprint again. |
 | `replace-source-walls` | Remove only the mapped shelter's closed wall/cap owners; use its post circles and retain walkable ground. |
-| `additional-solids` | Add lighthouse, boardwalk rail or approximate structure posts; courts supply no solids. |
+| `additional-solids` | Add lighthouse, boardwalk rail or approximate structure posts; courts, piers and railway track supply no solids. |
 
 `solidsForBounds(bounds)` returns `{id, placementId, sourceIds, collisionPolicy,
 ...shape}`. Shapes are `{kind:'polygon',polygons}` (MultiPolygon coordinates,
@@ -101,6 +103,23 @@ and explicit park uncertainty bounds. Boardwalk deck width is the same inferred
 2 m support corridor as the base generator; rails sit 1.12 m either side, radius
 0.055 m. Ends stay open, with an open side approach near the mapped Palm shelter.
 This does not manufacture connecting ground or an elevated multi-floor route.
+
+Pier pieces (`kind: 'pier'`) draw the same deck along each pier's
+`nativePier.line`, in pieces of at most 8 m, with no rails and no solids: no
+railing is mapped or surveyed. A `pier-deck` kind draws a mapped platform
+outline; Mount Dora has none today.
+
+Railway placements (`kind: 'railway'`) draw the Nautilus `railway:track-straight`
+piece, retained unchanged in `source/packages/railway-visuals` from Nautilus
+`ed951ba` (branch `codex/railway-route-tool`, not yet on Nautilus main). The
+kit's route planner accepts only cardinal and 45° legs, which the mapped line
+does not follow, so the builder cuts each of the generator's track runs into
+equal chords of about 2 m and the adapter sets one piece on each chord at its
+true angle, scaled to the chord. Each placement holds up to twelve pieces and
+draws one `InstancedMesh` per part of the piece (bed, two rails, ties, plates):
+five draw calls whatever its length. The meshes borrow the kit's geometry and
+materials, which eviction never disposes; teardown disposes the kit. Pieces meet
+with small wedges at bends. Track adds no solids: the bed is walkable ground.
 
 ## Sources and limits
 

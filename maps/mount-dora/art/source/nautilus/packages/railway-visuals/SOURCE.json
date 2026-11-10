@@ -1,0 +1,17 @@
+{
+  "schema": "mount-dora-retained-source/1",
+  "repository": "https://github.com/Syntaxswine/nautilus-engine",
+  "package": "packages/railway-visuals",
+  "commit": "ed951ba4723ce4cdb87db25d226ad1ceaead7f46",
+  "branch": "codex/railway-route-tool",
+  "onMain": false,
+  "retainedAt": "2026-11-09",
+  "files": [
+    {"path": "catalogue.js", "gitBlob": "6b7bcc75151ed52454c134c39d10d1507852022b", "sha256": "f5ff0bc1798702e98f41901c84779ea5abfa845db08b8a0d379e68f4b49af963", "bytes": 1434},
+    {"path": "paint.js", "gitBlob": "685d5267423a9986a4f86212f9242224958dbba9", "sha256": "0bd0064388ae2d1ab833e7a242d72c7f6d32492a34bf53f35aade65f787380b7", "bytes": 2545},
+    {"path": "route.js", "gitBlob": "9fa65290c79022f98abb56b89c92a92b9fefaf08", "sha256": "9e1d09e8e7c6f155168c5f89b71be455f3271d8fd172feeec42c46bbb1def7b4", "bytes": 8825},
+    {"path": "three.js", "gitBlob": "7c039e53c916cd4e1c16d87e17ce08136d8f284c", "sha256": "566da2cd883e3b46779e2c3dbc7dd538f2b62fed008b49c770c7217d1b080eec", "bytes": 9412}
+  ],
+  "use": "Unchanged copies. The map adapter (sites/tactical-animal/dist/mission-art/mount-dora/kit.js) builds one InstancedMesh per part of the kit's railway:track-straight piece and sets each 2 m piece at the true angle of the mapped line, since the kit's route planner accepts only cardinal and 45-degree legs.",
+  "note": "Pinned from a Nautilus branch that is not yet on main (docs/railway-track-kit.md there). Re-pin when it lands; the engine pin of the game is unchanged."
+}

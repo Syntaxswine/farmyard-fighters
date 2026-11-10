@@ -1,9 +1,11 @@
 {
   "schema": "mount-dora-production-art/1",
   "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
+  "railwayRevision": "ed951ba4723ce4cdb87db25d226ad1ceaead7f46",
+  "railwayBranch": "codex/railway-route-tool",
   "farmyardBase": "75a6b61a547a96edebdc456e9a42edb4f28185e4",
-  "featuresSHA256": "16d02fb4425e300d5f7f118c04e97532b5f9a6c004107567408ef74c8cd0d4a7",
-  "artRevision": "7174bccfa021dc5431272ec834119c7979047b4f635fc4ca76f8e9dbe6ad4aa4",
+  "featuresSHA256": "f1f3b90a2d9ed6e7bf36fe24437ebed6611cb7106f91cedd01b12187374a46e1",
+  "artRevision": "c8976a6eec7fd5f5244eca4e3b1463671378f4abffeb5a3090617aa1d13ed06e",
   "files": [
     {
       "path": "source/packages/building-catalog/three.js",
@@ -29,10 +31,30 @@
       "path": "source/packages/roof-core/three.js",
       "sha256": "96fe9556e429d86169db25005d939c58c2e5f72f595b15c34f4fb51b16187539",
       "bytes": 5435
+    },
+    {
+      "path": "source/packages/railway-visuals/catalogue.js",
+      "sha256": "f5ff0bc1798702e98f41901c84779ea5abfa845db08b8a0d379e68f4b49af963",
+      "bytes": 1434
+    },
+    {
+      "path": "source/packages/railway-visuals/paint.js",
+      "sha256": "0bd0064388ae2d1ab833e7a242d72c7f6d32492a34bf53f35aade65f787380b7",
+      "bytes": 2545
+    },
+    {
+      "path": "source/packages/railway-visuals/route.js",
+      "sha256": "9e1d09e8e7c6f155168c5f89b71be455f3271d8fd172feeec42c46bbb1def7b4",
+      "bytes": 8825
+    },
+    {
+      "path": "source/packages/railway-visuals/three.js",
+      "sha256": "566da2cd883e3b46779e2c3dbc7dd538f2b62fed008b49c770c7217d1b080eec",
+      "bytes": 9412
     }
   ],
   "atlasSHA256": "bbe33709a63362a13e509131c11f358d286b3d55ffcb86ca0ca1def4934ccdb2",
-  "placements": 1156,
+  "placements": 1353,
   "buildingCount": 950,
   "coordinates": "town east/south metres; no half-cell transform",
   "sourceNotice": "Geometry and painted materials copied unchanged from the retained fixed source; map data Ã‚Â© OpenStreetMap contributors, ODbL 1.0. Details and heights are explicit approximations."

@@ -644,6 +644,82 @@ class MountDoraGeneration(unittest.TestCase):
         self.assertTrue(any(len(g.get("patrol", [])) == 2 for g in roster))
         self.assertTrue(any(len(g.get("patrol", [])) > 2 for g in roster))
 
+    def test_every_mapped_pier_is_a_deck_at_its_source_place(self):
+        piers = [f for f in self.features.values() if f["tags"].get("man_made") == "pier"]
+        self.assertEqual(len(piers), 19)
+        water = [f["geometry"]["coordinates"] for f in self.features.values()
+                 if f["category"] == "water" and f["geometry"]["type"] == "MultiPolygon"]
+
+        def mapped_water(x, y):
+            return any(BUILDER.point_in_ring((x, y), polygon[0]) and not any(BUILDER.point_in_ring((x, y), hole) for hole in polygon[1:])
+                       for polygons in water for polygon in polygons)
+        over_water = 0
+        for pier in piers:
+            self.assertEqual(pier["category"], "pier")
+            self.assertNotIn("geographicGeometry", pier)
+            deck = pier["nativePier"]
+            self.assertGreater(deck["bridgeCells"], 0, pier["id"])
+            for a, b in zip(deck["line"], deck["line"][1:]):
+                for k in range(1, 8):
+                    x, y = a[0] + (b[0] - a[0]) * k / 8, a[1] + (b[1] - a[1]) * k / 8
+                    if mapped_water(int(x) + .5, int(y) + .5):
+                        over_water += 1
+                        self.assertIn(self.grid[int(y) * 1440 + int(x)], (BUILDER.CODE["bridge"], BUILDER.CODE["floor"]), (pier["id"], x, y))
+        self.assertGreater(over_water, 100)
+        # A path that runs onto a pier keeps the vertex it shares with it.
+        shared = {tuple(p) for f in piers for p in BUILDER.geometry_points(f["geometry"])}
+        joined = 0
+        for road in self.features.values():
+            if "nativeRoad" not in road or road["geometry"]["type"] != "LineString":
+                continue
+            source = road["geometry"]["coordinates"]
+            for p, q in zip(source, road["nativeRoad"].get("centerline", source)):
+                if tuple(p) in shared:
+                    joined += 1
+                    self.assertEqual(p, q, road["id"])
+        self.assertGreaterEqual(joined, 5)
+        # A cross-dock mapped out and back (A-B-C-A) is a line drawn once along its chord.
+        cross = self.features["osm-way-556100378"]
+        self.assertEqual(cross["geometry"]["type"], "LineString")
+        self.assertEqual(cross["nativePier"]["line"], [cross["geometry"]["coordinates"][1], cross["geometry"]["coordinates"][2]])
+
+    def test_railways_lie_on_gravel_and_their_track_stops_short_of_every_road(self):
+        rails = {f["id"]: f for f in self.features.values() if "nativeRailway" in f}
+        self.assertEqual(sorted(rails), ["osm-way-146637672", "osm-way-146637673", "osm-way-146637676", "osm-way-508450239"])
+        self.assertTrue(all(f["category"] == "railway" for f in rails.values()))
+        gravel, runs = BUILDER.CODE["ground-gravel"], 0
+        for rail in rails.values():
+            for run in rail["nativeRailway"]["runs"]:
+                runs += 1
+                for a, b in zip(run, run[1:]):
+                    steps = max(1, int(math.dist(a, b) / .5))
+                    for k in range(steps + 1):
+                        x, y = a[0] + (b[0] - a[0]) * k / steps, a[1] + (b[1] - a[1]) * k / steps
+                        self.assertEqual(self.grid[int(y) * 1440 + int(x)], gravel, (rail["id"], x, y))
+        self.assertGreaterEqual(runs, 10)
+        # Every mapped level crossing (and the one path crossing) on a drawn line
+        # is a gap: the track stops more than 2 m short of the crossing point.
+        crossings = 0
+        for node in self.features.values():
+            if node["tags"].get("railway") not in ("level_crossing", "crossing"):
+                continue
+            for rail in rails.values():
+                if node["osm"]["id"] not in rail.get("nodeRefs", []):
+                    continue
+                point = rail["nativeRailway"]["centerline"][rail["nodeRefs"].index(node["osm"]["id"])]
+                crossings += 1
+                for other in rails.values():
+                    for run in other["nativeRailway"]["runs"]:
+                        self.assertGreater(min(segment_distance(point, a, b) for a, b in zip(run, run[1:])), 2, (node["id"], other["id"]))
+        self.assertEqual(crossings, 8)
+        # The siding stops where its bed would meet the main line (no turnout is drawn).
+        mains = [f["nativeRailway"]["centerline"] for f in rails.values() if not f["tags"].get("service")]
+        siding = rails["osm-way-508450239"]
+        self.assertEqual(siding["tags"]["service"], "siding")
+        for run in siding["nativeRailway"]["runs"]:
+            for p in run:
+                self.assertGreaterEqual(min(segment_distance(p, a, b) for line in mains for a, b in zip(line, line[1:])), BUILDER.RAIL_BED_WIDTH - 1e-6)
+
 
 class GridShapeUnits(unittest.TestCase):
     """The street snap, the street-follow field, the wall repair, party walls,
@@ -860,6 +936,78 @@ class GridShapeUnits(unittest.TestCase):
         BUILDER.follow_streets([bridge, path], [{}, {}], lambda point: [1.0, 0.0])
         self.assertNotIn("centerline", bridge["nativeRoad"])
         self.assertEqual(path["nativeRoad"]["centerline"], [[0.0, 20.0], [1.0, 40.0]])
+
+
+class PierAndRailwayUnits(unittest.TestCase):
+    """Pier decks and railway beds on small made-up grids, without building the town."""
+
+    def test_piers_and_railways_whose_rails_remain_are_drawn(self):
+        self.assertEqual(BUILDER.category({"man_made": "pier"}), "pier")
+        for kind in ("rail", "disused"):
+            self.assertEqual(BUILDER.category({"railway": kind}), "railway")
+        for kind in ("abandoned", "razed", "proposed"):
+            self.assertEqual(BUILDER.category({"railway": kind}), "context")
+
+    def test_a_cross_dock_mapped_out_and_back_is_one_chord(self):
+        self.assertEqual(BUILDER.pier_deck([[5.0, 5.0], [5.0, 0.0], [5.1, 12.0], [5.0, 5.0]]), [[5.0, 0.0], [5.1, 12.0]])
+        line = [[0.0, 0.0], [3.0, 4.0], [3.0, 9.0]]
+        self.assertIs(BUILDER.pier_deck(line), line)
+
+    def test_a_path_meeting_a_pier_keeps_the_shared_vertex(self):
+        tags = {"highway": "footway"}
+        path = {"tags": tags, "nativeRoad": BUILDER.road_style({"tags": tags}),
+                "geometry": {"type": "LineString", "coordinates": [[0.0, 20.0], [0.0, 40.0]]}}
+        BUILDER.follow_streets([path], [{}, {}], lambda point: [1.0, 0.0], [[0.0, 0.0], [0.0, 20.0]])
+        self.assertEqual(path["nativeRoad"]["centerline"], [[0.0, 20.0], [1.0, 40.0]])
+
+    def test_a_pier_decks_water_and_open_ground_but_no_road_building_or_corridor(self):
+        width, depth, code = 20, 7, BUILDER.CODE
+        terrain = bytearray([code["water"]] * 10 + [code["ground-grass"]] * 10) * depth
+        terrain[3 * width + 14], terrain[3 * width + 16] = code["ground-concrete"], code["floor"]
+        green, corridor = bytearray([1] * (width * depth)), bytearray(width * depth)
+        corridor[3 * width + 18] = 1
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[2.0, 3.5], [19.5, 3.5]]}}
+        BUILDER.paint_piers(terrain, green, [pier], corridor, width, depth)
+        row = [BUILDER.KINDS[v] for v in terrain[3 * width:4 * width]]
+        self.assertEqual(row[2:10], ["bridge"] * 8)
+        self.assertEqual(row[10:14] + row[15:16] + row[17:18] + row[19:], ["ground-wood-planks"] * 7)
+        self.assertEqual((row[0], row[14], row[16], row[18]), ("water", "ground-concrete", "floor", "ground-grass"))
+        self.assertEqual((green[3 * width + 12], green[3 * width + 18], green[0]), (0, 1, 1))
+        # The deck is two metres wide: the rows either side take it too, no further.
+        self.assertEqual([BUILDER.KINDS[terrain[y * width + 5]] for y in range(depth)], ["water", "water", "bridge", "bridge", "bridge", "water", "water"])
+        self.assertEqual(pier["nativePier"]["widthM"], 2)
+
+    def test_a_railway_bed_yields_to_a_road_and_its_track_stops_short(self):
+        width, depth, code = 40, 9, BUILDER.CODE
+        terrain, green, road = bytearray([code["ground-grass"]] * (width * depth)), bytearray([1] * (width * depth)), bytearray(width * depth)
+        for y in range(depth):
+            for x in (19, 20):
+                road[y * width + x], terrain[y * width + x] = 1, code["ground-asphalt"]
+        rail = {"id": "r", "tags": {"railway": "disused"}, "geometry": {"type": "LineString", "coordinates": [[-1.0, 4.5], [39.0, 4.5]]}}
+        BUILDER.paint_railways(terrain, green, [rail], road, bytearray(width * depth), lambda point: [1.0, 0.0], width, depth)
+        native = rail["nativeRailway"]
+        self.assertEqual(native["centerline"], [[0.0, 4.5], [40.0, 4.5]])
+        row = [BUILDER.KINDS[v] for v in terrain[4 * width:5 * width]]
+        self.assertEqual(row[19:21], ["ground-asphalt"] * 2)
+        self.assertTrue(all(kind == "ground-gravel" for kind in row[:19] + row[21:]))
+        self.assertEqual((green[4 * width + 3], green[0]), (0, 1))
+        # Road cell centres (19.5, 20.5) and the map edges stay 1.25 m clear of the track.
+        self.assertEqual([[run[0], run[-1]] for run in native["runs"]], [[[1.0, 4.5], [18.0, 4.5]], [[22.0, 4.5], [39.0, 4.5]]])
+
+    def test_a_siding_stops_where_its_bed_would_meet_the_main_line(self):
+        width, depth, code = 40, 12, BUILDER.CODE
+        terrain = bytearray([code["ground-grass"]] * (width * depth))
+        main = {"id": "m", "tags": {"railway": "disused"}, "geometry": {"type": "LineString", "coordinates": [[0.0, 2.5], [40.0, 2.5]]}}
+        siding = {"id": "s", "tags": {"railway": "disused", "service": "siding"},
+                  "geometry": {"type": "LineString", "coordinates": [[5.0, 9.5], [20.0, 9.5], [35.0, 3.5]]}}
+        BUILDER.paint_railways(terrain, bytearray(width * depth), [main, siding], bytearray(width * depth), bytearray(width * depth),
+                               lambda point: [0.0, 0.0], width, depth)
+        (run,) = siding["nativeRailway"]["runs"]
+        self.assertEqual(run[0], [5.0, 9.5])
+        # The bed would reach the main line's within 2 m below y 4.5, at x 32.5.
+        self.assertGreaterEqual(run[-1][1] - 2.5, BUILDER.RAIL_BED_WIDTH)
+        self.assertGreater(run[-1][0], 31)
+        self.assertEqual(len(main["nativeRailway"]["runs"]), 1)
 
 
 class SurveyEvidence(unittest.TestCase):

@@ -57,6 +57,16 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
   adjusted footprint are recorded.
 - Source-backed bridge and wooden boardwalk routes. Water is retained beneath
   these routes; park and vegetation fills do not manufacture land in the lake.
+- All 19 mapped piers as wooden decks at their source place: bridge over the
+  lake, planks on open ground, 2 m wide (OpenStreetMap records no width, so this
+  is the boardwalk proxy). Cross-docks mapped out and back along one line
+  (A-B-C-A) are drawn once along their chord. No railing is drawn; none is
+  mapped.
+- The disused Sorrento Subdivision railway, whose rails remain, as a 2 m gravel
+  bed that moves with the town like the curved roads. Its 3D track is the
+  Nautilus railway kit (`art/source/nautilus/packages/railway-visuals`) and
+  stops short of every road: level crossings, the bridge over Tremain Street
+  and the siding's switches show no track.
 - A common metre coordinate system, all 42 native JSON documents, neighbor
   references, source feature identities, raw input snapshots and reproducible
   generation records.
