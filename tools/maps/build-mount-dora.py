@@ -60,8 +60,9 @@ PIER_DECK_HEIGHT = .4
 # (joints are found within one way; where two ways meet, every contact on this
 # map is a T). The cells reach past the drawn 2 m deck, 0.25 m sideways on a
 # square deck and more on a diagonal one or past a free end, so the town decides
-# a walker's height from their body, not their cell: see deckHeightAt in the art
-# manifest. A straight band stays joined side to side at any angle (the overlap
+# a walker's height from their body (and, on a deck cell over water, from that
+# cell): see deckHeightAt in the art manifest and surfaceHeight in the town view.
+# A straight band stays joined side to side at any angle (the overlap
 # between neighbouring columns is (1.5 - sin a) / cos a >= 1.12 cells); a bend's
 # outer corner falls past both lines' square ends, which is why joints round off.
 PIER_WALK_WIDTH = 1.5

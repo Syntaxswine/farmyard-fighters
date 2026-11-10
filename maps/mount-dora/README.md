@@ -66,8 +66,9 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
   centres lie within 0.75 m of a deck line (not past its free ends, round at its
   joints). They stand on a deck wherever their body (0.23 m) overlaps it, so at
   most 0.23 m beyond its edge on land and never inside it at ground height. On a
-  deck cell over water they always stand on the deck, at most 0.26 m past its
-  edge (at a free end). Segments
+  deck cell over water they always stand on the deck, at most 0.27 m past its
+  edge (at a free end); on the footbridge cell under pier 508450229's end, up to
+  0.44 m. Segments
   mapped back over one another, such as the
   cross-docks mapped out and back (A-B-C-A), are drawn once along their chord.
   A pier leaves the paths that meet it alone. One reviewed observation adds a
@@ -97,7 +98,7 @@ workshop refuses them because it requires four walkable squad starts and a
 travel marker. The authoring data does not add fake platforms to bypass that
 rule. The other sectors have five clearly identified authoring-validator
 markers on connected existing walkable cells for editor validation: land, or in
-B07 and C03 a boardwalk (painted before the piers). They lie in the same walkable area as the
+B07 the Palm Island boardwalk and in C03 the Donnelly Park stage's planks. They lie in the same walkable area as the
 sector's first sentry, because the validator walks between them within the
 sector: A04's and C06's first cells in scan order are on pier decks that reach
 land only in the next sector, so their markers stand on land. Forty-two sentries

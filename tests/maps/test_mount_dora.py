@@ -1063,6 +1063,12 @@ class PierAndRailwayUnits(unittest.TestCase):
                     todo.append(n)
         self.assertEqual(seen, deck)
 
+    def test_a_pier_keeps_every_joint(self):
+        width, depth = 12, 8
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [5.0, 2.5], [5.0, 5.5], [9.0, 5.5]]}}
+        BUILDER.paint_piers(bytearray([BUILDER.CODE["water"]] * (width * depth)), bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth)
+        self.assertEqual(pier["nativePier"]["joints"], [[5.0, 2.5], [5.0, 5.5]])
+
     def test_a_joint_rounds_the_band_three_quarters_of_a_metre_out(self):
         # Cell (8, 5) lies past both lines' square ends, in the bend's outer corner,
         # so only the joint's round band can reach its centre (8.5, 5.5).
@@ -1167,6 +1173,7 @@ class PierAndRailwayUnits(unittest.TestCase):
         # The added line starts on a vertex of the way (not merely near its deck), is one
         # straight line of two distinct points, and does not run back over a mapped deck line.
         for bad, message in (([[15.0, 2.5], [15.0, 5.5]], "no longer starts on a vertex"), ([[9.9, 2.5], [9.9, 5.5]], "no longer starts on a vertex"),
+                             ([[10.0, 5.5], [10.0, 2.5]], "no longer starts on a vertex"),
                              ([[10.0, 2.5], [10.0, 4.0], [12.0, 5.0]], "must add one straight line"), ([[10.0, 2.5], [10.0, 2.5]], "must add one straight line"),
                              ([[10.0, 2.5], [4.0, 2.5]], "runs over a mapped deck line")):
             with self.assertRaisesRegex(ValueError, message, msg=str(bad)):

@@ -112,16 +112,27 @@ owner's choice of a low deck; the 2018 lidar puts the real decks a median
 
 Where two of a pier's lines meet at a joint, both decks run on past it by the
 mitre length (`deck.extend`): half the width times tan(turn / 2), where the turn
-is 0 straight on. Their outer corners then meet exactly. So a bend has no notch
-on the outside and nothing sticking out, and a nearly straight joint leaves no
-wedge. The runs are 0.63 m at 548471565's 64.6° bend and 1.0 m at the square
-bends, down to millimetres where a walkway kinks by a fraction of a degree.
+is 0 straight on. Their outer corners then meet exactly, so a bend has no notch
+on the outside and a nearly straight joint leaves no wedge. The runs are 0.63 m
+at 548471565's 64.6° bend and 1.0 m at the square bends, down to millimetres
+where a walkway kinks by a fraction of a degree.
+
+Up to a square turn nothing else sticks out. Past it, each run-on's inner corner
+pokes out past the other deck's outer edge by the width times |cos turn|. Here
+that is 0.8, 2.4 and 4.9 cm, at the three corners just past square (90.2°, 90.7°
+and 91.4°).
 
 At a joint of three or more lines, the straightest pair mitres, and the others
 end at the joint, inside that pair's deck. At the Rusty Anchor T, the walkway
-meets the dock's straight leg on its centre line. A turn over 135°, or a
-junction with no pair within 30° of straight, stops the art build, because it
-needs a corner rule of its own; Mount Dora's sharpest is 91.4°.
+meets the dock's straight leg on its centre line.
+
+The rule lives in `pier-joints.mjs`, beside the art builder. It stops the build
+in two cases, each needing a corner rule of its own:
+- where that overhang would pass 10 cm, a turn sharper than about 92.9°, which
+  needs a cut mitre;
+- at a junction with no pair within 30° of straight.
+
+Mount Dora's sharpest turn is 91.4°.
 
 Decks that overlap by more than a centimetre stand at different levels, 2 mm
 apart (`deck.level`). Each line takes the lowest level that no overlapping line
@@ -145,17 +156,24 @@ texture at water level beside the raised deck.
 So a walker's height follows their body, not their cell. `deckHeightAt(point,
 radius)` in `manifest.js` (through `deckCovers`) gives the deck's height
 wherever the drawn deck lies within `radius` of the point. The town view
-(`surfaceHeight`) asks it with the walker's position and `WALKER_RADIUS`, the
-0.23 m body that `pointClear` keeps clear, exported by `mount-dora-world.js`.
+(`surfaceHeight`) asks it with the walker's position and their 0.23 m body.
+That body is `WALKER_RADIUS` from `mount-dora-world.js`, which a test keeps
+equal to `UNIT_RADIUS`, the radius the movement core in `solo-game.js` passes
+to `pointClear`.
 
-- **On land,** including the 11 path cells (6 ways, one of them the wooden
-  footbridge 508450238) and the land cells beside the band that the deck
-  covers, a walker stands on the deck wherever their body overlaps it. That is
-  at most 0.23 m past its edge, and never inside the drawn deck at ground height.
+The deck covers 11 path cells on 6 ways: 10 concrete or dirt cells, and one
+cell of the wooden footbridge 508450238.
+
+- **On land,** including those 10 path cells and the land cells beside the band
+  that the deck covers, a walker stands on the deck wherever their body overlaps
+  it. That is at most 0.23 m past its edge, and never inside the drawn deck at
+  ground height.
 - **On a deck cell over water** (bridge) whose centre the deck covers, a walker
   always stands on the deck, so no one stands at water level on a pier's
-  walkable cells. They stand at most 0.26 m past the deck's edge, at a free end
-  over water. On the footbridge cell under 508450229's end it is up to 0.44 m.
+  walkable cells. They stand at most 0.272 m past the deck's edge, at the free
+  end of 548471565's leg. On the footbridge cell under 508450229's end it is up
+  to 0.436 m. Both figures come from the walkable corners of each cell, the cell
+  kept 0.23 m off its water sides, and are pinned by the art tests.
 
 Shots and sight still treat a walker on a deck at ground height, and the shore
 end is a single 0.4 m step. A `pier-deck` kind draws a mapped platform outline;
