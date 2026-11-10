@@ -8,6 +8,8 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {installNativeProbe,inspectWebGL} from '../sites/tactical-animal/browser-tests/native-probe.mjs';
 import {measureMovementFrames,startMovementFrameTape} from '../sites/tactical-animal/browser-tests/movement-measurement.mjs';
+import {TOUR_SAVE} from '../sites/tactical-animal/dist/mount-dora-progress.js';
+const tourKey='farmyard-fighters:'+TOUR_SAVE;
 const shelterReview=false;
 // The two-core software-rendering runner uses a normal 800x600 desktop window.
 // Keep the complete route/assertions and 390x844 touch coverage; video is opt-in.
@@ -59,7 +61,8 @@ async function panTo(page,town){
   const box=await page.locator('#viewport').boundingBox();
   for(let n=0;n<10;n++){
     const p=await projectPoint(page,town),cx=box.x+box.width*.5,cy=box.y+box.height*.48;
-    if(p.visible&&p.x>box.x+90&&p.x<box.x+box.width-90&&p.y>box.y+130&&p.y<box.y+box.height-200)return p;
+    if(p.visible&&p.x>box.x+90&&p.x<box.x+box.width-90&&p.y>box.y+130&&p.y<box.y+box.height-200&&
+      await page.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('#viewport'),p))return p;
     const dx=Math.max(-box.width*.32,Math.min(box.width*.32,cx-p.x)),dy=Math.max(-box.height*.30,Math.min(box.height*.30,cy-p.y));
     await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+dx,cy+dy,{steps:7});await page.mouse.up();await page.waitForTimeout(120);
   }throw Error('Could not bring actual ground point into the viewport: '+town);
@@ -85,21 +88,72 @@ function routeTo(points,distanceLimit){
 function observeInputs(){window.__movementInputEvents=[];window.__movementLifecycle=[];for(const type of ['freeze','resume','visibilitychange'])document.addEventListener(type,e=>window.__movementLifecycle.push({type,trusted:e.isTrusted,at:e.timeStamp,visibility:document.visibilityState,elapsed:window.__movementInspect?.().elapsed}),true);for(const type of ['pointerdown','pointerup','pointercancel','click'])document.addEventListener(type,e=>{const id=e.target.closest?.('button')?.id||(e.target.closest?.('#joystick')?'joystick':null);if(id)window.__movementInputEvents.push({type,id,pointerId:e.pointerId,pointerType:e.pointerType,isPrimary:e.isPrimary,trusted:e.isTrusted,at:e.timeStamp});},true);}
 async function sample(page){return page.evaluate(async()=>{const m=await import(document.querySelector('script[src*="app.js"]').src);return {wall:performance.now(),info:m.inspectMountDora()};});}
 async function deploy(page,resume=false){await page.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');await page.locator(resume?'#resume':'#deploy').click();return ready(page);}
-async function zoomCheck(page,name){const initial=await snapshot(page),p=[initial.player.x+.5,initial.player.y+.5],a=await projectPoint(page,p),b=await projectPoint(page,[p[0]+10,p[1]]),before=Math.hypot(a.x-b.x,a.y-b.y),spans=[initial.camera.span];for(let n=0;n<7;n++){await page.locator('#zoom-out').click();await page.waitForTimeout(100);spans.push((await snapshot(page)).camera.span);}const c=await projectPoint(page,p),d=await projectPoint(page,[p[0]+10,p[1]]),after=Math.hypot(c.x-d.x,c.y-d.y),info=await snapshot(page);for(let n=1;n<spans.length;n++)assert(spans[n]>spans[n-1]+.05);assert(after<before*.35);assert(info.camera.span>40);assert(info.render.blocks<=25&&info.source.stats.peakDecoded<=9&&info.source.stats.peakFetches<=2);await shot(page,name+'-zoom');mark(name+' actual projected zoom extent grows with bounded residency',{spans,projectedPixelsBefore:before,projectedPixelsAfter:after,blocks:info.render.blocks});}
-const entrance=features.find(f=>f.id==='osm-way-548471563').geometry.coordinates,dx=entrance[1][0]-entrance[0][0],dy=entrance[1][1]-entrance[0][1],length=Math.hypot(dx,dy),direction={x:dx/length,y:dy/length},horizontal=Math.hypot(10,12),input={x:12/horizontal*direction.x-10/horizontal*direction.y,y:10/horizontal*direction.x+12/horizontal*direction.y};
-async function stroke(page,ctx,mode,label,throttle=1){const cdp=await ctx.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:throttle});const settling=(await snapshot(page)).frames;await waitInfo(page,s=>s.frames>=settling+3,'Native shader/input settling frames',30000);const stick=await page.locator('#joystick').boundingBox(),centre={x:stick.x+stick.width/2,y:stick.y+stick.height/2},point={id:1,x:centre.x+stick.width*.3*input.x,y:centre.y+stick.width*.3*input.y};await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,...centre}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[point]});try{let info=await snapshot(page);assert(info.input.stickHeld);if(mode==='run'){const button=await page.locator('#movement-cycle').boundingBox();// CDP sends remain ordered; do not turn a quick tap into a hold while waiting for a slow down acknowledgement.
-const down=cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point,{id:2,x:button.x+button.width/2,y:button.y+button.height/2}]}),up=cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[{id:2,x:button.x+button.width/2,y:button.y+button.height/2}]});await down;await up;await waitInfo(page,s=>s.player.running&&s.input.stickHeld,'Run tap cancelled the held joystick',20000);assert.equal(await page.locator('#movement-label').textContent(),'RUN');}
-const pointerEvents=await page.evaluate(()=>window.__movementInputEvents);if(mode==='run')assert(pointerEvents.some(e=>e.id==='movement-cycle'&&e.type==='pointerup'&&e.pointerType==='touch'&&e.isPrimary===false&&e.trusted));
-await page.evaluate(startMovementFrameTape);
-await page.waitForFunction(()=>{const s=window.__movementFrameTape.samples;return s.length>=3&&s.at(-1).rafAt-s[0].rafAt>=850;},null,{timeout:30000});
-const {before,after,samples:observed}=await page.evaluate(()=>window.__movementFrameTape.stop()),expected=mode==='run'?14.4:7.2,wallSeconds=(after.wall-before.wall)/1000,remaining=length-((before.info.player.x+.5-entrance[0][0])*direction.x+(before.info.player.y+.5-entrance[0][1])*direction.y);
-// Persist the raw tape before assertions so failed CI retains every frame gap.
-const measurement={label,expected,throttle,before,after,wallSeconds,remainingStraightMetres:remaining,observed};(report.measurements||=[]).push(measurement);write();
-Object.assign(measurement,measureMovementFrames(observed,expected));write();
-mark(label+' native frame budget and actor frustum',{...measurement,before:undefined,after:undefined,pointerEvents,wallSpeed:measurement.travel/wallSeconds});return after.info;
-}finally{await page.evaluate(()=>window.__movementFrameTape?.stop());await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await cdp.detach();}}
+async function zoomCheck(page,name){
+  const initial=await snapshot(page),p=[initial.player.x+.5,initial.player.y+.5],q=[p[0]+10,p[1]];
+  const a=await projectPoint(page,p),b=await projectPoint(page,q),before=Math.hypot(a.x-b.x,a.y-b.y);
+  const zoomOut=page.locator('#zoom-out'),spans=[initial.camera.span];
+  for(let n=0;n<7&&await zoomOut.isEnabled();n++){
+    await zoomOut.click();
+    const next=await waitInfo(page,s=>s.camera.span>spans.at(-1)+.05,'Zoom Out did not widen the field');
+    spans.push(next.camera.span);
+  }
+  const c=await projectPoint(page,p),d=await projectPoint(page,q),after=Math.hypot(c.x-d.x,c.y-d.y),info=await snapshot(page);
+  assert(spans.length>=3&&info.camera.span>40);
+  assert(Math.abs(after/before-initial.camera.span/info.camera.span)<.02);
+  assert(info.render.blocks<=25&&info.source.stats.peakDecoded<=9&&info.source.stats.peakFetches<=2);
+  await shot(page,name+'-zoom');mark(name+' actual projected zoom extent grows with bounded residency',{spans,projectedPixelsBefore:before,projectedPixelsAfter:after,blocks:info.render.blocks});
+}
+const entrance=features.find(f=>f.id==='osm-way-548471563').geometry.coordinates,dx=entrance[1][0]-entrance[0][0],dy=entrance[1][1]-entrance[0][1],length=Math.hypot(dx,dy),direction={x:dx/length,y:dy/length};
+async function stroke(page,ctx,mode,label,throttle=1){
+  const cdp=await ctx.newCDPSession(page),running=mode==='run';
+  await cdp.send('Emulation.setCPUThrottlingRate',{rate:throttle});
+  const settling=(await snapshot(page)).frames;
+  await waitInfo(page,s=>s.frames>=settling+3,'Native shader/input settling frames',30000);
+  const stick=await page.locator('#joystick').boundingBox();
+  const centre={x:stick.x+stick.width/2,y:stick.y+stick.height/2};
+  const point={id:1,x:centre.x+stick.width*.3*direction.x,y:centre.y+stick.width*.3*direction.y};
+  const sneak=page.locator('#movement-cycle'),button=running?await sneak.boundingBox():null;
+  // Arm before the touch. Waiting for a later browser round trip while
+  // holding Run can let the actor reach the bend before recording begins.
+  await page.evaluate(startMovementFrameTape);
+  try{
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,...centre}]});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[point]});
+    if(running){
+      const tap={id:2,x:button.x+button.width/2,y:button.y+button.height/2};
+      const down=cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point,tap]});
+      const up=cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[tap]});
+      await Promise.all([down,up]);
+    }
+    await page.waitForFunction(run=>{
+      const frames=window.__movementFrameTape.samples;
+      const start=frames.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===run&&f.distance>frames[i-1].distance);
+      return start>=0&&frames.length>=start+3&&frames.at(-1).rafAt-frames[start].rafAt>=850;
+    },running,{timeout:30000});
+    const {before,after,samples}=await page.evaluate(()=>window.__movementFrameTape.stop());
+    const first=samples.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running&&f.distance>samples[i-1].distance);
+    const last=samples.findIndex((f,i)=>i>=first+2&&f.rafAt-samples[first].rafAt>=850);
+    const observed=samples.slice(first,last+1),expected=running?14.4:7.2;
+    const pointerEvents=await page.evaluate(()=>window.__movementInputEvents);
+    if(running){
+      assert.equal(await sneak.getAttribute('aria-pressed'),'false');
+      assert(pointerEvents.some(e=>e.id==='movement-cycle'&&e.type==='pointerup'&&e.pointerType==='touch'&&e.isPrimary===false&&e.trusted));
+    }
+    const p=observed[0].player;
+    const wallSeconds=(observed.at(-1).rafAt-observed[0].rafAt)/1000;
+    const remaining=length-((p.x+.5-entrance[0][0])*direction.x+(p.y+.5-entrance[0][1])*direction.y);
+    const measurement={label,expected,throttle,before,after,wallSeconds,remainingStraightMetres:remaining,observed};
+    (report.measurements||=[]).push(measurement);write();
+    Object.assign(measurement,measureMovementFrames(observed,expected));write();
+    mark(label+' native frame budget and actor frustum',{...measurement,before:undefined,after:undefined,pointerEvents,wallSpeed:measurement.travel/wallSeconds});
+  }finally{
+    await page.evaluate(()=>window.__movementFrameTape?.stop());
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await cdp.detach();
+  }
+}
 async function resetSaved(page){await page.reload();return deploy(page,true);}
-async function timingReview(page,ctx){let info=await snapshot(page);await page.locator('#menu').click();let paused=await snapshot(page);await page.waitForTimeout(1400);let after=await snapshot(page);assert.equal(after.elapsed,paused.elapsed);assert.equal(after.distance,paused.distance);await page.getByRole('button',{name:'Continue walking',exact:true}).click();after=await waitInfo(page,s=>!s.paused&&s.frames>paused.frames,'Pause resume did not render');assert(after.elapsed-paused.elapsed<1);const cdp=await ctx.newCDPSession(page);await page.evaluate(async()=>{window.__movementInspect=(await import(document.querySelector('script[src*="app.js"]').src)).inspectMountDora;});const background=await sample(page);await cdp.send('Page.setWebLifecycleState',{state:'frozen'});await new Promise(r=>setTimeout(r,1400));await cdp.send('Page.setWebLifecycleState',{state:'active'});const resumed=await sample(page),lifecycle=await page.evaluate(()=>window.__movementLifecycle),freeze=lifecycle.find(e=>e.type==='freeze'&&e.at>=background.wall),resume=lifecycle.find(e=>e.type==='resume'&&freeze&&e.at>=freeze.at);assert.equal(resumed.info.distance,background.info.distance);if(freeze&&resume){assert.equal(resume.elapsed,freeze.elapsed,'Simulation cannot advance between lifecycle boundary events');const active=Math.max(0,freeze.at-background.info.renderedAt)/1000+Math.max(0,resumed.info.renderedAt-resume.at)/1000;assert(resumed.info.elapsed-background.info.elapsed<=active+.08,'Frozen wall time must not be simulated');report.nativeBackground={verified:true,freeze,resume,active,elapsed:resumed.info.elapsed-background.info.elapsed};}else report.nativeBackground={verified:false,reason:'This headless lifecycle command did not emit document freeze/resume events; real dialog pause is verified, hidden/blur/loading/freeze handlers are covered by controlled clock regressions.',lifecycle};await cdp.detach();info=resumed.info;mark('real dialog pause excludes suspended wall time',{pausedSeconds:1.4,backgroundSeconds:1.4,position:info.player});}
+async function timingReview(page,ctx){let info=await snapshot(page);await page.locator('#menu').click();let paused=await snapshot(page);await page.waitForTimeout(1400);let after=await snapshot(page);assert.equal(after.elapsed,paused.elapsed);assert.equal(after.distance,paused.distance);await page.getByRole('button',{name:'Continue operation',exact:true}).click();after=await waitInfo(page,s=>!s.paused&&s.frames>paused.frames,'Pause resume did not render');assert(after.elapsed-paused.elapsed<1);const cdp=await ctx.newCDPSession(page);await page.evaluate(async()=>{window.__movementInspect=(await import(document.querySelector('script[src*="app.js"]').src)).inspectMountDora;});const background=await sample(page);await cdp.send('Page.setWebLifecycleState',{state:'frozen'});await new Promise(r=>setTimeout(r,1400));await cdp.send('Page.setWebLifecycleState',{state:'active'});const resumed=await sample(page),lifecycle=await page.evaluate(()=>window.__movementLifecycle),freeze=lifecycle.find(e=>e.type==='freeze'&&e.at>=background.wall),resume=lifecycle.find(e=>e.type==='resume'&&freeze&&e.at>=freeze.at);assert.equal(resumed.info.distance,background.info.distance);if(freeze&&resume){assert.equal(resume.elapsed,freeze.elapsed,'Simulation cannot advance between lifecycle boundary events');const active=Math.max(0,freeze.at-background.info.renderedAt)/1000+Math.max(0,resumed.info.renderedAt-resume.at)/1000;assert(resumed.info.elapsed-background.info.elapsed<=active+.08,'Frozen wall time must not be simulated');report.nativeBackground={verified:true,freeze,resume,active,elapsed:resumed.info.elapsed-background.info.elapsed};}else report.nativeBackground={verified:false,reason:'This headless lifecycle command did not emit document freeze/resume events; real dialog pause is verified, hidden/blur/loading/freeze handlers are covered by controlled clock regressions.',lifecycle};await cdp.detach();info=resumed.info;mark('real dialog pause excludes suspended wall time',{pausedSeconds:1.4,backgroundSeconds:1.4,position:info.player});}
 try{
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});port=server.address().port;
   browserServer=await chromium.launchServer({host:'127.0.0.1',headless:true,...(process.env.WALKTHROUGH_BROWSER_CHANNEL?{channel:process.env.WALKTHROUGH_BROWSER_CHANNEL}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
@@ -110,10 +164,30 @@ try{
   const origin='http://127.0.0.1:'+port;
   fs.writeFileSync(path.join(out,'server-url.json'),JSON.stringify({origin,expiresAt:record.expiresAt,owner:record.owner,route:'/game.html?activity=mount-dora'})+'\n');
   console.log('NATIVE_REVIEW_URL '+origin+'/game.html?activity=mount-dora');
-  context=await browser.newContext({viewport:{width:800,height:600},hasTouch:true,deviceScaleFactor:1});await context.addInitScript(installNativeProbe);await context.addInitScript(observeInputs);const page=await context.newPage(),log=capture(page,'desktop');await page.goto(origin+'/game.html?activity=mount-dora');await deploy(page);await walkTo(page,[460.5,508.5]);mark('real ground route reaches the independently clear street approach');await visit(page,'Palm Island entrance');await waitInfo(page,s=>!s.paused&&Math.hypot(s.player.x-(entrance[0][0]-.5),s.player.y-(entrance[0][1]-.5))<.05,'Boardwalk approach');await page.waitForFunction(p=>{const text=localStorage.getItem('farmyard-mount-dora-tour-v1');if(!text)return false;const s=JSON.parse(text);return Math.hypot(s.player.x-p[0],s.player.y-p[1])<.05;},[entrance[0][0]-.5,entrance[0][1]-.5],{timeout:10000});const fixture=await page.evaluate(()=>{const p=JSON.parse(localStorage.getItem('farmyard-mount-dora-tour-v1'));p.player.stamina=0;return JSON.stringify(p);});report.exhaustedFixture={position:JSON.parse(fixture).player,source:'Reached through production ground/landmark controls; only saved stamina set to zero.'};await context.addInitScript(save=>localStorage.setItem('farmyard-mount-dora-tour-v1',save),fixture);
-  for(const [mode,label,throttle]of [['walk','desktop-walk',1],['run','desktop-run-held-tap',1],['run','desktop-low-fps-run',2]]){await resetSaved(page);await stroke(page,context,mode,label,throttle);await shot(page,label);}
+  context=await browser.newContext({viewport:{width:800,height:600},hasTouch:true,deviceScaleFactor:1});
+  await context.addInitScript(installNativeProbe);await context.addInitScript(observeInputs);
+  const page=await context.newPage();capture(page,'desktop');await page.goto(origin+'/game.html?activity=mount-dora');
+  await deploy(page);await walkTo(page,[460.5,508.5]);mark('real ground route reaches the independently clear street approach');
+  await visit(page,'Palm Island entrance');
+  const approach=[entrance[0][0]-.5,entrance[0][1]-.5];
+  await waitInfo(page,s=>!s.paused&&Math.hypot(s.player.x-approach[0],s.player.y-approach[1])<.05,'Boardwalk approach');
+  await page.locator('#movement-cycle').click();
+  await page.waitForFunction(({key,point})=>{
+    const saved=JSON.parse(localStorage.getItem(key)),player=saved?.player;
+    return player?.sneaking&&Math.hypot(player.x-point[0],player.y-point[1])<.05;
+  },{key:tourKey,point:approach},{timeout:10000});
+  const fixture=await page.evaluate(key=>{
+    const saved=JSON.parse(localStorage.getItem(key));
+    saved.player.stamina=0;
+    return JSON.stringify(saved);
+  },tourKey);
+  report.exhaustedFixture={position:JSON.parse(fixture).player,source:'Reached through production controls; only saved stamina set to zero.'};
+  const checkpoint={key:tourKey,save:fixture};
+  const setCheckpoint=({key,save})=>localStorage.setItem(key,save);
+  await context.addInitScript(setCheckpoint,checkpoint);
+  for(const [mode,label,throttle]of [['sneak','desktop-sneak',1],['run','desktop-run-held-tap',1],['run','desktop-low-fps-run',2]]){await resetSaved(page);await stroke(page,context,mode,label,throttle);await shot(page,label);}
   await zoomCheck(page,'desktop');await timingReview(page,context);report.desktopWebGL=await assertGL(page);await context.close();context=null;
-  phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});await phone.addInitScript(installNativeProbe);await phone.addInitScript(observeInputs);await phone.addInitScript(save=>localStorage.setItem('farmyard-mount-dora-tour-v1',save),fixture);const mobile=await phone.newPage();capture(mobile,'phone');await mobile.goto(origin+'/game.html?activity=mount-dora');await deploy(mobile,true);await stroke(mobile,phone,'run','phone-run-held-tap');await shot(mobile,'phone-run');await zoomCheck(mobile,'phone');report.phoneWebGL=await assertGL(mobile);
+  phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});await phone.addInitScript(installNativeProbe);await phone.addInitScript(observeInputs);await phone.addInitScript(setCheckpoint,checkpoint);const mobile=await phone.newPage();capture(mobile,'phone');await mobile.goto(origin+'/game.html?activity=mount-dora');await deploy(mobile,true);await stroke(mobile,phone,'run','phone-run-held-tap');await shot(mobile,'phone-run');await zoomCheck(mobile,'phone');report.phoneWebGL=await assertGL(mobile);
   for(const l of report.pages){assert.deepEqual(l.errors,[]);assert.deepEqual(l.requests,[]);assert.deepEqual(l.console.filter(x=>x.type==='error'),[]);}report.passed=true;
 }catch(error){report.passed=false;report.failure=error.stack;for(const [i,c]of (browser?.contexts()||[]).entries())for(const [j,p]of c.pages().entries())try{await p.screenshot({path:path.join(out,'failure-'+i+'-'+j+'.png')});report.failureUI=await p.evaluate(()=>({toast:document.getElementById('toast')?.textContent,loading:document.getElementById('loading')?.textContent,status:document.getElementById('tour-launch-status')?.textContent}));}catch{}write();throw error;}
 finally{await close();if(!report.cleanup.httpReleased||!report.cleanup.wsReleased||!report.cleanup.browserProcessExited||report.cleanup.errors.length)process.exitCode=1;}

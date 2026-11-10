@@ -2,13 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import net from 'node:net';
+import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {audit,argumentsOf,root,writeJSON,hash,sourceChanges,addedPaths} from './review-mount-dora-workshop.mjs';
 import {reviewServer} from './serve-mount-dora-workshop.mjs';
 const options=argumentsOf(process.argv.slice(2)),review=await audit(options);
 assert(fs.existsSync(path.join(review.source,'dist/index.html')),'Build the pinned source first.');
 const {chromium}=await import(pathToFileURL(path.join(root,'sites/tactical-animal/browser-tests/node_modules/playwright/index.mjs')).href);
-let browser,context,server,page,frame;const errors=[],evidence={nautilusCommit:review.report.nautilusCommit,sourceMode:review.report.sourceMode,projectId:review.report.projectId,projectSha256:review.report.projectSha256,sourceDigest:review.report.sourceDigest,scenarios:[],errors};
+let browserServer,browser,context,server,page,frame,wsPort;const errors=[],evidence={nautilusCommit:review.report.nautilusCommit,sourceMode:review.report.sourceMode,projectId:review.report.projectId,projectSha256:review.report.projectSha256,sourceDigest:review.report.sourceDigest,scenarios:[],errors};
 const nativeOut=path.join(review.out,'native');fs.mkdirSync(nativeOut,{recursive:true});
 const project=JSON.parse(fs.readFileSync(review.project)),byId=new Map(project.sectors.map(s=>[s.id,s]));
 const ready=review.report.sectors.filter(s=>s.nativeReady);
@@ -18,33 +19,80 @@ const samples=review.report.sourceMode==='fixtures'?['fixture-downtown','fixture
     ready.find(r=>r.id==='A01')?.id||ready.find(r=>{const s=byId.get(r.id);return s.row===0||s.column===0||s.row===project.rows-1||s.column===project.columns-1;})?.id,
     ...ready.map(r=>r.id)])].filter(Boolean).slice(0,3);
 assert.equal(samples.length,3,'Need three native-import-ready representative sectors');
-let deadline;
-try{
-  server=await reviewServer(review);
-  browser=await chromium.launch({headless:true,...(process.env.WORKSHOP_BROWSER_CHANNEL?{channel:process.env.WORKSHOP_BROWSER_CHANNEL}:{}),
-    args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
-  evidence.browser={version:browser.version(),channel:process.env.WORKSHOP_BROWSER_CHANNEL||'locked-playwright-chromium',headless:true,softwareWebGL:true};
-  deadline=setTimeout(()=>{browser.close().catch(()=>{});process.exitCode=1;},14*60*1000);deadline.unref();
+const importTimeout=180000;
+function portReleased(port){
+  return new Promise(resolve=>{
+    const socket=net.connect(port,'127.0.0.1');
+    socket.once('connect',()=>{socket.destroy();resolve(false);});
+    socket.once('error',()=>resolve(true));
+    socket.setTimeout(1500,()=>{socket.destroy();resolve(false);});
+  });
+}
+async function replaceDocument(name,open,atlasId=null){
+  if(!atlasId)await frame.evaluate(()=>{window.__mountDoraBeforeImport=window.nautilus.document;});
+  const accept=async dialog=>{
+    if(dialog.type()==='confirm')await dialog.accept();
+    else {errors.push('Unexpected editor dialog: '+dialog.message());await dialog.dismiss();}
+  };
+  page.on('dialog',accept);
+  try{
+    await open();
+    // Dense sectors can spend a long time building their first software-WebGL
+    // frame. The atlas signals success only after the actual editor open.
+    const wait={timeout:importTimeout,polling:250};
+    if(atlasId){
+      await page.waitForFunction(id=>document.getElementById('active').textContent.startsWith('Open document: '+id+'.'),atlasId,wait);
+    }else{
+      await frame.waitForFunction(expected=>{
+        const current=window.nautilus.document;
+        return current!==window.__mountDoraBeforeImport&&current.map.name===expected&&!window.editor3d.loading;
+      },name,wait);
+      await frame.evaluate(()=>{delete window.__mountDoraBeforeImport;});
+    }
+  }finally{page.off('dialog',accept);}
+}
+async function openAtlas(){
   context=await browser.newContext({viewport:{width:1440,height:1100},acceptDownloads:true,...(process.env.CI?{recordVideo:{dir:path.join(nativeOut,'video')}}:{})});
-  page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());});
   await page.goto(server.url+'/maps/mount-dora/workshop/');
   await page.waitForFunction(()=>document.querySelectorAll('#grid button').length>0);
   frame=await (await page.locator('#workshop').elementHandle()).contentFrame();
   await frame.waitForURL('**/nautilus/',{timeout:30000});
-  console.log('Workshop frame attached');
   await frame.waitForFunction(()=>window.nautilus?.document&&!window.editor3d.loading&&!document.getElementById('nautilus-buildings').disabled,null,{timeout:90000});
+}
+let deadline;
+try{
+  server=await reviewServer(review);
+  browserServer=await chromium.launchServer({host:'127.0.0.1',headless:true,...(process.env.WORKSHOP_BROWSER_CHANNEL?{channel:process.env.WORKSHOP_BROWSER_CHANNEL}:{}),
+    args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  wsPort=Number(new URL(browserServer.wsEndpoint()).port);
+  const child=browserServer.process(),browserCreated=process.platform==='win32'?
+    execFileSync('powershell.exe',['-NoLogo','-NoProfile','-Command',"(Get-CimInstance Win32_Process -Filter 'ProcessId = "+child.pid+"').CreationDate.ToUniversalTime().ToString('o')"],{encoding:'utf8',windowsHide:true}).trim():
+    execFileSync('ps',['-p',String(child.pid),'-o','lstart='],{encoding:'utf8'}).trim();
+  const helperFile=path.join(review.out,'helper.json'),helper=JSON.parse(fs.readFileSync(helperFile));
+  writeJSON(helperFile,{...helper,browser:{pid:child.pid,executable:child.spawnfile,created:browserCreated,port:wsPort,stopMethod:'browserServer.close()'}});
+  browser=await chromium.connect(browserServer.wsEndpoint());
+  evidence.browser={version:browser.version(),channel:process.env.WORKSHOP_BROWSER_CHANNEL||'locked-playwright-chromium',headless:true,softwareWebGL:true};
+  deadline=setTimeout(()=>{browserServer.close().catch(()=>{});process.exitCode=1;},14*60*1000);deadline.unref();
+  await openAtlas();
+  console.log('Workshop frame attached');
   await page.locator('#grid button').first().click();await page.waitForFunction(()=>!document.getElementById('download').disabled);
   await page.screenshot({path:path.join(nativeOut,'atlas-desktop.png'),fullPage:true});
-  for(const id of samples){
+  for(const [index,id] of samples.entries()){
+    if(index&&review.report.sourceMode==='project'){
+      // Each real sector exercises selection and replacement within the
+      // editor. Release the previous sector's WebGL context before the next.
+      await context.close();
+      await openAtlas();
+    }
     const receipt=review.report.sectors.find(s=>s.id===id),file=path.join(path.dirname(review.project),receipt.file),raw=fs.readFileSync(file,'utf8'),input=JSON.parse(raw);
     console.log('Opening '+id);
     await page.locator('#grid button').filter({hasText:byId.get(id).name||id}).click();await page.waitForFunction(()=>!document.getElementById('open').disabled);
-    await page.locator('#open').click();await frame.waitForFunction(name=>window.nautilus.document.map.name===name&&!window.editor3d.loading,input.name);
+    await replaceDocument(input.name,()=>page.locator('#open').click({timeout:importTimeout,noWaitAfter:true}),id);
     assert.deepEqual(sourceChanges(input,JSON.parse(await frame.evaluate(()=>window.nautilus.export()))),[],'Atlas bridge changed source values');
     // Native file input exercises the workshop import handler, independently of the atlas bridge.
-    await frame.evaluate(()=>{window.__mountDoraBeforeImport=window.nautilus.document;});
-    await frame.locator('#import').setInputFiles(file);await frame.waitForFunction(name=>window.nautilus.document!==window.__mountDoraBeforeImport&&window.nautilus.document.map.name===name&&!window.editor3d.loading,input.name);
+    await replaceDocument(input.name,()=>frame.locator('#import').setInputFiles(file,{timeout:importTimeout}));
     const normalized=await frame.evaluate(()=>window.nautilus.export());assert.deepEqual(sourceChanges(input,JSON.parse(normalized)),[],'Native import changed source values');
     const nativeAddedPaths=addedPaths(input,JSON.parse(normalized));console.log('Native imported '+id);
     await frame.evaluate(async()=>{const e=window.editor3d;Object.assign(e.view,{x:120,y:120,span:320,preset:'0'});e.scene.changed();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));});
@@ -65,13 +113,14 @@ try{
     const other=project.sectors.find(s=>s.id!==id&&review.report.sectors.find(r=>r.id===s.id)?.nativeReady);
     await page.locator('#grid button').filter({hasText:other.name||other.id}).click();await page.waitForFunction(()=>!document.getElementById('open').disabled);
     assert.equal(await frame.evaluate(()=>window.nautilus.export()),edited,'Selecting a neighbor discarded current edits');
-    page.once('dialog',dialog=>dialog.dismiss());await page.locator('#open').click();
+    const dismissal=page.waitForEvent('dialog').then(dialog=>dialog.dismiss());
+    await Promise.all([dismissal,page.locator('#open').click({timeout:importTimeout,noWaitAfter:true})]);
     assert.equal(await frame.evaluate(()=>window.nautilus.export()),edited,'Dismissing replacement discarded current edits');
     if(!await frame.locator('#export').isVisible())await frame.locator('#settings-button').click();
     const [download]=await Promise.all([page.waitForEvent('download'),frame.locator('#export').click()]);
     const exported=path.join(nativeOut,id+'-edited.json');await download.saveAs(exported);assert.equal(fs.readFileSync(exported,'utf8'),edited);
-    page.once('dialog',dialog=>dialog.accept());await frame.locator('#import').setInputFiles(exported);
-    await frame.waitForFunction(value=>window.nautilus.export()===value&&!window.editor3d.loading,edited);
+    await replaceDocument(input.name,()=>frame.locator('#import').setInputFiles(exported,{timeout:importTimeout}));
+    assert.equal(await frame.evaluate(()=>window.nautilus.export()),edited,'Reopened export differs');
     assert.equal(sourceChanges(JSON.parse(expected.export()),JSON.parse(await frame.evaluate(()=>window.nautilus.export()))).length,0);
     if(await frame.locator('#editor-settings').evaluate(e=>e.open))await frame.locator('#close-settings').click();
     await page.screenshot({path:path.join(nativeOut,id+'.png'),fullPage:true});
@@ -90,6 +139,16 @@ try{
   if(page)await page.screenshot({path:path.join(nativeOut,'failure.png'),fullPage:true,timeout:5000}).catch(()=>{});
   throw error;}
 finally{
-  clearTimeout(deadline);if(context)await context.close();if(browser)await browser.close();if(server){await server.close();evidence.portReleased=await new Promise(resolve=>{const s=net.connect(server.port,'127.0.0.1');s.once('connect',()=>{s.destroy();resolve(false);});s.once('error',()=>resolve(true));});}
-  evidence.helpersClosed=true;writeJSON(path.join(nativeOut,'summary.json'),evidence);
+  clearTimeout(deadline);
+  const cleanupErrors=[];
+  for(const close of [()=>context?.close(),()=>browser?.close(),()=>browserServer?.close(),()=>server?.close()]){
+    try{await close();}catch(error){cleanupErrors.push(error.message);}
+  }
+  evidence.portReleased=!server||await portReleased(server.port);
+  evidence.wsReleased=!wsPort||await portReleased(wsPort);
+  evidence.browserProcessExited=!browserServer||browserServer.process().exitCode!==null||browserServer.process().signalCode!==null;
+  evidence.helpersClosed=evidence.portReleased&&evidence.wsReleased&&evidence.browserProcessExited&&!cleanupErrors.length;
+  if(!evidence.helpersClosed)process.exitCode=1;
+  evidence.cleanupErrors=cleanupErrors;
+  writeJSON(path.join(nativeOut,'summary.json'),evidence);
 }
