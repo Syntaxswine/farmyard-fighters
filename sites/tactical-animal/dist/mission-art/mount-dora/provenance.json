@@ -4,8 +4,8 @@
   "railwayRevision": "ed951ba4723ce4cdb87db25d226ad1ceaead7f46",
   "railwayBranch": "codex/railway-route-tool",
   "farmyardBase": "75a6b61a547a96edebdc456e9a42edb4f28185e4",
-  "featuresSHA256": "f1f3b90a2d9ed6e7bf36fe24437ebed6611cb7106f91cedd01b12187374a46e1",
-  "artRevision": "c8976a6eec7fd5f5244eca4e3b1463671378f4abffeb5a3090617aa1d13ed06e",
+  "featuresSHA256": "c69659a1aa543f842ae2196b66b217ed7c82de09bbb24f0e169656eac13ff649",
+  "artRevision": "7deaad4be712ef9dc34746ac1dc28207b96332b7606fd149980bd58c9c55f3dd",
   "files": [
     {
       "path": "source/packages/building-catalog/three.js",
@@ -54,7 +54,7 @@
     }
   ],
   "atlasSHA256": "bbe33709a63362a13e509131c11f358d286b3d55ffcb86ca0ca1def4934ccdb2",
-  "placements": 1353,
+  "placements": 1351,
   "buildingCount": 950,
   "coordinates": "town east/south metres; no half-cell transform",
   "sourceNotice": "Geometry and painted materials copied unchanged from the retained fixed source; map data Ã‚Â© OpenStreetMap contributors, ODbL 1.0. Details and heights are explicit approximations."

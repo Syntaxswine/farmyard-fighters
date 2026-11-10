@@ -88,6 +88,22 @@
       "note": "The retained OSM polygon is named Evans Park; official City of Mount Dora references use Elizabeth Evans Park."
     }
   ],
+  "pierObservations": [
+    {
+      "id": "rusty-anchor-t",
+      "source": {
+        "type": "way",
+        "id": 556100376
+      },
+      "observed": "2026-11-10",
+      "observer": "owner",
+      "statement": "the jog in the dock is a T intersection",
+      "method": "The owner's satellite view, only looked at; the added line's end comes from the 2018 USGS lidar.",
+      "addLine": [[136.0724, 641.5665], [136.042, 647.0]],
+      "uncertaintyM": 1,
+      "evidence": "2018 USGS lidar: a roofed platform over the water at x 133-138, y 638-646 (class 6 returns). The mapped north-south leg crosses it from y 636.3 and stops at the shore walkway (y 641.6); continued to the platform's south edge, the walkway meets the leg at a T."
+    }
+  ],
   "policy": {
     "noEnemies": true,
     "noInventedIslands": true,

@@ -50,6 +50,18 @@ STREET_STRAIGHT = .025       # across/along: runs within about 1.4 degrees of th
 # A mapped pier is a wooden deck as wide as a mapped boardwalk: an unsurveyed
 # proxy, since OpenStreetMap records no width for any Mount Dora pier.
 PIER_WIDTH = 2
+# A pier's deck stands this high over the water, on AFT's timber trellis cut
+# down to fit beneath it: the owner's choice of a low deck (2026-11-10). The
+# 2018 USGS lidar puts the decks of Mount Dora's 19 piers a median 0.43 m over
+# Lake Dora (most 0.37 to 0.46 m, four 0.7 to 1.4 m).
+PIER_DECK_HEIGHT = .4
+# The cells a walker crosses on a pier: centres within 0.75 m of a deck line,
+# and not past its ends. Narrower than the drawn deck, so on the raised deck a
+# walker stays over it (within 1.25 m of the line on a square deck, 1.46 m on a
+# diagonal one, against its 1 m half width), and still joined side to side at
+# any angle.
+PIER_WALK_WIDTH = 1.5
+PIER_DECK_HEIGHT_SOURCE = "owner's choice 2026-11-10 (low deck); 2018 USGS lidar median deck 0.43 m over the lake"
 # Railways whose rails are still in place. A disused line keeps its track; an
 # abandoned or razed one does not. The bed is the Nautilus branch-line track
 # bed (packages/railway-visuals, ballastWidthM 2), which the 3D track is drawn on.
@@ -316,9 +328,10 @@ def paint_line(grid, points, width_m, code, width, depth, *, land_only=False, wa
                 mask[index] = 1
 
 
-def line_cells(points, width_m, width, depth, *, offset=0):
+def line_cells(points, width_m, width, depth, *, offset=0, ends=True):
     """Cells whose centres lie within width_m / 2 of the polyline (a cell on
-    two segments comes once per segment)."""
+    two segments comes once per segment). With ends=False each segment's band
+    stops square at its ends instead of rounding past them."""
     radius = width_m / 2
     for a, b in zip(points, points[1:]):
         dx, dy = b[0] - a[0], b[1] - a[1]
@@ -335,7 +348,10 @@ def line_cells(points, width_m, width, depth, *, offset=0):
             py = y + .5
             for x in range(x0, x1 + 1):
                 px = x + .5
-                t = max(0, min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / length2))
+                along = ((px - a[0]) * dx + (py - a[1]) * dy) / length2
+                if not ends and not 0 <= along <= 1:
+                    continue
+                t = max(0, min(1, along))
                 if (px - a[0] - t * dx) ** 2 + (py - a[1] - t * dy) ** 2 <= radius * radius:
                     yield y * width + x
 
@@ -711,34 +727,82 @@ def geometry_points(geometry):
     return [p for polygon in coordinates for ring in polygon for p in ring]
 
 
-def pier_deck(points):
-    """The centreline of a pier's deck. A closed way that encloses no deck is
-    a line mapped out and back (A-B-C-A, with A on the line between B and C):
-    its deck is the chord between its two farthest vertices, drawn once."""
-    if len(points) >= 4 and points[0] == points[-1]:
-        return list(max(((p, q) for i, p in enumerate(points) for q in points[i + 1:]), key=lambda pair: math.dist(*pair)))
-    return points
+def _runs_back_over(s, t, sin_tolerance=math.sin(math.radians(5)), across=.6, shared=.05):
+    """Whether segment t runs back over segment s: parallel within 5 degrees,
+    both ends within 0.6 m of s's line, and more than 5 cm of s in common.
+    Two segments that only meet end to end share nothing."""
+    (a, b), (c, d) = s, t
+    length, other = math.dist(a, b), math.dist(c, d)
+    u, v = ((b[0] - a[0]) / length, (b[1] - a[1]) / length), ((d[0] - c[0]) / other, (d[1] - c[1]) / other)
+    if abs(u[0] * v[1] - u[1] * v[0]) > sin_tolerance:
+        return False
+    if any(abs((p[0] - a[0]) * u[1] - (p[1] - a[1]) * u[0]) > across for p in (c, d)):
+        return False
+    low, high = sorted((p[0] - a[0]) * u[0] + (p[1] - a[1]) * u[1] for p in (c, d))
+    return min(high, length) - max(low, 0) > shared
 
 
-def paint_piers(terrain, green, piers, corridor, width, depth):
-    """Lay every mapped pier as a wooden deck: bridge over open water, planks
-    on open ground. A pier keeps its mapped place over the water, as a
-    boardwalk does. A line is a deck PIER_WIDTH wide along pier_deck; a
-    closed pier way is the outline of a platform. A pier never replaces a
-    road or sidewalk, a building, another deck or the street corridor, and no
-    plant grows on it."""
+def pier_decks(points):
+    """The deck centrelines of a pier way, each a straight line. Every segment
+    is a line, except that segments mapped back over one another merge into
+    the chord between their two farthest vertices, so no deck is drawn twice:
+    Mount Dora's cross-docks are mapped out and back (A-B-C-A, a closed way
+    enclosing no deck), and one open way walks its crossbar three times."""
+    segments = [(a, b) for a, b in zip(points, points[1:]) if math.dist(a, b) > 1e-9]
+    parent = list(range(len(segments)))
+
+    def root(i):
+        while parent[i] != i:
+            i = parent[i]
+        return i
+    for i, segment in enumerate(segments):
+        for j in range(i):
+            if _runs_back_over(segments[j], segment) and root(i) != root(j):
+                parent[root(i)] = root(j)
+    groups = defaultdict(list)
+    for i in range(len(segments)):
+        groups[root(i)].append(i)
+    lines = []
+    for members in sorted(groups.values()):
+        ends = [p for k in members for p in segments[k]]
+        a, b = segments[members[0]] if len(members) == 1 else max(
+            ((p, q) for i, p in enumerate(ends) for q in ends[i + 1:]), key=lambda pair: math.dist(*pair))
+        lines.append([list(a), list(b)])
+    return lines
+
+
+def paint_piers(terrain, green, piers, road_mask, corridor, width, depth, observations=()):
+    """Lay every mapped pier as a wooden deck PIER_DECK_HEIGHT over the water:
+    bridge over open water, planks on open ground. A pier keeps its mapped
+    place, as a boardwalk does. Its walkable cells run PIER_WALK_WIDTH wide
+    (the drawn deck PIER_WIDTH) along each of pier_decks' lines, plus any
+    line a reviewed observation adds (the owner's
+    pierObservations in source/authoring-config.json, each recorded with the
+    pier); a closed way enclosing a deck would outline a platform (Mount Dora
+    has none). A pier never replaces a road, path or sidewalk, a building,
+    another deck or the street corridor, and no plant grows on it."""
     soft = {CODE[k] for k in ("ground-grass", "woodland", "ground-dirt")}
+    seen = {item["source"]["id"]: item for item in observations}
     for feature in piers:
         geometry = feature["geometry"]
+        observed = [item for item in observations if f"osm-way-{item['source']['id']}" == feature["id"]]
         if geometry["type"] == "LineString":
-            line = pier_deck(geometry["coordinates"])
-            cells = set(line_cells(line, PIER_WIDTH, width, depth))
+            lines = pier_decks(geometry["coordinates"])
+            for item in observed:
+                start = item["addLine"][0]
+                if min(_segment_distance(start, a, b) for a, b in lines) > .5:
+                    raise ValueError("Pier observation %s no longer starts on its pier's deck." % item["id"])
+                lines.append(item["addLine"])
+            # Square ends: no walkable cell reaches past where a deck line ends.
+            cells = {index for line in lines for index in line_cells(line, PIER_WALK_WIDTH, width, depth, ends=False)}
         else:
+            if observed:
+                raise ValueError("A pier observation may only extend a deck line: " + feature["id"])
             cells = {y * width + x for y, left, right in polygon_spans(geometry["coordinates"], width, depth)
                      for x in range(left, right)}
         water = land = 0
         for index in sorted(cells):
-            if corridor[index]:
+            if road_mask[index] or corridor[index]:
                 continue
             if terrain[index] == WATER:
                 terrain[index] = CODE["bridge"]
@@ -750,10 +814,15 @@ def paint_piers(terrain, green, piers, corridor, width, depth):
                 continue
             green[index] = 0
         feature["nativePier"] = {
-            "shape": "deck-line" if geometry["type"] == "LineString" else "platform-outline",
-            **({"line": line, "widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy"} if geometry["type"] == "LineString" else {}),
+            "shape": "deck-lines" if geometry["type"] == "LineString" else "platform-outline",
+            **({"lines": lines, "widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy", "walkWidthM": PIER_WALK_WIDTH} if geometry["type"] == "LineString" else {}),
+            "heightM": PIER_DECK_HEIGHT, "heightSource": PIER_DECK_HEIGHT_SOURCE,
+            **({"observations": observed} if observed else {}),
             "bridgeCells": water, "plankCells": land,
-            "policy": "Mapped pier at its source place: bridge over open water, planks on open ground; roads, sidewalks, buildings and other decks keep their surface. No surveyed width, height or railing."}
+            "policy": "Mapped pier at its source place: bridge over open water, planks on open ground; roads, paths, sidewalks, buildings and other decks keep their surface. No surveyed width or railing."}
+    missing = set(seen) - {int(f["id"].removeprefix("osm-way-")) for f in piers if f["id"].startswith("osm-way-")}
+    if missing:
+        raise ValueError("Pier observations name ways the town has no pier for: %s" % sorted(missing))
 
 
 def rail_line(feature, follow):
@@ -773,7 +842,11 @@ def _segment_distance(point, a, b):
 def rail_runs(line, open_at):
     """The stretches of a polyline where every RAIL_SAMPLE sample is open,
     each at least RAIL_RUN_MIN long, as polylines (the source vertices inside
-    a stretch are kept, so a run bends where the railway does)."""
+    a stretch are kept, so a run bends where the railway does). Openness is
+    tested at the samples only, so a run's clearance can dip a few
+    centimetres between two of them."""
+    if len(line) < 2:
+        return []
     lengths = [0.0]
     for a, b in zip(line, line[1:]):
         lengths.append(lengths[-1] + math.dist(a, b))
@@ -825,11 +898,11 @@ def paint_railways(terrain, green, railways, road_mask, corridor, follow, width,
                                     "bedWidthSource": "nautilus.railway.branch-line ballastWidthM", "terrain": "ground-gravel",
                                     "gravelCells": gravel}
     mains = [lines[f["id"]] for f in railways if not f["tags"].get("service")]
+    reach = RAIL_CLEARANCE + .5
 
     def blocked(point):
-        cx, cy = math.floor(point[0]), math.floor(point[1])
-        for y in range(cy - 1, cy + 2):
-            for x in range(cx - 1, cx + 2):
+        for y in range(math.floor(point[1] - reach), math.floor(point[1] + reach) + 1):
+            for x in range(math.floor(point[0] - reach), math.floor(point[0] + reach) + 1):
                 if (x + .5 - point[0]) ** 2 + (y + .5 - point[1]) ** 2 > RAIL_CLEARANCE ** 2:
                     continue
                 if not (0 <= x < width and 0 <= y < depth):
@@ -1246,8 +1319,9 @@ def render_atlas(features, config):
         if "nativePier" in feature and feature["geometry"]["type"] == "MultiPolygon":
             out.append(f'<path d="{paths(feature["geometry"]["coordinates"])}" fill="{PALETTE["bridge"]}" fill-rule="evenodd"/>')
         elif "nativePier" in feature:
-            points = " ".join(f"{p[0]},{p[1]}" for p in feature["nativePier"]["line"])
-            out.append(f'<polyline points="{points}" fill="none" stroke="{PALETTE["bridge"]}" stroke-width="{PIER_WIDTH}" stroke-linejoin="round"/>')
+            for line in feature["nativePier"]["lines"]:
+                points = " ".join(f"{p[0]},{p[1]}" for p in line)
+                out.append(f'<polyline points="{points}" fill="none" stroke="{PALETTE["bridge"]}" stroke-width="{PIER_WIDTH}"/>')
         elif "nativeRailway" in feature:
             points = " ".join(f"{p[0]},{p[1]}" for p in feature["nativeRailway"]["centerline"])
             out.append(f'<polyline points="{points}" fill="none" stroke="{PALETTE["ground-gravel"]}" stroke-width="{RAIL_BED_WIDTH}" stroke-linejoin="round"/>')
@@ -1486,7 +1560,7 @@ def build_project(project=PROJECT):
     # Piers and railways go down after the building fit, which treats gravel,
     # planks and decks as cells a footprint must clear: they take only what the
     # fitted town leaves open.
-    paint_piers(terrain, green, piers, corridor, width, depth)
+    paint_piers(terrain, green, piers, road_cells, corridor, width, depth, config.get("pierObservations", []))
     paint_railways(terrain, green, railways, road_cells, corridor, follow, width, depth)
     walls = deduplicated_walls(buildings)
     wall_pieces = split_walls(walls, extent, diagnostics)
@@ -1534,7 +1608,7 @@ def build_project(project=PROJECT):
                        "starts": anchors[:4], "guards": guards, "exits": anchors[4:],
                        "mountDora": {"version": 1, "projectId": config["id"], "sectorId": sid, "originM": {"x": ox, "y": oy},
                                      "sourceDigest": digest, "authoredLayoutSHA256": layout_digest, "buildingIds": sorted(sector_buildings[sid]),
-                                     "previewAnchors": "Authoring-validator markers on existing connected land; not real spawn/extraction locations.",
+                                     "previewAnchors": "Authoring-validator markers on existing connected walkable cells (land, or a mapped deck); not real spawn/extraction locations.",
                                      "buildingPolicy": "Grid-generalized footprints from retained geographic source; closed native-kit exteriors; no cut-boundary cap walls."}}
             if runs:
                 mapping["wallRuns"] = {"version": 1, "segments": runs}
@@ -1576,13 +1650,14 @@ def build_project(project=PROJECT):
                                "nativeCoordinates": "Wall metre endpoints = global east/south - sectorOrigin - 0.5; tile indices remain integer cells.",
                                "streets": {"classes": sorted(STREET_CLASSES), "snapClasses": sorted(SNAP_CLASSES), "widthM": STREET_WIDTH, "sidewalkWidthM": SIDEWALK_WIDTH,
                                            "buildingClearanceTiles": 1,
-                                           "snapLimitMPerAxis": STREET_SNAP_LIMIT, "policy": "Near-cardinal street runs align to a common metre line. Connected source nodes stay joined. Bridge and boardwalk points stay fixed."},
+                                           "snapLimitMPerAxis": STREET_SNAP_LIMIT, "policy": "Near-cardinal street runs align to a common metre line. Connected source nodes stay joined. Bridge, boardwalk and pier points stay fixed."},
                                "approachMovesM": approaches,
                                "defaultRoadWidthsM": WIDTHS,
-                               "piers": {"widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy",
-                                         "policy": "Every man_made=pier way is a wooden deck at its source place: bridge over open water, planks on open ground. A closed way outlines a platform. Roads, sidewalks, buildings and other decks keep their surface."},
+                               "piers": {"widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy", "walkWidthM": PIER_WALK_WIDTH, "deckHeightM": PIER_DECK_HEIGHT, "deckHeightSource": PIER_DECK_HEIGHT_SOURCE,
+                                         "observations": len(config.get("pierObservations", [])),
+                                         "policy": "Every man_made=pier way is a wooden deck at its source place: bridge over open water, planks on open ground, drawn raised on AFT's timber trellis. Segments mapped back over one another are drawn once; a reviewed observation may add a deck line. Roads, paths, sidewalks, buildings and other decks keep their surface."},
                                "railways": {"kinds": list(RAILWAY_KINDS), "bedWidthM": RAIL_BED_WIDTH, "trackClearanceM": RAIL_CLEARANCE, "track": "Nautilus railway-visuals branch-line profile",
-                                            "policy": "Railways whose rails remain move with the town and lie as a gravel bed on open ground. The 3D track covers only runs clear of roads, buildings, decks and water, so it stops at level crossings; a siding stops short of its main line."},
+                                            "policy": "Railways whose rails remain move with the town and lie as a gravel bed on open ground. The 3D track covers only runs clear of roads, buildings, decks and water, so it stops short of level crossings and of road bridges over the line; a siding stops where its bed would meet its main line's."},
                                "waterPolicy": "Fill complete source polygons first; land cover never creates land in water. Only mapped building footprints, bridges or wooden-surface paths can provide source-backed support over water; a county building on its lidar roof is such a footprint, and its one-metre fit may take the mapped water within three cells of it.",
                                "vegetation": {"seed": 1947, "brush": "woodland-v1",
                                               "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas. Individual plants are gameplay scenery."},
@@ -1613,7 +1688,8 @@ def build_project(project=PROJECT):
                                 "Native wall butt joints and per-run texture phases retain the workshop's existing limits; curved decorative parts and the lighthouse remain curved.",
                                 "Water-only sectors remain complete in the atlas/source but the existing four-start/one-exit native validator refuses them.",
                                 "Street widths, sidewalk widths, pier widths, bridge/steps heights and seeded vegetation are declared authoring approximations.",
-                                "Railways keep their mapped line and a declared 2 m bed. Level crossings, a railway bridge over a road, turnouts and crossing panels are not drawn: the 3D track stops short of each road.",
+                                "Railways keep their mapped line and a declared 2 m bed. Level crossings, a railway bridge over a road, a road bridge over the railway, turnouts and crossing panels are not drawn: the 3D track stops short of each road.",
+                                "Pier decks stand a declared 0.4 m over the water; the shore end is a single 0.4 m step, and shots and sight still treat a walker on a deck at ground height.",
                                 "No suggested future roads or gameplay objectives are authored."]}
     outputs["project.json"] = encoded(manifest, pretty=True)
     return outputs, manifest, feature_database, terrain

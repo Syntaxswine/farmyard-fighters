@@ -63,9 +63,9 @@ still checked in the actual integrated game, not inferred from kit images.
 There are 950 exact source MultiPolygons, including holes, ten separate Inn
 records, five historical court records, three actual mapped shelter contours,
 the named lighthouse point, two explicitly approximate park structures,
-69 pieces along the two complete source boardwalk polylines, 108 deck pieces
-along the 19 mapped piers, and 89 railway placements holding 992 Nautilus track
-pieces along the railway's track runs.
+69 pieces along the two complete source boardwalk polylines, 106 raised deck
+pieces along the 19 mapped piers, and 89 railway placements holding 992
+Nautilus track pieces along the railway's track runs.
 
 The original building renderer receives compiled geographic wall runs without
 half-metre cell snapping, floor cells, rooms, stairs or invented entrances. Its
@@ -104,10 +104,24 @@ and explicit park uncertainty bounds. Boardwalk deck width is the same inferred
 0.055 m. Ends stay open, with an open side approach near the mapped Palm shelter.
 This does not manufacture connecting ground or an elevated multi-floor route.
 
-Pier pieces (`kind: 'pier'`) draw the same deck along each pier's
-`nativePier.line`, in pieces of at most 8 m, with no rails and no solids: no
-railing is mapped or surveyed. A `pier-deck` kind draws a mapped platform
-outline; Mount Dora has none today.
+Pier pieces (`kind: 'pier'`) draw the same deck along each of a pier's
+`nativePier.lines`, in pieces of at most 8 m, with no rails and no solids: no
+railing is mapped or surveyed. The deck stands at `deck.heightM` (0.4 m, the
+owner's choice of a low deck; the 2018 lidar puts the real decks a median
+0.43 m over the lake). Its top is staggered 0, 2 or 4 mm by line, so decks
+that meet at a junction square never share a plane. Beneath it, AFT's timber
+trellis panel stands under both long edges and each capped end: the
+`TRELLIS_BEAMS` of the game's vendored `aft/tactics/bridge-trellis.js`, one
+panel per metre, with heights scaled to the space under the deck and beam
+sections at 0.4 of AFT's, so they still read. A walker on a deck stands at its
+height. The generator paints walkable deck cells only where a cell's centre
+lies within 0.75 m of a deck line (`deck.walkHalfWidthM`) and not past its
+ends, so they stay under the 2 m drawn deck. `deckHeightAt` in `manifest.js` applies the same rule from
+the same records, and the town view asks it about the centre of the walker's
+cell (`surfaceHeight`), so standing height and walking agree. Shots and sight
+still treat that walker at ground height, and the shore end is a single 0.4 m
+step. A `pier-deck` kind draws a mapped platform outline; Mount Dora has none
+today.
 
 Railway placements (`kind: 'railway'`) draw the Nautilus `railway:track-straight`
 piece, retained unchanged in `source/packages/railway-visuals` from Nautilus

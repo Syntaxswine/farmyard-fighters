@@ -95,17 +95,22 @@ for(const n of [548471563,688219167]){
   }
  }
 }
-// Mapped piers draw the boardwalk's deck pieces along the generator's deck line
-// (nativePier.line), at their source place. No railing is mapped or surveyed.
+// Mapped piers draw the boardwalk's deck, raised to the generator's deck height
+// on AFT's timber trellis, along each of the generator's deck lines
+// (nativePier.lines; the last ones may come from reviewed observations). No
+// railing is mapped or surveyed. Overlapping decks (a cross-dock over its stem)
+// stand 2 mm apart by line, so no two coplanar tops share pixels.
+let deckLine=0;
 for(const f of source.features.filter(f=>f.nativePier)){
- const n=f.id.replace(/^osm-way-/,'');
- if(f.nativePier.shape!=='deck-line'){polygonRecord('md:pier:'+n,'pier-deck',f.geometry.coordinates[0][0],[f.id],{surface:'wood'},{position:'retained-osm-outline',details:'Mapped platform outline; no surveyed height or railing.',sourceRefs:['osm']});continue;}
- const points=f.nativePier.line;
- for(let j=1;j<points.length;j++){
-  const a=points[j-1],b=points[j],dx=b[0]-a[0],dy=b[1]-a[1],parts=Math.ceil(Math.hypot(dx,dy)/8);
+ const n=f.id.replace(/^osm-way-/,''),pier=f.nativePier;
+ if(pier.shape!=='deck-lines'){polygonRecord('md:pier:'+n,'pier-deck',f.geometry.coordinates[0][0],[f.id],{surface:'wood'},{position:'retained-osm-outline',details:'Mapped platform outline; no surveyed railing.',sourceRefs:['osm']}).deck={heightM:pier.heightM,topM:pier.heightM};continue;}
+ const observed=pier.observations||[],firstObserved=pier.lines.length-observed.length;
+ for(const [i,[a,b]]of pier.lines.entries()){
+  const dx=b[0]-a[0],dy=b[1]-a[1],parts=Math.ceil(Math.hypot(dx,dy)/8),topM=r(pier.heightM+.002*(deckLine++%3));
+  const position=i<firstObserved?'original-polyline-subdivision':'reviewed-observation:'+observed[i-firstObserved].id;
   for(let k=0;k<parts;k++){
    const ends=[k/parts,(k+1)/parts].map(t=>[r(a[0]+dx*t),r(a[1]+dy*t)]);
-   output.push({id:`md:pier:${n}:${j}:${k}`,kind:'pier',sourceIds:[f.id],anchor:centre(bound(ends)),bounds:expand(bound(ends),1.2),ends,width:f.nativePier.widthM,rails:[],collisionPolicy:'additional-solids',solids:[],replacesSourceIds:[],provenance:{position:'original-polyline-subdivision',width:'unsurveyed-2m-boardwalk-proxy',railing:'none mapped or surveyed',height:'flat-supported-ground-no-invented-layer-elevation',sourceRefs:['osm']}});
+   output.push({id:`md:pier:${n}:${i}:${k}`,kind:'pier',sourceIds:[f.id],anchor:centre(bound(ends)),bounds:expand(bound(ends),1.2),ends,width:pier.widthM,rails:[],deck:{heightM:pier.heightM,topM,walkHalfWidthM:pier.walkWidthM/2},trellis:{caps:[k===0,k===parts-1]},collisionPolicy:'additional-solids',solids:[],replacesSourceIds:[],provenance:{position,width:'unsurveyed-2m-boardwalk-proxy',railing:'none mapped or surveyed',height:pier.heightSource,trellis:'AFT wall-wood-trellis beams (dist/aft/tactics/bridge-trellis.js), cut down beneath the deck',sourceRefs:['osm']}});
   }
  }
 }

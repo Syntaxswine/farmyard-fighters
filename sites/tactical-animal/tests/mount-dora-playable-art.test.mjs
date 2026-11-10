@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as T from '../dist/aft/tactics/vendor/three.module.js';
-import {PLACEMENTS,ART_REVISION,SOURCE_FEATURES_SHA256,REPLACEMENT_SOURCE_IDS,placementsForBounds,solidsForBounds,boundsIntersect} from '../dist/mission-art/mount-dora/manifest.js';
+import {PLACEMENTS,ART_REVISION,SOURCE_FEATURES_SHA256,REPLACEMENT_SOURCE_IDS,placementsForBounds,solidsForBounds,boundsIntersect,deckHeightAt} from '../dist/mission-art/mount-dora/manifest.js';
 import {createMountDoraArt,loadMountDoraAtlas} from '../dist/mission-art/mount-dora/kit.js';
 const base=new URL('../dist/mission-art/mount-dora/',import.meta.url),raw=fs.readFileSync(new URL('../../../maps/mount-dora/features.json',import.meta.url)),features=JSON.parse(raw).features;
 const sha=b=>createHash('sha256').update(b).digest('hex');
@@ -68,25 +68,55 @@ test('orthographic camera uses parallel view rays and reacts to rotation without
  const kit=createMountDoraArt({THREE:T});kit.updateResident([464,1133,536,1205]);const [x,z]=PLACEMENTS.find(p=>p.id==='md:lighthouse').anchor,camera=new T.OrthographicCamera(-30,30,20,-20,.1,100);camera.position.set(x-10,3,z);camera.lookAt(x,0,z);kit.setFocus([x+4,z],{camera});assert.ok(kit.metrics().fadedPlacements.includes('md:lighthouse'));camera.lookAt(x-10,2,z-10);kit.setFocus([x+4,z],{camera});assert.equal(kit.metrics().fadedPlacements.length,0);kit.dispose();
 });
 const r6=v=>Math.round(v*1e6)/1e6,span=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]);
-test('every mapped pier draws deck pieces end to end along its deck line, with no railing',()=>{
+test('every mapped pier draws raised deck pieces end to end along each deck line, with no railing',()=>{
  const piers=features.filter(f=>f.nativePier),pieces=PLACEMENTS.filter(p=>p.kind==='pier');
  assert.equal(piers.length,19);assert.equal(features.filter(f=>f.tags.man_made==='pier').length,19);
+ const tops=new Set();
  for(const f of piers){
-  const n=f.id.replace('osm-way-',''),line=f.nativePier.line,own=pieces.filter(p=>p.sourceIds[0]===f.id);assert.ok(own.length,f.id);
-  let drawn=0;
-  for(let j=1;j<line.length;j++){
-   const seg=own.filter(p=>p.id.startsWith(`md:pier:${n}:${j}:`)).sort((a,b)=>Number(a.id.split(':').at(-1))-Number(b.id.split(':').at(-1)));
-   assert.deepEqual(seg[0].ends[0],line[j-1].map(r6));assert.deepEqual(seg.at(-1).ends[1],line[j].map(r6));
-   for(let k=1;k<seg.length;k++)assert.deepEqual(seg[k].ends[0],seg[k-1].ends[1]);
-   for(const p of seg){assert.ok(span(...p.ends)<=8+1e-9);drawn+=span(...p.ends);}
+  const n=f.id.replace('osm-way-',''),lines=f.nativePier.lines,own=pieces.filter(p=>p.sourceIds[0]===f.id);assert.ok(own.length,f.id);
+  assert.equal(f.nativePier.heightM,.4);
+  for(const [i,[a,b]]of lines.entries()){
+   const line=own.filter(p=>p.id.startsWith(`md:pier:${n}:${i}:`)).sort((p,q)=>Number(p.id.split(':').at(-1))-Number(q.id.split(':').at(-1)));
+   assert.deepEqual(line[0].ends[0],a.map(r6));assert.deepEqual(line.at(-1).ends[1],b.map(r6));
+   for(let k=1;k<line.length;k++)assert.deepEqual(line[k].ends[0],line[k-1].ends[1]);
+   assert.ok(Math.abs(line.reduce((s,p)=>s+span(...p.ends),0)-span(a,b))<1e-4,f.id);
+   for(const [k,p]of line.entries()){assert.ok(span(...p.ends)<=8+1e-9);assert.deepEqual(p.trellis.caps,[k===0,k===line.length-1]);assert.equal(new Set(line.map(q=>q.deck.topM)).size,1);}
   }
-  assert.ok(Math.abs(drawn-line.slice(1).reduce((s,q,i)=>s+span(line[i],q),0))<1e-4,f.id);
-  for(const p of own){assert.equal(p.width,2);assert.deepEqual(p.rails,[]);assert.deepEqual(p.solids,[]);assert.equal(p.collisionPolicy,'additional-solids');assert.match(p.provenance.railing,/none/);}
+  assert.equal(own.length,lines.reduce((s,[a,b])=>s+Math.ceil(span(a,b)/8),0));
+  for(const p of own){assert.equal(p.width,2);assert.deepEqual(p.rails,[]);assert.deepEqual(p.solids,[]);assert.equal(p.collisionPolicy,'additional-solids');assert.match(p.provenance.railing,/none/);assert.equal(p.deck.heightM,.4);assert.ok([.4,.402,.404].includes(p.deck.topM));tops.add(p.deck.topM);}
  }
+ assert.equal(tops.size,3);
  // A cross-dock mapped out and back (A-B-C-A) is drawn once, along its chord.
  const cross=features.find(f=>f.id==='osm-way-556100378'),ring=cross.geometry.coordinates;
- assert.equal(cross.geometry.type,'LineString');assert.deepEqual(ring[0],ring.at(-1));assert.equal(cross.nativePier.line.length,2);
- const drawn=pieces.filter(p=>p.sourceIds[0]===cross.id).reduce((s,p)=>s+span(...p.ends),0);assert.ok(Math.abs(drawn-span(...cross.nativePier.line))<1e-4&&drawn<.6*ring.slice(1).reduce((s,q,i)=>s+span(ring[i],q),0));
+ assert.equal(cross.geometry.type,'LineString');assert.deepEqual(ring[0],ring.at(-1));assert.equal(cross.nativePier.lines.length,1);
+ const drawn=pieces.filter(p=>p.sourceIds[0]===cross.id).reduce((s,p)=>s+span(...p.ends),0);assert.ok(Math.abs(drawn-span(...cross.nativePier.lines[0]))<1e-4&&drawn<.6*ring.slice(1).reduce((s,q,i)=>s+span(ring[i],q),0));
+ // The reviewed observation's line is drawn and says where it came from.
+ const t=pieces.filter(p=>p.provenance.position==='reviewed-observation:rusty-anchor-t');assert.equal(t.length,1);assert.deepEqual(t[0].ends.at(-1),[136.042,647]);
+});
+test('no two pier decks share more than a junction square',()=>{
+ // Rasterise each deck at 0.25 m. Decks may meet where a cross-dock crosses its
+ // stem (about 4 m2), but no deck may be drawn along another.
+ const pieces=PLACEMENTS.filter(p=>p.kind==='pier'),cover=new Map(),step=.25;
+ for(const p of pieces){const [a,b]=p.ends,len=span(a,b),u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
+  for(let x=Math.floor(p.bounds[0]/step);x<=Math.ceil(p.bounds[2]/step);x++)for(let y=Math.floor(p.bounds[1]/step);y<=Math.ceil(p.bounds[3]/step);y++){
+   const q=[(x+.5)*step-a[0],(y+.5)*step-a[1]],along=q[0]*u[0]+q[1]*u[1],across=Math.abs(q[0]*u[1]-q[1]*u[0]);
+   if(along>=0&&along<len&&across<p.width/2){const key=x+','+y;if(!cover.has(key))cover.set(key,[]);cover.get(key).push(p.id);}}}
+ const pairs=new Map();for(const ids of cover.values())for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){const key=[ids[i],ids[j]].sort().join(' ');pairs.set(key,(pairs.get(key)||0)+step*step);}
+ const worst=Math.max(...pairs.values());assert.ok(worst<=4.5,[...pairs].find(([,area])=>area===worst)?.join(' = ')+' m2');assert.ok(pairs.size>5);
+});
+test('a walker stands on a raised pier deck and nowhere else',()=>{
+ const pier=PLACEMENTS.find(p=>p.id==='md:pier:556100376:0:0'),[a,b]=pier.ends,mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=span(a,b),n=[-(b[1]-a[1])/len,(b[0]-a[0])/len];
+ // A walker stands on the deck within its 0.75 m walking half width (the walkable cells' rule).
+ assert.equal(pier.deck.walkHalfWidthM,.75);assert.equal(deckHeightAt(mid),.4);assert.equal(deckHeightAt([mid[0]+n[0]*.7,mid[1]+n[1]*.7]),.4);assert.equal(deckHeightAt([mid[0]+n[0]*.8,mid[1]+n[1]*.8]),0);
+ // The band stops square at the deck's mapped end: just past the shore end is the path, not the deck.
+ const u=[(b[0]-a[0])/len,(b[1]-a[1])/len];assert.equal(deckHeightAt([a[0]+u[0]*.3,a[1]+u[1]*.3]),.4);assert.equal(deckHeightAt([a[0]-u[0]*.3,a[1]-u[1]*.3]),0);
+ const piers=PLACEMENTS.filter(p=>p.kind==='pier'),toSegment=(q,[s,e])=>{const d=[e[0]-s[0],e[1]-s[1]],t=Math.max(0,Math.min(1,((q[0]-s[0])*d[0]+(q[1]-s[1])*d[1])/(d[0]**2+d[1]**2)));return span(q,[s[0]+d[0]*t,s[1]+d[1]*t]);};
+ const board=PLACEMENTS.find(p=>p.kind==='boardwalk'&&piers.every(q=>toSegment(p.ends[0],q.ends)>3));assert.ok(board);assert.equal(deckHeightAt(board.ends[0]),0);assert.equal(deckHeightAt([480,480]),0);
+ assert.throws(()=>deckHeightAt([1,NaN]));assert.throws(()=>deckHeightAt([1]));
+ // The town view lifts a walker by the same query at the centre of the walker's cell.
+ const view=fs.readFileSync(new URL('../dist/mount-dora-view.js',import.meta.url),'utf8'),field=fs.readFileSync(new URL('../dist/field-view.js',import.meta.url),'utf8');
+ assert.match(view,/surfaceHeight\(x,y\)\{return this\.artModule\?\.deckHeightAt\?\.\(\[Math\.floor\(x\+\.5\)\+\.5,Math\.floor\(y\+\.5\)\+\.5\]\)\?\?0;\}/);
+ assert.match(field,/a\.root\.position\.set\(sample\.x,this\.art\?\.surfaceHeight\?\.\(sample\.x,sample\.y\)\?\?0,sample\.y\)/);
 });
 test('railway pieces cover every track run end to end in chords of about two metres',()=>{
  const rails=features.filter(f=>f.nativeRailway),placed=PLACEMENTS.filter(p=>p.kind==='railway');
@@ -108,22 +138,46 @@ test('railway pieces cover every track run end to end in chords of about two met
  for(const name of ['catalogue','paint','route','three'])assert.ok(provenance.files.some(f=>f.path===`source/packages/railway-visuals/${name}.js`),name);
 });
 test('a railway placement instances the pinned Nautilus piece on each chord and leaves the kit shared',()=>{
+ // Count the kit's own per-piece clones as they retire: each placement borrows one piece.
+ const original=T.InstancedMesh.prototype.dispose;let retired=0;
+ T.InstancedMesh.prototype.dispose=function(){if(['Timber ties','Rail tie plates'].includes(this.name))retired++;return original.call(this);};
+ try{
  const p=PLACEMENTS.find(p=>p.kind==='railway'&&p.pieces.length===12),kit=createMountDoraArt({THREE:T});kit.updateResident(p.bounds);
+ const borrowed=2*placementsForBounds(p.bounds).filter(q=>q.kind==='railway').length;assert.ok(borrowed>=2);assert.equal(retired,borrowed);
  const group=kit.root.getObjectByName(p.id),meshes=[...group.children];
  assert.equal(meshes.length,5);assert.ok(meshes.every(m=>m.isInstancedMesh&&m.userData.sharedGeometry));
  assert.deepEqual(meshes.map(m=>m.count).sort((a,b)=>a-b),[12,12,12,48,96]);
- const bed=meshes.find(m=>/ballast/.test(m.name)),matrix=new T.Matrix4();
+ const bed=meshes.find(m=>/ballast/.test(m.name)),ties=meshes.find(m=>/Timber ties/.test(m.name)),plates=meshes.find(m=>/tie plates/.test(m.name)),matrix=new T.Matrix4(),local=([a,b],t,across=0)=>{const len=span(a,b),u=[(b[0]-a[0])/len,(b[1]-a[1])/len];return [a[0]+(b[0]-a[0])*t-u[1]*across-p.anchor[0],a[1]+(b[1]-a[1])*t+u[0]*across-p.anchor[1]];};
  for(const [k,[a,b]]of p.pieces.entries()){
   bed.getMatrixAt(k,matrix);const start=new T.Vector3(0,0,0).applyMatrix4(matrix),end=new T.Vector3(0,0,2).applyMatrix4(matrix);
   assert.ok(Math.hypot(start.x+p.anchor[0]-a[0],start.z+p.anchor[1]-a[1])<1e-4&&Math.abs(start.y)<1e-9);
   assert.ok(Math.hypot(end.x+p.anchor[0]-b[0],end.z+p.anchor[1]-b[1])<1e-4&&Math.abs(end.y)<1e-9);
+  // Four ties at quarter stations, square to the chord; a plate under each rail, 0.45 m out.
+  for(let i=0;i<4;i++){ties.getMatrixAt(k*4+i,matrix);const at=new T.Vector3().setFromMatrixPosition(matrix),want=local([a,b],(i+.5)/4);assert.ok(Math.hypot(at.x-want[0],at.z-want[1])<1e-4,`tie ${k}:${i}`);
+   const across=new T.Vector3(1,0,0).transformDirection(matrix),along=[b[0]-a[0],b[1]-a[1]];assert.ok(Math.abs(across.x*along[0]+across.z*along[1])<1e-4*span(a,b));
+   for(const [j,side]of [-1,1].entries()){plates.getMatrixAt((k*4+i)*2+j,matrix);const plate=new T.Vector3().setFromMatrixPosition(matrix);assert.ok(Math.abs(Math.hypot(plate.x-at.x,plate.z-at.z)-.45)<1e-3,`plate ${k}:${i}:${side}`);}}
  }
+ const tint=new T.Color(),tints=new Set();assert.ok(ties.instanceColor);for(let i=0;i<ties.count;i++){ties.getColorAt(i,tint);tints.add(tint.r.toFixed(3));}assert.ok(tints.size>3);
+ // Culling needs every vertex of every instance inside the mesh's bounding sphere.
+ for(const m of meshes){const sphere=m.boundingSphere,position=m.geometry.attributes.position,v=new T.Vector3();assert.ok(sphere);let worst=-Infinity;for(let i=0;i<m.count;i++){m.getMatrixAt(i,matrix);for(let j=0;j<position.count;j++)worst=Math.max(worst,sphere.distanceToPoint(v.fromBufferAttribute(position,j).applyMatrix4(matrix)));}assert.ok(worst<=1e-4,`${m.name}: ${worst}`);}
  const box=new T.Box3().setFromObject(group,true);assert.ok(box.min.x>=p.bounds[0]-.002&&box.max.x<=p.bounds[2]+.002&&box.min.z>=p.bounds[1]-.002&&box.max.z<=p.bounds[3]+.002,`${box.min.toArray()} / ${box.max.toArray()}`);
  assert.ok(box.max.y>.4&&box.max.y<.45);
  let geometries=0,instances=0;for(const m of meshes){m.geometry.addEventListener('dispose',()=>geometries++);m.addEventListener('dispose',()=>instances++);}
  kit.updateResident([0,0,1,1]);assert.equal(instances,5);assert.equal(geometries,0);
- kit.updateResident(p.bounds);const again=kit.root.getObjectByName(p.id);assert.ok(again!==group&&again.children.every(c=>meshes.some(m=>m.geometry===c.geometry&&m.material===c.material)));
- const pier=PLACEMENTS.find(q=>q.kind==='pier');kit.updateResident(pier.bounds);const deck=kit.root.getObjectByName(pier.id),deckBox=new T.Box3().setFromObject(deck,true);
- assert.ok(deck.children.length>=1&&deck.children.every(m=>m.isMesh&&!m.isInstancedMesh));assert.ok(deckBox.max.y<.01&&deckBox.min.y>-.1);
+ kit.updateResident(p.bounds);assert.equal(retired,2*borrowed);const again=kit.root.getObjectByName(p.id);assert.ok(again!==group&&again.children.every(c=>meshes.some(m=>m.geometry===c.geometry&&m.material===c.material)));
+ // A pier piece stands at its deck height on a trellis that reaches down to the water.
+ const pier=PLACEMENTS.find(q=>q.kind==='pier'&&q.deck.topM===.4&&q.trellis.caps.every(Boolean));kit.updateResident(pier.bounds);const deck=kit.root.getObjectByName(pier.id),deckBox=new T.Box3().setFromObject(deck,true);
+ assert.ok(deck.children.length>=1&&deck.children.every(m=>m.isMesh&&!m.isInstancedMesh));assert.ok(Math.abs(deckBox.max.y-.4)<1e-6&&deckBox.min.y<.01&&deckBox.min.y>-.05,`${deckBox.min.y} / ${deckBox.max.y}`);
+ assert.ok(deckBox.min.x>=pier.bounds[0]-.002&&deckBox.max.x<=pier.bounds[2]+.002&&deckBox.min.z>=pier.bounds[1]-.002&&deckBox.max.z<=pier.bounds[3]+.002);
+ const vertices=deck.children.reduce((s,m)=>s+m.geometry.attributes.position.count,0),panels=2*Math.max(1,Math.round(span(...pier.ends)))+4;assert.equal(vertices,36*(1+6*panels));
  kit.dispose();assert.equal(geometries,5);assert.equal(kit.root.children.length,0);
+ }finally{T.InstancedMesh.prototype.dispose=original;}
+});
+test('the retained Nautilus railway files are the ones SOURCE.json records',()=>{
+ const record=JSON.parse(fs.readFileSync(new URL('../../../maps/mount-dora/art/source/nautilus/packages/railway-visuals/SOURCE.json',import.meta.url)));
+ assert.equal(record.commit,'ed951ba4723ce4cdb87db25d226ad1ceaead7f46');assert.equal(record.files.length,4);
+ for(const f of record.files){
+  const retained=fs.readFileSync(new URL('../../../maps/mount-dora/art/source/nautilus/packages/railway-visuals/'+f.path,import.meta.url)),shipped=fs.readFileSync(new URL('source/packages/railway-visuals/'+f.path,base));
+  assert.equal(retained.length,f.bytes);assert.equal(sha(retained),f.sha256);assert.equal(createHash('sha1').update(`blob ${retained.length}\0`).update(retained).digest('hex'),f.gitBlob);assert.ok(shipped.equals(retained),f.path);
+ }
 });

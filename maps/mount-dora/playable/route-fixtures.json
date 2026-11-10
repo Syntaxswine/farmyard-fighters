@@ -1,6 +1,6 @@
 {
   "schema": "mount-dora-route-evidence/1",
-  "sourceProjectSHA256": "8adac2db9ec4c6b9ed96dc8e5b43f7204ab127d5fb52a6b9e4319ce2ff61a38f",
+  "sourceProjectSHA256": "86748f8ff2466429c1ea75e304926014c5e518cc19e0f844912370f984bbda09",
   "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
   "coordinateFrame": "town east/south metres; game = town - (0.5,0.5)",
   "bounds": [
@@ -25,7 +25,7 @@
       500.5
     ]
   },
-  "reachableOutdoorCells": 1672926,
+  "reachableOutdoorCells": 1672574,
   "reachedLandSectors": 39,
   "sectors": [
     {
@@ -78,7 +78,7 @@
     },
     {
       "id": "A03",
-      "reachedOutdoorCells": 21643
+      "reachedOutdoorCells": 21498
     },
     {
       "id": "B03",
@@ -102,7 +102,7 @@
     },
     {
       "id": "A04",
-      "reachedOutdoorCells": 3590
+      "reachedOutdoorCells": 3563
     },
     {
       "id": "B04",
@@ -134,7 +134,7 @@
     },
     {
       "id": "C05",
-      "reachedOutdoorCells": 30276
+      "reachedOutdoorCells": 30162
     },
     {
       "id": "D05",
@@ -158,7 +158,7 @@
     },
     {
       "id": "C06",
-      "reachedOutdoorCells": 30056
+      "reachedOutdoorCells": 30017
     },
     {
       "id": "D06",
@@ -182,7 +182,7 @@
     },
     {
       "id": "C07",
-      "reachedOutdoorCells": 34315
+      "reachedOutdoorCells": 34288
     },
     {
       "id": "D07",
