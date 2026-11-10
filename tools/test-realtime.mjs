@@ -229,7 +229,15 @@ try{
   await context.addInitScript(installNativeProbe);await page.goto(`http://127.0.0.1:${port}/game.html`);
   await page.locator('#animals button').filter({hasText:'Yakov'}).click();await page.getByRole('button',{name:'Backpack flamethrower',exact:true}).click();assert(await page.locator('#loadout-fire-mode').isHidden());await page.locator('#deploy').click();
   let s=await wait(page,s=>s.ready,'flamethrower renderer');assert(s.automatic);assert.equal(await page.locator('#realtime-aim').isDisabled(),true);assert.equal(await page.locator('#realtime-aim-label').textContent(),'AREA FIRE');assert.equal(await page.locator('#end-turn').isDisabled(),false);await page.locator('#end-turn').click();assert((await snapshot(page)).autoFire);
+  await page.evaluate(()=>{
+    const loading=document.getElementById('loading');window.quietShiftLoadingReturned=false;
+    const observer=new MutationObserver(records=>{
+      if(!loading.hidden||records.some(record=>record.oldValue===null))window.quietShiftLoadingReturned=true;
+    });
+    observer.observe(loading,{attributes:true,attributeFilter:['hidden'],attributeOldValue:true});
+  });
   await moveTo(page,{x:19,y:23});await moveTo(page,{x:19,y:13.5});s=await wait(page,s=>s.player.ammo.flamethrower<4&&s.kills>0,'automatic flame burst',25000);
+  assert.equal(await page.evaluate(()=>window.quietShiftLoadingReturned),false,'Quiet Shift must keep playing through first contact');
   assert(s.autoFire);assert.equal(await page.locator('#flame-aim').isHidden(),true);assert.equal(s.shaderFailures,0);await waitForShotAudio(page,'flame-ignite');await screenshot(page,'flamethrower-fire-at-will');mark('flamethrower Fire at Will uses the production cone and fuel',{fuel:s.player.ammo.flamethrower,kills:s.kills});
   assert.equal(log.errors.length,0,JSON.stringify(log.errors));assert.equal(log.requests.length,0,JSON.stringify(log.requests));await context.close();
  }

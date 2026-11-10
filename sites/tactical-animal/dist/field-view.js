@@ -23,7 +23,7 @@ import {SoloTankEffects} from './tank-effects.js';
 import {createFlameOperator} from './flame-pose.js';
 import {FlameConePreview} from './flame-aim-view.js';
 import {GuardSightView} from './guard-sight-view.js';
-import {blockWindow,pointInWorldRect,worldBounds} from './world-grid.js';
+import {blockWindow,gridDimensions,pointInWorldRect,worldBounds,WORLD_BLOCK_SIZE} from './world-grid.js';
 import {clampCameraPoint,contactCameraFrame,residentCameraSpan,residentWindowForCamera,MAX_CAMERA_SPAN} from './render-residency.js';
 import {SearchHalo,searchHaloCandidates,searchHaloTarget} from './search-halo.js';
 import {WindowScenery,WindowEffects} from './window-view.js';
@@ -36,6 +36,7 @@ const V = (x=0,y=0,z=0) => new T.Vector3(x,y,z);
 // Hits pulse at the burst cadence. Misses linger so diverging paths can be read together.
 const BURST_SHOT_INTERVAL=140,BURST_TRACER_DURATION=90,MISS_TRACER_DURATION=340,FLASH_DURATION=72;
 const MUZZLE_SOURCE_TOLERANCE=.04;
+const MAX_PARKED_ACTORS=8;
 // Two standard Zoom Out steps from the previous 13 m view.
 const DEFAULT_CAMERA_SPAN=13*1.2**2;
 function disposeEffectMesh(mesh){
@@ -133,8 +134,63 @@ export class FieldView {
     this.effects=[];this.flameEffects?.dispose();this.flameEffects=null;this.flameCone?.dispose();this.flameCone=null;this.flameAim=null;this.lastEffect=null;
   }
   clearGestures(){for(const id of this.pointers.keys())if(this.container.hasPointerCapture(id))this.container.releasePointerCapture(id);this.pointers.clear();this.gesture=null;this.pinch=null;this.grenadeCamera=null;this.flameAim=null;this.flameCone?.hide();this.returnSpan=null;this.contactSpan=null;this.focusedId=null;}
-  setGame(s){this.generation++;this.clearGestures();this.clearEffects();this.span=this.requestedSpan=DEFAULT_CAMERA_SPAN;this.state=s;this.residentWindow=null;this.lastWindowKey=null;this.samples.clear();this.failed.clear();for(const a of [...this.actors.values(),...(this.parkedActors?.values()||[])])this.disposeActor(a);this.actors.clear();this.parkedActors?.clear();this.pending.clear();this.clearEnvironment();this.buildEnvironment(s);this.center();this.resize();this.lastRevision=-1;this.lastLightAt=undefined;this.lastFrameAt=undefined;this.lastEffect=s.effect||null;this.route([]);}
-  reportLoading(){this.onLoading(this.artBusy||this.propBusy||this.missionArtBusy||this.missionPaperBusy||this.pending.size>0||this.failed.size>0);}
+  setGame(s){
+    this.generation++;this.clearGestures();this.clearEffects();this.span=this.requestedSpan=DEFAULT_CAMERA_SPAN;
+    this.state=s;this.residentWindow=null;this.lastWindowKey=null;this.prepareGraphics=false;this.samples.clear();this.failed.clear();
+    for(const a of [...this.actors.values(),...(this.parkedActors?.values()||[])])this.disposeActor(a);
+    this.actors.clear();this.parkedActors?.clear();this.pending.clear();this.clearEnvironment();
+    this.buildEnvironment(s);this.center();this.resize();this.lastRevision=-1;this.lastLightAt=undefined;
+    this.lastFrameAt=undefined;this.lastEffect=s.effect||null;this.route([]);
+    if(s.realtime&&this.searchHalo&&s.units.length<=MAX_PARKED_ACTORS+1){
+      const {width,height}=gridDimensions(s),residentSize=3*WORLD_BLOCK_SIZE;
+      // Prepare the whole roster when the field fits in one resident window.
+      // Undetected actors stay detached until the normal visibility pass.
+      if(width<=residentSize&&height<=residentSize){
+        this.prepareGraphics=true;
+        for(const unit of s.units)void this.actor(unit,{preload:unit.team==='guard'});
+      }
+    }
+  }
+  loadingAssets(){
+    return this.artBusy||this.propBusy||this.missionArtBusy||this.missionPaperBusy||this.pending.size>0||this.failed.size>0;
+  }
+  reportLoading(){this.onLoading(this.prepareGraphics||this.loadingAssets());}
+  warmFieldGraphics(now){
+    const {renderer,scene,camera,searchHalo}=this;
+    const target=renderer.getRenderTarget(),scissor=renderer.getScissor(new T.Vector4());
+    const scissorTest=renderer.getScissorTest(),shadows=renderer.shadowMap.autoUpdate;
+    const parked=[...this.parkedActors.values()],objects=[];
+    const outline=new T.LineLoop(new T.BufferGeometry().setFromPoints([V(),V(1),V(0,0,1)]),this.guardSight.material);
+    try{
+      for(const {root} of parked){root.visible=true;scene.add(root);}
+      scene.add(outline);
+      this.daylight.update(480,camera,now,true);
+      scene.traverse(object=>{
+        const draws=object.isMesh||object.isSprite||object.isLine;
+        if(!draws&&(object.visible||object.isLight))return;
+        objects.push({object,visible:object.visible,culled:object.frustumCulled,count:object.count});
+        object.visible=true;object.frustumCulled=false;
+        if(object.isInstancedMesh&&!object.count)object.count=1;
+      });
+      // A real draw also initializes GPU resources that shader compilation alone misses.
+      // Only a pixel is drawn, and the normal frame below replaces it before presentation.
+      searchHalo.resize(renderer);
+      for(const output of [null,searchHalo.field]){
+        renderer.setRenderTarget(output);renderer.setScissor(0,0,1,1);renderer.setScissorTest(true);
+        renderer.render(scene,camera);
+        renderer.shadowMap.autoUpdate=false;
+      }
+    }finally{
+      for(const {object,visible,culled,count} of objects){
+        object.visible=visible;object.frustumCulled=culled;
+        if(object.isInstancedMesh)object.count=count;
+      }
+      outline.removeFromParent();outline.geometry.dispose();
+      for(const {root} of parked){root.visible=false;root.removeFromParent();}
+      renderer.shadowMap.autoUpdate=shadows;
+      renderer.setRenderTarget(target);renderer.setScissor(scissor);renderer.setScissorTest(scissorTest);
+    }
+  }
   // Mission art owns its geometry; detach it before the generic traversal below.
   clearEnvironment(){this.guardSight?.dispose();this.guardSight=null;this.windowArt?.dispose();this.windowArt=null;this.windowEffects?.dispose();this.windowEffects=null;this.searchHalo?.dispose();this.searchHalo=null;this.missionArt?.dispose();this.missionArt=null;this.missionArtBusy=this.missionPaperBusy=false;this.interactionArt?.dispose();this.interactionArt=null;this.art?.dispose();this.art=null;this.environment.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});this.environment.clear();for(const t of this.disposables)t.dispose();this.disposables=[];}
   buildEnvironment(s){
@@ -222,9 +278,9 @@ export class FieldView {
     const frame=grenadeCameraFrame(points,{width:this.container.clientWidth,height:this.container.clientHeight,...this.getAimViewport?.()},aim.baseSpan,fieldCameraFor(this.state));
     const blend=T.MathUtils.damp(0,1,-60*Math.log(.86),elapsed);this.target.lerp(V(frame.target.x,0,frame.target.y),blend);this.span+=(frame.span-this.span)*blend;this.resize();
   }
-  async actor(u){
-    if(this.actors.has(u.id)||this.pending.has(u.id)||this.failed.has(u.id))return;
-    const generation=this.generation,ticket={},profile=ANIMAL_MOTION_CATALOG.find(p=>p.id===u.species);this.pending.set(u.id,ticket);this.onLoading(true);
+  async actor(u,{preload=false}={}){
+    if(this.actors.has(u.id)||this.parkedActors.has(u.id)||this.pending.has(u.id)||this.failed.has(u.id))return;
+    const generation=this.generation,ticket={preload},profile=ANIMAL_MOTION_CATALOG.find(p=>p.id===u.species);this.pending.set(u.id,ticket);this.onLoading(true);
     let worker,paint,posture,locomotion,root,pick,ring;
     try{
       if(!profile)throw Error('Unknown animal: '+u.species);
@@ -240,20 +296,21 @@ export class FieldView {
       const throwPose=u.team==='squad'||u.weapon==='grenade'?createGrenadePose(worker,profile):null;
       const a={worker,paint,profile,locomotion,posture,root,pick,ring,shadow,weapon:u.weapon,equipment:worker.weapon,
         flameOperator:createFlameOperator(worker,profile),weaponPose,throwPose};
-      this.actors.set(u.id,a);this.scene.add(root);
+      if(preload){root.visible=false;this.parkedActors.set(u.id,a);}
+      else{this.actors.set(u.id,a);this.scene.add(root);}
     }catch(error){paint?.dispose();worker?.weapon?.dispose();worker?.dispose();if(generation===this.generation&&this.pending.get(u.id)===ticket){this.failed.add(u.id);console.error('Animal model failed',error);this.onError(error.message||'An animal texture could not load.');}}
     finally{if(this.pending.get(u.id)===ticket)this.pending.delete(u.id);if(generation===this.generation)this.reportLoading();}
   }
   reconcileActors(units){
     this.parkedActors ||= new Map();const desired=new Set(units.map(unit=>unit.id));
-    for(const id of this.pending.keys())if(!desired.has(id))this.pending.delete(id);
+    for(const [id,ticket] of this.pending)if(!ticket.preload&&!desired.has(id))this.pending.delete(id);
     for(const [id,actor]of this.actors){
       if(desired.has(id))continue;actor.root.visible=false;actor.root.removeFromParent();this.actors.delete(id);this.parkedActors.set(id,actor);
     }
     for(const id of desired){const actor=this.parkedActors.get(id);if(!actor)continue;this.parkedActors.delete(id);this.actors.set(id,actor);this.scene.add(actor.root);const previous=this.samples?.get(id),unit=units.find(u=>u.id===id);if(previous)this.samples.set(id,{...previous,travelled:unit.travelled});}
     // A small LRU keeps recently crossed actors warm without retaining a sector
     // full of GPU rigs. All simulation units remain untouched in state.units.
-    while(this.parkedActors.size>8){const [id,actor]=this.parkedActors.entries().next().value;this.parkedActors.delete(id);this.samples.delete(id);this.disposeActor(actor);}
+    while(this.parkedActors.size>MAX_PARKED_ACTORS){const [id,actor]=this.parkedActors.entries().next().value;this.parkedActors.delete(id);this.samples.delete(id);this.disposeActor(actor);}
   }
   disposeActor(a){for(const [id,session]of this.burnEffects?.sessions||[])if(session.actor===a)this.burnEffects.remove(id);this.scene.remove(a.root);a.throwPose?.dispose();a.flameOperator?.dispose();a.locomotion?.dispose();a.paint.dispose();a.equipment.dispose();a.worker.dispose();for(const o of [a.pick,a.ring,a.shadow]){o.geometry.dispose();o.material.dispose();}}
   queueEffects(effect,now){
@@ -513,10 +570,16 @@ export class FieldView {
     this.flameEffects?.draw(s,this.camera);this.tankEffects?.draw(this.camera);
     if(this.lastLightAt===undefined||now-this.lastLightAt>=200){this.daylight.update(480,this.camera,now,true);this.lastLightAt=now;}
     this.marker.rotation.z=now*.0005;
+    const graphicsReady=this.prepareGraphics&&!this.loadingAssets();
+    if(graphicsReady){
+      this.prepareGraphics=false;
+      try{this.warmFieldGraphics(now);}catch(error){console.warn('Could not prepare field graphics',error);}
+    }
     if(this.searchHalo){
       const targets=this.artBusy||this.propBusy?[]:searchHaloCandidates(s,window).map(object=>searchHaloTarget(object,this)).filter(target=>target.root);
       this.searchHalo.render(this.renderer,this.scene,this.camera,targets,now);
     }else this.renderer.render(this.scene,this.camera);
+    if(graphicsReady)this.reportLoading();
   }
   dispose(){this.generation++;this.clearGestures();this.clearEffects();this.pending.clear();this.resizeObserver.disconnect();this.container.removeEventListener('pointerdown',this.pointerDown);this.container.removeEventListener('pointermove',this.pointerMove);this.container.removeEventListener('pointerup',this.pointerUp);this.container.removeEventListener('pointercancel',this.pointerUp);this.container.removeEventListener('wheel',this.wheel);for(const a of [...this.actors.values(),...this.parkedActors.values()])this.disposeActor(a);this.actors.clear();this.parkedActors.clear();this.clearEnvironment();this.daylight.dispose();this.marker.geometry.dispose();this.marker.material.dispose();this.blastMarker.geometry.dispose();this.blastMarker.material.dispose();this.blastArea.geometry.dispose();this.blastArea.material.dispose();this.pathLine.geometry.dispose();this.pathLine.material.dispose();this.renderer.dispose();this.renderer.domElement.remove();}
 }
