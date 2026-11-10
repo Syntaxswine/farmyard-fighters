@@ -98,20 +98,42 @@ for(const n of [548471563,688219167]){
 // Mapped piers draw the boardwalk's deck, raised to the generator's deck height
 // on AFT's timber trellis, along each of the generator's deck lines
 // (nativePier.lines; the last ones may come from reviewed observations). No
-// railing is mapped or surveyed. Overlapping decks (a cross-dock over its stem)
-// stand 2 mm apart by line, so no two coplanar tops share pixels.
-let deckLine=0;
+// railing is mapped or surveyed.
+// - At a joint (nativePier.joints), a line's deck runs on half its width past the
+//   joint (deck.extend) where another line leaves it more than 1 degree off its
+//   axis, so a bend's outer corner is covered; nearly straight on, it stops square.
+//   The generator rounds the walkable cells at every joint.
+// - Trellis caps close only free ends: not joints, and not ends standing on
+//   another deck (a stem meeting its crossbar).
+// - Decks that overlap by more than 1 cm stand at different 2 mm levels: each line
+//   takes the lowest level no overlapping line already has (greedy colouring of
+//   the overlap graph).
+const deckLines=[];
 for(const f of source.features.filter(f=>f.nativePier)){
- const n=f.id.replace(/^osm-way-/,''),pier=f.nativePier;
- if(pier.shape!=='deck-lines'){polygonRecord('md:pier:'+n,'pier-deck',f.geometry.coordinates[0][0],[f.id],{surface:'wood'},{position:'retained-osm-outline',details:'Mapped platform outline; no surveyed railing.',sourceRefs:['osm']}).deck={heightM:pier.heightM,topM:pier.heightM};continue;}
- const observed=pier.observations||[],firstObserved=pier.lines.length-observed.length;
- for(const [i,[a,b]]of pier.lines.entries()){
-  const dx=b[0]-a[0],dy=b[1]-a[1],parts=Math.ceil(Math.hypot(dx,dy)/8),topM=r(pier.heightM+.002*(deckLine++%3));
-  const position=i<firstObserved?'original-polyline-subdivision':'reviewed-observation:'+observed[i-firstObserved].id;
-  for(let k=0;k<parts;k++){
-   const ends=[k/parts,(k+1)/parts].map(t=>[r(a[0]+dx*t),r(a[1]+dy*t)]);
-   output.push({id:`md:pier:${n}:${i}:${k}`,kind:'pier',sourceIds:[f.id],anchor:centre(bound(ends)),bounds:expand(bound(ends),1.2),ends,width:pier.widthM,rails:[],deck:{heightM:pier.heightM,topM,walkHalfWidthM:pier.walkWidthM/2},trellis:{caps:[k===0,k===parts-1]},collisionPolicy:'additional-solids',solids:[],replacesSourceIds:[],provenance:{position,width:'unsurveyed-2m-boardwalk-proxy',railing:'none mapped or surveyed',height:pier.heightSource,trellis:'AFT wall-wood-trellis beams (dist/aft/tactics/bridge-trellis.js), cut down beneath the deck',sourceRefs:['osm']}});
-  }
+ const pier=f.nativePier;
+ if(pier.shape!=='deck-lines'){polygonRecord('md:pier:'+f.id.replace(/^osm-way-/,''),'pier-deck',f.geometry.coordinates[0][0],[f.id],{surface:'wood'},{position:'retained-osm-outline',details:'Mapped platform outline; no surveyed railing.',sourceRefs:['osm']}).deck={heightM:pier.heightM,topM:pier.heightM};continue;}
+ const observed=pier.observations||[],firstObserved=pier.lines.length-observed.length,joints=new Set((pier.joints||[]).map(p=>p.join(',')));
+ for(const [i,[a,b]]of pier.lines.entries())deckLines.push({f,pier,i,a,b,joints,position:i<firstObserved?'original-polyline-subdivision':'reviewed-observation:'+observed[i-firstObserved].id});
+}
+const toLine=(p,a,b)=>{const d=[b[0]-a[0],b[1]-a[1]],t=Math.max(0,Math.min(1,((p[0]-a[0])*d[0]+(p[1]-a[1])*d[1])/(d[0]**2+d[1]**2)));return Math.hypot(p[0]-a[0]-d[0]*t,p[1]-a[1]-d[1]*t);};
+for(const line of deckLines){
+ const {a,b,pier,joints}=line,len=Math.hypot(b[0]-a[0],b[1]-a[1]),u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
+ // An end bends where another line of the pier leaves the joint off this line's axis (more than 1 degree).
+ const end=(p,out)=>{const joint=joints.has(p.join(','));const others=joint?deckLines.filter(o=>o!==line&&o.pier===pier&&[o.a,o.b].some(q=>q[0]===p[0]&&q[1]===p[1])):[];
+  const bends=others.some(o=>{const q=o.a[0]===p[0]&&o.a[1]===p[1]?o.b:o.a,w=[q[0]-p[0],q[1]-p[1]],l=Math.hypot(...w);return Math.abs(out[0]*w[1]/l-out[1]*w[0]/l)>Math.sin(Math.PI/180)||out[0]*w[0]+out[1]*w[1]>0;});
+  const onDeck=!joint&&deckLines.some(o=>o!==line&&toLine(p,o.a,o.b)<pier.widthM/2);
+  return {joint,extend:bends?pier.widthM/2:0,cap:!joint&&!onDeck};};
+ line.ends=[end(a,u),end(b,[-u[0],-u[1]])];
+ line.footprint=[[-line.ends[0].extend,-pier.widthM/2],[len+line.ends[1].extend,-pier.widthM/2],[len+line.ends[1].extend,pier.widthM/2],[-line.ends[0].extend,pier.widthM/2]].map(([s,t])=>[a[0]+u[0]*s-u[1]*t,a[1]+u[1]*s+u[0]*t]);
+}
+// Two convex footprints overlap if no edge normal separates them by more than a centimetre.
+const overlaps=(p,q)=>[p,q].every(poly=>poly.every((c,k)=>{const d=poly[(k+1)%poly.length],n=[d[1]-c[1],c[0]-d[0]],l=Math.hypot(...n),proj=s=>s.map(v=>(v[0]*n[0]+v[1]*n[1])/l),[pa,qa]=[proj(p),proj(q)];return Math.min(Math.max(...pa),Math.max(...qa))-Math.max(Math.min(...pa),Math.min(...qa))>.01;}));
+for(const line of deckLines){const taken=new Set(deckLines.filter(o=>o.level!==undefined&&overlaps(o.footprint,line.footprint)).map(o=>o.level));line.level=0;while(taken.has(line.level))line.level++;}
+for(const {f,pier,i,a,b,ends:lineEnds,level,position}of deckLines){
+ const n=f.id.replace(/^osm-way-/,''),dx=b[0]-a[0],dy=b[1]-a[1],parts=Math.ceil(Math.hypot(dx,dy)/8),topM=r(pier.heightM+.002*level);
+ for(let k=0;k<parts;k++){
+  const ends=[k/parts,(k+1)/parts].map(t=>[r(a[0]+dx*t),r(a[1]+dy*t)]),first=k===0,last=k===parts-1,extend=[first?lineEnds[0].extend:0,last?lineEnds[1].extend:0];
+  output.push({id:`md:pier:${n}:${i}:${k}`,kind:'pier',sourceIds:[f.id],anchor:centre(bound(ends)),bounds:expand(bound(ends),1.2+Math.max(...extend)),ends,width:pier.widthM,rails:[],deck:{heightM:pier.heightM,topM,level,extend,joints:[first&&lineEnds[0].joint,last&&lineEnds[1].joint]},trellis:{caps:[first&&lineEnds[0].cap,last&&lineEnds[1].cap]},collisionPolicy:'additional-solids',solids:[],replacesSourceIds:[],provenance:{position,width:'unsurveyed-2m-boardwalk-proxy',railing:'none mapped or surveyed',height:pier.heightSource,trellis:'AFT wall-wood-trellis beams (dist/aft/tactics/bridge-trellis.js), cut down beneath the deck',sourceRefs:['osm']}});
  }
 }
 // Railways whose rails remain: Nautilus railway:track-straight pieces along the

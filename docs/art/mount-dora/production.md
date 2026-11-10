@@ -108,20 +108,42 @@ Pier pieces (`kind: 'pier'`) draw the same deck along each of a pier's
 `nativePier.lines`, in pieces of at most 8 m, with no rails and no solids: no
 railing is mapped or surveyed. The deck stands at `deck.heightM` (0.4 m, the
 owner's choice of a low deck; the 2018 lidar puts the real decks a median
-0.43 m over the lake). Its top is staggered 0, 2 or 4 mm by line, so decks
-that meet at a junction square never share a plane. Beneath it, AFT's timber
-trellis panel stands under both long edges and each capped end: the
-`TRELLIS_BEAMS` of the game's vendored `aft/tactics/bridge-trellis.js`, one
-panel per metre, with heights scaled to the space under the deck and beam
-sections at 0.4 of AFT's, so they still read. A walker on a deck stands at its
-height. The generator paints walkable deck cells only where a cell's centre
-lies within 0.75 m of a deck line (`deck.walkHalfWidthM`) and not past its
-ends, so they stay under the 2 m drawn deck. `deckHeightAt` in `manifest.js` applies the same rule from
-the same records, and the town view asks it about the centre of the walker's
-cell (`surfaceHeight`), so standing height and walking agree. Shots and sight
-still treat that walker at ground height, and the shore end is a single 0.4 m
-step. A `pier-deck` kind draws a mapped platform outline; Mount Dora has none
-today.
+0.43 m over the lake).
+
+Where another of a pier's lines leaves a joint more than 1° off a line's axis,
+that line's deck runs on half its width past the joint (`deck.extend`), so the
+bend's outer corner is covered. Within 1° of straight it stops square, and the
+two square ends leave a hairline wedge (under 2 cm) on the outside of the joint.
+
+Decks that overlap by more than a centimetre stand at different levels, 2 mm
+apart (`deck.level`), so no two overlapping tops share a plane. Each line takes
+the lowest level that no overlapping line already has: a greedy colouring of the
+overlap graph, over all piers.
+
+Beneath each deck, AFT's timber trellis panel stands under both long edges: the
+`TRELLIS_BEAMS` of the game's vendored `aft/tactics/bridge-trellis.js`, built by
+`trellisBoxes` in `kit.js`. There is one panel per metre, with heights scaled
+to the space under the deck and beam sections at 0.4 of AFT's, so they still
+read. Caps close only free ends: not joints, and not an end that stands on
+another deck, such as a stem meeting its crossbar.
+
+A walker stands at deck height wherever the drawn deck covers the centre of
+their cell, and within half the deck's width of a joint (which closes the
+hairline wedge). `deckHeightAt` in `manifest.js` answers from the same records
+(`deckCovers`), and the town view asks it about the walker's cell
+(`surfaceHeight`). That lifts a walker on the 11 path cells (6 ways, one of
+them the wooden footbridge 508450238) the deck covers where paths meet piers,
+and on land cells beside the walkable band but under the deck.
+
+The generator paints walkable deck cells only where a cell's centre lies within
+0.75 m of a deck line: not past its free ends, round at its joints. A walker in
+such a cell stands at most 0.25 m (square decks) to 0.46 m (diagonal ones)
+beyond the deck's edge. Those stepped cell edges show their wood texture at
+water level beside the raised deck.
+
+Shots and sight still treat a walker on a deck at ground height, and the shore
+end is a single 0.4 m step. A `pier-deck` kind draws a mapped platform outline;
+Mount Dora has none today.
 
 Railway placements (`kind: 'railway'`) draw the Nautilus `railway:track-straight`
 piece, retained unchanged in `source/packages/railway-visuals` from Nautilus

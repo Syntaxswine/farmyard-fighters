@@ -1,6 +1,6 @@
 {
   "schema": "mount-dora-route-evidence/1",
-  "sourceProjectSHA256": "86748f8ff2466429c1ea75e304926014c5e518cc19e0f844912370f984bbda09",
+  "sourceProjectSHA256": "b81f9451ea50f02a7d0032b0577d2d82b74d2c7a05d5d2e864f75b5c446b1ee0",
   "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
   "coordinateFrame": "town east/south metres; game = town - (0.5,0.5)",
   "bounds": [
@@ -25,7 +25,7 @@
       500.5
     ]
   },
-  "reachableOutdoorCells": 1672574,
+  "reachableOutdoorCells": 1672623,
   "reachedLandSectors": 39,
   "sectors": [
     {
@@ -78,7 +78,7 @@
     },
     {
       "id": "A03",
-      "reachedOutdoorCells": 21498
+      "reachedOutdoorCells": 21499
     },
     {
       "id": "B03",
@@ -134,7 +134,7 @@
     },
     {
       "id": "C05",
-      "reachedOutdoorCells": 30162
+      "reachedOutdoorCells": 30210
     },
     {
       "id": "D05",

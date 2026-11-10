@@ -1646,24 +1646,24 @@
         "terrainCells": 57600,
         "terrainCounts": {
           "ground-grass": 13713,
-          "water": 32406,
+          "water": 32405,
           "ground-dirt": 122,
           "ground-gravel": 324,
           "ground-asphalt": 4183,
           "ground-concrete": 2588,
           "ground-wood-planks": 13,
-          "bridge": 577,
+          "bridge": 578,
           "floor": 3674
         },
-        "terrainSHA256": "70df90a8693450bdbf2c8b9092b16042c80c860a6ffff273b4b940394f4872b9",
+        "terrainSHA256": "ab720ea3789fdad9cc7fe93c458c6af6ab5f7f14860d20c0db9e073e07bc449f",
         "sourceWaterCells": 33328,
         "buildingCount": 16,
         "wallRunCount": 104,
         "nativePanelCount": 1622,
         "propCount": 26,
         "foliageCells": 0,
-        "bytes": 749736,
-        "sha256": "b13a9186d0996bc0ce7624c77898bf1e7812c2b2806ebbc72e7f00178006e3ad"
+        "bytes": 749737,
+        "sha256": "cc51e13240d8adbc674d632cc4f1cef5673ec63bed054a07d03de6f18a76ee23"
       },
       "buildingIds": [
         "county-1236797-1",
@@ -2441,7 +2441,7 @@
         "propCount": 0,
         "foliageCells": 0,
         "bytes": 492048,
-        "sha256": "1d86ff4afc68c6994908c1f673a6aef431f37a660ace3028543b7718b9575c31"
+        "sha256": "8cfdba237df59806e527bf093980581c5c9d90808eb5d80be1ea20e1839b3a75"
       },
       "buildingIds": [
         "osm-way-1240419649"
@@ -3268,22 +3268,22 @@
         "terrainCells": 57600,
         "terrainCounts": {
           "ground-grass": 24610,
-          "water": 22609,
+          "water": 22608,
           "ground-asphalt": 2693,
           "ground-concrete": 3057,
           "ground-wood-planks": 29,
-          "bridge": 190,
+          "bridge": 191,
           "floor": 4412
         },
-        "terrainSHA256": "aaf21d56fa86ca047ae3a2c2b9460e3fa1614c58df1b0db3e0edf74308e9c5b3",
+        "terrainSHA256": "e2cfe45a8bc087e38646538baf4358263271e0546dc90efcd7f2fe4ca5ba5e25",
         "sourceWaterCells": 23054,
         "buildingCount": 6,
         "wallRunCount": 32,
         "nativePanelCount": 987,
         "propCount": 423,
         "foliageCells": 0,
-        "bytes": 849983,
-        "sha256": "b08117fd82227b658bf3cd3f6fedd94cc1e4a755e41cef9890d051718c6c2132"
+        "bytes": 849984,
+        "sha256": "672050ab447ebb3625a3a071589130f7bf1faf016e8a7dd83ddbcdcadeb69249"
       },
       "buildingIds": [
         "county-1465826-2",
@@ -3873,8 +3873,8 @@
         "nativePanelCount": 344,
         "propCount": 581,
         "foliageCells": 4605,
-        "bytes": 964581,
-        "sha256": "b3617471e48f21722a59a74d869f421197f06116a8178de908c021031b35dbc4"
+        "bytes": 964586,
+        "sha256": "231baebb47dcab9a326d0605751308706634b5fa8181fea5dd79db9ddfed5348"
       },
       "buildingIds": [
         "county-1709156-1",
@@ -4908,7 +4908,7 @@
       "bridge",
       "floor"
     ],
-    "globalTerrainSHA256": "a64a6149c8ea52aebbf5d0a52ac312a4293d27e0fb3c2e5c5b0357de39b92c8e",
+    "globalTerrainSHA256": "90503fa1d23bc5e2b2955880bafa2694bee5072979abebbaf63876363b609110",
     "sampleRule": "Global cell centre (column*240+x+0.5, row*240+y+0.5); one global raster sliced without seam repaint.",
     "nativeCoordinates": "Wall metre endpoints = global east/south - sectorOrigin - 0.5; tile indices remain integer cells.",
     "streets": {
@@ -5125,14 +5125,14 @@
     "guards": 42,
     "terrainCounts": {
       "ground-grass": 1349032,
-      "water": 469047,
+      "water": 469045,
       "woodland": 16265,
       "ground-dirt": 1512,
       "ground-gravel": 4800,
       "ground-asphalt": 206718,
       "ground-concrete": 104586,
       "ground-wood-planks": 587,
-      "bridge": 2667,
+      "bridge": 2669,
       "floor": 263986
     },
     "unrepresentedWallSlivers": 0

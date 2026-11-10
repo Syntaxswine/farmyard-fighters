@@ -56,10 +56,12 @@ PIER_WIDTH = 2
 # Lake Dora (most 0.37 to 0.46 m, four 0.7 to 1.4 m).
 PIER_DECK_HEIGHT = .4
 # The cells a walker crosses on a pier: centres within 0.75 m of a deck line,
-# and not past its ends. Narrower than the drawn deck, so on the raised deck a
-# walker stays over it (within 1.25 m of the line on a square deck, 1.46 m on a
-# diagonal one, against its 1 m half width), and still joined side to side at
-# any angle.
+# not past its free ends, and round at the joints where two of its lines meet.
+# A walker in such a cell stands at most 0.25 m (a square deck) to 0.46 m (a
+# diagonal one) beyond the drawn 2 m deck's edge, against 0.5 to 0.71 m at a
+# 1 m band. A straight band stays joined side to side at any angle (the overlap
+# between neighbouring columns is (1.5 - sin a) / cos a >= 1.12 cells); a bend's
+# outer corner falls past both lines' square ends, which is why joints round off.
 PIER_WALK_WIDTH = 1.5
 PIER_DECK_HEIGHT_SOURCE = "owner's choice 2026-11-10 (low deck); 2018 USGS lidar median deck 0.43 m over the lake"
 # Railways whose rails are still in place. A disused line keeps its track; an
@@ -757,7 +759,8 @@ def pier_decks(points):
         return i
     for i, segment in enumerate(segments):
         for j in range(i):
-            if _runs_back_over(segments[j], segment) and root(i) != root(j):
+            # Tested both ways round, so a reversed way merges the same segments.
+            if (_runs_back_over(segments[j], segment) or _runs_back_over(segment, segments[j])) and root(i) != root(j):
                 parent[root(i)] = root(j)
     groups = defaultdict(list)
     for i in range(len(segments)):
@@ -786,15 +789,26 @@ def paint_piers(terrain, green, piers, road_mask, corridor, width, depth, observ
     for feature in piers:
         geometry = feature["geometry"]
         observed = [item for item in observations if f"osm-way-{item['source']['id']}" == feature["id"]]
+        joints = []
         if geometry["type"] == "LineString":
             lines = pier_decks(geometry["coordinates"])
+            vertices = {tuple(p) for p in geometry["coordinates"]}
             for item in observed:
-                start = item["addLine"][0]
-                if min(_segment_distance(start, a, b) for a, b in lines) > .5:
-                    raise ValueError("Pier observation %s no longer starts on its pier's deck." % item["id"])
-                lines.append(item["addLine"])
-            # Square ends: no walkable cell reaches past where a deck line ends.
+                added = item["addLine"]
+                if len(added) != 2 or math.dist(*added) < 1e-9:
+                    raise ValueError("Pier observation %s must add one straight line." % item["id"])
+                if tuple(added[0]) not in vertices:
+                    raise ValueError("Pier observation %s no longer starts on a vertex of its pier." % item["id"])
+                if any(_runs_back_over(line, added) or _runs_back_over(added, line) for line in lines):
+                    raise ValueError("Pier observation %s runs over a mapped deck line." % item["id"])
+                lines.append(added)
+            # A vertex where two of the pier's lines end is a joint. The bands stop
+            # square at free ends, so no walkable cell reaches past a deck's end,
+            # but round off at joints, so a bend stays joined side to side.
+            ends = Counter(tuple(p) for line in lines for p in line)
+            joints = [list(p) for p, count in ends.items() if count > 1]
             cells = {index for line in lines for index in line_cells(line, PIER_WALK_WIDTH, width, depth, ends=False)}
+            cells |= {index for joint in joints for index in line_cells([joint, [joint[0] + 1e-6, joint[1]]], PIER_WALK_WIDTH, width, depth)}
         else:
             if observed:
                 raise ValueError("A pier observation may only extend a deck line: " + feature["id"])
@@ -815,7 +829,7 @@ def paint_piers(terrain, green, piers, road_mask, corridor, width, depth, observ
             green[index] = 0
         feature["nativePier"] = {
             "shape": "deck-lines" if geometry["type"] == "LineString" else "platform-outline",
-            **({"lines": lines, "widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy", "walkWidthM": PIER_WALK_WIDTH} if geometry["type"] == "LineString" else {}),
+            **({"lines": lines, "joints": joints, "widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy", "walkWidthM": PIER_WALK_WIDTH} if geometry["type"] == "LineString" else {}),
             "heightM": PIER_DECK_HEIGHT, "heightSource": PIER_DECK_HEIGHT_SOURCE,
             **({"observations": observed} if observed else {}),
             "bridgeCells": water, "plankCells": land,
@@ -1270,14 +1284,20 @@ def vegetation_clearings(moves):
     return clear
 
 
-def preview_anchors(terrain, blocked, props, origin, size, width):
+def preview_anchors(terrain, blocked, props, origin, size, width, within=None, avoid=()):
+    """The first five connected eligible cells of a sector in scan order (local
+    coordinates), optionally only cells in `within` (local indices) and not in
+    `avoid` (local (x, y) cells)."""
     ox, oy = origin
     occupied = {(p["x"], p["y"]) for p in props}
+    avoid = set(avoid)
     eligible = bytearray(size * size)
     for y in range(1, size - 1):
         for x in range(1, size - 1):
             index = (oy + y) * width + ox + x
-            if terrain[index] not in (WATER, CODE["floor"]) and not blocked[index] and not any((x + dx, y + dy) in occupied for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
+            if (terrain[index] not in (WATER, CODE["floor"]) and not blocked[index]
+                    and not any((x + dx, y + dy) in occupied for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+                    and (within is None or y * size + x in within) and (x, y) not in avoid):
                 eligible[y * size + x] = 1
     # A five-cell flood produces connected existing floor, even on narrow land.
     for index, valid in enumerate(eligible):
@@ -1300,6 +1320,40 @@ def preview_anchors(terrain, blocked, props, origin, size, width):
         if len(cluster) == 5:
             return [{"x": i % size, "y": i // size, "z": 0} for i in cluster]
     return []
+
+
+def sector_area(terrain, origin, size, width, start):
+    """The local indices of a sector's cells reachable from `start` (local x, y)
+    over 4-connected cells that are not water, without leaving the sector. Water
+    divides the validator's walk within one sector file; a building cut by the
+    sector edge has no cap wall, so its floor does not."""
+    ox, oy = origin
+    first = start[1] * size + start[0]
+    area, queue = {first}, deque([first])
+    while queue:
+        current = queue.popleft()
+        x, y = current % size, current // size
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + dx, y + dy
+            nxt = ny * size + nx
+            if 0 <= nx < size and 0 <= ny < size and nxt not in area and terrain[(oy + ny) * width + ox + nx] != WATER:
+                area.add(nxt)
+                queue.append(nxt)
+    return area
+
+
+def anchors_with_sentries(terrain, blocked, props, origin, size, width, anchors, guards):
+    """The validator walks from the squad starts to every sentry post and patrol
+    point within the sector. Anchors in another walkable area than the sector's
+    first sentry (a deck that meets land only in the next sector) move to the
+    first five-cell cluster in the sentry's area, clear of every post."""
+    if not anchors or not guards:
+        return anchors
+    area = sector_area(terrain, origin, size, width, (guards[0]["x"], guards[0]["y"]))
+    if all(p["y"] * size + p["x"] in area for p in anchors):
+        return anchors
+    posts = {(p["x"], p["y"]) for guard in guards for p in [guard, *guard.get("patrol", [])]}
+    return preview_anchors(terrain, blocked, props, origin, size, width, within=area, avoid=posts) or anchors
 
 
 def render_atlas(features, config):
@@ -1587,6 +1641,10 @@ def build_project(project=PROJECT):
     guards_by_sector = patrols.author_guards(
         terrain, blocked, tree_cells, roads, {cell for cell, anchors in anchors_by_sector.items() if anchors},
         width=width, depth=depth, size=size, code=CODE, anchors_by_sector=anchors_by_sector, moves=approaches)
+    for col, row in sector_positions:
+        anchors_by_sector[col, row] = anchors_with_sentries(
+            terrain, blocked, props_by_sector.get(sector_id(col, row), []), (col * size, row * size), size, width,
+            anchors_by_sector[col, row], guards_by_sector.get((col, row), []))
     outputs, sectors = {'authored-buildings.json': encoded(authored)}, []
     config_digest = sha((project / "source" / "authoring-config.json").read_bytes())
     digest = sha(encoded(source_records))

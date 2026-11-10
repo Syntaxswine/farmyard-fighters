@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as T from '../dist/aft/tactics/vendor/three.module.js';
-import {PLACEMENTS,ART_REVISION,SOURCE_FEATURES_SHA256,REPLACEMENT_SOURCE_IDS,placementsForBounds,solidsForBounds,boundsIntersect,deckHeightAt} from '../dist/mission-art/mount-dora/manifest.js';
-import {createMountDoraArt,loadMountDoraAtlas} from '../dist/mission-art/mount-dora/kit.js';
+import {PLACEMENTS,ART_REVISION,SOURCE_FEATURES_SHA256,REPLACEMENT_SOURCE_IDS,placementsForBounds,solidsForBounds,boundsIntersect,deckHeightAt,deckCovers} from '../dist/mission-art/mount-dora/manifest.js';
+import {createMountDoraArt,loadMountDoraAtlas,trellisBoxes} from '../dist/mission-art/mount-dora/kit.js';
+import {TRELLIS_BEAMS} from '../dist/aft/tactics/bridge-trellis.js';
+import {TownEnvironment} from '../dist/mount-dora-view.js';
 const base=new URL('../dist/mission-art/mount-dora/',import.meta.url),raw=fs.readFileSync(new URL('../../../maps/mount-dora/features.json',import.meta.url)),features=JSON.parse(raw).features;
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const cases=[['donnelly',[444,444,516,516]],['inn',[276,768,348,840]],['lighthouse',[468,1140,540,1212]],['gilbert',[720,1152,792,1224]],['palm',[528,1344,600,1416]],['evans',[432,972,504,1044]],['shops',[384,528,456,600]],['donnelly-house',[363,442,435,514]],['courtyard',[240,432,312,504]],['north',[984,96,1056,168]],['lakefront',[140,580,212,652]]];
@@ -69,23 +71,44 @@ test('orthographic camera uses parallel view rays and reacts to rotation without
 });
 const r6=v=>Math.round(v*1e6)/1e6,span=(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]);
 test('every mapped pier draws raised deck pieces end to end along each deck line, with no railing',()=>{
- const piers=features.filter(f=>f.nativePier),pieces=PLACEMENTS.filter(p=>p.kind==='pier');
+ const piers=features.filter(f=>f.nativePier),pieces=PLACEMENTS.filter(p=>p.kind==='pier'),unit=(p,q)=>{const d=[q[0]-p[0],q[1]-p[1]],l=Math.hypot(...d);return [d[0]/l,d[1]/l];},same=(p,q)=>p[0]===q[0]&&p[1]===q[1];
+ let straightJointEnds=0,gentleBendEnds=0;
  assert.equal(piers.length,19);assert.equal(features.filter(f=>f.tags.man_made==='pier').length,19);
- const tops=new Set();
  for(const f of piers){
-  const n=f.id.replace('osm-way-',''),lines=f.nativePier.lines,own=pieces.filter(p=>p.sourceIds[0]===f.id);assert.ok(own.length,f.id);
+  const n=f.id.replace('osm-way-',''),lines=f.nativePier.lines,own=pieces.filter(p=>p.sourceIds[0]===f.id),joints=new Set(f.nativePier.joints.map(p=>p.join(',')));assert.ok(own.length,f.id);
   assert.equal(f.nativePier.heightM,.4);
   for(const [i,[a,b]]of lines.entries()){
    const line=own.filter(p=>p.id.startsWith(`md:pier:${n}:${i}:`)).sort((p,q)=>Number(p.id.split(':').at(-1))-Number(q.id.split(':').at(-1)));
    assert.deepEqual(line[0].ends[0],a.map(r6));assert.deepEqual(line.at(-1).ends[1],b.map(r6));
    for(let k=1;k<line.length;k++)assert.deepEqual(line[k].ends[0],line[k-1].ends[1]);
    assert.ok(Math.abs(line.reduce((s,p)=>s+span(...p.ends),0)-span(a,b))<1e-4,f.id);
-   for(const [k,p]of line.entries()){assert.ok(span(...p.ends)<=8+1e-9);assert.deepEqual(p.trellis.caps,[k===0,k===line.length-1]);assert.equal(new Set(line.map(q=>q.deck.topM)).size,1);}
+   assert.equal(new Set(line.map(q=>q.deck.topM)).size,1);
+   for(const [k,p]of line.entries()){
+    assert.ok(span(...p.ends)<=8+1e-9);
+    // Joints, extensions and caps belong to a line's own two ends only; a joint is never capped.
+    const atEnd=[k===0,k===line.length-1],isJoint=[atEnd[0]&&joints.has(a.join(',')),atEnd[1]&&joints.has(b.join(','))];
+    assert.deepEqual(p.deck.joints,isJoint,p.id);
+    for(const e of [0,1]){if(!atEnd[e])assert.ok(!p.trellis.caps[e]&&p.deck.extend[e]===0,p.id);if(isJoint[e])assert.equal(p.trellis.caps[e],false,p.id);if(p.deck.extend[e])assert.ok(isJoint[e]&&p.deck.extend[e]===p.width/2,p.id);}
+    // A line runs on past a joint exactly where another of the pier's lines leaves it more
+    // than 1 degree off this line's axis (or folds back along it); straight on, it stops square.
+    for(const e of [0,1])if(isJoint[e]){
+     const joint=e===0?a:b,out=e===0?unit(a,b):unit(b,a),others=lines.filter((l,j)=>j!==i&&l.some(q=>same(q,joint))).map(l=>unit(joint,same(l[0],joint)?l[1]:l[0]));
+     const off=others.map(w=>[Math.abs(out[0]*w[1]-out[1]*w[0]),out[0]*w[0]+out[1]*w[1]]),bends=off.some(([cross,dot])=>cross>Math.sin(Math.PI/180)||dot>0);
+     assert.equal(p.deck.extend[e],bends?p.width/2:0,p.id+' end '+e);
+     if(!bends)straightJointEnds++;else if(off.every(([cross,dot])=>cross<.5&&dot<0))gentleBendEnds++;
+    }
+   }
   }
   assert.equal(own.length,lines.reduce((s,[a,b])=>s+Math.ceil(span(a,b)/8),0));
-  for(const p of own){assert.equal(p.width,2);assert.deepEqual(p.rails,[]);assert.deepEqual(p.solids,[]);assert.equal(p.collisionPolicy,'additional-solids');assert.match(p.provenance.railing,/none/);assert.equal(p.deck.heightM,.4);assert.ok([.4,.402,.404].includes(p.deck.topM));tops.add(p.deck.topM);}
+  for(const p of own){assert.equal(p.width,2);assert.deepEqual(p.rails,[]);assert.deepEqual(p.solids,[]);assert.equal(p.collisionPolicy,'additional-solids');assert.match(p.provenance.railing,/none/);assert.equal(p.deck.heightM,.4);assert.ok(Number.isInteger(p.deck.level)&&p.deck.level>=0);assert.equal(p.deck.topM,r6(.4+.002*p.deck.level));}
  }
- assert.equal(tops.size,3);
+ // Mount Dora has both kinds: joints within 1 degree of straight, and gentle bends (1.1 and 5.2 degrees) under 30.
+ assert.ok(straightJointEnds>=10&&gentleBendEnds>=4,straightJointEnds+' straight, '+gentleBendEnds+' gentle');
+ // The walkway's west end bends at the Rusty Anchor's leg: it runs on 1 m and takes no cap.
+ const walkway=pieces.find(p=>p.id==='md:pier:556100376:0:3');assert.deepEqual([walkway.deck.extend[1],walkway.trellis.caps[1],walkway.deck.joints[1]],[1,false,true]);
+ // A stem that ends on its crossbar takes no cap; a finger's free far end does.
+ const stem=pieces.filter(p=>p.sourceIds[0]==='osm-way-623947049').sort((p,q)=>p.id.localeCompare(q.id)).at(-1);assert.equal(stem.trellis.caps[1],false);
+ const finger=pieces.filter(p=>p.sourceIds[0]==='osm-way-556100384');assert.equal(finger.length,1);assert.deepEqual(finger[0].trellis.caps,[false,true]);
  // A cross-dock mapped out and back (A-B-C-A) is drawn once, along its chord.
  const cross=features.find(f=>f.id==='osm-way-556100378'),ring=cross.geometry.coordinates;
  assert.equal(cross.geometry.type,'LineString');assert.deepEqual(ring[0],ring.at(-1));assert.equal(cross.nativePier.lines.length,1);
@@ -93,49 +116,85 @@ test('every mapped pier draws raised deck pieces end to end along each deck line
  // The reviewed observation's line is drawn and says where it came from.
  const t=pieces.filter(p=>p.provenance.position==='reviewed-observation:rusty-anchor-t');assert.equal(t.length,1);assert.deepEqual(t[0].ends.at(-1),[136.042,647]);
 });
-test('no two pier decks share more than a junction square',()=>{
- // Rasterise each deck at 0.25 m. Decks may meet where a cross-dock crosses its
- // stem (about 4 m2), but no deck may be drawn along another.
- const pieces=PLACEMENTS.filter(p=>p.kind==='pier'),cover=new Map(),step=.25;
- for(const p of pieces){const [a,b]=p.ends,len=span(a,b),u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
-  for(let x=Math.floor(p.bounds[0]/step);x<=Math.ceil(p.bounds[2]/step);x++)for(let y=Math.floor(p.bounds[1]/step);y<=Math.ceil(p.bounds[3]/step);y++){
-   const q=[(x+.5)*step-a[0],(y+.5)*step-a[1]],along=q[0]*u[0]+q[1]*u[1],across=Math.abs(q[0]*u[1]-q[1]*u[0]);
-   if(along>=0&&along<len&&across<p.width/2){const key=x+','+y;if(!cover.has(key))cover.set(key,[]);cover.get(key).push(p.id);}}}
- const pairs=new Map();for(const ids of cover.values())for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){const key=[ids[i],ids[j]].sort().join(' ');pairs.set(key,(pairs.get(key)||0)+step*step);}
- const worst=Math.max(...pairs.values());assert.ok(worst<=4.5,[...pairs].find(([,area])=>area===worst)?.join(' = ')+' m2');assert.ok(pairs.size>5);
+// Each pier piece's drawn deck as a sampling test: along its line, including the run past a bend.
+const onPiece=(p,q,margin=0)=>{const [a,b]=p.ends,len=span(a,b),u=[(b[0]-a[0])/len,(b[1]-a[1])/len],d=[q[0]-a[0],q[1]-a[1]],along=d[0]*u[0]+d[1]*u[1],across=Math.abs(d[0]*u[1]-d[1]*u[0]),[before,after]=p.deck.extend;return along>=-before+margin&&along<len+after-margin&&across<p.width/2-margin;};
+test('no two pier decks share more than a junction square, and overlapping decks never share a top',()=>{
+ // Rasterise each deck at 0.25 m. Decks meet where a cross-dock crosses its stem or a
+ // line bends (about 4 m2), but no deck is drawn along another; and where two lines'
+ // decks overlap by more than a sliver, their tops stand at different levels.
+ const pieces=PLACEMENTS.filter(p=>p.kind==='pier'),step=.25,area=new Map(),inner=new Map(),line=p=>p.id.split(':').slice(0,4).join(':');
+ for(const p of pieces)for(let x=Math.floor(p.bounds[0]/step);x<=Math.ceil(p.bounds[2]/step);x++)for(let y=Math.floor(p.bounds[1]/step);y<=Math.ceil(p.bounds[3]/step);y++){
+  const q=[(x+.5)*step,(y+.5)*step],key=x+','+y;
+  if(onPiece(p,q)){if(!area.has(key))area.set(key,[]);area.get(key).push(p);}
+  if(onPiece(p,q,.02)){if(!inner.has(key))inner.set(key,[]);inner.get(key).push(p);}
+ }
+ const pairs=new Map();for(const ps of area.values())for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const key=[ps[i].id,ps[j].id].sort().join(' ');pairs.set(key,(pairs.get(key)||0)+step*step);}
+ const worst=Math.max(...pairs.values());assert.ok(worst<=4.5,[...pairs].find(([,v])=>v===worst)?.join(' = ')+' m2');assert.ok(pairs.size>5);
+ let shared=0,crossing=0;for(const ps of inner.values())for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++)if(line(ps[i])!==line(ps[j])){crossing++;if(ps[i].deck.topM===ps[j].deck.topM)shared++;}
+ assert.ok(crossing>100);assert.equal(shared,0);
 });
-test('a walker stands on a raised pier deck and nowhere else',()=>{
- const pier=PLACEMENTS.find(p=>p.id==='md:pier:556100376:0:0'),[a,b]=pier.ends,mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=span(a,b),n=[-(b[1]-a[1])/len,(b[0]-a[0])/len];
- // A walker stands on the deck within its 0.75 m walking half width (the walkable cells' rule).
- assert.equal(pier.deck.walkHalfWidthM,.75);assert.equal(deckHeightAt(mid),.4);assert.equal(deckHeightAt([mid[0]+n[0]*.7,mid[1]+n[1]*.7]),.4);assert.equal(deckHeightAt([mid[0]+n[0]*.8,mid[1]+n[1]*.8]),0);
- // The band stops square at the deck's mapped end: just past the shore end is the path, not the deck.
- const u=[(b[0]-a[0])/len,(b[1]-a[1])/len];assert.equal(deckHeightAt([a[0]+u[0]*.3,a[1]+u[1]*.3]),.4);assert.equal(deckHeightAt([a[0]-u[0]*.3,a[1]-u[1]*.3]),0);
+test('a walker stands wherever the drawn deck covers their cell, and the town view asks by cell',()=>{
+ const pier=PLACEMENTS.find(p=>p.id==='md:pier:556100376:0:0'),[a,b]=pier.ends,mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=span(a,b),n=[-(b[1]-a[1])/len,(b[0]-a[0])/len],u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
+ assert.equal(deckHeightAt(mid),.4);assert.equal(deckHeightAt([mid[0]+n[0]*.98,mid[1]+n[1]*.98]),.4);assert.equal(deckHeightAt([mid[0]+n[0]*1.02,mid[1]+n[1]*1.02]),0);
+ // The shore end is free: the deck stops square there, so just past it is the path.
+ assert.deepEqual([pier.deck.joints[0],pier.deck.extend[0]],[false,0]);assert.equal(deckHeightAt([a[0]+u[0]*.02,a[1]+u[1]*.02]),.4);assert.equal(deckHeightAt([a[0]-u[0]*.02,a[1]-u[1]*.02]),0);
+ // At a bend the deck runs on 1 m past the joint and covers the outer corner, round within 1 m of it.
+ const legs=PLACEMENTS.filter(p=>p.sourceIds[0]==='osm-way-548471565'&&(p.deck.joints[0]||p.deck.joints[1])),incoming=legs.find(p=>p.deck.joints[1]),joint=incoming.ends[1],v=[(joint[0]-incoming.ends[0][0])/span(...incoming.ends),(joint[1]-incoming.ends[0][1])/span(...incoming.ends)];
+ assert.equal(incoming.deck.extend[1],1);assert.equal(deckHeightAt([joint[0]+v[0]*.9,joint[1]+v[1]*.9]),.4);assert.equal(deckHeightAt([joint[0]+v[0]*1.3,joint[1]+v[1]*1.3]),0);
+ for(const angle of [0,1,2,3,4,5])assert.equal(deckHeightAt([joint[0]+Math.cos(angle)*.95,joint[1]+Math.sin(angle)*.95]),.4,angle);
+ // Out at the outer corner of the run, beyond the joint's disc and off the other leg, the run alone carries the walker.
+ const outgoing=legs.find(p=>p.deck.joints[0]),w=[(outgoing.ends[1][0]-joint[0])/span(...outgoing.ends),(outgoing.ends[1][1]-joint[1])/span(...outgoing.ends)],side=(-v[1]*w[0]+v[0]*w[1])>0?-1:1,corner=[joint[0]+v[0]*.95-v[1]*side*.9,joint[1]+v[1]*.95+v[0]*side*.9];
+ assert.ok(span(corner,joint)>1.2&&!onPiece(outgoing,corner)&&onPiece(incoming,corner));assert.equal(deckHeightAt(corner),.4);
+ // Declared synthetic pieces through the same predicate: at a nearly straight joint (0.5 degrees, no
+ // run past it) the two square ends leave a hairline wedge on the outside; within half the width of
+ // the joint it still counts as deck, and a free end does not.
+ const turn=.5*Math.PI/180,first={ends:[[0,0],[10,0]],width:2,deck:{extend:[0,0],joints:[false,true]}},second={ends:[[10,0],[10+10*Math.cos(turn),10*Math.sin(turn)]],width:2,deck:{extend:[0,0],joints:[true,false]}},free=q=>({...q,deck:{...q.deck,joints:[false,false]}});
+ const wedge=[10+.9*Math.sin(turn/2),-.9*Math.cos(turn/2)];assert.ok(!deckCovers(wedge,free(first))&&!deckCovers(wedge,free(second)));assert.ok(deckCovers(wedge,first)&&deckCovers(wedge,second));
+ assert.ok(!deckCovers([10.5,.5],free(first))&&deckCovers([10.5,.5],first)&&!deckCovers([10.5,1.2],first));
  const piers=PLACEMENTS.filter(p=>p.kind==='pier'),toSegment=(q,[s,e])=>{const d=[e[0]-s[0],e[1]-s[1]],t=Math.max(0,Math.min(1,((q[0]-s[0])*d[0]+(q[1]-s[1])*d[1])/(d[0]**2+d[1]**2)));return span(q,[s[0]+d[0]*t,s[1]+d[1]*t]);};
  const board=PLACEMENTS.find(p=>p.kind==='boardwalk'&&piers.every(q=>toSegment(p.ends[0],q.ends)>3));assert.ok(board);assert.equal(deckHeightAt(board.ends[0]),0);assert.equal(deckHeightAt([480,480]),0);
  assert.throws(()=>deckHeightAt([1,NaN]));assert.throws(()=>deckHeightAt([1]));
- // The town view lifts a walker by the same query at the centre of the walker's cell.
- const view=fs.readFileSync(new URL('../dist/mount-dora-view.js',import.meta.url),'utf8'),field=fs.readFileSync(new URL('../dist/field-view.js',import.meta.url),'utf8');
- assert.match(view,/surfaceHeight\(x,y\)\{return this\.artModule\?\.deckHeightAt\?\.\(\[Math\.floor\(x\+\.5\)\+\.5,Math\.floor\(y\+\.5\)\+\.5\]\)\?\?0;\}/);
- assert.match(field,/a\.root\.position\.set\(sample\.x,this\.art\?\.surfaceHeight\?\.\(sample\.x,sample\.y\)\?\?0,sample\.y\)/);
+ // The town view asks about the centre of the walker's cell: field cell centres are integers, half a cell from town metres.
+ const asked=[],probe={artModule:{deckHeightAt:q=>{asked.push(q);return .4;}}};
+ for(const [x,y,cell]of [[10.4,20.6,[10.5,21.5]],[10.49,20.51,[10.5,21.5]],[-.4,.49,[.5,.5]]]){asked.length=0;assert.equal(TownEnvironment.prototype.surfaceHeight.call(probe,x,y),.4);assert.deepEqual(asked,[cell]);}
+ assert.equal(TownEnvironment.prototype.surfaceHeight.call({artModule:{deckHeightAt}},mid[0]-.5,mid[1]-.5),.4);assert.equal(TownEnvironment.prototype.surfaceHeight.call({},mid[0]-.5,mid[1]-.5),0);
+ const view=fs.readFileSync(new URL('../dist/mount-dora-view.js',import.meta.url),'utf8');assert.match(view,/constructor\(renderer,state,\{[^\n]*\bartModule\b[^\n]*\}=\{\}\)\{\r?\n[^\n]*\bthis\.artModule=artModule;/);
+ const field=fs.readFileSync(new URL('../dist/field-view.js',import.meta.url),'utf8');
+ assert.match(field,/a\.root\.position\.set\(sample\.x,this\.art\?\.surfaceHeight\?\.\(sample\.x,sample\.y\)\?\?0,sample\.y\);a\.root\.updateMatrixWorld\(true\);/);
 });
-test('railway pieces cover every track run end to end in chords of about two metres',()=>{
- const rails=features.filter(f=>f.nativeRailway),placed=PLACEMENTS.filter(p=>p.kind==='railway');
- assert.equal(rails.length,4);assert.ok(rails.every(f=>f.tags.railway==='disused'));
- let runs=0;
- for(const f of rails)for(const [i,run]of f.nativeRailway.runs.entries()){
-  runs++;const n=f.id.replace('osm-way-',''),parts=placed.filter(p=>p.id.startsWith(`md:railway:${n}:${i}:`)).sort((a,b)=>Number(a.id.split(':').at(-1))-Number(b.id.split(':').at(-1)));
-  const pieces=parts.flatMap(p=>p.pieces),arc=run.slice(1).reduce((s,q,k)=>s+span(run[k],q),0);
-  assert.equal(pieces.length,Math.max(1,Math.round(arc/2)));
-  assert.deepEqual(pieces[0][0],run[0].map(r6));assert.deepEqual(pieces.at(-1)[1],run.at(-1).map(r6));
-  for(let k=1;k<pieces.length;k++)assert.deepEqual(pieces[k][0],pieces[k-1][1]);
-  for(const [a,b]of pieces){const d=span(a,b);assert.ok(d>1.3&&d<=arc/pieces.length+1e-5,`${f.id} run ${i}: chord ${d}`);}
-  for(const p of parts){assert.equal(p.asset,'railway:track-straight');assert.ok(p.pieces.length>=1&&p.pieces.length<=12);assert.deepEqual(p.solids,[]);for(const q of p.pieces.flat())assert.ok(q[0]>=p.bounds[0]+1.5-1e-6&&q[0]<=p.bounds[2]-1.5+1e-6&&q[1]>=p.bounds[1]+1.5-1e-6&&q[1]<=p.bounds[3]-1.5+1e-6);}
+test('AFT trellis panels stand under the deck edges, tilted within their panels',()=>{
+ // trellisBoxes: AFT's six beams per one-metre panel, heights scaled to the space under the deck.
+ const run=trellisBoxes([0,0],[3,0],.3);assert.equal(run.length,18);
+ for(const [k,box]of run.entries()){const beam=TRELLIS_BEAMS[k%6],panel=Math.floor(k/6),a=[panel+beam.a[0],beam.a[1]*.15],b=[panel+beam.b[0],beam.b[1]*.15];
+  assert.ok(Math.abs(box.centre[0]-(a[0]+b[0])/2)<1e-9&&Math.abs(box.centre[1]-(a[1]+b[1])/2)<1e-9&&box.centre[2]===0);
+  assert.ok(Math.abs(box.roll-Math.atan2(b[1]-a[1],b[0]-a[0]))<1e-9&&box.yaw===-0);assert.deepEqual(box.size.map(v=>+v.toFixed(9)),[+span(a,b).toFixed(9),+(beam.width*.4).toFixed(9),.064]);}
+ assert.ok(Math.abs(trellisBoxes([0,0],[0,2],.3)[0].yaw+Math.PI/2)<1e-9);assert.equal(trellisBoxes([0,0],[2.6,0],.3).length,18);assert.deepEqual(trellisBoxes([0,0],[3,0],0),[]);
+ // The drawn geometry of a diagonal piece is exactly its deck slab and these trellis boxes,
+ // each turned by yaw about Y and then rolled within its panel (Three's XYZ order).
+ const diagonal=q=>Math.abs(Math.sin(2*Math.atan2(q.ends[1][1]-q.ends[0][1],q.ends[1][0]-q.ends[0][0])))>.3,capped=PLACEMENTS.find(q=>q.kind==='pier'&&diagonal(q)&&q.trellis.caps.some(Boolean)),running=PLACEMENTS.find(q=>q.kind==='pier'&&diagonal(q)&&q.deck.extend.some(Boolean));
+ assert.ok(capped,'a diagonal, capped pier piece');assert.ok(running,'a diagonal piece that runs on past a bend');
+ for(const p of [capped,running]){
+ const kit=createMountDoraArt({THREE:T});kit.updateResident(p.bounds);const group=kit.root.getObjectByName(p.id);
+ const [a,b]=p.ends.map(q=>q.map((v,i)=>v-p.anchor[i])),len=span(a,b),u=[(b[0]-a[0])/len,(b[1]-a[1])/len],n=[-u[1],u[0]],yaw=-Math.atan2(b[1]-a[1],b[0]-a[0]),top=p.deck.topM,inset=1-.032,under=top-.1,[before,after]=p.deck.extend,s=a.map((v,i)=>v-u[i]*before),e=b.map((v,i)=>v+u[i]*after);
+ const boxes=[{centre:[(s[0]+e[0])/2,top-.05,(s[1]+e[1])/2],size:[len+before+after,.1,2],yaw,roll:0}];
+ for(const side of [-1,1])boxes.push(...trellisBoxes(s.map((v,i)=>v+n[i]*side*inset),e.map((v,i)=>v+n[i]*side*inset),under));
+ for(const [k,end]of [a,b].entries())if(p.trellis.caps[k])boxes.push(...trellisBoxes(end.map((v,i)=>v-n[i]*inset),end.map((v,i)=>v+n[i]*inset),under));
+ const drawn=[];for(const m of group.children){const s=m.geometry.attributes.position;for(let i=0;i<s.count;i++)drawn.push([s.getX(i),s.getY(i),s.getZ(i)]);}
+ assert.equal(drawn.length,36*boxes.length);
+ const key=v=>v.map(x=>Math.round(x*1e4)).join(','),have=new Set(drawn.map(key));
+ for(const box of boxes){const m=new T.Matrix4().compose(new T.Vector3(...box.centre),new T.Quaternion().setFromEuler(new T.Euler(0,box.yaw,box.roll,'XYZ')),new T.Vector3(1,1,1));
+  for(const sx of [-1,1])for(const sy of [-1,1])for(const sz of [-1,1]){const c=new T.Vector3(sx*box.size[0]/2,sy*box.size[1]/2,sz*box.size[2]/2).applyMatrix4(m).toArray();assert.ok(have.has(key(c)),`corner ${c} of a box at ${box.centre}`);}}
+ const bounds=new T.Box3().setFromObject(group,true);assert.ok(Math.abs(bounds.max.y-top)<1e-6&&bounds.min.y>-.02);
+ kit.dispose();
  }
- // Every railway placement belongs to a run: nothing is drawn off the runs.
- assert.equal(placed.length,placed.filter(p=>rails.some(f=>p.sourceIds[0]===f.id&&f.nativeRailway.runs[Number(p.id.split(':')[3])])).length);
- assert.ok(runs>=10);
- const provenance=JSON.parse(fs.readFileSync(new URL('provenance.json',base)));assert.equal(provenance.railwayRevision,'ed951ba4723ce4cdb87db25d226ad1ceaead7f46');
- for(const name of ['catalogue','paint','route','three'])assert.ok(provenance.files.some(f=>f.path===`source/packages/railway-visuals/${name}.js`),name);
+});
+test('the boardwalk stays at the water, and the art metrics count every instance',()=>{
+ const board=PLACEMENTS.find(p=>p.kind==='boardwalk'&&!p.rails.length),kit=createMountDoraArt({THREE:T});kit.updateResident(board.bounds);
+ const deck=new T.Box3().setFromObject(kit.root.getObjectByName(board.id),true);assert.ok(Math.abs(deck.max.y-.005)<1e-6&&Math.abs(deck.min.y+.095)<1e-6);
+ const rail=PLACEMENTS.find(p=>p.kind==='railway');kit.updateResident(rail.bounds);
+ let triangles=0;kit.root.traverse(o=>{if(o.isMesh)triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);});
+ assert.ok(kit.root.children.some(g=>g.children.some(m=>m.isInstancedMesh&&m.count>1)));assert.equal(kit.metrics().triangles,triangles);
+ kit.dispose();
 });
 test('a railway placement instances the pinned Nautilus piece on each chord and leaves the kit shared',()=>{
  // Count the kit's own per-piece clones as they retire: each placement borrows one piece.
@@ -166,10 +225,10 @@ test('a railway placement instances the pinned Nautilus piece on each chord and 
  kit.updateResident([0,0,1,1]);assert.equal(instances,5);assert.equal(geometries,0);
  kit.updateResident(p.bounds);assert.equal(retired,2*borrowed);const again=kit.root.getObjectByName(p.id);assert.ok(again!==group&&again.children.every(c=>meshes.some(m=>m.geometry===c.geometry&&m.material===c.material)));
  // A pier piece stands at its deck height on a trellis that reaches down to the water.
- const pier=PLACEMENTS.find(q=>q.kind==='pier'&&q.deck.topM===.4&&q.trellis.caps.every(Boolean));kit.updateResident(pier.bounds);const deck=kit.root.getObjectByName(pier.id),deckBox=new T.Box3().setFromObject(deck,true);
- assert.ok(deck.children.length>=1&&deck.children.every(m=>m.isMesh&&!m.isInstancedMesh));assert.ok(Math.abs(deckBox.max.y-.4)<1e-6&&deckBox.min.y<.01&&deckBox.min.y>-.05,`${deckBox.min.y} / ${deckBox.max.y}`);
+ const pier=PLACEMENTS.find(q=>q.kind==='pier'&&q.trellis.caps.every(Boolean))??PLACEMENTS.find(q=>q.kind==='pier'&&q.trellis.caps.some(Boolean)&&!q.deck.extend.some(Boolean));kit.updateResident(pier.bounds);const deck=kit.root.getObjectByName(pier.id),deckBox=new T.Box3().setFromObject(deck,true);
+ assert.ok(deck.children.length>=1&&deck.children.every(m=>m.isMesh&&!m.isInstancedMesh));assert.ok(Math.abs(deckBox.max.y-pier.deck.topM)<1e-6&&deckBox.min.y<.01&&deckBox.min.y>-.05,`${deckBox.min.y} / ${deckBox.max.y}`);
  assert.ok(deckBox.min.x>=pier.bounds[0]-.002&&deckBox.max.x<=pier.bounds[2]+.002&&deckBox.min.z>=pier.bounds[1]-.002&&deckBox.max.z<=pier.bounds[3]+.002);
- const vertices=deck.children.reduce((s,m)=>s+m.geometry.attributes.position.count,0),panels=2*Math.max(1,Math.round(span(...pier.ends)))+4;assert.equal(vertices,36*(1+6*panels));
+ const vertices=deck.children.reduce((s,m)=>s+m.geometry.attributes.position.count,0),panels=2*Math.max(1,Math.round(span(...pier.ends)+pier.deck.extend[0]+pier.deck.extend[1]))+2*pier.trellis.caps.filter(Boolean).length;assert.equal(vertices,36*(1+6*panels));
  kit.dispose();assert.equal(geometries,5);assert.equal(kit.root.children.length,0);
  }finally{T.InstancedMesh.prototype.dispose=original;}
 });

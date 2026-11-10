@@ -12,8 +12,15 @@ for(const p of PLACEMENTS)for(let y=Math.floor(p.bounds[1]/cell);y<=Math.floor(p
 export function placementsForBounds(bounds){checkBounds(bounds);const found=new Set();for(let y=Math.floor(bounds[1]/cell);y<=Math.floor(bounds[3]/cell);y++)for(let x=Math.floor(bounds[0]/cell);x<=Math.floor(bounds[2]/cell);x++)for(const p of index.get(x+','+y)||[])if(boundsIntersect(p.bounds,bounds))found.add(p);return [...found].sort((a,b)=>a.id.localeCompare(b.id));}
 export function solidsForBounds(bounds){return placementsForBounds(bounds).flatMap(p=>p.solids.map((solid,i)=>({id:p.id+':solid:'+i,placementId:p.id,sourceIds:p.sourceIds,collisionPolicy:p.collisionPolicy,...solid})));}
 // The height a walker stands at, in town metres: a raised pier deck's height where
-// the point lies beside a deck piece, within its walking half width and not past its
-// ends (the generator's rule for walkable deck cells, so a cell centre answers for
-// its cell), otherwise 0.
-const besideDeck=(p,[a,b],half)=>{const dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy);if(!length)return false;const along=((p[0]-a[0])*dx+(p[1]-a[1])*dy)/length,across=Math.abs((p[0]-a[0])*dy-(p[1]-a[1])*dx)/length;return along>=-1e-9&&along<=length+1e-9&&across<=half+1e-9;};
-export function deckHeightAt(point){if(!Array.isArray(point)||point.length!==2||!point.every(Number.isFinite))throw Error('Supply a town point [east,south].');let height=0;for(const p of placementsForBounds([point[0],point[1],point[0],point[1]]))if(p.kind==='pier'&&p.deck&&besideDeck(point,p.ends,p.deck.walkHalfWidthM))height=Math.max(height,p.deck.heightM);return height;}
+// the point lies on a drawn deck piece (its full width, including the run past a
+// bend joint), otherwise 0. Within half the width of a joint the deck also counts:
+// past a bend the run already covers that disc, and at a nearly straight joint it
+// closes the hairline wedge (under 2 cm) that two square ends leave, where the
+// generator's round joint band still lets a walker stand. The town asks about the
+// centre of the walker's cell, so a walker stands on the deck wherever the drawn
+// deck covers their cell's centre.
+export function deckCovers(q,p){const [a,b]=p.ends,dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy),half=p.width/2,[before,after]=p.deck.extend??[0,0],joints=p.deck.joints??[false,false];if(!length)return false;
+ const along=((q[0]-a[0])*dx+(q[1]-a[1])*dy)/length,across=Math.abs((q[0]-a[0])*dy-(q[1]-a[1])*dx)/length;
+ if(across<=half+1e-9&&along>=-before-1e-9&&along<=length+after+1e-9)return true;
+ return [a,b].some((end,k)=>joints[k]&&Math.hypot(q[0]-end[0],q[1]-end[1])<=half+1e-9);}
+export function deckHeightAt(point){if(!Array.isArray(point)||point.length!==2||!point.every(Number.isFinite))throw Error('Supply a town point [east,south].');let height=0;for(const p of placementsForBounds([point[0],point[1],point[0],point[1]]))if(p.kind==='pier'&&p.deck&&deckCovers(point,p))height=Math.max(height,p.deck.heightM);return height;}

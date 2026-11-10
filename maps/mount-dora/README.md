@@ -62,9 +62,10 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
   is the boardwalk proxy). In 3D each deck stands 0.4 m over the water on AFT's
   timber trellis, cut down to fit beneath it (the owner's choice of a low deck;
   the 2018 lidar puts the real decks a median 0.43 m up), and a walker on a deck
-  stands at its height. A walker crosses only the cells whose centres lie
-  within 0.75 m of a deck line and not past its ends, which keeps them over the
-  drawn deck. Segments
+  stands at its height wherever the drawn deck covers the centre of their cell.
+  A walker crosses only the cells whose centres lie within 0.75 m of a deck line
+  (not past its free ends, round at its joints), so they stay within 0.25 m
+  (square decks) to 0.46 m (diagonal ones) of the drawn deck's edge. Segments
   mapped back over one another, such as the
   cross-docks mapped out and back (A-B-C-A), are drawn once along their chord.
   A pier leaves the paths that meet it alone. One reviewed observation adds a
@@ -94,7 +95,10 @@ workshop refuses them because it requires four walkable squad starts and a
 travel marker. The authoring data does not add fake platforms to bypass that
 rule. The other sectors have five clearly identified authoring-validator
 markers on connected existing walkable cells for editor validation: land, or in
-A04, B07, C03 and C06 a mapped deck or boardwalk. Forty-two sentries
+B07 and C03 a boardwalk or pier deck. They lie in the same walkable area as the
+sector's first sentry, because the validator walks between them within the
+sector: A04's and C06's first cells in scan order are on pier decks that reach
+land only in the next sector, so their markers stand on land. Forty-two sentries
 start across the 39 land sectors. They hold posts, walk a street back and forth,
 or follow a local circuit using the game's movement, combat and save systems.
 
