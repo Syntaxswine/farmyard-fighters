@@ -49,6 +49,18 @@ test('single-item pickup leaves other items for a later bulk transfer',()=>{
   Core.performInteraction(state,object.id,'take-all');assert.equal(state.solo.dressings,3);assert.equal(object.inventory.length,0);assert.equal(hero(state).ap,8);
 });
 
+test('only chests that opt in can reopen while empty',()=>{
+  const state=createSoloGame(),object=chest(state);object.inventory=[];
+  assert.equal(Core.performInteraction(state,object.id,'open').ok,false);
+  assert.equal(Core.nearbyInteractions(state).some(candidate=>candidate.id===object.id),false);
+  object.reusable=true;
+  assert.equal(Core.nearbyInteractions(state).some(candidate=>candidate.id===object.id),true);
+  assert.equal(Core.performInteraction(state,object.id,'open').ok,true);
+  assert.equal(Core.performInteraction(state,object.id,'close').ok,true);
+  assert.equal(Core.performInteraction(state,object.id,'open').ok,true);
+  assert.deepEqual(object.inventory,[]);
+});
+
 test('invalid or stale loot commands never spend AP, move items, or change state',()=>{
   for(const reason of ['closed','enemy','ap','reach','missing-item','unknown-action']){
     const state=combat(),object=chest(state),unit=hero(state);

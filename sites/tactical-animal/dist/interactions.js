@@ -19,6 +19,12 @@ export function interactionFootprint(object){
   return null;
 }
 
+export function isInactiveLoot(object){
+  const container=object.kind==='chest'||object.kind==='body';
+  const reusable=object.kind==='chest'&&object.reusable===true;
+  return container&&!reusable&&!object.inventory?.length;
+}
+
 // Keep a usable selection until it leaves reach. Explicit object taps override it.
 export function selectInteractionTarget(candidates,currentId=null){
   return candidates.find(object=>object.id===currentId)||[...candidates].sort((a,b)=>a.distance-b.distance||a.id.localeCompare(b.id))[0]||null;
@@ -61,6 +67,7 @@ export function createInteractionSystem({hero,canControl,combatCosts,distance,ge
   }
   function cost(state,base){return combatCosts(state)?base:0;}
   function actions(state,object){
+    if(isInactiveLoot(object))return [];
     const action=(id,label,base)=>({id,label,cost:cost(state,base)});
     if(object.kind==='door')return [action(object.open?'close':'open',object.open?'Close':'Open',1)];
     if(object.kind==='chest')return object.open?
@@ -84,7 +91,11 @@ export function createInteractionSystem({hero,canControl,combatCosts,distance,ge
     return {ok:!reason,reason,cost:action?.cost||0,action,object};
   }
   function nearby(state){
-    return objects(state).filter(object=>accessible(state,object)).map(object=>({...object,distance:distance(hero(state),object),actions:actions(state,object).map(action=>({...action,...preview(state,object.id,action.id),object:undefined}))}));
+    return objects(state).flatMap(object=>{
+      const available=actions(state,object);
+      if(!available.length||!accessible(state,object))return [];
+      return [{...object,distance:distance(hero(state),object),actions:available.map(action=>({...action,...preview(state,object.id,action.id),object:undefined}))}];
+    });
   }
   function addItem(state,item){
     const unit=hero(state);
@@ -117,7 +128,7 @@ export function createInteractionSystem({hero,canControl,combatCosts,distance,ge
     else if(actionId==='take'||actionId==='take-all'){
       const items=stored.inventory.filter(item=>actionId==='take-all'||item.id===itemId);
       for(const item of items)addItem(state,item);
-      stored.inventory=stored.inventory.filter(item=>!items.includes(item));loot=true;
+      stored.inventory=stored.inventory.filter(item=>!items.includes(item));loot=!isInactiveLoot(stored);
       log(state,`Took ${actionId==='take-all'?'all items':'an item'} from ${object.name} (${check.cost} AP).`);
     }else if(actionId==='collect'){
       const mission=missionForState(state);state.solo.objectives[mission.objective.id]=true;

@@ -1,5 +1,6 @@
 import * as T from './aft/tactics/vendor/three.module.js';
 import {Core,hero} from './solo-game.js';
+import {isInactiveLoot} from './interactions.js';
 import {pointInWorldRect} from './world-grid.js';
 
 export const SEARCH_HALO_LIMIT=12;
@@ -7,7 +8,7 @@ export const SEARCH_HALO_LIMIT=12;
 export function searchHaloCandidates(state,window){
   const unit=hero(state);if(!unit||unit.hp<=0)return [];
   return Core.interactionObjects(state).filter(object=>
-    ['chest','body'].includes(object.kind)&&object.inventory?.length>0&&
+    ['chest','body'].includes(object.kind)&&!isInactiveLoot(object)&&
     (!window||pointInWorldRect(object,window))&&state.visible.has(Core.key(object.x,object.y))&&Core.canSee(state,unit,object)
   ).map(object=>{
     const distance=Math.hypot(object.x-unit.x,object.y-unit.y);

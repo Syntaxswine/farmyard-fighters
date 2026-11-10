@@ -11,7 +11,7 @@ import * as shootingControls from '../dist/shooting-controls.js';
 import * as targetMonitor from '../dist/targeting-monitor.js';
 import * as flameControls from '../dist/flame-controls.js';
 import * as guardAlerts from '../dist/guard-alert.js';
-import {selectInteractionTarget} from '../dist/interactions.js';
+import {isInactiveLoot,selectInteractionTarget} from '../dist/interactions.js';
 import {createOperationStorage} from '../dist/operation-storage.js';
 import {STANCE_ICONS} from '../dist/aft/tactics/battle-control-icons.js';
 import * as realtimeCombat from '../dist/realtime-combat.js';
@@ -59,7 +59,7 @@ export function app({autoDeploy=true,initialStorage=[],storageFailure=null,searc
     route(){} center(){} sync(){} dispose(){this.disposed=true;this.aiming=false;}
   }
   if(!saved.has('tactical-animal-build-v1'))saved.set('tactical-animal-build-v1',JSON.stringify({...game.DEFAULT_BUILD,utility:'grenade'}));
-  const context={...game,...realtimeCombat,createRealtimeCareers,FrameClock,pointInWorldRect,...tourActivity,...tourProgress,URL,URLSearchParams,AbortController,Image:class {complete=false;naturalWidth=0;},location:{search},__appModuleURL:new URL('../dist/app.js',import.meta.url).href,...controls,...grenadeControls,...flameControls,...shootingControls,...guardAlerts,createTargetMonitor:(...args)=>targetMonitor.createTargetMonitor(...args,doc),selectInteractionTarget,createOperationStorage,STANCE_ICONS,weaponArtwork:()=>new Element(),FieldView,drawMinimap(){},document:doc,localStorage:{getItem:key=>saved.get(key),setItem:(key,value)=>saved.set(key,value)},setTimeout,clearTimeout,performance:{now:()=>clock},requestAnimationFrame:fn=>animation=fn,innerHeight:844,addEventListener:(name,fn)=>events.set(name,fn),console};
+  const context={...game,...realtimeCombat,createRealtimeCareers,FrameClock,pointInWorldRect,...tourActivity,...tourProgress,URL,URLSearchParams,AbortController,Image:class {complete=false;naturalWidth=0;},location:{search},__appModuleURL:new URL('../dist/app.js',import.meta.url).href,...controls,...grenadeControls,...flameControls,...shootingControls,...guardAlerts,createTargetMonitor:(...args)=>targetMonitor.createTargetMonitor(...args,doc),isInactiveLoot,selectInteractionTarget,createOperationStorage,STANCE_ICONS,weaponArtwork:()=>new Element(),FieldView,drawMinimap(){},document:doc,localStorage:{getItem:key=>saved.get(key),setItem:(key,value)=>saved.set(key,value)},setTimeout,clearTimeout,performance:{now:()=>clock},requestAnimationFrame:fn=>animation=fn,innerHeight:844,addEventListener:(name,fn)=>events.set(name,fn),console};
   context.window={get localStorage(){return context.localStorage;}};
   if(storageFailure){
     const blocked=()=>{throw Object.assign(new Error('Storage access is denied.'),{name:'SecurityError'});};
