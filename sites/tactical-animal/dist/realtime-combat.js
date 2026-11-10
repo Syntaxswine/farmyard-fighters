@@ -7,7 +7,7 @@ import {patrolDestination} from './aft/tactics/character-patrol.js';
 export const WEAPON_TIMING=Object.freeze({
   hands:{shot:.8,reload:0},knife:{shot:.7,reload:0},
   pistol:{shot:.65,reload:1.8},'pistol-offhand':{shot:.65,reload:1.8},
-  assault:{shot:.5,auto:.14,reload:2.4},smg:{shot:.4,auto:.11,reload:2.8},rifle:{shot:1.25,reload:2.8},
+  assault:{shot:.5,auto:.16,reload:2.4},smg:{shot:.4,auto:.13,reload:2.8},rifle:{shot:1.25,reload:2.8},
   shotgun:{shot:1,reload:3},sniper:{shot:1.8,reload:3.2},hmg:{shot:.7,auto:.18,reload:4},
   grenade:{shot:1.2,reload:0},launcher:{shot:1.6,reload:3.6},rpg:{shot:2.2,reload:4},
   flamethrower:{shot:3,reload:3.5},

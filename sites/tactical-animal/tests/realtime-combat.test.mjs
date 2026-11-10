@@ -129,7 +129,8 @@ test('full-auto misses pass on both sides of the target and stop at cover or gro
 test('a held trigger fires repeatedly, a tap fires once, and a saved game never restores a hold',()=>{
  const s=fixture(),u=hero(s),g=s.units[1];
  assert(Core.pressRealtimeTrigger(s,u,g));
- advance(s,.57);assert.equal(u.ammo.assault,26);assert(Core.realtimeStatus(s).triggerHeld);
+ advance(s,.57);assert.equal(u.ammo.assault,27);assert(Core.realtimeStatus(s).triggerHeld);
+ advance(s,.08);assert.equal(u.ammo.assault,26);
  const resumed=decodeSave(encodeSave(s));
  assert(!Core.realtimeStatus(resumed).triggerHeld);
  advance(resumed,.6);assert.equal(hero(resumed).ammo.assault,26);
