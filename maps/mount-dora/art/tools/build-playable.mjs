@@ -122,7 +122,7 @@ for(const line of deckLines){
   const joint=joints.has(p.join(','));let extend=0;
   if(joint){
    const at=deckLines.filter(o=>o.pier===pier&&[o.a,o.b].some(q=>q[0]===p[0]&&q[1]===p[1]));
-   try{extend=runOns(p,at.map(o=>[o.a,o.b]),pier.widthM)[at.indexOf(line)];}catch(error){throw Error(line.f.id+': '+error.message);}
+   extend=runOns(p,at.map(o=>[o.a,o.b]),pier.widthM,line.f.id)[at.indexOf(line)];
   }
   const onDeck=!joint&&deckLines.some(o=>o!==line&&toLine(p,o.a,o.b)<pier.widthM/2);
   return {joint,extend:r(extend),cap:!joint&&!onDeck};};

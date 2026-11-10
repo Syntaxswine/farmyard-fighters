@@ -124,9 +124,6 @@ export class TownEnvironment{
       }
     }
   }
-  // A walker on a raised pier deck stands at the deck's height. The walker's cell
-  // decides, as it decides walking: field cell centres are integers, half a cell
-  // from town metres (as for the landmarks above).
   // A walker stands on a raised deck wherever their body overlaps the drawn deck, and
   // anywhere on a deck cell over water (bridge) whose centre the deck covers, so no
   // walker stands at water level on a pier's walkable cells. Field cell centres are

@@ -78,17 +78,22 @@ const townProject=JSON.parse(fs.readFileSync(new URL('../../../maps/mount-dora/p
 const tileAt=(x,y)=>{const s=townProject.sectors.find(s=>x>=s.origin.x&&x<s.origin.x+240&&y>=s.origin.y&&y<s.origin.y+240);if(!s)return null;
  if(!townLoaded.has(s.id)){townLoaded.add(s.id);const m=JSON.parse(fs.readFileSync(new URL('../../../maps/mount-dora/'+s.file,import.meta.url)));for(let j=0;j<240;j++)for(let i=0;i<240;i++)townTerrain.set((s.origin.y+j)*townProject.extent.widthM+s.origin.x+i,m.terrain[j][i]);}
  return townTerrain.get(y*townProject.extent.widthM+x);};
-// The farthest a point of a convex set lies from the nearest drawn deck: the distance to a
-// drawn deck is convex, so it peaks on the boundary of where a walker's centre can stand in a
-// cell: the cell kept WALKER_RADIUS off each water side, less a quarter disc at each water corner.
+// The farthest a walker's centre can stand from the nearest drawn deck within a cell. Where the
+// centre can stand is the cell kept WALKER_RADIUS off each water side, less a quarter disc at each
+// water corner. The distance to one deck is convex, but the distance to the nearest of several is
+// not (it ridges between two decks), so the region's corners, arcs and edges are walked finely
+// and its inside on a 1 cm grid: within 7 mm of the true maximum, exact where it lies on a corner.
 const rectDistance=(q,p)=>{const [a,b]=p.ends,dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),[before,after]=p.deck.extend,along=((q[0]-a[0])*dx+(q[1]-a[1])*dy)/L,across=Math.abs((q[0]-a[0])*dy-(q[1]-a[1])*dx)/L;return Math.hypot(Math.max(-before-along,0,along-L-after),Math.max(across-p.width/2,0));};
-const deckDistance=q=>Math.min(...placementsForBounds([q[0]-3,q[1]-3,q[0]+3,q[1]+3]).filter(p=>p.kind==='pier').map(p=>rectDistance(q,p)),Infinity);
+const deckDistance=(q,near=placementsForBounds([q[0]-3,q[1]-3,q[0]+3,q[1]+3]).filter(p=>p.kind==='pier'))=>{let d=Infinity;for(const p of near)d=Math.min(d,rectDistance(q,p));return d;};
 const farthestOnCell=(x,y)=>{const R=WALKER_RADIUS,water=(i,j)=>{const t=tileAt(x+i,y+j);return t===null||t==='water';};
  const x0=x+(water(-1,0)?R:0),x1=x+1-(water(1,0)?R:0),y0=y+(water(0,-1)?R:0),y1=y+1-(water(0,1)?R:0),points=[[x0,y0],[x1,y0],[x0,y1],[x1,y1]];
  const corners=[[-1,-1],[1,-1],[-1,1],[1,1]].filter(([i,j])=>water(i,j)&&!water(i,0)&&!water(0,j)).map(([i,j])=>[x+(i>0?1:0),y+(j>0?1:0),i,j]);
  for(const [cx,cy,i,j]of corners)for(let k=0;k<=720;k++){const t=k/720*Math.PI/2;points.push([cx-i*R*Math.cos(t),cy-j*R*Math.sin(t)]);}
+ for(let k=0;k<=1000;k++){const t=k/1000;points.push([x0+(x1-x0)*t,y0],[x0+(x1-x0)*t,y1],[x0,y0+(y1-y0)*t],[x1,y0+(y1-y0)*t]);}
+ for(let i=0;i<=100;i++)for(let j=0;j<=100;j++)points.push([x0+(x1-x0)*i/100,y0+(y1-y0)*j/100]);
  const clear=q=>q[0]>=x-1e-9&&q[0]<=x+1+1e-9&&q[1]>=y-1e-9&&q[1]<=y+1+1e-9&&corners.every(([cx,cy])=>Math.hypot(q[0]-cx,q[1]-cy)>=R-1e-9);
- let best={d:-1};for(const q of points)if(clear(q)){const d=deckDistance(q);if(d>best.d)best={d,at:q};}return best;};
+ const near=placementsForBounds([x-3,y-3,x+4,y+4]).filter(p=>p.kind==='pier');
+ let best={d:-1};for(const q of points)if(clear(q)){const d=deckDistance(q,near);if(d>best.d)best={d,at:q};}return best;};
 const toSegment=(q,[s,e])=>{const d=[e[0]-s[0],e[1]-s[1]],t=Math.max(0,Math.min(1,((q[0]-s[0])*d[0]+(q[1]-s[1])*d[1])/(d[0]**2+d[1]**2)));return span(q,[s[0]+d[0]*t,s[1]+d[1]*t]);};
 test('every mapped pier draws raised deck pieces end to end along each deck line, with no railing',()=>{
  const piers=features.filter(f=>f.nativePier),pieces=PLACEMENTS.filter(p=>p.kind==='pier'),same=(p,q)=>p[0]===q[0]&&p[1]===q[1];
@@ -134,7 +139,8 @@ test('every mapped pier draws raised deck pieces end to end along each deck line
  assert.ok(turns.some(t=>t.lines===2&&t.turn<1)&&turns.some(t=>t.lines===2&&t.turn>89),JSON.stringify(turns.slice(0,4)));
  const tee=turns.filter(t=>t.lines===3);assert.equal(tee.length,3);assert.equal(tee.filter(t=>t.stem).length,1);
  for(const t of tee)assert.ok(pieces.find(p=>p.id===t.id).deck.extend[t.end]<1e-5,t.id);
- // Where two lines meet, their outer corners meet: no notch on the outside, and nothing sticking out.
+ // Where two lines meet, their outer corners meet: no notch on the outside. Past a square turn the
+ // inner corners poke out a little (checked below).
  const corners=(p,e)=>{const [a,b]=p.ends,u=unit(a,b),n=[-u[1],u[0]],end=e===0?a.map((v,k)=>v-u[k]*p.deck.extend[0]):b.map((v,k)=>v+u[k]*p.deck.extend[1]);return [1,-1].map(side=>end.map((v,k)=>v+n[k]*side*p.width/2));};
  const byJoint=new Map();for(const t of turns.filter(t=>t.lines===2)){if(!byJoint.has(t.joint))byJoint.set(t.joint,[]);byJoint.get(t.joint).push(t);}
  assert.ok(byJoint.size>=10);
@@ -185,14 +191,16 @@ test('no two pier decks share more than a junction square, and decks overlapping
 test('a walker stands on a deck wherever their body overlaps it, and on any deck cell over water',()=>{
  const pier=PLACEMENTS.find(p=>p.id==='md:pier:556100376:0:0'),[a,b]=pier.ends,mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=span(a,b),n=[-(b[1]-a[1])/len,(b[0]-a[0])/len],u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
  const at=(across,along=0,from=mid)=>[from[0]+n[0]*across+u[0]*along,from[1]+n[1]*across+u[1]*along],R=WALKER_RADIUS;
- // One walker body: the radius the movement core keeps clear is the one the lift uses.
+ // One walker body: the radius the movement core keeps clear (and passes to pointClear) is the one the lift uses.
  assert.equal(R,.23);assert.equal(R,UNIT_RADIUS);
+ assert.match(fs.readFileSync(new URL('../dist/solo-game.js',import.meta.url),'utf8'),/\bconst EPS=1e-7,RADIUS=UNIT_RADIUS;/);
  // A point counts on the drawn deck, to its edge; a body counts within its radius of it, round at the corners.
  assert.equal(deckHeightAt(mid),.4);assert.equal(deckHeightAt(at(.98)),.4);assert.equal(deckHeightAt(at(1.02)),0);
  assert.equal(deckHeightAt(at(1.2),R),.4);assert.equal(deckHeightAt(at(1.25),R),0);
+ assert.equal(deckHeightAt(at(1.225),R),.4);assert.equal(deckHeightAt(at(1.235),R),0);
  // 1.22 m off a piece's line lies outside its 1.2 m bounds, so the lookup widens by the radius: on
  // both sides of this east-west piece, and of the observed north-south leg at the Rusty Anchor T
- // (neither runs on, so neither has wider bounds).
+ // (neither runs on more than a micrometre, so neither has wider bounds).
  const legPiece=PLACEMENTS.find(p=>p.provenance.position==='reviewed-observation:rusty-anchor-t'),lm=[(legPiece.ends[0][0]+legPiece.ends[1][0])/2,(legPiece.ends[0][1]+legPiece.ends[1][1])/2];
  assert.ok(Math.max(...pier.deck.extend,...legPiece.deck.extend)<1e-5);
  const outside=(q,p)=>q[0]<p.bounds[0]||q[0]>p.bounds[2]||q[1]<p.bounds[1]||q[1]>p.bounds[3];
@@ -241,7 +249,7 @@ test('a walker stands on a deck wherever their body overlaps it, and on any deck
  // deck, and the footbridge cell (515, 1612) under 508450229's end both stand on the deck, by their cell.
  const town={world:{tile:tileAt},artModule:{deckHeightAt}};
  for(const q of [[549.23,1085.23],[515.99,1612.01]]){assert.equal(deckHeightAt(q,R),0,String(q));assert.equal(TownEnvironment.prototype.surfaceHeight.call(town,...field(q)),.4,String(q));}
- // A plank cell is land: under the deck at its centre, but a walker past the deck's free end steps down.
+ // A plank cell is land: under the deck at its centre, but a walker more than a body off the deck stands on the ground.
  let plank=null;for(const p of PLACEMENTS.filter(p=>p.kind==='pier'))for(let y=Math.floor(p.bounds[1]);y<=p.bounds[3]&&!plank;y++)for(let x=Math.floor(p.bounds[0]);x<=p.bounds[2]&&!plank;x++){
   if(tileAt(x,y)!=='ground-wood-planks'||!(deckHeightAt([x+.5,y+.5])>0))continue;
   for(let i=1;i<20&&!plank;i++)for(let j=1;j<20&&!plank;j++){const q=[x+i/20,y+j/20];if(deckHeightAt(q,R)===0)plank=q;}}
@@ -253,22 +261,25 @@ test('a walker stands on a deck wherever their body overlaps it, and on any deck
 test('every walkable pier cell over water has its centre under the drawn deck',()=>{
  // The generator's band: cell centres within 0.75 m of a deck line (square at its ends) or of a joint.
  // Read against the generated terrain, so the generator and the art agree on every pier cell.
- let checked=0;const farthest=[];
+ let checked=0;const farthest=[],bandCells=new Set();
  for(const f of features.filter(f=>f.nativePier&&f.nativePier.lines)){const {lines,joints}=f.nativePier,band=f.nativePier.walkWidthM/2;
   const xs=lines.flat().map(p=>p[0]),ys=lines.flat().map(p=>p[1]);
   for(let y=Math.floor(Math.min(...ys)-1);y<=Math.ceil(Math.max(...ys)+1);y++)for(let x=Math.floor(Math.min(...xs)-1);x<=Math.ceil(Math.max(...xs)+1);x++){
    const q=[x+.5,y+.5],inBand=lines.some(([a,b])=>{const d=[b[0]-a[0],b[1]-a[1]],l2=d[0]**2+d[1]**2,t=((q[0]-a[0])*d[0]+(q[1]-a[1])*d[1])/l2;return t>=0&&t<=1&&toSegment(q,[a,b])<=band+1e-9;})||joints.some(j=>span(q,j)<=band+1e-9);
-   if(!inBand||tileAt(x,y)!=='bridge')continue;checked++;
+   if(!inBand||tileAt(x,y)!=='bridge')continue;checked++;bandCells.add(x+','+y);
    assert.ok(deckHeightAt(q)>0,`${f.id} cell ${x},${y}`);
-   farthest.push({cell:[x,y],...farthestOnCell(x,y)});
   }}
  assert.ok(checked>1000,checked+' cells');
+ // The cells the town lifts by their centre: every bridge cell whose centre a drawn deck covers.
+ const lifted=new Set();for(const p of PLACEMENTS.filter(p=>p.kind==='pier'))for(let y=Math.floor(p.bounds[1]);y<=p.bounds[3];y++)for(let x=Math.floor(p.bounds[0]);x<=p.bounds[2];x++)
+  if(!lifted.has(x+','+y)&&tileAt(x,y)==='bridge'&&deckHeightAt([x+.5,y+.5])>0){lifted.add(x+','+y);farthest.push({cell:[x,y],...farthestOnCell(x,y)});}
+ assert.ok([...bandCells].every(c=>lifted.has(c)),'every band cell over water is lifted by its cell');
  // Lifted by their cell, a walker on these cells stands at most 0.272 m past the drawn deck, at
  // the free far end of 548471565's leg; only the footbridge cell under 508450229's end, 0.436 m.
  farthest.sort((p,q)=>q.d-p.d);const [first,second]=farthest;
  assert.deepEqual(first.cell,[515,1612]);assert.ok(Math.abs(first.d-.436)<.001,JSON.stringify(first));
  assert.deepEqual(second.cell,[549,1085]);assert.ok(Math.abs(second.d-.272)<.001,JSON.stringify(second));
- assert.ok(farthest.slice(2).every(p=>p.d<=second.d),JSON.stringify(farthest[2]));
+ assert.ok(farthest[2].d<.25,JSON.stringify(farthest[2]));
 });
 test('AFT trellis panels stand under the deck edges, tilted within their panels',()=>{
  // trellisBoxes: AFT's six beams per one-metre panel, heights scaled to the space under the deck.

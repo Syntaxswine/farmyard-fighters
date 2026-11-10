@@ -48,9 +48,13 @@ test('at a T the straight pair mitres and the stem ends at the joint; a junction
  assert.equal(MAX_THROUGH_TURN,Math.PI/6);
  const y=[at(0),at(120),at(240)];assert.throws(()=>runOns(J,y,2),/no pair of lines within 30 degrees/);
  const within=[[[J[0]-5,J[1]],J],at(29),at(90)];assert.doesNotThrow(()=>runOns(J,within,2));
+ const beyond=[[[J[0]-5,J[1]],J],at(31),at(90)];assert.throws(()=>runOns(J,beyond,2),/straightest turns 31\.0/);
 });
 
-test('a joint takes lines that end there, two or more',()=>{
+test('a joint takes lines that end there, two or more, each at least a deck width long, and names its pier',()=>{
  assert.throws(()=>runOns(J,[at(0)],2),/two or more/);assert.throws(()=>runOns(J,[at(0),[[0,0],[1,1]]],2),/end at the joint/);
+ // Shorter than the deck is wide, a line would show the other deck's run-on past its end.
+ assert.throws(()=>runOns(J,[[[J[0]-6,J[1]],J],at(90,1.9)],2),/shorter than the deck is wide/);assert.doesNotThrow(()=>runOns(J,[[[J[0]-6,J[1]],J],at(90,2)],2));
+ assert.throws(()=>runOns(J,bend(120),2,'osm-way-1'),/^Error: osm-way-1 turns 120\.0 degrees/);
  assert.ok(close(turnBetween([1,0],[-1,0]),0));assert.ok(close(turnBetween([1,0],[0,1]),Math.PI/2));assert.ok(close(turnBetween([1,0],[1,0]),Math.PI));
 });
