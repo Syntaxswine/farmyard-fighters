@@ -6,6 +6,7 @@ import {BIOME_FAMILIES,BIOME_TEXTURES} from './aft/tactics/biome-foliage-data.js
 import {selectBiomeTree} from './aft/tactics/biome-tree-mix.js';
 import {groundHash} from './aft/tactics/biome-ground-composition.js';
 import {FoliageCutaway} from './aft/tactics/foliage-cutaway.js';
+import {createMountDoraPine} from './mount-dora-pines.js';
 import {WALL_KIT} from './mount-dora-source/wall-runs.js';
 import {windowChanges} from './render-residency.js';
 import {blockWindow} from './world-grid.js';
@@ -20,7 +21,8 @@ const surfaceFiles={
 const miniColors=['#17241e','#77845c','#486c7a','#62744c','#866d4c','#929078','#535858','#9d9c8b','#8f7958','#a18b67','#a7a68e'];
 const plantModels={bush:'temperate-shrub',reeds:'wetland-reeds'};
 function plantAppearance(plant){
-  const {x,y,kind}=plant,variant=(x*13+y*17)%3;
+  const {x,y,kind,maturePine}=plant,variant=(x*13+y*17)%3;
+  if(maturePine!==undefined)return {id:'mount-dora-mature-pine',variant:maturePine,slashPine:true};
   if(kind.endsWith('-brush')){
     const low=BIOME_FAMILIES[kind==='wetland-brush'?'wetlands':'temperate'].low;
     return {id:low[Math.floor(groundHash(x,y,2018)*low.length)],variant,brush:true};
@@ -64,13 +66,16 @@ export class TownEnvironment{
     const {rect}=chunk,plants=this.world.plantsFor([rect.x,rect.y,rect.x+rect.w-1,rect.y+rect.h-1]);
     const groups=new Map(),transform=new T.Matrix4(),position=new T.Vector3(),rotation=new T.Quaternion(),scale=new T.Vector3(),up=new T.Vector3(0,1,0);
     for(const plant of plants){
-      const {id,variant,mature=false,brush=false}=plantAppearance(plant),key=id+':'+variant+':'+mature;
-      if(!this.plantPrototypes.has(key))this.plantPrototypes.set(key,this.plantFactory.create(id,{variant,mature}));
+      const {id,variant,mature=false,brush=false,slashPine=false}=plantAppearance(plant),key=id+':'+variant+':'+mature;
+      if(!this.plantPrototypes.has(key)){
+        const prototype=slashPine?createMountDoraPine(T,this.plantFactory.geometries,this.plantMaterials,variant):this.plantFactory.create(id,{variant,mature});
+        this.plantPrototypes.set(key,prototype);
+      }
       const model=this.plantPrototypes.get(key),low=model.userData.category==='low',jitter=brush?(groundHash(plant.x,plant.y,2084)-.5)*.16:0;
       const bounds=model.userData.bounds;
       const spread=brush?Math.max(Math.abs(bounds.min[0]),Math.abs(bounds.min[2]),bounds.max[0],bounds.max[2]):1;
       const size=brush?Math.min(1,.43/spread)*.85:1;
-      position.set(plant.x+jitter,.008,plant.y-jitter);
+      position.set(plant.x+jitter,slashPine?0:.008,plant.y-jitter);
       rotation.setFromAxisAngle(up,brush?groundHash(plant.x,plant.y,1947)*2*Math.PI:0);
       transform.compose(position,rotation,scale.setScalar(size));
       for(const part of model.children){
