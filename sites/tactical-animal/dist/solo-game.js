@@ -25,7 +25,10 @@ export {MISSIONS,FIRST_REALTIME_MISSION,DEFAULT_MISSION_ID,getMission,missionFor
 
 // Continuous positions are authoritative. Raster cells describe scenery and fog;
 // movement, AP, sightlines, and weapon range use actual world distances.
-const EPS=1e-7,RADIUS=.23;
+// Every unit's body radius, in metres. The Mount Dora tour stands a walker on a raised
+// deck when this body overlaps it (WALKER_RADIUS in mount-dora-world.js, kept equal).
+export const UNIT_RADIUS=.23;
+const EPS=1e-7,RADIUS=UNIT_RADIUS;
 export const ANIMALS=QUICKPLAY_PRESETS;
 export const PRIMARY=['assault','rifle','smg','shotgun','sniper','hmg','flamethrower','rpg'];
 export const SECONDARY=['pistol','knife'],UTILITIES=['dressing','grenade'];

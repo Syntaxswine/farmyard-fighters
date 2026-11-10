@@ -1,6 +1,6 @@
 {
   "schema": "mount-dora-route-evidence/1",
-  "sourceProjectSHA256": "5431bc59943ba6f331a287715ba3c29b826d4ba215ad1e11e597dbc216f30f57",
+  "sourceProjectSHA256": "b81f9451ea50f02a7d0032b0577d2d82b74d2c7a05d5d2e864f75b5c446b1ee0",
   "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
   "coordinateFrame": "town east/south metres; game = town - (0.5,0.5)",
   "bounds": [
@@ -25,7 +25,7 @@
       500.5
     ]
   },
-  "reachableOutdoorCells": 1671448,
+  "reachableOutdoorCells": 1672623,
   "reachedLandSectors": 39,
   "sectors": [
     {
@@ -54,7 +54,7 @@
     },
     {
       "id": "A02",
-      "reachedOutdoorCells": 43141
+      "reachedOutdoorCells": 43154
     },
     {
       "id": "B02",
@@ -78,7 +78,7 @@
     },
     {
       "id": "A03",
-      "reachedOutdoorCells": 20921
+      "reachedOutdoorCells": 21499
     },
     {
       "id": "B03",
@@ -102,7 +102,7 @@
     },
     {
       "id": "A04",
-      "reachedOutdoorCells": 3480
+      "reachedOutdoorCells": 3563
     },
     {
       "id": "B04",
@@ -110,11 +110,11 @@
     },
     {
       "id": "C04",
-      "reachedOutdoorCells": 50931
+      "reachedOutdoorCells": 50939
     },
     {
       "id": "D04",
-      "reachedOutdoorCells": 49452
+      "reachedOutdoorCells": 49454
     },
     {
       "id": "E04",
@@ -134,11 +134,11 @@
     },
     {
       "id": "C05",
-      "reachedOutdoorCells": 30018
+      "reachedOutdoorCells": 30210
     },
     {
       "id": "D05",
-      "reachedOutdoorCells": 48855
+      "reachedOutdoorCells": 48880
     },
     {
       "id": "E05",
@@ -158,7 +158,7 @@
     },
     {
       "id": "C06",
-      "reachedOutdoorCells": 29918
+      "reachedOutdoorCells": 30017
     },
     {
       "id": "D06",
@@ -166,7 +166,7 @@
     },
     {
       "id": "E06",
-      "reachedOutdoorCells": 50579
+      "reachedOutdoorCells": 50589
     },
     {
       "id": "F06",
@@ -182,7 +182,7 @@
     },
     {
       "id": "C07",
-      "reachedOutdoorCells": 34206
+      "reachedOutdoorCells": 34288
     },
     {
       "id": "D07",
@@ -194,7 +194,7 @@
     },
     {
       "id": "F07",
-      "reachedOutdoorCells": 56321
+      "reachedOutdoorCells": 56404
     }
   ],
   "routes": [
@@ -378,24 +378,8 @@
           1148.5
         ],
         [
-          597.5,
-          1148.5
-        ],
-        [
-          597.5,
-          1149.5
-        ],
-        [
-          596.5,
-          1149.5
-        ],
-        [
-          596.5,
-          1150.5
-        ],
-        [
           595.5,
-          1150.5
+          1148.5
         ],
         [
           595.5,
@@ -1487,11 +1471,11 @@
       "axis": "south",
       "townBoundaryM": 1200,
       "from": [
-        607.5,
+        533.5,
         1199.5
       ],
       "to": [
-        607.5,
+        533.5,
         1200.5
       ]
     },

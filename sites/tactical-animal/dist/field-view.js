@@ -402,7 +402,7 @@ export class FieldView {
       }
     }
     a.action=action;a.posing=posing;a.hadFlame=flaming;
-    a.root.position.set(sample.x,0,sample.y);a.root.updateMatrixWorld(true);a.worker.skeleton.update();
+    a.root.position.set(sample.x,this.art?.surfaceHeight?.(sample.x,sample.y)??0,sample.y);a.root.updateMatrixWorld(true);a.worker.skeleton.update();
     if(displayedWeapon==='rpg')for(const part of a.equipment.parts)
       if(['shaped RPG warhead','warhead shoulder seam','nose fuse'].includes(part.name))part.visible=(v.ammo.rpg||0)>0;
     if(fire||flameReady){

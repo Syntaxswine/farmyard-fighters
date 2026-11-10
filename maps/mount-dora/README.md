@@ -57,6 +57,31 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
   adjusted footprint are recorded.
 - Source-backed bridge and wooden boardwalk routes. Water is retained beneath
   these routes; park and vegetation fills do not manufacture land in the lake.
+- All 19 mapped piers as wooden decks at their source place: bridge over the
+  lake, planks on open ground, 2 m wide (OpenStreetMap records no width, so this
+  is the boardwalk proxy). In 3D each deck stands 0.4 m over the water on AFT's
+  timber trellis, cut down to fit beneath it (the owner's choice of a low deck;
+  the 2018 lidar puts the real decks a median 0.43 m up). Where two deck lines
+  meet, both run on to a mitred corner. A walker crosses only the cells whose
+  centres lie within 0.75 m of a deck line (not past its free ends, round at its
+  joints). They stand on a deck wherever their body (0.23 m) overlaps it, so at
+  most 0.23 m beyond its edge on land and never inside it at ground height. On a
+  deck cell over water they always stand on the deck, at most 0.27 m past its
+  edge (at a free end); on the footbridge cell under pier 508450229's end, up to
+  0.44 m. Segments
+  mapped back over one another, such as the
+  cross-docks mapped out and back (A-B-C-A), are drawn once along their chord.
+  A pier leaves the paths that meet it alone. One reviewed observation adds a
+  deck line: the owner's "the jog in the dock is a T intersection" at the Rusty
+  Anchor (`source/authoring-config.json`, `pierObservations`). No railing is
+  drawn; none is mapped.
+- The disused Sorrento Subdivision railway, whose rails remain, as a 2 m gravel
+  bed that moves with the town like the curved roads. Its 3D track is the
+  Nautilus railway kit (`art/source/nautilus/packages/railway-visuals`) and
+  stops short of every road, so the level crossings, the rail bridge over
+  Tremain Street and the South Highland Street bridge over the line show the
+  road. The main line runs through the Donnelly Siding's two switches; the
+  siding stops about 18 m before each, where the two beds would meet.
 - A common metre coordinate system, all 42 native JSON documents, neighbor
   references, source feature identities, raw input snapshots and reproducible
   generation records.
@@ -72,7 +97,11 @@ A07 contain only lake water. Their geographic files are complete, but the
 workshop refuses them because it requires four walkable squad starts and a
 travel marker. The authoring data does not add fake platforms to bypass that
 rule. The other sectors have five clearly identified authoring-validator
-markers on connected existing land for editor validation. Forty-two sentries
+markers on connected existing walkable cells for editor validation: land, or in
+B07 the Palm Island boardwalk and in C03 the Donnelly Park stage's planks. They lie in the same walkable area as the
+sector's first sentry, because the validator walks between them within the
+sector: A04's and C06's first cells in scan order are on pier decks that reach
+land only in the next sector, so their markers stand on land. Forty-two sentries
 start across the 39 land sectors. They hold posts, walk a street back and forth,
 or follow a local circuit using the game's movement, combat and save systems.
 

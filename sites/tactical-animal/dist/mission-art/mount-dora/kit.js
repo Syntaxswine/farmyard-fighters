@@ -1,11 +1,28 @@
 import {createBuildingModel} from './source/packages/building-catalog/three.js';
 import {MATERIALS} from './source/packages/building-catalog/index.js';
 import {createRoofGroup} from './source/packages/roof-core/three.js';
+import {createRailwayKit} from './source/packages/railway-visuals/three.js';
+import {TRELLIS_BEAMS} from '../../aft/tactics/bridge-trellis.js';
 import {ART_REVISION,ATLAS_URL,placementsForBounds,solidsForBounds} from './manifest.js';
 const tiles=new Map(MATERIALS.map(m=>[m.id,m.tile]));
 const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
 const closed=ring=>ring.length>1&&Math.hypot(...ring[0].map((v,i)=>v-ring.at(-1)[i]))<1e-6?ring.slice(0,-1):ring;
+const TRELLIS_THICKNESS=.4;
+// AFT's one-tile timber trellis panel (TRELLIS_BEAMS: two posts, two rails and an X
+// brace in a 1 x 2 m panel) cut down to `height` along a run from `from` to `to`
+// (local [x,z] metres): one panel per metre of the run, panel heights scaled, beam
+// sections at TRELLIS_THICKNESS of AFT's so they still read. Each box is set by
+// yaw about Y, then the roll that tilts it within the panel (Three's XYZ order).
+export function trellisBoxes(from,to,height){
+ const dx=to[0]-from[0],dz=to[1]-from[1],len=Math.hypot(dx,dz);if(len<1e-6||height<=0)return [];
+ const u=[dx/len,dz/len],yaw=-Math.atan2(dz,dx),count=Math.max(1,Math.round(len)),panel=len/count,scale=height/2,boxes=[];
+ for(let i=0;i<count;i++)for(const beam of TRELLIS_BEAMS){
+  const a=[(i+beam.a[0])*panel,beam.a[1]*scale],b=[(i+beam.b[0])*panel,beam.b[1]*scale],along=(a[0]+b[0])/2;
+  boxes.push({centre:[from[0]+u[0]*along,(a[1]+b[1])/2,from[1]+u[1]*along],size:[Math.hypot(b[0]-a[0],b[1]-a[1]),beam.width*TRELLIS_THICKNESS,.16*TRELLIS_THICKNESS],yaw,roll:Math.atan2(b[1]-a[1],b[0]-a[0])});
+ }
+ return boxes;
+}
 
 // The host owns renderer, scene, atlas and world transform. This module never
 // fetches, starts a loop, mutates map data or allocates the rest of the town.
@@ -15,7 +32,7 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
  // Whole-atlas mip levels mix adjacent painted cells at town viewing distances.
  // One owned sampler shares the original image, without changing host settings.
  const sampler=atlas?.clone()??null;if(sampler){sampler.needsUpdate=true;}
- const root=new T.Group(),resident=new Map(),pool=new Map(),fades=new Map();let disposed=false,created=0,evicted=0,focusState=null,focusKey='';
+ const root=new T.Group(),resident=new Map(),pool=new Map(),fades=new Map();let disposed=false,created=0,evicted=0,focusState=null,focusKey='',railKit=null;
  root.name='mount-dora-art';root.userData={artRevision:ART_REVISION,coordinates:'town east/south metres',metresPerUnit:1};
  function material(id,tint=[1,1,1],repeat=false,finish=null){
   const key=id+':'+tint+':'+repeat+(finish?':'+finish:'');if(pool.has(key))return pool.get(key);
@@ -81,6 +98,22 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
   if(t.veranda){const ring=closed(polygons[0][0]);for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);if(len<6)continue;const yaw=-Math.atan2(dz,dx);box(group,[(a[0]+b[0])/2,1.94,(a[1]+b[1])/2],[len,.15,.28],'cream-siding',yaw);const n=Math.ceil(len/2.8);for(let j=0;j<=n;j++){const q=mix(a,b,j/n);box(group,[q[0],.96,q[1]],[.12,1.92,.12]);}}}
   if(t.veranda||t.archedLowerWindows||t.cornice)facadeOrnament(group,p);
  }
+ function trellisRun(group,from,to,height){for(const t of trellisBoxes(from,to,height)){const o=box(group,t.centre,t.size,'wood',t.yaw);o.rotation.z=t.roll;}}
+ // Nautilus railway:track-straight runs from start (local origin) toward +Z for
+ // 2 m. Each part of the piece (bed, rails, ties, plates) becomes one instanced
+ // mesh over the placement's pieces, each set at its chord's true angle and
+ // length. Geometry and materials stay the kit's (shared, never disposed here).
+ function railway(group,p){
+  railKit??=createRailwayKit(T);
+  const piece=railKit.create(p.asset),frames=p.pieces.map(([a,b])=>{const dx=b[0]-a[0],dz=b[1]-a[1],m=new T.Matrix4().makeRotationY(Math.atan2(dx,dz));m.scale(new T.Vector3(1,1,Math.hypot(dx,dz)/2));m.setPosition(a[0]-p.anchor[0],0,a[1]-p.anchor[1]);return m;});
+  try{for(const part of piece.root.children){
+   const per=part.isInstancedMesh?part.count:1,mesh=new T.InstancedMesh(part.geometry,part.material,frames.length*per),local=new T.Matrix4(),out=new T.Matrix4(),tint=new T.Color();
+   part.updateMatrix();
+   for(const [k,frame]of frames.entries())for(let i=0;i<per;i++){if(part.isInstancedMesh)part.getMatrixAt(i,local);else local.identity();out.multiplyMatrices(frame,part.matrix).multiply(local);mesh.setMatrixAt(k*per+i,out);if(part.instanceColor){part.getColorAt(i,tint);mesh.setColorAt(k*per+i,tint);}}
+   mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;mesh.computeBoundingBox?.();mesh.computeBoundingSphere?.();
+   mesh.name=p.id+':'+part.name;mesh.castShadow=mesh.receiveShadow=true;mesh.userData.occlusionRole='ground';mesh.userData.sharedGeometry=true;group.add(mesh);
+  }}finally{piece.dispose();}
+ }
  // Static, per-placement batches retain independent eviction and source identity.
  // No doors/animated objects are combined and no new whole-town buffer is built.
  function batchPlacement(group){
@@ -107,16 +140,25 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
    // Source surface and outline only; overlapping records do not invent nets.
    const start=group.children.length;shape([[points]],.008,group,'concrete');for(const o of group.children.slice(start))o.material=material('concrete',color,true);
    for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],len=Math.hypot(b[0]-a[0],b[1]-a[1]);box(group,[(a[0]+b[0])/2,.018,(a[1]+b[1])/2],[len,.014,.06],'cream-siding',-Math.atan2(b[1]-a[1],b[0]-a[0]));}
-  }else if(p.kind==='boardwalk'){
-   const [a,b]=p.ends.map(q=>q.map((v,i)=>v-p.anchor[i])),len=Math.hypot(b[0]-a[0],b[1]-a[1]),yaw=-Math.atan2(b[1]-a[1],b[0]-a[0]);
-   box(group,[(a[0]+b[0])/2,-.045,(a[1]+b[1])/2],[len,.1,p.width],'wood',yaw);
+  }else if(p.kind==='railway'){railway(group,p);group.updateMatrixWorld(true);return group;
+  }else if(p.kind==='pier-deck'){
+   const points=p.points.map(q=>q.map((v,i)=>v-p.anchor[i]));shape([[points]],p.deck?.topM??.016,group,'wood');
+  }else if(p.kind==='boardwalk'||p.kind==='pier'){
+   const [a,b]=p.ends.map(q=>q.map((v,i)=>v-p.anchor[i])),len=Math.hypot(b[0]-a[0],b[1]-a[1]),yaw=-Math.atan2(b[1]-a[1],b[0]-a[0]),top=p.deck?.topM??.005;
+   // A raised deck runs on past a bend joint by deck.extend, covering the outer corner.
+   const u=[(b[0]-a[0])/len,(b[1]-a[1])/len],[before,after]=p.deck?.extend??[0,0],s=a.map((v,i)=>v-u[i]*before),e=b.map((v,i)=>v+u[i]*after);
+   box(group,[(s[0]+e[0])/2,top-.05,(s[1]+e[1])/2],[len+before+after,.1,p.width],'wood',yaw);
+   // It stands on AFT trellis panels under both long edges and its capped ends.
+   if(p.deck){const n=[-u[1],u[0]],inset=p.width/2-.16*TRELLIS_THICKNESS/2,under=top-.1;
+    for(const side of [-1,1])trellisRun(group,s.map((v,i)=>v+n[i]*side*inset),e.map((v,i)=>v+n[i]*side*inset),under);
+    for(const [k,end]of [a,b].entries())if(p.trellis?.caps?.[k])trellisRun(group,end.map((v,i)=>v-n[i]*inset),end.map((v,i)=>v+n[i]*inset),under);}
    // Long rails and sparse posts, with open ends and source-anchored joins.
    for(const ends of p.rails){const [x,z]=ends.map(q=>q.map((v,i)=>v-p.anchor[i]));box(group,[(x[0]+z[0])/2,.88,(x[1]+z[1])/2],[len,.08,.08],'wood',yaw);box(group,[(x[0]+z[0])/2,.46,(x[1]+z[1])/2],[len,.06,.06],'wood',yaw);for(let i=0,n=Math.ceil(len/2);i<=n;i++){const q=mix(x,z,i/n);cylinder(group,[q[0],.45,q[1]],.055,.9,'dark-wood',.055,6);}}
   }else throw Error('Unknown Mount Dora placement '+p.kind);
   batchPlacement(group);group.updateMatrixWorld(true);return group;
   }catch(error){release(group);throw error;}
  }
- function release(group){group.removeFromParent();const gs=new Set();group.traverse(o=>{if(o.isMesh)gs.add(o.geometry);});for(const g of gs)g.dispose();group.clear();}
+ function release(group){group.removeFromParent();const gs=new Set();group.traverse(o=>{if(!o.isMesh)return;if(o.userData.sharedGeometry)o.dispose();else gs.add(o.geometry);});for(const g of gs)g.dispose();group.clear();}
  function restoreFade(id){const state=fades.get(id);if(!state)return;for(const [mesh,base]of state.changes)mesh.material=base;for(const m of state.variants.values())m.dispose();fades.delete(id);}
  const inside=(p,ring)=>{let yes=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const a=ring[i],b=ring[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])yes=!yes;}return yes;};
  function setFocus(point,{camera=null,eyeHeight=1.2,opacity=.22}={}){
@@ -133,8 +175,8 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
   if(focusState)setFocus(focusState.point,focusState.options);
   return placements;
  }
- function metrics(){let triangles=0,drawObjects=0;const geometries=new Set();root.traverse(o=>{if(!o.isMesh)return;drawObjects++;geometries.add(o.geometry);triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;});return {artRevision:ART_REVISION,resident:resident.size,created,evicted,drawObjects,triangles,geometries:geometries.size,materials:pool.size,occlusionMaterials:[...fades.values()].reduce((n,s)=>n+s.variants.size,0),fadedPlacements:[...fades.keys()],borrowedAtlas:!!atlas,ownedSamplers:sampler&&!disposed?1:0,disposed,coordinates:'town metres; host applies game offset once'};}
- function dispose(){if(disposed)return;for(const id of [...fades.keys()])restoreFade(id);disposed=true;focusState=null;for(const g of resident.values())release(g);resident.clear();for(const m of pool.values())m.dispose();pool.clear();sampler?.dispose();root.removeFromParent();root.clear();}
+ function metrics(){let triangles=0,drawObjects=0;const geometries=new Set();root.traverse(o=>{if(!o.isMesh)return;drawObjects++;geometries.add(o.geometry);triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);});return {artRevision:ART_REVISION,resident:resident.size,created,evicted,drawObjects,triangles,geometries:geometries.size,materials:pool.size,occlusionMaterials:[...fades.values()].reduce((n,s)=>n+s.variants.size,0),fadedPlacements:[...fades.keys()],borrowedAtlas:!!atlas,ownedSamplers:sampler&&!disposed?1:0,disposed,coordinates:'town metres; host applies game offset once'};}
+ function dispose(){if(disposed)return;for(const id of [...fades.keys()])restoreFade(id);disposed=true;focusState=null;for(const g of resident.values())release(g);resident.clear();for(const m of pool.values())m.dispose();pool.clear();railKit?.dispose();railKit=null;sampler?.dispose();root.removeFromParent();root.clear();}
  return {root,updateResident,setFocus,solidsForBounds,metrics,dispose};
 }
 

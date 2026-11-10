@@ -10,6 +10,7 @@ import {WALL_KIT} from './mount-dora-source/wall-runs.js';
 import {windowChanges} from './render-residency.js';
 import {blockWindow} from './world-grid.js';
 import {getTourWorld} from './mount-dora-activity.js';
+import {WALKER_RADIUS} from './mount-dora-world.js';
 const origin=new URL('./aft/tactics/',import.meta.url);
 const surfaceFiles={
   'ground-grass':'ground-grass.png',woodland:'ground-grass.png','ground-dirt':'ground-dirt.png','ground-gravel':'ground-gravel.png',
@@ -33,7 +34,7 @@ function plantAppearance(plant){
 // Original AFT textures/plant factory and exact Nautilus wall panels, adapted only for bounded residency.
 export class TownEnvironment{
   constructor(renderer,state,{onLoading=()=>{},onError=()=>{},loader,artModule,createArt,loadAtlas}={}){
-    this.world=getTourWorld(state);this.state=state;this.renderer=renderer;this.root=new T.Group();this.root.name='Mount Dora resident town';
+    this.world=getTourWorld(state);this.state=state;this.renderer=renderer;this.artModule=artModule;this.root=new T.Group();this.root.name='Mount Dora resident town';
     this.chunks=new Map();this.materials=new Map();this.textures=new Map();this.plantPrototypes=new Map();this.plantCutaway=new FoliageCutaway();
     this.stats={created:0,disposed:0,groundCells:0,wallPanels:0,plantModels:0,plantBatches:0};this.disposed=false;this.generation=0;
     this.cube=new T.BoxGeometry(1,1,1);this.plane=new T.PlaneGeometry(1,1);this.plane.rotateX(-Math.PI/2);this.wallGroup=new T.Group();this.root.add(this.wallGroup);
@@ -123,6 +124,12 @@ export class TownEnvironment{
       }
     }
   }
+  // A walker stands on a raised deck wherever their body overlaps the drawn deck, and
+  // anywhere on a deck cell over water (bridge) whose centre the deck covers, so no
+  // walker stands at water level on a pier's walkable cells. Field cell centres are
+  // integers, half a cell from town metres.
+  surfaceHeight(x,y){const art=this.artModule;if(!art?.deckHeightAt)return 0;const cx=Math.floor(x+.5),cy=Math.floor(y+.5);
+    return Math.max(art.deckHeightAt([x+.5,y+.5],WALKER_RADIUS),this.world?.tile(cx,cy)==='bridge'?art.deckHeightAt([cx+.5,cy+.5]):0);}
   setFocus(unit,camera){
     const eyeHeight=unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2;
     this.landmarks?.setFocus?.([unit.x+.5,unit.y+.5],{camera,eyeHeight});

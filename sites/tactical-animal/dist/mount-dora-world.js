@@ -7,6 +7,9 @@ import {groundHash} from './aft/tactics/biome-ground-composition.js';
 import {patrolError} from './aft/tactics/character-patrol.js';
 import {woodlandDepth} from './designer/a20b343a0234/tactics/core/woodland.js';
 import {foliageDepth} from './designer/a20b343a0234/tactics/foliage-data.js';
+// The tour walker's body radius, in metres: what pointClear keeps clear, and what the
+// town's art lifts onto a raised deck when it overlaps one.
+export const WALKER_RADIUS=.23;
 export const TOWN_LIMITS=Object.freeze({decodedSectors:9,concurrentFetches:2,pendingFetches:9,sectorBytes:4_000_000});
 export const TOWN_GROUNDS=Object.freeze(['ground-grass','water','woodland','ground-dirt','ground-gravel','ground-asphalt','ground-concrete','ground-wood-planks','bridge','floor']);
 const groundKinds=new Set(TOWN_GROUNDS),EPS=1e-7,BUCKET=8;
@@ -198,7 +201,7 @@ export class TownWorld{
   status(){return {loading:[...this.wanted].filter(id=>!this.cache.has(id)&&!this.errors.has(id)),failed:[...this.errors].filter(([id])=>this.wanted.has(id)).map(([id,message])=>({id,message})),decoded:this.cache.size,inFlight:this.inFlight.size,queued:this.queue.length};}
   wallsFor(bounds,{draw=false,walk=false}={}){const walls=new Map();for(const packet of this.cache.values())for(const item of packet.walls.query(bounds))if((!draw||item.draw)&&(!walk||item.walk))walls.set(item.key,item);return [...walls.values()];}
   solidsFor(bounds){const result=this.artIndex.query(bounds);for(const packet of this.cache.values())result.push(...packet.plantSolids.query(bounds));return result;}
-  pointClear(p,radius=.23){
+  pointClear(p,radius=WALKER_RADIUS){
     if(this.disposed||p.x<-.5+radius||p.x>this.width-.5-radius||p.y<-.5+radius||p.y>this.height-.5-radius)return false;
     for(let y=Math.floor(p.y+.5-radius);y<=Math.floor(p.y+.5+radius);y++)for(let x=Math.floor(p.x+.5-radius);x<=Math.floor(p.x+.5+radius);x++){
       const tile=this.tile(x,y);if(tile===null||tile==='water')if(boxDistance(p,[x-.5,y-.5,x+.5,y+.5])<radius-EPS)return false;
@@ -213,7 +216,7 @@ export class TownWorld{
     // a moved shell even when it does not touch a wall (including a courtyard).
     return this.pointClear(p)&&!this.closedBuildings.query([p.x,p.y,p.x,p.y]).some(s=>s.polygons.some(poly=>ringContains(p,poly[0])));
   }
-  walkSegment(a,b,radius=.23){const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.07));for(let i=1;i<=steps;i++)if(!this.pointClear({x:a.x+(b.x-a.x)*i/steps,y:a.y+(b.y-a.y)*i/steps},radius))return false;return true;}
+  walkSegment(a,b,radius=WALKER_RADIUS){const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.07));for(let i=1;i<=steps;i++)if(!this.pointClear({x:a.x+(b.x-a.x)*i/steps,y:a.y+(b.y-a.y)*i/steps},radius))return false;return true;}
   lineClear(a,b){
     if(!this.residentAt(a)||!this.residentAt(b))return false;
     const bounds=[Math.min(a.x,b.x),Math.min(a.y,b.y),Math.max(a.x,b.x),Math.max(a.y,b.y)];

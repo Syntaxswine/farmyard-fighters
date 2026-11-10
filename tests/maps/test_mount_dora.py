@@ -634,6 +634,16 @@ class MountDoraGeneration(unittest.TestCase):
                 seen.add((x,y))
                 todo += [(x+dx,y+dy) for dx,dy in ((1,0),(-1,0),(0,1),(0,-1)) if (x+dx,y+dy) in cells and (x+dx,y+dy) not in seen]
             self.assertEqual(seen,cells)
+            # The validator walks within the sector from the first start to every
+            # post: the markers lie in the first sentry's area (cells that are not water).
+            area, todo = set(), [(posts[0]["x"], posts[0]["y"])]
+            while todo:
+                x, y = todo.pop()
+                if (x, y) in area or not (0 <= x < 240 and 0 <= y < 240) or mapping["terrain"][y][x] == "water":
+                    continue
+                area.add((x, y))
+                todo += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+            self.assertLessEqual(cells, area, sector["id"])
             for x,y in cells:
                 self.assertNotIn(mapping["terrain"][y][x],("water","floor"))
                 self.assertFalse(any(abs(p["x"]-x)<=1 and abs(p["y"]-y)<=1 for p in mapping["props"]))
@@ -643,6 +653,142 @@ class MountDoraGeneration(unittest.TestCase):
         self.assertEqual({g["weapon"] for g in roster}, {"pistol", "smg", "rifle", "shotgun"})
         self.assertTrue(any(len(g.get("patrol", [])) == 2 for g in roster))
         self.assertTrue(any(len(g.get("patrol", [])) > 2 for g in roster))
+
+    def test_every_mapped_pier_is_a_deck_at_its_source_place(self):
+        piers = [f for f in self.features.values() if f["tags"].get("man_made") == "pier"]
+        self.assertEqual(len(piers), 19)
+        # None of the 19 encloses a deck: the five closed ways (0.04 to 1.86 m2) stay lines.
+        self.assertEqual({f["geometry"]["type"] for f in piers}, {"LineString"})
+        self.assertEqual(sum(f["geometry"]["coordinates"][0] == f["geometry"]["coordinates"][-1] for f in piers), 5)
+        water = [f["geometry"]["coordinates"] for f in self.features.values()
+                 if f["category"] == "water" and f["geometry"]["type"] == "MultiPolygon"]
+
+        def mapped_water(x, y):
+            return any(BUILDER.point_in_ring((x, y), polygon[0]) and not any(BUILDER.point_in_ring((x, y), hole) for hole in polygon[1:])
+                       for polygons in water for polygon in polygons)
+        over_water = 0
+        for pier in piers:
+            self.assertEqual(pier["category"], "pier")
+            self.assertNotIn("geographicGeometry", pier)
+            deck = pier["nativePier"]
+            self.assertGreater(deck["bridgeCells"], 0, pier["id"])
+            self.assertEqual(deck["heightM"], .4)
+            for a, b in deck["lines"]:
+                for k in range(1, 8):
+                    x, y = a[0] + (b[0] - a[0]) * k / 8, a[1] + (b[1] - a[1]) * k / 8
+                    if mapped_water(int(x) + .5, int(y) + .5):
+                        over_water += 1
+                        self.assertIn(self.grid[int(y) * 1440 + int(x)], (BUILDER.CODE["bridge"], BUILDER.CODE["floor"]), (pier["id"], x, y))
+        self.assertGreater(over_water, 100)
+        # A path that runs onto a pier keeps the vertex it shares with it, and the
+        # pier leaves the path's own cells alone (it never takes a road cell).
+        shared = {tuple(p) for f in piers for p in BUILDER.geometry_points(f["geometry"])}
+        joined = kept = 0
+        for road in self.features.values():
+            if "nativeRoad" not in road or road["geometry"]["type"] != "LineString":
+                continue
+            source = road["geometry"]["coordinates"]
+            for p, q in zip(source, road["nativeRoad"].get("centerline", source)):
+                if tuple(p) in shared:
+                    joined += 1
+                    self.assertEqual(p, q, road["id"])
+                    if not road["nativeRoad"]["woodSurface"] and road["nativeRoad"]["terrain"] == "ground-dirt":
+                        kept += 1
+                        self.assertEqual(self.grid[int(p[1]) * 1440 + int(p[0])], BUILDER.CODE["ground-dirt"], road["id"])
+        self.assertGreaterEqual(joined, 5)
+        self.assertEqual(kept, 3)
+        # A cross-dock mapped out and back (A-B-C-A) is a line drawn once along its chord,
+        # and so is a crossbar an open way walks three times.
+        cross = self.features["osm-way-556100378"]
+        self.assertEqual(cross["geometry"]["type"], "LineString")
+        self.assertEqual(cross["nativePier"]["lines"], [[cross["geometry"]["coordinates"][1], cross["geometry"]["coordinates"][2]]])
+        walked = self.features["osm-way-548471564"]["geometry"]["coordinates"]
+        self.assertEqual(self.features["osm-way-548471564"]["nativePier"]["lines"], [walked[:2], [walked[2], walked[3]]])
+        # Every deck cell joins land side to side: flood from the deck cells that touch
+        # open walkable ground across bridge and plank cells, and reach them all.
+        decks = {BUILDER.CODE["bridge"], BUILDER.CODE["ground-wood-planks"]}
+        closed = {BUILDER.WATER, BUILDER.CODE["floor"]}
+        cells = {i for i, code in enumerate(self.grid) if code in decks}
+        neighbours = lambda i: (i + 1, i - 1, i + 1440, i - 1440)
+        todo = [i for i in cells if any(0 <= n < len(self.grid) and self.grid[n] not in decks | closed for n in neighbours(i))]
+        seen = set(todo)
+        while todo:
+            for n in neighbours(todo.pop()):
+                if n in cells and n not in seen:
+                    seen.add(n)
+                    todo.append(n)
+        self.assertEqual(sorted((i % 1440, i // 1440) for i in cells - seen)[:5], [])
+        pier_cells = {index for f in piers for a, b in f["nativePier"]["lines"]
+                      for index in BUILDER.line_cells([a, b], BUILDER.PIER_WALK_WIDTH, 1440, 1680, ends=False) if self.grid[index] in decks}
+        self.assertGreater(len(pier_cells & seen), 1000)
+        # Each bend is a recorded joint, rounded so it stays joined.
+        self.assertEqual(self.features["osm-way-548471565"]["nativePier"]["joints"], [self.features["osm-way-548471565"]["geometry"]["coordinates"][1]])
+        for f in piers:
+            self.assertEqual((f["nativePier"]["walkWidthM"], f["nativePier"]["heightSource"]), (BUILDER.PIER_WALK_WIDTH, BUILDER.PIER_DECK_HEIGHT_SOURCE))
+
+    def test_a_reviewed_observation_makes_the_rusty_anchor_dock_a_t(self):
+        config = json.loads((BUILDER.PROJECT / "source" / "authoring-config.json").read_text("utf-8"))
+        (record,) = config["pierObservations"]
+        dock = self.features["osm-way-556100376"]["nativePier"]
+        self.assertEqual(dock["observations"], [record])
+        self.assertEqual(dock["lines"][-1], record["addLine"])
+        # The added line carries the mapped north-south leg on south, past the shore walkway.
+        leg = next(line for line in dock["lines"] if line[0] == record["addLine"][0] and line[1][1] < line[0][1])
+        walkway = next(line for line in dock["lines"] if line[1] == record["addLine"][0] and abs(line[1][1] - line[0][1]) < 1)
+        a, b = record["addLine"]
+        up, down = (leg[1][0] - leg[0][0], leg[1][1] - leg[0][1]), (b[0] - a[0], b[1] - a[1])
+        self.assertLess(abs(up[0] * down[1] - up[1] * down[0]) / (math.hypot(*up) * math.hypot(*down)), math.sin(math.radians(1)))
+        self.assertLess(up[1] * down[1], 0)
+        self.assertEqual((walkway[1], b[1]), (a, 647.0))
+        for k in range(1, 6):
+            x, y = a[0] + down[0] * k / 6, a[1] + down[1] * k / 6
+            self.assertIn(BUILDER.KINDS[self.grid[int(y) * 1440 + int(x)]], ("bridge", "ground-wood-planks"), (x, y))
+
+    def test_railways_lie_on_gravel_and_their_track_stops_short_of_every_road(self):
+        rails = {f["id"]: f for f in self.features.values() if "nativeRailway" in f}
+        self.assertEqual(sorted(rails), ["osm-way-146637672", "osm-way-146637673", "osm-way-146637676", "osm-way-508450239"])
+        self.assertTrue(all(f["category"] == "railway" for f in rails.values()))
+        gravel, runs = BUILDER.CODE["ground-gravel"], 0
+        for rail in rails.values():
+            for run in rail["nativeRailway"]["runs"]:
+                runs += 1
+                for a, b in zip(run, run[1:]):
+                    steps = max(1, int(math.dist(a, b) / .5))
+                    for k in range(steps + 1):
+                        x, y = a[0] + (b[0] - a[0]) * k / steps, a[1] + (b[1] - a[1]) * k / steps
+                        self.assertEqual(self.grid[int(y) * 1440 + int(x)], gravel, (rail["id"], x, y))
+        self.assertGreaterEqual(runs, 10)
+        # Every mapped level crossing (and the one path crossing) on a drawn line
+        # is a gap: the track stops more than 2 m short of the crossing point.
+        crossings = 0
+        for node in self.features.values():
+            if node["tags"].get("railway") not in ("level_crossing", "crossing"):
+                continue
+            for rail in rails.values():
+                if node["osm"]["id"] not in rail.get("nodeRefs", []):
+                    continue
+                point = rail["nativeRailway"]["centerline"][rail["nodeRefs"].index(node["osm"]["id"])]
+                crossings += 1
+                for other in rails.values():
+                    for run in other["nativeRailway"]["runs"]:
+                        self.assertGreater(min(segment_distance(point, a, b) for a, b in zip(run, run[1:])), 2, (node["id"], other["id"]))
+        self.assertEqual(crossings, 8)
+        # The atlas draws every railway bed (and its ties) and every pier deck line.
+        atlas = self.outputs["atlas.svg"].decode("utf-8")
+        bed = f'fill="none" stroke="{BUILDER.PALETTE["ground-gravel"]}" stroke-width="{BUILDER.RAIL_BED_WIDTH}" stroke-linejoin="round"/>'
+        self.assertEqual(atlas.count(bed), 4)
+        for rail in rails.values():
+            first = rail["nativeRailway"]["centerline"][0]
+            self.assertEqual(atlas.count(f'<polyline points="{first[0]},{first[1]} '), 2, rail["id"])
+        decks = [line for f in self.features.values() if "nativePier" in f for line in f["nativePier"]["lines"]]
+        self.assertEqual(atlas.count(f'fill="none" stroke="{BUILDER.PALETTE["bridge"]}" stroke-width="{BUILDER.PIER_WIDTH}"/>'), len(decks))
+        # The siding stops where its bed would meet the main line (no turnout is drawn).
+        mains = [f["nativeRailway"]["centerline"] for f in rails.values() if not f["tags"].get("service")]
+        siding = rails["osm-way-508450239"]
+        self.assertEqual(siding["tags"]["service"], "siding")
+        for run in siding["nativeRailway"]["runs"]:
+            for p in run:
+                self.assertGreaterEqual(min(segment_distance(p, a, b) for line in mains for a, b in zip(line, line[1:])), BUILDER.RAIL_BED_WIDTH - 1e-6)
 
 
 class GridShapeUnits(unittest.TestCase):
@@ -860,6 +1006,293 @@ class GridShapeUnits(unittest.TestCase):
         BUILDER.follow_streets([bridge, path], [{}, {}], lambda point: [1.0, 0.0])
         self.assertNotIn("centerline", bridge["nativeRoad"])
         self.assertEqual(path["nativeRoad"]["centerline"], [[0.0, 20.0], [1.0, 40.0]])
+
+
+class PierAndRailwayUnits(unittest.TestCase):
+    """Pier decks and railway beds on small made-up grids, without building the town."""
+
+    def test_piers_and_railways_whose_rails_remain_are_drawn(self):
+        self.assertEqual(BUILDER.category({"man_made": "pier"}), "pier")
+        for kind in ("rail", "disused"):
+            self.assertEqual(BUILDER.category({"railway": kind}), "railway")
+        for kind in ("abandoned", "razed", "proposed"):
+            self.assertEqual(BUILDER.category({"railway": kind}), "context")
+
+    def test_pier_decks_draw_each_line_once(self):
+        # A cross-dock mapped out and back (A-B-C-A) is one chord.
+        self.assertEqual(BUILDER.pier_decks([[5.0, 5.0], [5.0, 0.0], [5.1, 12.0], [5.0, 5.0]]), [[[5.0, 0.0], [5.1, 12.0]]])
+        # An open way that walks its crossbar three times: the stem and one crossbar, a T.
+        self.assertEqual(BUILDER.pier_decks([[30.0, 10.0], [6.0, 10.0], [6.0, -5.0], [6.0, 14.0], [6.0, 10.0]]),
+                         [[[30.0, 10.0], [6.0, 10.0]], [[6.0, -5.0], [6.0, 14.0]]])
+        # An L mapped out and back keeps both legs: no diagonal across it.
+        self.assertEqual(BUILDER.pier_decks([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [10.0, 0.0], [0.0, 0.0]]),
+                         [[[0.0, 0.0], [10.0, 0.0]], [[10.0, 0.0], [10.0, 10.0]]])
+        # Segments that only continue a straight line, or turn, stay as they are.
+        line = [[0.0, 0.0], [3.0, 4.0], [3.0, 9.0], [3.0, 15.0]]
+        self.assertEqual(BUILDER.pier_decks(line), [line[:2], line[1:3], line[2:]])
+        # A parallel deck 1 m to the side is another deck, not a doubling, and so is
+        # a deck that turns sharply back (14 degrees off its own line).
+        self.assertEqual(len(BUILDER.pier_decks([[0.0, 0.0], [10.0, 0.0], [10.0, 1.0], [0.0, 1.0]])), 3)
+        self.assertEqual(len(BUILDER.pier_decks([[0.0, 0.0], [10.0, 0.0], [8.0, 0.5]])), 2)
+        # A way drawn the other way round merges the same segments.
+        def unordered(lines):
+            return sorted(sorted(map(tuple, line)) for line in lines)
+        for way in ([[0.0, 0.0], [20.0, 0.0], [16.0, 0.15]], [[30.0, 10.0], [6.0, 10.0], [6.0, -5.0], [6.0, 14.0], [6.0, 10.0]],
+                    [[5.0, 5.0], [5.0, 0.0], [5.1, 12.0], [5.0, 5.0]]):
+            self.assertEqual(unordered(BUILDER.pier_decks(way)), unordered(BUILDER.pier_decks(way[::-1])), way)
+        self.assertEqual(len(BUILDER.pier_decks([[16.0, 0.15], [20.0, 0.0], [0.0, 0.0]])), 1)
+
+    def test_a_bend_stays_joined_side_to_side(self):
+        # Square ends would leave the bend's outer corner cell (8, 5) to neither
+        # line, so (7, 5) and (8, 4) would touch only at a corner.
+        width, depth, code = 12, 8, BUILDER.CODE
+        terrain = bytearray([code["water"]] * (width * depth))
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[2.0, 5.3], [8.3, 5.3], [8.3, 0.3]]}}
+        BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth)
+        deck = {(i % width, i // width) for i, v in enumerate(terrain) if v == code["bridge"]}
+        self.assertEqual(pier["nativePier"]["joints"], [[8.3, 5.3]])
+        self.assertIn((8, 5), deck)
+        self.assertNotIn((7, 4), deck)
+        start = next(iter(deck))
+        seen, todo = {start}, [start]
+        while todo:
+            x, y = todo.pop()
+            for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if n in deck and n not in seen:
+                    seen.add(n)
+                    todo.append(n)
+        self.assertEqual(seen, deck)
+
+    def test_a_pier_keeps_every_joint(self):
+        width, depth = 12, 8
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [5.0, 2.5], [5.0, 5.5], [9.0, 5.5]]}}
+        BUILDER.paint_piers(bytearray([BUILDER.CODE["water"]] * (width * depth)), bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth)
+        self.assertEqual(pier["nativePier"]["joints"], [[5.0, 2.5], [5.0, 5.5]])
+
+    def test_a_joint_rounds_the_band_three_quarters_of_a_metre_out(self):
+        # Cell (8, 5) lies past both lines' square ends, in the bend's outer corner,
+        # so only the joint's round band can reach its centre (8.5, 5.5).
+        width, depth, code = 12, 8, BUILDER.CODE
+        for reach, painted in ((.74, True), (.76, False)):
+            jx, jy = 8.5 - reach / math.sqrt(2), 5.5 - reach / math.sqrt(2)
+            terrain = bytearray([code["water"]] * (width * depth))
+            pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[2.0, jy], [jx, jy], [jx, 0.3]]}}
+            BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth)
+            self.assertEqual(terrain[5 * width + 8] == code["bridge"], painted, reach)
+
+    def test_validator_markers_share_the_first_sentrys_walkable_area(self):
+        # A deck in the sector's first rows meets land only beyond the sector (here,
+        # nowhere): the first five cells in scan order lie on it, cut off by water.
+        size, code = 12, BUILDER.CODE
+        terrain = bytearray([code["water"]] * (size * size))
+        for y in range(1, 3):
+            for x in range(2, 9):
+                terrain[y * size + x] = code["bridge"]
+        for y in range(4, size):
+            for x in range(size):
+                terrain[y * size + x] = code["ground-grass"]
+        blocked = bytearray(size * size)
+        first = BUILDER.preview_anchors(terrain, blocked, [], (0, 0), size, size)
+        self.assertEqual({p["y"] for p in first}, {1, 2})
+        # The sentry stands at (1, 4) and walks through (3, 4): the markers keep off both.
+        guards = [{"x": 1, "y": 4, "patrol": [{"x": 1, "y": 4}, {"x": 3, "y": 4}]}]
+        moved = BUILDER.anchors_with_sentries(terrain, blocked, [], (0, 0), size, size, first, guards)
+        cells = [(p["x"], p["y"]) for p in moved]
+        self.assertEqual(cells, [(2, 4), (2, 5), (3, 5), (2, 6), (1, 5)])
+        # Land that touches the deck only at a corner does not join them: the validator walks four ways.
+        corner = bytearray(terrain)
+        corner[3 * size + 9] = code["ground-grass"]
+        self.assertTrue(all(p["y"] >= 3 for p in BUILDER.anchors_with_sentries(corner, blocked, [], (0, 0), size, size, first, guards)))
+        # Markers already in the sentry's area stay where they are, as do a sector's without sentries.
+        self.assertIs(BUILDER.anchors_with_sentries(terrain, blocked, [], (0, 0), size, size, moved, guards), moved)
+        self.assertIs(BUILDER.anchors_with_sentries(terrain, blocked, [], (0, 0), size, size, first, []), first)
+        # A deck joined to the land within the sector is the same area: no move.
+        terrain[3 * size + 4] = code["bridge"]
+        self.assertIs(BUILDER.anchors_with_sentries(terrain, blocked, [], (0, 0), size, size, first, guards), first)
+
+    def test_the_walking_band_is_three_quarters_of_a_metre_either_side(self):
+        width, depth, code = 12, 6, BUILDER.CODE
+        for y, painted in ((3.24, True), (3.26, False)):
+            terrain = bytearray([code["water"]] * (width * depth))
+            pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[1.0, y], [11.0, y]]}}
+            BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth)
+            # Row 2's centres lie 0.74 or 0.76 m from the line.
+            self.assertEqual(terrain[2 * width + 5] == code["bridge"], painted, y)
+
+    def test_a_pier_leaves_a_path_cell_alone(self):
+        width, depth, code = 12, 5, BUILDER.CODE
+        terrain = bytearray([code["water"]] * 6 + [code["ground-grass"]] * 6) * depth
+        road = bytearray(width * depth)
+        terrain[2 * width + 8] = code["ground-dirt"]
+        road[2 * width + 8] = 1
+        terrain[2 * width + 10] = code["ground-dirt"]
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [11.5, 2.5]]}}
+        BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], road, bytearray(width * depth), width, depth)
+        row = [BUILDER.KINDS[v] for v in terrain[2 * width:3 * width]]
+        self.assertEqual((row[8], row[10]), ("ground-dirt", "ground-wood-planks"))
+        self.assertEqual((pier["nativePier"]["heightM"], pier["nativePier"]["lines"]), (.4, [[[1.0, 2.5], [11.5, 2.5]]]))
+        # The pier says what its deck is and where its numbers come from.
+        native = pier["nativePier"]
+        self.assertEqual((native["shape"], native["widthM"], native["widthSource"], native["walkWidthM"], native["joints"]),
+                         ("deck-lines", 2, "declared-boardwalk-proxy", 1.5, []))
+        self.assertTrue(native["heightSource"].startswith("owner's choice 2026-11-10 (low deck)"), native["heightSource"])
+
+    def test_a_pier_band_stops_square_at_its_ends_and_a_road_does_not(self):
+        width, depth, code = 12, 5, BUILDER.CODE
+        terrain = bytearray([code["water"]] * (width * depth))
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[2.0, 2.5], [8.0, 2.5]]}}
+        BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth)
+        self.assertEqual([BUILDER.KINDS[v] for v in terrain[2 * width:3 * width]],
+                         ["water"] * 2 + ["bridge"] * 6 + ["water"] * 4)
+        road = bytearray(width * depth)
+        BUILDER.paint_line(road, [[2.0, 2.5], [8.0, 2.5]], 1.5, 1, width, depth)
+        self.assertEqual(list(road[2 * width:3 * width]), [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0])
+
+    def test_a_diagonal_pier_decks_a_two_metre_band(self):
+        width, depth, code = 16, 16, BUILDER.CODE
+        terrain = bytearray([code["water"]] * (width * depth))
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[2.5, 2.5], [13.5, 13.5]]}}
+        BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth)
+        bridge = {(x, y) for y in range(depth) for x in range(width) if terrain[y * width + x] == code["bridge"]}
+        for x, y in bridge:
+            self.assertLessEqual(segment_distance([x + .5, y + .5], [2.5, 2.5], [13.5, 13.5]), 1)
+        for k in range(3, 13):
+            # Side neighbours lie 0.71 m from the line (inside the 0.75 m walking
+            # band, so the deck stays joined side to side), corner neighbours 1.41 m.
+            self.assertTrue({(k, k), (k + 1, k), (k, k + 1)} <= bridge, k)
+            self.assertNotIn((k + 1, k - 1), bridge)
+        self.assertEqual(pier["nativePier"]["bridgeCells"], len(bridge))
+
+    def test_an_observation_must_start_on_its_pier(self):
+        width, depth = 20, 6
+        pier = {"id": "osm-way-7", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [10.0, 2.5]]}}
+        good = {"id": "t", "source": {"type": "way", "id": 7}, "addLine": [[10.0, 2.5], [10.0, 5.5]]}
+        terrain = bytearray([BUILDER.CODE["water"]] * (width * depth))
+        BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth, [good])
+        self.assertEqual(pier["nativePier"]["lines"][-1], good["addLine"])
+        # The added line starts on a vertex of the way (not merely near its deck), is one
+        # straight line of two distinct points, and does not run back over a mapped deck line.
+        for bad, message in (([[15.0, 2.5], [15.0, 5.5]], "no longer starts on a vertex"), ([[9.9, 2.5], [9.9, 5.5]], "no longer starts on a vertex"),
+                             ([[10.0, 5.5], [10.0, 2.5]], "no longer starts on a vertex"),
+                             ([[10.0, 2.5], [10.0, 4.0], [12.0, 5.0]], "must add one straight line"), ([[10.0, 2.5], [10.0, 2.5]], "must add one straight line"),
+                             ([[10.0, 2.5], [4.0, 2.5]], "runs over a mapped deck line")):
+            with self.assertRaisesRegex(ValueError, message, msg=str(bad)):
+                BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth, [{**good, "addLine": bad}])
+        with self.assertRaisesRegex(ValueError, "name ways the town has no pier for"):
+            BUILDER.paint_piers(terrain, bytearray(width * depth), [pier], bytearray(width * depth), bytearray(width * depth), width, depth,
+                                [{**good, "source": {"type": "way", "id": 8}}])
+        # A stem added at a vertex inside a straight run makes a T: three line ends, one joint.
+        run = {**pier, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [5.0, 2.5], [10.0, 2.5]]}}
+        BUILDER.paint_piers(bytearray([BUILDER.CODE["water"]] * (width * depth)), bytearray(width * depth), [run], bytearray(width * depth), bytearray(width * depth), width, depth,
+                            [{**good, "addLine": [[5.0, 2.5], [5.0, 5.5]]}])
+        self.assertEqual(run["nativePier"]["joints"], [[5.0, 2.5]])
+        # A long added line that runs out over a short mapped one (3 degrees off it, its far
+        # end 0.9 m to the side) is refused, as seen from either line; 8 degrees off is a new line.
+        short = {**pier, "geometry": {"type": "LineString", "coordinates": [[1.0, 2.5], [3.0, 2.5]]}}
+        with self.assertRaisesRegex(ValueError, "runs over a mapped deck line"):
+            BUILDER.paint_piers(terrain, bytearray(width * depth), [short], bytearray(width * depth), bytearray(width * depth), width, depth,
+                                [{**good, "addLine": [[1.0, 2.5], [19.0, 3.4]]}])
+        BUILDER.paint_piers(terrain, bytearray(width * depth), [short], bytearray(width * depth), bytearray(width * depth), width, depth,
+                            [{**good, "addLine": [[1.0, 2.5], [19.0, 5.0]]}])
+        self.assertEqual(short["nativePier"]["lines"][-1], [[1.0, 2.5], [19.0, 5.0]])
+        # A platform outline has no deck line to extend.
+        platform = {**pier, "geometry": {"type": "MultiPolygon", "coordinates": [[[[1.0, 1.0], [5.0, 1.0], [5.0, 4.0], [1.0, 4.0], [1.0, 1.0]]]]}}
+        with self.assertRaisesRegex(ValueError, "may only extend a deck line"):
+            BUILDER.paint_piers(terrain, bytearray(width * depth), [platform], bytearray(width * depth), bytearray(width * depth), width, depth, [good])
+
+    def test_a_path_meeting_a_pier_keeps_the_shared_vertex(self):
+        tags = {"highway": "footway"}
+        path = {"tags": tags, "nativeRoad": BUILDER.road_style({"tags": tags}),
+                "geometry": {"type": "LineString", "coordinates": [[0.0, 20.0], [0.0, 40.0]]}}
+        BUILDER.follow_streets([path], [{}, {}], lambda point: [1.0, 0.0], [[0.0, 0.0], [0.0, 20.0]])
+        self.assertEqual(path["nativeRoad"]["centerline"], [[0.0, 20.0], [1.0, 40.0]])
+
+    def test_the_track_keeps_road_cell_centres_one_and_a_quarter_metres_away(self):
+        # Samples fall 0.5 m apart from x 0.2668, so the road cell centred at
+        # (10.5, 5.5) lies 1.2400 m from the sample at x 9.7668 (inside the
+        # clearance) and 1.2602 m from the one at x 11.2668 (outside it).
+        width, depth, code = 40, 9, BUILDER.CODE
+        terrain, road = bytearray([code["ground-grass"]] * (width * depth)), bytearray(width * depth)
+        road[5 * width + 10], terrain[5 * width + 10] = 1, code["ground-asphalt"]
+        rail = {"id": "r", "tags": {"railway": "disused"}, "geometry": {"type": "LineString", "coordinates": [[0.2668, 4.5], [39.2668, 4.5]]}}
+        BUILDER.paint_railways(terrain, bytearray(width * depth), [rail], road, bytearray(width * depth), lambda point: [0.0, 0.0], width, depth)
+        runs = rail["nativeRailway"]["runs"]
+        self.assertEqual((runs[0][-1], runs[1][0]), ([9.2668, 4.5], [11.2668, 4.5]))
+
+    def test_the_track_stops_at_water_a_building_a_deck_and_the_street_corridor(self):
+        width, depth, code = 80, 9, BUILDER.CODE
+        terrain, road, corridor = bytearray([code["ground-grass"]] * (width * depth)), bytearray(width * depth), bytearray(width * depth)
+        for x, kind in ((10, "water"), (25, "floor"), (40, "bridge"), (55, "ground-wood-planks")):
+            terrain[4 * width + x] = code[kind]
+        corridor[4 * width + 70] = 1
+        # Samples every 0.5 m from x 0.5: whole-metre sampling would end each run
+        # half a metre sooner.
+        rail = {"id": "r", "tags": {"railway": "disused"}, "geometry": {"type": "LineString", "coordinates": [[0.5, 4.5], [79.5, 4.5]]}}
+        BUILDER.paint_railways(terrain, bytearray(width * depth), [rail], road, corridor, lambda point: [0.0, 0.0], width, depth)
+        runs = rail["nativeRailway"]["runs"]
+        self.assertEqual([(run[0][0], run[-1][0]) for run in runs],
+                         [(1.0, 9.0), (12.0, 24.0), (27.0, 39.0), (42.0, 54.0), (57.0, 69.0), (72.0, 79.0)])
+        row = [BUILDER.KINDS[v] for v in terrain[4 * width:5 * width]]
+        self.assertEqual((row[10], row[25], row[40], row[55], row[70], row[69]),
+                         ("water", "floor", "bridge", "ground-wood-planks", "ground-grass", "ground-gravel"))
+        self.assertEqual(BUILDER.rail_runs([[3.0, 3.0]], lambda point: True), [])
+        # A run open to the end of its line ends exactly there, between two samples.
+        self.assertEqual(BUILDER.rail_runs([[1.0, 4.5], [20.3, 4.5]], lambda point: True), [[[1.0, 4.5], [20.3, 4.5]]])
+
+    def test_a_pier_decks_water_and_open_ground_but_no_road_building_or_corridor(self):
+        width, depth, code = 20, 7, BUILDER.CODE
+        terrain = bytearray([code["water"]] * 10 + [code["ground-grass"]] * 10) * depth
+        terrain[3 * width + 14], terrain[3 * width + 16] = code["ground-concrete"], code["floor"]
+        green, corridor = bytearray([1] * (width * depth)), bytearray(width * depth)
+        corridor[3 * width + 18] = 1
+        pier = {"id": "p", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[2.0, 3.5], [19.5, 3.5]]}}
+        BUILDER.paint_piers(terrain, green, [pier], bytearray(width * depth), corridor, width, depth)
+        row = [BUILDER.KINDS[v] for v in terrain[3 * width:4 * width]]
+        self.assertEqual(row[2:10], ["bridge"] * 8)
+        self.assertEqual(row[10:14] + row[15:16] + row[17:18] + row[19:], ["ground-wood-planks"] * 7)
+        self.assertEqual((row[0], row[14], row[16], row[18]), ("water", "ground-concrete", "floor", "ground-grass"))
+        self.assertEqual((green[3 * width + 12], green[3 * width + 18], green[0]), (0, 1, 1))
+        # The drawn deck is two metres wide, but a walker crosses only cells whose
+        # centres lie within 0.75 m of its line: here one row, under the deck.
+        self.assertEqual([BUILDER.KINDS[terrain[y * width + 5]] for y in range(depth)], ["water", "water", "water", "bridge", "water", "water", "water"])
+        # A line on a cell boundary takes both rows beside it (0.5 m each).
+        terrain = bytearray([code["water"]] * (width * depth))
+        BUILDER.paint_piers(terrain, bytearray(width * depth), [{"id": "q", "tags": {"man_made": "pier"}, "geometry": {"type": "LineString", "coordinates": [[2.0, 3.0], [9.0, 3.0]]}}],
+                            bytearray(width * depth), bytearray(width * depth), width, depth)
+        self.assertEqual([BUILDER.KINDS[terrain[y * width + 5]] for y in range(depth)], ["water", "water", "bridge", "bridge", "water", "water", "water"])
+        self.assertEqual(pier["nativePier"]["widthM"], 2)
+
+    def test_a_railway_bed_yields_to_a_road_and_its_track_stops_short(self):
+        width, depth, code = 40, 9, BUILDER.CODE
+        terrain, green, road = bytearray([code["ground-grass"]] * (width * depth)), bytearray([1] * (width * depth)), bytearray(width * depth)
+        for y in range(depth):
+            for x in (19, 20):
+                road[y * width + x], terrain[y * width + x] = 1, code["ground-asphalt"]
+        rail = {"id": "r", "tags": {"railway": "disused"}, "geometry": {"type": "LineString", "coordinates": [[-1.0, 4.5], [39.0, 4.5]]}}
+        BUILDER.paint_railways(terrain, green, [rail], road, bytearray(width * depth), lambda point: [1.0, 0.0], width, depth)
+        native = rail["nativeRailway"]
+        self.assertEqual(native["centerline"], [[0.0, 4.5], [40.0, 4.5]])
+        row = [BUILDER.KINDS[v] for v in terrain[4 * width:5 * width]]
+        self.assertEqual(row[19:21], ["ground-asphalt"] * 2)
+        self.assertTrue(all(kind == "ground-gravel" for kind in row[:19] + row[21:]))
+        self.assertEqual((green[4 * width + 3], green[0]), (0, 1))
+        # Road cell centres (19.5, 20.5) and the map edges stay 1.25 m clear of the track.
+        self.assertEqual([[run[0], run[-1]] for run in native["runs"]], [[[1.0, 4.5], [18.0, 4.5]], [[22.0, 4.5], [39.0, 4.5]]])
+
+    def test_a_siding_stops_where_its_bed_would_meet_the_main_line(self):
+        width, depth, code = 40, 12, BUILDER.CODE
+        terrain = bytearray([code["ground-grass"]] * (width * depth))
+        main = {"id": "m", "tags": {"railway": "disused"}, "geometry": {"type": "LineString", "coordinates": [[0.0, 2.5], [40.0, 2.5]]}}
+        siding = {"id": "s", "tags": {"railway": "disused", "service": "siding"},
+                  "geometry": {"type": "LineString", "coordinates": [[5.0, 9.5], [20.0, 9.5], [35.0, 3.5]]}}
+        BUILDER.paint_railways(terrain, bytearray(width * depth), [main, siding], bytearray(width * depth), bytearray(width * depth),
+                               lambda point: [0.0, 0.0], width, depth)
+        (run,) = siding["nativeRailway"]["runs"]
+        self.assertEqual(run[0], [5.0, 9.5])
+        # The bed would reach the main line's within 2 m below y 4.5, at x 32.5.
+        self.assertGreaterEqual(run[-1][1] - 2.5, BUILDER.RAIL_BED_WIDTH)
+        self.assertGreater(run[-1][0], 31)
+        self.assertEqual(len(main["nativeRailway"]["runs"]), 1)
 
 
 class SurveyEvidence(unittest.TestCase):

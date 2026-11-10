@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {runOns} from './pier-joints.mjs';
 const repo=fileURLToPath(new URL('../../../../',import.meta.url));
 const target=path.join(repo,'sites/tactical-animal/dist/mission-art/mount-dora');
 const bytes=fs.readFileSync(path.join(repo,'maps/mount-dora/features.json'));
@@ -95,6 +96,69 @@ for(const n of [548471563,688219167]){
   }
  }
 }
+// Mapped piers draw the boardwalk's deck, raised to the generator's deck height
+// on AFT's timber trellis, along each of the generator's deck lines
+// (nativePier.lines; the last ones may come from reviewed observations). No
+// railing is mapped or surveyed.
+// - At a joint (nativePier.joints) the decks run on past it as pier-joints.mjs says
+//   (deck.extend): the straightest pair by the mitre length, so their outer corners
+//   meet; a T's stem not at all. The generator rounds the walkable cells at every joint.
+// - Trellis caps close only free ends: not joints, and not ends standing on
+//   another deck (a stem meeting its crossbar).
+// - Decks that overlap by more than 1 cm stand at different 2 mm levels: each line
+//   takes the lowest level no overlapping line already has (greedy colouring of
+//   the overlap graph).
+const deckLines=[];
+for(const f of source.features.filter(f=>f.nativePier)){
+ const pier=f.nativePier;
+ if(pier.shape!=='deck-lines'){polygonRecord('md:pier:'+f.id.replace(/^osm-way-/,''),'pier-deck',f.geometry.coordinates[0][0],[f.id],{surface:'wood'},{position:'retained-osm-outline',details:'Mapped platform outline; no surveyed railing.',sourceRefs:['osm']}).deck={heightM:pier.heightM,topM:pier.heightM};continue;}
+ const observed=pier.observations||[],firstObserved=pier.lines.length-observed.length,joints=new Set((pier.joints||[]).map(p=>p.join(',')));
+ for(const [i,[a,b]]of pier.lines.entries())deckLines.push({f,pier,i,a,b,joints,position:i<firstObserved?'original-polyline-subdivision':'reviewed-observation:'+observed[i-firstObserved].id});
+}
+const toLine=(p,a,b)=>{const d=[b[0]-a[0],b[1]-a[1]],t=Math.max(0,Math.min(1,((p[0]-a[0])*d[0]+(p[1]-a[1])*d[1])/(d[0]**2+d[1]**2)));return Math.hypot(p[0]-a[0]-d[0]*t,p[1]-a[1]-d[1]*t);};
+for(const line of deckLines){
+ const {a,b,pier,joints}=line,len=Math.hypot(b[0]-a[0],b[1]-a[1]),u=[(b[0]-a[0])/len,(b[1]-a[1])/len];
+ const end=p=>{
+  const joint=joints.has(p.join(','));let extend=0;
+  if(joint){
+   const at=deckLines.filter(o=>o.pier===pier&&[o.a,o.b].some(q=>q[0]===p[0]&&q[1]===p[1]));
+   extend=runOns(p,at.map(o=>[o.a,o.b]),pier.widthM,line.f.id)[at.indexOf(line)];
+  }
+  const onDeck=!joint&&deckLines.some(o=>o!==line&&toLine(p,o.a,o.b)<pier.widthM/2);
+  return {joint,extend:r(extend),cap:!joint&&!onDeck};};
+ line.ends=[end(a),end(b)];
+ line.footprint=[[-line.ends[0].extend,-pier.widthM/2],[len+line.ends[1].extend,-pier.widthM/2],[len+line.ends[1].extend,pier.widthM/2],[-line.ends[0].extend,pier.widthM/2]].map(([s,t])=>[a[0]+u[0]*s-u[1]*t,a[1]+u[1]*s+u[0]*t]);
+}
+// Two convex footprints overlap if no edge normal separates them by more than a centimetre.
+const overlaps=(p,q)=>[p,q].every(poly=>poly.every((c,k)=>{const d=poly[(k+1)%poly.length],n=[d[1]-c[1],c[0]-d[0]],l=Math.hypot(...n),proj=s=>s.map(v=>(v[0]*n[0]+v[1]*n[1])/l),[pa,qa]=[proj(p),proj(q)];return Math.min(Math.max(...pa),Math.max(...qa))-Math.max(Math.min(...pa),Math.min(...qa))>.01;}));
+for(const line of deckLines){const taken=new Set(deckLines.filter(o=>o.level!==undefined&&overlaps(o.footprint,line.footprint)).map(o=>o.level));line.level=0;while(taken.has(line.level))line.level++;}
+for(const {f,pier,i,a,b,ends:lineEnds,level,position}of deckLines){
+ const n=f.id.replace(/^osm-way-/,''),dx=b[0]-a[0],dy=b[1]-a[1],parts=Math.ceil(Math.hypot(dx,dy)/8),topM=r(pier.heightM+.002*level);
+ for(let k=0;k<parts;k++){
+  const ends=[k/parts,(k+1)/parts].map(t=>[r(a[0]+dx*t),r(a[1]+dy*t)]),first=k===0,last=k===parts-1,extend=[first?lineEnds[0].extend:0,last?lineEnds[1].extend:0];
+  output.push({id:`md:pier:${n}:${i}:${k}`,kind:'pier',sourceIds:[f.id],anchor:centre(bound(ends)),bounds:expand(bound(ends),1.2+Math.max(...extend)),ends,width:pier.widthM,rails:[],deck:{heightM:pier.heightM,topM,level,extend,joints:[first&&lineEnds[0].joint,last&&lineEnds[1].joint]},trellis:{caps:[first&&lineEnds[0].cap,last&&lineEnds[1].cap]},collisionPolicy:'additional-solids',solids:[],replacesSourceIds:[],provenance:{position,width:'unsurveyed-2m-boardwalk-proxy',railing:'none mapped or surveyed',height:pier.heightSource,trellis:'AFT wall-wood-trellis beams (dist/aft/tactics/bridge-trellis.js), cut down beneath the deck',sourceRefs:['osm']}});
+ }
+}
+// Railways whose rails remain: Nautilus railway:track-straight pieces along the
+// generator's track runs (nativeRailway.runs, which stop short of every road).
+// Each run is cut into equal chords of about 2 m, one piece each, at the run's
+// true angle; twelve pieces make one placement.
+function chords(run,step){
+ const lengths=[0];for(let i=1;i<run.length;i++)lengths.push(lengths[i-1]+Math.hypot(run[i][0]-run[i-1][0],run[i][1]-run[i-1][1]));
+ const total=lengths.at(-1),count=Math.max(1,Math.round(total/step));
+ const at=s=>{let i=1;while(i<run.length-1&&lengths[i]<s)i++;const a=run[i-1],b=run[i],span=lengths[i]-lengths[i-1],t=span?(s-lengths[i-1])/span:0;return [r(a[0]+(b[0]-a[0])*t),r(a[1]+(b[1]-a[1])*t)];};
+ return Array.from({length:count},(_,k)=>[at(total*k/count),at(total*(k+1)/count)]);
+}
+for(const f of source.features.filter(f=>f.nativeRailway)){
+ const n=f.id.replace(/^osm-way-/,'');
+ for(const [i,run]of f.nativeRailway.runs.entries()){
+  const pieces=chords(run,2);
+  for(let k=0;k<pieces.length;k+=12){
+   const part=pieces.slice(k,k+12),points=part.flat();
+   output.push({id:`md:railway:${n}:${i}:${k/12}`,kind:'railway',sourceIds:[f.id],anchor:centre(bound(points)),bounds:expand(bound(points),1.5),asset:'railway:track-straight',pieces:part,collisionPolicy:'additional-solids',solids:[],replacesSourceIds:[],provenance:{position:'osm-centreline-moved-with-town',track:'Nautilus railway-visuals branch-line profile (source/packages/railway-visuals)',crossings:'Runs stop short of every road, so level crossings and bridges over roads show the road; no turnout, crossing panel or bridge structure.',sourceRefs:['osm']}});
+  }
+ }
+}
 output.sort((a,b)=>a.id.localeCompare(b.id));
 for(const p of output)if(!p.bounds.every(Number.isFinite)||p.bounds[0]>p.bounds[2]||p.bounds[1]>p.bounds[3])throw Error('Invalid production bounds '+p.id);
 // Exact shared outline edges have one visual owner. Do not modify any ring or
@@ -105,10 +169,12 @@ const digest=createHash('sha256').update(JSON.stringify(output)).digest('hex'),s
 fs.mkdirSync(target,{recursive:true});
 fs.writeFileSync(path.join(target,'placements.js'),`// Generated by maps/mount-dora/art/tools/build-playable.mjs.\nexport const ART_REVISION='${digest}';\nexport const SOURCE_FEATURES_SHA256='${sourceHash}';\nexport const AUTHORED_LAYOUT_SHA256='${source.authoredLayoutSHA256}';\nexport const PLACEMENTS=${JSON.stringify(output)};\n`);
 const files=[];
-for(const rel of ['packages/building-catalog/three.js','packages/building-catalog/index.js','packages/building-catalog/designs.js','packages/roof-core/index.js','packages/roof-core/three.js']){
+for(const rel of ['packages/building-catalog/three.js','packages/building-catalog/index.js','packages/building-catalog/designs.js','packages/roof-core/index.js','packages/roof-core/three.js',
+ 'packages/railway-visuals/catalogue.js','packages/railway-visuals/paint.js','packages/railway-visuals/route.js','packages/railway-visuals/three.js']){
  const b=fs.readFileSync(path.join(repo,'maps/mount-dora/art/source/nautilus',rel)),dest=path.join(target,'source',rel);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,b);files.push({path:'source/'+rel,sha256:createHash('sha256').update(b).digest('hex'),bytes:b.length});
 }
 const atlas=fs.readFileSync(path.join(repo,'maps/mount-dora/art/source/nautilus/assets/buildings/painted-materials-v2.png'));
 fs.writeFileSync(path.join(target,'painted-materials-bbe33709.png'),atlas);
-fs.writeFileSync(path.join(target,'provenance.json'),JSON.stringify({schema:'mount-dora-production-art/1',engineRevision:'2502646482218524fd5129641da769bb82462e4d',farmyardBase:'75a6b61a547a96edebdc456e9a42edb4f28185e4',featuresSHA256:sourceHash,artRevision:digest,files,atlasSHA256:createHash('sha256').update(atlas).digest('hex'),placements:output.length,buildingCount:950,coordinates:'town east/south metres; no half-cell transform',sourceNotice:'Geometry and painted materials copied unchanged from the retained fixed source; map data Ã‚Â© OpenStreetMap contributors, ODbL 1.0. Details and heights are explicit approximations.'},null,2)+'\n');
-console.log(JSON.stringify({placements:output.length,buildings:output.filter(p=>p.kind==='building').length,boardwalkPieces:output.filter(p=>p.kind==='boardwalk').length,artRevision:digest}));
+const railwaySource=JSON.parse(fs.readFileSync(path.join(repo,'maps/mount-dora/art/source/nautilus/packages/railway-visuals/SOURCE.json')));
+fs.writeFileSync(path.join(target,'provenance.json'),JSON.stringify({schema:'mount-dora-production-art/1',engineRevision:'2502646482218524fd5129641da769bb82462e4d',railwayRevision:railwaySource.commit,railwayBranch:railwaySource.branch,farmyardBase:'75a6b61a547a96edebdc456e9a42edb4f28185e4',featuresSHA256:sourceHash,artRevision:digest,files,atlasSHA256:createHash('sha256').update(atlas).digest('hex'),placements:output.length,buildingCount:950,coordinates:'town east/south metres; no half-cell transform',sourceNotice:'Geometry and painted materials copied unchanged from the retained fixed source; map data Ã‚Â© OpenStreetMap contributors, ODbL 1.0. Details and heights are explicit approximations.'},null,2)+'\n');
+console.log(JSON.stringify({placements:output.length,buildings:output.filter(p=>p.kind==='building').length,boardwalkPieces:output.filter(p=>p.kind==='boardwalk').length,pierPieces:output.filter(p=>p.kind==='pier').length,railwayPlacements:output.filter(p=>p.kind==='railway').length,railwayPieces:output.filter(p=>p.kind==='railway').reduce((n,p)=>n+p.pieces.length,0),artRevision:digest}));
