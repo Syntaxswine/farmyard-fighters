@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#24382b">
+  <title>Overmap designer · Farmyard Fighters</title>
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="overmap.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="./" class="brand">FARMYARD FIGHTERS</a>
+    <nav aria-label="Authoring tools"><a href="game.html">Play game</a><a href="map-designer.html">Map designer</a></nav>
+  </header>
+  <main>
+    <div class="heading"><div><h1>Overmap designer</h1><p>Repeatable worlds, modular fortifications and connected weak approaches.</p></div><span class="scope">AUTHORING BLUEPRINTS</span></div>
+    <form id="generate-form" class="toolbar">
+      <label>Seed<input id="seed" type="number" min="0" max="4294967295" step="1" value="7" required></label>
+      <label>Columns<input id="columns" type="number" min="2" max="30" step="1" value="6" required></label>
+      <label>Rows<input id="rows" type="number" min="2" max="15" step="1" value="4" required></label>
+      <label>Posts per sector<select id="posts"><option>1</option><option>2</option><option selected>3</option><option>4</option></select></label>
+      <button id="generate" type="submit">Generate</button><button id="cancel" type="button" hidden>Cancel</button>
+      <button id="check" type="button">Check routes</button>
+      <button id="export" type="button">Export overmap</button>
+      <label class="file-button">Import overmap<input id="import" type="file" accept=".json,application/json"></label>
+    </form>
+    <p id="status" class="status" role="status" aria-live="polite">Preparing the first world…</p>
+    <div class="workspace">
+      <section class="maps">
+        <div class="panel">
+          <div class="panel-heading"><h2>World</h2><span id="world-summary"></span></div>
+          <canvas id="world" aria-label="Generated overmap. Select a sector on the map or in the sector list."></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><h2>Sector</h2><label class="inline">Sector<select id="sector"></select></label><button id="export-sector" type="button">Export blueprint</button></div>
+          <p id="sector-summary" class="caption"></p>
+          <canvas id="region" aria-label="Selected sector blueprint on a 24 metre block grid. Select an element on the map or in the element list."></canvas>
+          <p class="legend"><span class="route-key"></span> Connected weak approach <span class="guard-key"></span> Guard · 24 m blocks · 240 m sectors</p>
+        </div>
+      </section>
+      <aside class="panel inspector">
+        <h2>Element</h2>
+        <label>Placed element<select id="element"></select></label>
+        <canvas id="detail" aria-label="Element floor plan, guard positions, sight sketch and weak approach."></canvas>
+        <label>Design variation<select id="variation"></select></label>
+        <div id="guard-settings">
+          <label>Guard type<select id="guard-type"></select></label>
+          <label>Equipment<select id="equipment"></select></label>
+          <label>Behavior<select id="behavior"></select></label>
+        </div>
+        <button id="replace" type="button">Apply variation</button>
+        <p id="element-description"></p>
+        <dl id="element-properties"></dl>
+        <p class="caption">Sight shading is a planning sketch. Each fortification needs production collision, door and combat review before field release.</p>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="overmap.js"></script>
+</body>
+</html>

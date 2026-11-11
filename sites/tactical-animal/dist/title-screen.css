@@ -12,5 +12,6 @@
 .title-choice>strong>span{color:var(--rust)}
 .title-choice>span:last-child{font-size:12px;line-height:1.7;color:var(--muted)}
 .title-footer{font:8px/1.7 var(--mono);letter-spacing:1px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;margin:0}
+.title-overmap{display:inline-flex;align-items:center;gap:14px;margin-top:18px;color:var(--muted);font:11px/1.7 var(--mono);letter-spacing:1px;text-decoration:none}.title-overmap:hover{color:var(--rust)}
 @media(max-width:580px){.title-screen{gap:28px;padding-top:max(22px,env(safe-area-inset-top));padding-bottom:max(22px,env(safe-area-inset-bottom))}.title-content{padding:0}.title-choices{grid-template-columns:1fr;gap:12px}.title-choice{padding:20px;gap:12px}.title-content>h1{font-size:clamp(48px,14vw,80px)}.title-choice>strong{font-size:31px}.title-footer{flex-wrap:wrap}}
 @media(max-height:600px) and (min-width:600px){.title-screen{gap:20px;padding-top:18px;padding-bottom:18px}.title-content{padding:0}.title-content>h1{font-size:60px}.title-content>.eyebrow{margin-bottom:14px}.title-intro{margin:16px 0 12px}.title-choice{padding:16px;gap:10px}}
