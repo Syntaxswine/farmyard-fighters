@@ -205,8 +205,13 @@ try{
     assert(s.lastDischarge.tracerVertices>0&&s.lastDischarge.fromMuzzle&&s.lastDischarge.flash&&s.lastDischarge.pose,JSON.stringify(s.lastDischarge));
     await waitForShotAudio(page,'ak47-shot');
     mark('the held full-auto trigger spends several rounds with native sound and tracer feedback',s.lastDischarge);
-    await page.locator('#weapons').click();const reserveBefore=(await snapshot(page)).reserve;await page.getByRole('button',{name:/^Reload AK-47/}).click();s=await wait(page,s=>s.reloading,'timed reload');assert(s.ammo<30);const before=s.player;
-    await page.keyboard.down('a');try{s=await wait(page,s=>Math.hypot(s.player.x-before.x,s.player.y-before.y)>.1,'held movement during reload',8000);}finally{await page.keyboard.up('a');}await screenshot(page,'desktop-reload-moving');await wait(page,s=>!s.reloading&&s.reserve<reserveBefore,'completed reload');mark('desktop real shot, timed reload, reserve consumption and movement');
+    await page.locator('#weapons').click();s=await snapshot(page);const reserveBefore=s.reserve,automaticReload=s.reloading;
+    // A slow native runner can spend the whole magazine before opening Weapons.
+    // Resume its automatic reload; the dialog pauses that same timed operation.
+    if(automaticReload)await page.getByRole('button',{name:'Return to operation',exact:true}).click();
+    else await page.getByRole('button',{name:/^Reload AK-47/}).click();
+    s=await wait(page,s=>s.reloading,'timed reload');assert(s.ammo<30);const before=s.player;
+    await page.keyboard.down('a');try{s=await wait(page,s=>Math.hypot(s.player.x-before.x,s.player.y-before.y)>.1,'held movement during reload',8000);}finally{await page.keyboard.up('a');}await screenshot(page,'desktop-reload-moving');await wait(page,s=>!s.reloading&&s.reserve<reserveBefore,'completed reload');mark('desktop real shot, timed reload, reserve consumption and movement',{automaticReload});
     // The point shot already alerted the guards. Hold the covered arrival area
     // and let them approach; pause immediately after the automatic engagement.
     s=await wait(page,s=>s.kills>0||s.ammo<30,'automatic engagement',25000);assert(s.autoFire);assert.notEqual(s.phase,'enemy');await page.locator('#menu').click();await screenshot(page,'desktop-fire-at-will');mark('desktop fire at will in authored encounter',{ammo:s.ammo,kills:s.kills,phase:s.phase});
