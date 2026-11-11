@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node sites/tactical-animal/tools/build.mjs",
     "serve": "node sites/tactical-animal/tools/serve.mjs",
+    "benchmark:stealth": "node tools/benchmark-stealth.mjs",
     "check": "node sites/tactical-animal/tools/check.mjs && node --test sites/tactical-animal/tests/*.test.mjs"
   },
   "engines": {"node": ">=22"}

@@ -626,10 +626,10 @@ function missedTrace(s,a,b,event,chance){
   if(!s.realtime){
     const side=(event.shot%2?.36:-.36)/(d||1);
     const end={x:b.x-dy*side,y:b.y+dx*side,h:event.bh+.16};
-    return {traceEnd:firstShotObstacle(s,a,end,event.ah,end.h)?.point??end};
+    return {feedback:{traceEnd:firstShotObstacle(s,a,end,event.ah,end.h)?.point??end}};
   }
   const origin={x:a.x,y:a.y,h:event.ah};
-  if(Math.hypot(d,event.bh-event.ah)<1e-6)return {traceEnd:origin};
+  if(Math.hypot(d,event.bh-event.ah)<1e-6)return {feedback:{traceEnd:origin}};
 
   // Reuse AFT's missed-roll scatter on a local copy of the committed seed.
   const sample=seededShots(s.seed),{die}=failedShotRoll(chance,sample);
@@ -644,7 +644,17 @@ function missedTrace(s,a,b,event,chance){
   const ground=h<0?-origin.h/h:Infinity,travel=Math.min(WEAPONS[event.weapon].range,ground);
   const end={x:origin.x+x*travel,y:origin.y+y*travel,h:Math.max(0,origin.h+h*travel)};
   const obstacle=firstShotObstacle(s,origin,end,origin.h,end.h);
-  return {traceEnd:obstacle?.point??end,missImpact:!!obstacle||travel===ground,...(obstacle?.box.wallEdge?{wallEdge:obstacle.box.wallEdge}:{})};
+  const reach=obstacle?Math.hypot(obstacle.point.x-origin.x,obstacle.point.y-origin.y,obstacle.point.h-origin.h):travel;
+  let impact;
+  for(const unit of s.units){
+    if(!alive(unit)||unit.id===a.id)continue;
+    const contact=bodyIntersection(unit,origin,{x,y,h},reach,bodyHeight(unit));
+    if(!contact||contact.distance>=(impact?.distance??Infinity))continue;
+    impact={unit,zone:contact.zone,distance:contact.distance,
+      point:{x:origin.x+x*contact.distance,y:origin.y+y*contact.distance,h:origin.h+h*contact.distance}};
+  }
+  if(impact)return {impact,feedback:{traceEnd:impact.point}};
+  return {feedback:{traceEnd:obstacle?.point??end,missImpact:!!obstacle||travel===ground,...(obstacle?.box.wallEdge?{wallEdge:obstacle.box.wallEdge}:{})}};
 }
 
 export function confirmedImpact(s,a,b,zone='torso'){
@@ -663,7 +673,7 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
   const p=previewAttack(s,a,b,burst,zone,null,aimLevel);if(!p.ok)return false;if(a.weapon==='grenade')return throwGrenade(s,a,b);
   if(!s.realtime)stop(s);const weapon=a.weapon,w=WEAPONS[weapon];if(!s.realtime&&!byAI&&s.phase!=='player'){s.engaged=true;refresh(s);}
   a.ap=Math.max(0,a.ap-p.cost);a.heading=headingTo(a,b);
-  const hp=b.hp??0,sequence=[];let hits=0;
+  const hp=b.hp??0,sequence=[];let hits=0,bodyDamage=0;
   for(let round=0;round<p.rounds&&alive(a)&&!a.burningTurns;round++){
     if(w.mag&&!(a.ammo[weapon]>0))break;if(w.mag){a.ammo[weapon]--;syncAmmo(a,weapon);}
     const fireBefore=s.fireAnimationSequence||0,windowBefore=s.windowSequence||0,event={shooter:a.id,target:b.id,ax:a.x,ay:a.y,ah:eyeHeight(a),bx:b.x,by:b.y,bh:shotHeight(b,zone),sourceVisible:a.team==='squad'||s.detected.has(a.id),incendiary:w.incendiary,hit:false,weapon,shot:round,explosions:[]};sequence.push(event);
@@ -677,7 +687,12 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
       commitWallDamage(s,walls,event);
     }else{
       const damage=w.pellets?w.damage*w.pellets*.48:w.damage;
-      const rolledHit=random(s)*100<p.chance,impact=rolledHit?(w.mag||s.windows?.length?confirmedImpact(s,a,b,zone):alive(b)?{unit:b,zone}:null):null;
+      const rolledHit=random(s)*100<p.chance;
+      let impact=rolledHit?(w.mag||s.windows?.length?confirmedImpact(s,a,b,zone):alive(b)?{unit:b,zone}:null):null;
+      if(!impact&&w.mag){
+        const miss=missedTrace(s,a,b,event,p.chance);
+        Object.assign(event,miss.feedback);impact=miss.impact;
+      }
       if(impact?.box){event.bx=impact.point.x;event.by=impact.point.y;event.bh=impact.point.h;
         if(impact.box.kind==='glass'){const record=windowSystem.compile(s).find(r=>r.placement.id===impact.box.windowId),local=windowToLocal(record.placement,{...a,h:eyeHeight(a)});
           const broken=windowSystem.breakPane(s,impact.box.windowId,impact.box.paneId,impact.point,{cause:w.mag?'bullet':'melee',direction:local[2]<0?1:-1});if(broken){geometryCache.delete(s);event.glass=true;}
@@ -688,19 +703,20 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
         }
       }else if(impact?.unit){
         const victim=impact.unit,known=victim.team==='squad'||s.detected.has(victim.id);
-        const contact=s.realtime&&w.mag&&known?bodyShotContact(event,impact):null,hpBefore=victim.hp;
+        const contact=s.realtime&&w.mag&&known?(impact.point??bodyShotContact(event,impact)):null,hpBefore=victim.hp;
         event.hit=true;event.impact={unitId:victim.id,zone:impact.zone};event.bx=victim.x;event.by=victim.y;event.bh=shotHeight(victim,impact.zone);
         if(!detonateImpact(s,a,victim,impact.zone,w,event)){
           hurt(s,victim,Math.round(damage*(AIM_ZONES[impact.zone]?.damage||1)));
           if(contact&&hpBefore>victim.hp)event.bodyImpact={contact,seed:s.seed,strength:.7+.5*(hpBefore-victim.hp)/victim.maxHp};
         }
-      }else if(w.mag)Object.assign(event,missedTrace(s,a,b,event,p.chance));
+        bodyDamage+=hpBefore-victim.hp;
+      }
       if(event.wallEdge)commitWallDamage(s,[{edge:event.wallEdge,damage}],event);
     }
     event.windowSequences=windowReceipts(s,windowBefore);event.fireSequences=(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence);if(event.hit)hits++;
   }
   for(const event of sequence)event.shots=sequence.length;
-  log(s,`${a.name} → ${b.name||'window'}: ${b.ground?sequence.some(e=>e.glass)?'glass broken':'shot':hits?Math.round(hp-b.hp)+' damage':'miss'} (${p.chance}%).`);
+  log(s,`${a.name} → ${b.name||'window'}: ${b.ground?sequence.some(e=>e.glass)?'glass broken':'shot':hits?Math.round(bodyDamage||hp-b.hp)+' damage':'miss'} (${p.chance}%).`);
   for(const g of s.units.filter(g=>g.team==='guard'&&alive(g)))if(distance(a,g)<=w.range*2){g.alert=true;g.lastKnown=s.realtime&&a.team==='guard'&&a.lastKnown?{...a.lastKnown}:{x:a.x,y:a.y};g.alertAge=0;}
   s.effect={sequence,cost:p.cost};refresh(s);return true;
 }

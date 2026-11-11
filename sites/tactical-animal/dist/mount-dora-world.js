@@ -257,7 +257,7 @@ export class TownWorld{
     const walls=this.wallsFor(bounds,{walk:true}).map(w=>({x0:w.bounds[0],y0:w.bounds[1],x1:w.bounds[2],y1:w.bounds[3],height:WALL_KIT.height,kind:'wall'}));
     const props=this.solidsFor(bounds).map(s=>{
       const [x0,y0,x1,y1]=s.bounds||shapeBounds(s);
-      return {x0,y0,x1,y1,height:s.trunkHeight??2,kind:'prop',...(s.trunkHeight?{trunk:s}:{})};
+      return {x0,y0,x1,y1,height:s.trunkHeight??s.height??2,kind:'prop',...(s.cover?{cover:true}:{}),...(s.trunkHeight?{trunk:s}:{})};
     });
     return [...walls,...props];
   }
