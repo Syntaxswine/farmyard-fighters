@@ -5,6 +5,7 @@ import {execFileSync} from 'node:child_process';
 const root=path.resolve('sites/tactical-animal/dist');
 const own=["app.js","solo-game.js","missions.js","checkpoint-approaches.js","operation-storage.js","field-view.js","mobile-controls.js","grenade-controls.js","shooting-controls.js","targeting-monitor.js","target-sprites.js","original-art.js","weapon-artwork.js","world-dimensions.js","world-grid.js","render-residency.js","aft-sector.js","aft-checkpoint-data.js","interactions.js","interaction-view.js","mission-scenery.js","mission-art-view.js","guard-alert.js","button-study.js","flame-event.js","flame-mask-view.js","flame-effects.js","flame-pose.js","flame-controls.js","flame-aim-view.js"];
 own.push('window-system.js','window-catalogue.js','window-authoring.js','window-editor.js','window-editor-controls.js','window-review-map.js','window-yard.js','window-shatter.js','window-view.js');
+own.push('overmap-elements.js','overmap-model.js','overmap-generator.js','overmap-view.js','overmap-worker.js','overmap.js');
 execFileSync(process.execPath,[path.resolve('sites/tactical-animal/tools/import-aft-sector.mjs'),'--check'],{stdio:'inherit'});
 for(const file of own)execFileSync(process.execPath,['--check',path.join(root,file)]);
 const visited=new Set();
@@ -25,7 +26,7 @@ for(const file of designer.files){
   if(bytes.length!==file.bytes||createHash('sha256').update(bytes).digest('hex')!==file.sha256)throw Error('Designer snapshot changed: '+file.path);
   if(target.endsWith('.js'))check(target);
 }
-for(const entry of ['index.html','game.html','button-study.html','map-designer.html','window-yard.html',designer.entry]){
+for(const entry of ['index.html','game.html','button-study.html','map-designer.html','window-yard.html','overmap.html',designer.entry]){
   const file=path.join(root,entry),html=fs.readFileSync(file,'utf8');
   for(const match of html.matchAll(/(?:src|href)="([^"#?]+)(?:[?#][^"]*)?"/g)){
     if(/^(?:https?:|data:|blob:)/.test(match[1]))continue;

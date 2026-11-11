@@ -46,7 +46,8 @@ for(const file of [...fs.readdirSync(source).filter(file=>file.endsWith('.html')
   const entry=path.join(destination,file);
   let html=versionImports(fs.readFileSync(entry,'utf8'),file).replace('src="app.js"',`src="app.js?v=${moduleVersion}"`);
   html=html.replace(/\bsrc="([^"?#]+\.js)"/g,(match,specifier)=>moduleSet.has(path.posix.normalize(path.posix.join(path.posix.dirname(file),specifier)))?`src="${specifier}?v=${moduleVersion}"`:match);
-  for(const asset of ['style.css','touch-controls.css','original-art.css','title-screen.css','map-frame.css','industrial-switches.css','field-hardware.css','realtime.css','icon.svg']){
+  for(const asset of ['style.css','touch-controls.css','original-art.css','title-screen.css','map-frame.css','industrial-switches.css','field-hardware.css','realtime.css','overmap.css','icon.svg']){
+    if(!html.includes(`href="${asset}"`))continue;
     const version=createHash('sha256').update(fs.readFileSync(path.join(destination,asset))).digest('hex').slice(0,12);
     html=html.replace(`href="${asset}"`,`href="${asset}?v=${version}"`);
   }
