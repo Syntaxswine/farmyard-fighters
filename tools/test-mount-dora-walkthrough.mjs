@@ -100,11 +100,11 @@ async function walkTo(page,town,{timeout=process.env.CI?180000:60000,tolerance=.
 // down is acknowledged, so one slow SwiftShader frame can make it a hold; send both
 // at once, as the touch taps do, then check that no hold dialog opened.
 async function tapButton(page,selector){
-  const button=page.locator(selector);assert(await button.isEnabled(),selector+' is disabled');
-  const box=await button.boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
+  await page.waitForFunction(selector=>{const b=document.querySelector(selector);return !!b&&!b.disabled&&b.getClientRects().length>0;},selector,{timeout:30000}).catch(error=>{throw Error(selector+' never became tappable: '+error.message);});
+  const box=await page.locator(selector).boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
   assert(await page.evaluate(({selector,x,y})=>!!document.elementFromPoint(x,y)?.closest(selector),{selector,x,y}),selector+' is covered');
   const cdp=await page.context().newCDPSession(page);
-  try{const down=cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1}),up=cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});await down;await up;}finally{await cdp.detach();}
+  try{await Promise.all([cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1}),cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1})]);}finally{await cdp.detach();}
 }
 const holdDialogs=page=>page.evaluate(()=>[['overlay','fire settings or menu'],['control-picker','control picker']].filter(([id])=>document.getElementById(id).open).map(([,name])=>name));
 async function ready(page){return waitInfo(page,s=>s.active&&s.touring&&s.ready&&!s.paused,'Production tour did not become ready',90000);}
@@ -132,6 +132,7 @@ try{
   const origin='http://127.0.0.1:'+port;
   fs.writeFileSync(path.join(out,'server-url.json'),JSON.stringify({origin,expiresAt:record.expiresAt,owner:record.owner,route:'/game.html?activity=mount-dora'})+'\n');
   console.log('NATIVE_REVIEW_URL '+origin+'/game.html?activity=mount-dora');
+  let commandoSeeds={};
   if(!shelterReview){
   context=await browser.newContext({viewport:desktopViewport,acceptDownloads:true,...(recordVideo?{recordVideo:{dir:path.join(out,'video')}}:{})});
   await context.addInitScript(installNativeProbe);
@@ -150,28 +151,33 @@ try{
   assert(await page.locator('#grenade').isEnabled());
   // Fighters fights in real time: the point panel's timed FIRE trigger queues one
   // shot that lands after the aim time, and play never leaves exploration for a turn.
-  await menu(page,'Aim firearm at a point');const aimPoint=await projectPoint(page,[moved.player.x+.5-5,moved.player.y+.5]);await page.mouse.click(aimPoint.x,aimPoint.y);await page.getByRole('button',{name:/^FIRE · \d+\.\d\d s$/}).click();
+  await menu(page,'Aim firearm at a point');const aimPoint=await projectPoint(page,[moved.player.x+.5-5,moved.player.y+.5]);assert(await onViewport(page,aimPoint),'Firearm target point is under the HUD');await page.mouse.click(aimPoint.x,aimPoint.y);await page.getByRole('button',{name:/^FIRE · \d+\.\d\d s$/}).click();
   const fired=await waitInfo(page,s=>s.player.ammo.rifle===moved.player.ammo.rifle-1,'Production firearm did not fire');assert.equal(fired.phase,'explore');
   // The former End Turn switch is the real-time Hold Fire / Fire at Will toggle. With
   // no guard in view, Fire at Will waits for a clear shot and must not spend a round.
   const fireControl=async()=>({...await page.evaluate(()=>({label:document.getElementById('end-turn').getAttribute('aria-label'),pressed:document.getElementById('end-turn').getAttribute('aria-pressed'),target:document.getElementById('realtime-target').textContent})),dialogs:await holdDialogs(page)});
   const fireAtWillContacts=(await page.evaluate(async()=>(await import(document.querySelector('script[src*="app.js"]').src)).inspectRealtime())).contacts;assert.deepEqual(fireAtWillContacts,[],'Fire at Will step needs no guard in view at the Donnelly start');
   assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'false',target:'HOLD FIRE',dialogs:[]});
-  await tapButton(page,'#end-turn');await page.waitForFunction(()=>document.getElementById('end-turn').getAttribute('aria-pressed')==='true'||document.getElementById('overlay').open||document.getElementById('control-picker').open);assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'true',target:'WAITING FOR CLEAR SHOT',dialogs:[]});
-  await tapButton(page,'#end-turn');await page.waitForFunction(()=>document.getElementById('end-turn').getAttribute('aria-pressed')==='false'||document.getElementById('overlay').open||document.getElementById('control-picker').open);assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'false',target:'HOLD FIRE',dialogs:[]});
+  const fireToggle=async(pressed,name)=>{await tapButton(page,'#end-turn');await page.waitForFunction(pressed=>document.getElementById('end-turn').getAttribute('aria-pressed')===pressed||document.getElementById('overlay').open||document.getElementById('control-picker').open,pressed,{timeout:30000}).catch(error=>{throw Error(name+' tap did not take effect: '+error.message);});};
+  await fireToggle('true','Fire at Will');assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'true',target:'WAITING FOR CLEAR SHOT',dialogs:[]});
+  await fireToggle('false','Hold Fire');assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'false',target:'HOLD FIRE',dialogs:[]});
   const held=await snapshot(page);assert.equal(held.phase,'explore');assert.deepEqual(held.player.ammo,fired.player.ammo);
   // Keyboard aim moves 0.85 of the 10 m range per simulated second (grenade-controls.js
   // nudge) and pauses while art loads, so the inherited fixed 1 s hold landed anywhere
   // from 0.7 m (97-107 self-damage at 1-3 fps) to past the 5 m blast (CI). Hold A until
-  // the real preview reads 6 m or more.
+  // the real preview reads 6 m or more; by the time A is released the aim usually sits
+  // at the 10 m limit, so this throw needs open, explored ground 10 m west of the start.
   await page.keyboard.press('g');await page.locator('#grenade-aim').waitFor({state:'visible'});await page.keyboard.down('a');
   try{await page.waitForFunction(()=>parseFloat(document.getElementById('grenade-detail').textContent)>=6,null,{timeout:30000});}
   catch(error){throw Error('Keyboard grenade aim did not reach 6 m: '+await page.locator('#grenade-detail').textContent());}
   finally{await page.keyboard.up('a');}
   await page.waitForFunction(()=>document.getElementById('grenade').dataset.ready==='true',null,{timeout:30000}).catch(async()=>{throw Error('Grenade never became ready to throw: '+await page.locator('#grenade-warning').textContent());});
   const grenadeAim=await page.evaluate(()=>({detail:document.getElementById('grenade-detail').textContent,warning:document.getElementById('grenade-warning').hidden?'':document.getElementById('grenade-warning').textContent}));assert.equal(grenadeAim.warning,'','Grenade preview warns');
-  await tapButton(page,'#grenade');
-  const thrown=await waitInfo(page,s=>s.player.ammo.grenade===fired.player.ammo.grenade-1,'Production grenade did not throw');assert.equal(thrown.phase,'explore');assert(thrown.player.hp>0);assert.deepEqual(await holdDialogs(page),[]);
+  // THROW is hold-capable too (a hold opens the area picker); the count must drop with no dialog open.
+  await tapButton(page,'#grenade');await page.waitForFunction(count=>Number(document.getElementById('grenade-count').textContent)<count||document.getElementById('control-picker').open||document.getElementById('overlay').open,fired.player.ammo.grenade,{timeout:30000}).catch(error=>{throw Error('THROW tap did not take effect: '+error.message);});assert.deepEqual(await holdDialogs(page),[]);
+  // The blast lands synchronously (solo-game.js throwGrenadeNow), so the preview's
+  // clean warning must hold: a throw past the 5 m radius leaves the thrower unhurt.
+  const thrown=await waitInfo(page,s=>s.player.ammo.grenade===fired.player.ammo.grenade-1,'Production grenade did not throw');assert.equal(thrown.phase,'explore');assert(thrown.player.hp>0);assert.equal(thrown.player.hp,held.player.hp,'A grenade thrown past its blast radius hurt the thrower');
   mark('real firearm, grenade, ammunition and Hold Fire / Fire at Will controls operate through production gameplay',{fireAtWillContacts,grenadeAim:grenadeAim.detail,hpBeforeGrenade:held.player.hp,hpAfterGrenade:thrown.player.hp});
   for(let i=0;i<4;i++)await page.locator('#zoom-out').click();
   await walkTo(page,[478.5,478.5]);
@@ -197,7 +203,10 @@ try{
   const overWater=await snapshot(page);assert.equal(overWater.player.ground,'bridge');await shot(page,'desktop-palm-boardwalk');
   for(let i=points.length-2;i>=0;i--){await walkTo(page,points[i],{timeout:process.env.CI?60000:25000,tolerance:.16});if(i%8===0)console.log('Returning actual boardwalk '+i+'/'+points.length);}
   const returned=await snapshot(page);assert(returned.distance>boardwalkBefore.distance+300);mark('actual entrance, mapped join, supported over-water walk and continuous return',{snapshot:returned});
-  await page.waitForTimeout(2700);const saved=JSON.parse((await readSaves(page,[TOUR_SAVE]))[0]);assert(saved);assert(!Object.hasOwn(saved,'map'));assert(JSON.stringify(saved).length<600000);
+  await page.waitForTimeout(2700);const savedText=(await readSaves(page,[TOUR_SAVE]))[0],saved=JSON.parse(savedText);assert(saved);assert(!Object.hasOwn(saved,'map'));assert(JSON.stringify(saved).length<600000);
+  // Declared fixture for the phone: these real saves, planted under Commando's bare keys
+  // (the Pages origin is shared), must never be read, offered or rewritten by Fighters.
+  commandoSeeds={'tactical-animal-operation-v2':operationBefore,'farmyard-mount-dora-tour-v1':savedText};
   assert.equal((await readSaves(page,[OPERATION_SAVE]))[0],operationBefore);assert.deepEqual(await foreignKeys(page),[],'Fighters wrote storage outside its namespace');
   await page.reload();await page.locator('#resume').click();info=await ready(page);
   assert(Math.hypot(info.player.x-saved.player.x,info.player.y-saved.player.y)<1e-6);assert.deepEqual(info.player.ammo,saved.player.ammo);assert.equal(info.player.species,saved.player.species);report.restoredHudLocation=await assertMapLocation(page,info.player);mark('tour reload restores global position/resources and preserves the operation save',{snapshot:info,saveBytes:JSON.stringify(saved).length});
@@ -206,14 +215,15 @@ try{
   }
   // A new, actual touch context uses its own regular preparation and production route.
   phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,...(recordVideo?{recordVideo:{dir:path.join(out,'video')}}:{})});
-  await phone.addInitScript(installNativeProbe);const mobile=await phone.newPage(),mobileLog=capture(mobile,'phone');
-  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.deepEqual(await readSaves(mobile,[OPERATION_SAVE]),[null]);assert.deepEqual(await foreignKeys(mobile),[],'Fighters wrote storage outside its namespace');await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
+  await phone.addInitScript(installNativeProbe);await phone.addInitScript(seeds=>{for(const [key,value] of Object.entries(seeds))if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},commandoSeeds);const mobile=await phone.newPage(),mobileLog=capture(mobile,'phone');
+  const seedKeys=Object.keys(commandoSeeds).sort(),seedsUntouched=async()=>{assert.deepEqual(await readSaves(mobile,seedKeys),seedKeys.map(key=>commandoSeeds[key]),'Fighters rewrote a Commando save');assert.deepEqual(await foreignKeys(mobile),seedKeys,'Fighters wrote storage outside its namespace');};
+  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.deepEqual(await readSaves(mobile,[OPERATION_SAVE]),[null]);assert(await mobile.locator('#resume').isHidden(),'Resume was offered without a Fighters tour save');await seedsUntouched();await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
   const stick=await mobile.locator('#joystick').boundingBox(),cdp=await phone.newCDPSession(mobile),x=stick.x+stick.width/2,y=stick.y+stick.height/2;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:x+stick.width*.24,y:y+stick.height*.12}]});try{await waitInfo(mobile,s=>s.distance>mobileBefore.distance+.45,'Actual touch joystick movement was not observed',20000);}finally{await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
   const mobileMoved=await snapshot(mobile);assert(mobileMoved.distance>mobileBefore.distance+.2);assert(mobileMoved.actor.visible);const mobileKeyboard=await keyboardWalk(mobile,mobileMoved);assert(mobileKeyboard.distance>mobileMoved.distance+.2);await shot(mobile,'phone-donnelly');
   await visit(mobile,'Grantham Point lighthouse');await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-504,s.player.y-1168)<.1&&s.render?.landmarks?.residentIds.includes('md:lighthouse'),'Phone landmark visit failed');report.phoneHudLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player);await mobile.locator('#minimap-button').click();report.phoneExpandedLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player,{expanded:true});await shot(mobile,'phone-town-map');await mobile.getByRole('button',{name:'Continue walking',exact:true}).click();await shot(mobile,'phone-lighthouse');
   await visit(mobile,'Gilbert Park');const shelter=await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x+.5-737.2963,s.player.y+.5-1181.367)<.1&&s.render?.landmarks?.fadedPlacements.includes('md:shelter:557154684'),'Open-shelter visit did not expose actor and roof focus');assert(shelter.actor.visible&&shelter.actor.meshes>0);assert(shelter.render.landmarks.occlusionMaterials>0);assert(shelter.source.stats.peakDecoded<=9&&shelter.source.stats.peakFetches<=2);await shot(mobile,'phone-gilbert-open-shelter');mark('open-shelter visit immediately shows the actor with roof focus',{snapshot:shelter});
-  assert(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(await foreignKeys(mobile),[],'Fighters wrote storage outside its namespace');report.phoneWebGL=await assertGL(mobile);mark('390x844 production touch joystick, character, landmark and layout');
+  assert(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await seedsUntouched();report.phoneWebGL=await assertGL(mobile);mark('390x844 production touch joystick, character, landmark and layout');
   for(const l of report.pages){assert.deepEqual(l.errors,[],'Page errors in '+l.name);const unexpected=l.requests.filter(r=>!l.expectedFailures.some(e=>e.url===r.url&&e.status===r.status));assert.deepEqual(unexpected,[],'Unexpected failed assets in '+l.name);const severe=l.console.filter(x=>x.type==='error'&&!/503/.test(x.text));assert.deepEqual(severe,[],'Console errors in '+l.name);}
   report.passed=true;
 }catch(error){report.passed=false;report.failure=error.stack;for(const [i,c]of (browser?.contexts()||[]).entries())for(const [j,p]of c.pages().entries())try{await p.screenshot({path:path.join(out,'failure-'+i+'-'+j+'.png')});report.failureUI=await p.evaluate(()=>({toast:document.getElementById('toast')?.textContent,loading:document.getElementById('loading')?.textContent,status:document.getElementById('tour-launch-status')?.textContent}));}catch{}write();throw error;}

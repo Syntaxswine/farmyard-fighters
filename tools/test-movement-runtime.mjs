@@ -64,11 +64,11 @@ const onViewport=(page,p)=>page.evaluate(({x,y})=>!!document.elementFromPoint(x,
 // so one slow SwiftShader frame can make it a hold; send both at once, as the touch
 // taps below do.
 async function tapButton(page,selector){
-  const button=page.locator(selector);assert(await button.isEnabled(),selector+' is disabled');
-  const box=await button.boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
+  await page.waitForFunction(selector=>{const b=document.querySelector(selector);return !!b&&!b.disabled&&b.getClientRects().length>0;},selector,{timeout:30000}).catch(error=>{throw Error(selector+' never became tappable: '+error.message);});
+  const box=await page.locator(selector).boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
   assert(await page.evaluate(({selector,x,y})=>!!document.elementFromPoint(x,y)?.closest(selector),{selector,x,y}),selector+' is covered');
   const cdp=await page.context().newCDPSession(page);
-  try{const down=cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1}),up=cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});await down;await up;}finally{await cdp.detach();}
+  try{await Promise.all([cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1}),cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1})]);}finally{await cdp.detach();}
 }
 async function panTo(page,town){
   const box=await page.locator('#viewport').boundingBox();
@@ -80,15 +80,32 @@ async function panTo(page,town){
     await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+dx,cy+dy,{steps:7});await page.mouse.up();await page.waitForTimeout(120);
   }throw Error('Could not bring actual ground point into the viewport: '+town);
 }
+// As in the walkthrough: tap the settled projection, and only where the viewport receives it.
+async function groundPoint(page,town){
+  for(let n=0;n<4;n++){
+    await panTo(page,town);
+    const settled=await page.evaluate(async town=>{
+      const app=await import(document.querySelector('script[src*="app.js"]').src);let previous,stable=0;const start=performance.now();
+      while(performance.now()-start<10000){
+        await new Promise(requestAnimationFrame);const p=app.projectMountDoraTownPoint(town);
+        stable=previous&&Math.hypot(p.x-previous.x,p.y-previous.y)<.12?stable+1:0;
+        if(stable>=2)return p;previous=p;
+      }
+      throw Error('Native camera did not settle before a world-point tap.');
+    },town);
+    if(await onViewport(page,settled))return settled;
+  }
+  throw Error('Settled ground point stayed under the real-time HUD: '+town);
+}
 async function walkTo(page,town,{timeout=process.env.CI?180000:60000,tolerance=.14}={}){
-  const p=await panTo(page,town);await page.mouse.click(p.x,p.y);
+  const p=await groundPoint(page,town);await page.mouse.click(p.x,p.y);
   return waitInfo(page,s=>Math.hypot(s.player.x+.5-town[0],s.player.y+.5-town[1])<tolerance,'Walk did not arrive at '+town,timeout,s=>s.distance);
 }
 async function ready(page){return waitInfo(page,s=>s.active&&s.touring&&s.ready&&!s.paused,'Production tour did not become ready',90000);}
 async function keyboardWalk(page,before){await page.keyboard.down('d');try{await waitInfo(page,s=>s.distance>before.distance+.45,'Actual keyboard movement was not observed',20000);}finally{await page.keyboard.up('d');}return snapshot(page);}
 async function assertGL(page){
   const gl=await page.evaluate(inspectWebGL,'#viewport canvas');assert(gl.available&&!gl.contextLost);
-  const probe=await page.evaluate(()=>window.__windowNativeProbe?.snapshot()||null);assert(probe&&probe.shaders.every(s=>s.ok)&&probe.links.every(s=>s.ok));return {gl,probe};
+  const probe=await page.evaluate(()=>window.__windowNativeProbe?.snapshot()||null);assert(probe&&probe.shaders.length&&probe.shaders.every(s=>s.ok)&&probe.links.every(s=>s.ok),'Native shader evidence missing or failed');return {gl,probe};
 }
 function routeTo(points,distanceLimit){
   const out=[points[0]];let distance=0;
@@ -98,7 +115,7 @@ function routeTo(points,distanceLimit){
   }
   return out.filter((p,i,a)=>i===0||i===a.length-1||Math.hypot(p[0]-a[i-1][0],p[1]-a[i-1][1])>.55);
 }
-function observeInputs(){window.__movementInputEvents=[];window.__movementLifecycle=[];for(const type of ['freeze','resume','visibilitychange'])document.addEventListener(type,e=>window.__movementLifecycle.push({type,trusted:e.isTrusted,at:e.timeStamp,visibility:document.visibilityState,elapsed:window.__movementInspect?.().elapsed}),true);for(const type of ['pointerdown','pointerup','pointercancel','click'])document.addEventListener(type,e=>{const id=e.target.closest?.('button')?.id||(e.target.closest?.('#joystick')?'joystick':null);if(id)window.__movementInputEvents.push({type,id,pointerId:e.pointerId,pointerType:e.pointerType,isPrimary:e.isPrimary,trusted:e.isTrusted,at:e.timeStamp});},true);}
+function observeInputs(){window.__movementInputEvents=[];window.__movementLifecycle=[];for(const type of ['freeze','resume','visibilitychange'])document.addEventListener(type,e=>window.__movementLifecycle.push({type,trusted:e.isTrusted,at:e.timeStamp,visibility:document.visibilityState,elapsed:window.__movementInspect?.().elapsed}),true);for(const type of ['pointerdown','pointermove','pointerup','pointercancel','click'])document.addEventListener(type,e=>{const id=e.target.closest?.('button')?.id||(e.target.closest?.('#joystick')?'joystick':null);if(id)window.__movementInputEvents.push({type,id,pointerId:e.pointerId,pointerType:e.pointerType,isPrimary:e.isPrimary,trusted:e.isTrusted,at:e.timeStamp,tapeIndex:window.__movementFrameTape?.samples.length});},true);}
 async function sample(page){return page.evaluate(async()=>{const m=await import(document.querySelector('script[src*="app.js"]').src);return {wall:performance.now(),info:m.inspectMountDora()};});}
 async function deploy(page,resume=false){await page.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');await page.locator(resume?'#resume':'#deploy').click();return ready(page);}
 async function zoomCheck(page,name){const initial=await snapshot(page),p=[initial.player.x+.5,initial.player.y+.5],a=await projectPoint(page,p),b=await projectPoint(page,[p[0]+10,p[1]]),before=Math.hypot(a.x-b.x,a.y-b.y),spans=[initial.camera.span];for(let n=0;n<7;n++){await page.locator('#zoom-out').click();await page.waitForTimeout(100);spans.push((await snapshot(page)).camera.span);}const c=await projectPoint(page,p),d=await projectPoint(page,[p[0]+10,p[1]]),after=Math.hypot(c.x-d.x,c.y-d.y),info=await snapshot(page);for(let n=1;n<spans.length;n++)assert(spans[n]>spans[n-1]+.05);assert(after<before*.35);assert(info.camera.span>40);assert(info.render.blocks<=25&&info.source.stats.peakDecoded<=9&&info.source.stats.peakFetches<=2);await shot(page,name+'-zoom');mark(name+' actual projected zoom extent grows with bounded residency',{spans,projectedPixelsBefore:before,projectedPixelsAfter:after,blocks:info.render.blocks});}
@@ -107,12 +124,13 @@ async function zoomCheck(page,name){const initial=await snapshot(page),p=[initia
 const entrance=features.find(f=>f.id==='osm-way-548471563').geometry.coordinates,dx=entrance[1][0]-entrance[0][0],dy=entrance[1][1]-entrance[0][1],length=Math.hypot(dx,dy),direction={x:dx/length,y:dy/length},input=direction;
 // Fighters paces are Run (default) and Sneak at half pace; there is no Walk. Every
 // stroke starts from the Sneak fixture with the SNEAK switch lit; a held-stick tap
-// on it returns to Run. The denser Fighters town draws 1-5 frames a second under
-// SwiftShader, so the tape is armed before the touch and the measurement starts at
-// the first frame that moves in the requested mode: recording after the tap's
-// round trips let Run spend most of the straight boardwalk before the first frame.
+// on it returns to Run. Under SwiftShader the denser Fighters town drops to 1-12
+// frames a second once the actor moves, so the tape is armed before the touch and
+// the measurement starts at the first frame that moves in the requested mode:
+// recording after the tap's round trips let Run spend most of the straight
+// boardwalk before the first frame.
 async function stroke(page,ctx,mode,label,throttle=1){
-  const cdp=await ctx.newCDPSession(page),running=mode==='run',sneak=page.locator('#movement-cycle');let touched=false;
+  const cdp=await ctx.newCDPSession(page),running=mode==='run',sneak=page.locator('#movement-cycle');let touched=false,recorded=false;
   try{
     await cdp.send('Emulation.setCPUThrottlingRate',{rate:throttle});
     const settling=(await snapshot(page)).frames;await waitInfo(page,s=>s.frames>=settling+3,'Native shader/input settling frames',30000);
@@ -123,27 +141,37 @@ async function stroke(page,ctx,mode,label,throttle=1){
     assert((await snapshot(page)).input.stickHeld);
     if(running){
       // CDP sends remain ordered; do not turn a quick tap into a hold while waiting for a slow down acknowledgement.
-      const tap={id:2,x:button.x+button.width/2,y:button.y+button.height/2},down=cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point,tap]}),up=cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[tap]});await down;await up;
+      const tap={id:2,x:button.x+button.width/2,y:button.y+button.height/2};await Promise.all([cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point,tap]}),cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[tap]})]);
       await waitInfo(page,s=>s.player.running&&!s.player.sneaking&&s.input.stickHeld,'Run tap cancelled the held joystick',20000);assert.equal(await sneak.getAttribute('aria-pressed'),'false');
     }
     const pointerEvents=await page.evaluate(()=>window.__movementInputEvents);if(running)assert(pointerEvents.some(e=>e.id==='movement-cycle'&&e.type==='pointerup'&&e.pointerType==='touch'&&e.isPrimary===false&&e.trusted));
     // The first frame that moved, joystick held, in the requested mode; then at least
-    // two more frames and 850 ms. Every sliced frame must keep that mode (measureMovementFrames),
-    // and movement must begin within two frames of the mode taking effect with the stick
-    // held, as the inherited recording window required: a stall cannot be sliced away.
+    // two more frames and 850 ms. Every sliced frame must keep that mode (measureMovementFrames).
     await page.waitForFunction(running=>{
       const s=window.__movementFrameTape.samples,first=s.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running&&f.distance>s[i-1].distance);
       return first>=0&&s.length>=first+3&&s.at(-1).rafAt-s[first].rafAt>=850;
     },running,{timeout:30000});
     const {before,after,samples}=await page.evaluate(()=>window.__movementFrameTape.stop());
-    const entry=samples.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running),first=samples.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running&&f.distance>samples[i-1].distance),last=samples.findIndex((f,i)=>i>=first+2&&f.rafAt-samples[first].rafAt>=850);
+    // A stall cannot be sliced away. The touch starts at the stick's centre (no
+    // deflection, no movement); the first joystick pointermove records the tape index
+    // it arrived before, and the actor must move on that frame or the next. A Run tap
+    // must likewise take effect on the frame its flag appears or the next.
+    const deflection=pointerEvents.find(e=>e.type==='pointermove'&&e.id==='joystick'&&e.pointerType==='touch'&&e.trusted&&Number.isInteger(e.tapeIndex));
+    const moved=deflection?samples.findIndex((f,i)=>i>0&&i>=deflection.tapeIndex&&f.stickHeld&&f.distance>samples[i-1].distance):-1;
+    const entry=samples.findIndex((f,i)=>i>0&&i>=Math.max(moved,0)&&f.stickHeld&&f.running===running),first=samples.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running&&f.distance>samples[i-1].distance),last=samples.findIndex((f,i)=>i>=first+2&&f.rafAt-samples[first].rafAt>=850);
     const observed=samples.slice(first,last+1),expected=running?14.4:7.2,wallSeconds=(observed.at(-1).rafAt-observed[0].rafAt)/1000,straight=p=>length-((p.x+.5-entrance[0][0])*direction.x+(p.y+.5-entrance[0][1])*direction.y);
     // Persist the raw tape before assertions so failed CI retains every frame gap.
-    const measurement={label,expected,throttle,before,after,wallSeconds,remainingStraightMetres:straight(observed[0].player),remainingStraightMetresAtEnd:straight(observed.at(-1).player),modeFrame:entry,firstMeasuredFrame:first,tape:samples,observed};(report.measurements||=[]).push(measurement);write();
-    assert(first-entry<=2,`Actor did not move within two frames of entering ${mode}: frames ${entry} to ${first}`);
+    const measurement={label,expected,throttle,before,after,wallSeconds,remainingStraightMetres:straight(observed[0].player),remainingStraightMetresAtEnd:straight(observed.at(-1).player),deflectionFrame:deflection?.tapeIndex??null,firstMovingFrame:moved,modeFrame:entry,firstMeasuredFrame:first,tape:samples,observed};(report.measurements||=[]).push(measurement);recorded=true;write();
+    assert(deflection,'No trusted joystick pointermove reached the page');
+    assert(moved>=0&&moved-deflection.tapeIndex<=1,`Actor did not move within one frame of the stick deflection: frames ${deflection.tapeIndex} to ${moved}`);
+    assert(first-entry<=1,`Actor did not move within one frame of entering ${mode}: frames ${entry} to ${first}`);
     assert(measurement.remainingStraightMetresAtEnd>0,'Measurement ran past the straight boardwalk');
     Object.assign(measurement,measureMovementFrames(observed,expected));write();
     mark(label+' native frame budget and actor frustum',{...measurement,before:undefined,after:undefined,tape:undefined,pointerEvents,wallSpeed:measurement.travel/wallSeconds});return after.info;
+  }catch(error){
+    // Keep the frames of a stroke that failed before its measurement was recorded.
+    if(!recorded){const tape=await page.evaluate(()=>window.__movementFrameTape?.stop()??null).catch(()=>null);(report.measurements||=[]).push({label,failed:true,error:error.message,tape});write();}
+    throw Object.assign(Error(label+': '+error.message),{cause:error});
   }finally{await page.evaluate(()=>window.__movementFrameTape?.stop());if(touched)await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await cdp.detach();}
 }
 async function resetSaved(page){await page.reload();return deploy(page,true);}
