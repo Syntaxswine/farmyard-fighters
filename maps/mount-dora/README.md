@@ -87,7 +87,11 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
   generation records.
 - AFT trees, shrubs and reeds dress mapped parks, woods, wetlands and open ground
   in residential areas. The native woodland brush paints undergrowth in woods
-  and wetlands. Individual placements are seeded scenery.
+  and wetlands. Individual placements are seeded scenery. Then each tree crown
+  the 2018 lidar saw with no trunk yet gets one tree near its top: 3,901 of
+  7,157 crowns ([reference/lidar](reference/lidar/README.md#tree-crowns)). It is
+  mature from 12 m tall, and a pine where the crown is twice as tall as it is
+  wide. They go in after the sentries and markers, so neither moves.
 - Mapped sports pitches exclude procedural trees. Tennis and pickleball polygons
   use a declared existing asphalt ground proxy without invented court markings;
   overlapping source records are retained rather than asserted as a current count.

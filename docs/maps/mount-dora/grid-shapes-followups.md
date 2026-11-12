@@ -73,7 +73,9 @@ seven causes:
   returns 2.5 m or more above the ground cover 2,936 of 5,423 m² (54%). This
   vendor has no vegetation class, and a little of that area is overhead wire.
   Our map has 1 tree and 1 bush there, because greenery is seeded by
-  declared density rather than placed from evidence.
+  declared density rather than placed from evidence. *Planted on the stacked
+  branch `claude/mount-dora-lidar-trees`: a tree in each lidar crown the seeded
+  greenery leaves empty, 191 of them in the box and 3,901 map-wide.*
 - **The railway.** The Sorrento Subdivision runs between the road and the
   trees. OpenStreetMap tags it `railway=disused`, but the rails still show.
   As "context" it is never drawn. *Drawn on the stacked branch

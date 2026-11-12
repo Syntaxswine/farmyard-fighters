@@ -1,4 +1,4 @@
-# Mount Dora lidar: roofs and bare earth
+# Mount Dora lidar: roofs, bare earth and trees
 
 Roof form, eave and ridge heights and ground elevation for each of the 950
 game buildings, and a 1 m bare-earth grid of the whole map, measured from USGS
@@ -6,8 +6,10 @@ game buildings, and a 1 m bare-earth grid of the whole map, measured from USGS
 give storeys and materials but never the roof shape; this fills that gap and
 puts a measured height on every building.
 
-Nothing here changes the generator, the sectors, `features.json` or the art kit.
-The Pages build does not publish `maps/mount-dora/reference/`.
+It also finds the tree crowns. The generator plants a tree in each crown its
+seeded greenery leaves empty ([crowns.json](crowns.json)). Nothing else here
+changes the generator, the sectors, `features.json` or the art kit. The Pages
+build does not publish `maps/mount-dora/reference/`.
 
 ## Source
 
@@ -205,6 +207,40 @@ The ground runs from 18.53 m at the shore to 54.72 m on the downtown ridge, a
 holds the grid definition and the SHA-256 of both sample arrays. A PNG's bytes
 depend on the zlib build, so checks compare the decoded samples.
 
+## Tree crowns
+
+[crowns.json](crowns.json) holds 7,157 crowns over the game extent, 87.07 ha
+of canopy. Their heights run 5.66 / 12.98 / 19.34 m (10th, 50th and 90th
+percentiles) and their widths 2.79 / 7.71 / 18 m. `tools/maps/lidar/crowns.mjs`
+finds them:
+
+- This vendor classes no vegetation, so trees are among the unclassified
+  returns. The canopy is the highest one over the bare earth in each 0.5 m
+  cell, where it stands 2.5 m or more up and the cell holds no building return.
+- Each canopy cell climbs a 3 × 3 mean of the canopy to the top it reaches.
+- Neighbouring tops are one crown unless the lower stands 2 m above the saddle
+  between them. Crowns merge highest saddle first, so one bumpy crown is one
+  tree, and never into a crown over 400 m², which is about the town's big live
+  oaks. A closed woodland canopy is many trees.
+- A crown under 4 m² is dropped. So is one under 1.5 m across, four standard
+  deviations along its minor axis, which is overhead wire.
+
+The thresholds come from the method; they were not tuned to the town. Rows are
+`[topX, topY, centreX, centreY, areaM2, heightM, widthM]` in town metres: the
+lidar position minus the outline registration.
+
+`build-mount-dora.py` moves each crown with the town by the field at its top,
+as it moves the inside of a park. It plants one tree in each crown with no trunk
+within its radius of its centre: 3,901 trees. The trunk goes on the clear green
+ground nearest the top, within half the crown's radius (at least 1 m) and 2 m
+from other trunks, never on brush already painted: the town refuses brush under
+a plant. The tree is mature from 12 m tall. It is a pine where the
+crown stands at least twice as tall as it is wide; the game has no palm.
+Planting comes after the sentries and validator markers, 1.45 m from every
+post and patrol route and a cell from every marker, so neither moves. The
+seeded plants are unchanged. `project.json` pins the file
+(`generation.vegetation.lidarCrowns`).
+
 ## Files
 
 | File | Written by | Contents |
@@ -214,6 +250,7 @@ depend on the zlib build, so checks compare the decoded samples.
 | `bare-earth.png` | `build-lidar.mjs` | 1 m terrain, centimetres above NAVD88 |
 | `bare-earth-source.png` | `build-lidar.mjs` | Per cell: measured, filled or water |
 | `bare-earth.json` | `build-lidar.mjs` | Grid definition, encoding, statistics |
+| `crowns.json` | `build-lidar.mjs` | Tree crowns: top, centre, area, height and width |
 
 ## Running it
 
@@ -221,10 +258,13 @@ From the repository root, with Node 22 or later and no dependencies:
 
 ```powershell
 node tools/maps/lidar/fetch-lidar.mjs          # 448 MB of Entwine nodes into artifacts/lidar/, a few minutes
-node tools/maps/lidar/build-lidar.mjs          # ~45 s on 12 worker threads
+node --max-old-space-size=12288 tools/maps/lidar/build-lidar.mjs   # about 1-2 minutes
 node tools/maps/lidar/build-lidar.mjs --check  # needs the cache; re-derives everything
-node --test tests/maps/lidar.test.mjs          # no cache needed
+node --test tests/maps/lidar.test.mjs tests/maps/lidar-crowns-roofs.test.mjs  # no cache needed
 ```
+
+`lidar-crowns-roofs.test.mjs` checks the crown rules on made-up canopies, and
+crowns.json against its inputs and rules.
 
 The test decodes one committed node
 (`tests/maps/fixtures/lidar-ept-11-1070-1042-1017.laz`, 63 KB). It checks the
@@ -242,6 +282,8 @@ decoder, roof rules, raster helpers and statistics.
   read high. Prefer the county's storeys where a record exists.
 - OSM outlines merge porches with houses. `eaveM` is the eave over most of the
   outline; `planes` and `upperEaveM` show the parts.
+- A little overhead wire wider than 1.5 m may read as a crown, and a tree
+  leaning over a roof loses the cells that hold building returns.
 
 ## Proposed use in the generator (not applied)
 

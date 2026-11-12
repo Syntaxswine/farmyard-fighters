@@ -601,6 +601,45 @@ class MountDoraGeneration(unittest.TestCase):
         self.assertEqual(trees, self.project["metrics"]["trees"])
         self.assertGreater(brush_cells, 0)
         self.assertEqual(brush_cells, self.project["metrics"]["foliageCells"])
+        # The town refuses brush on a cell that holds a plant (mount-dora-world.js).
+        for sector_id, mapping in self.maps.items():
+            plants = {"%d,%d,0" % (p["x"], p["y"]) for p in mapping["props"]}
+            self.assertFalse(plants & set(mapping.get("foliage", {})), sector_id)
+
+    def test_each_lidar_tree_stands_in_its_crown_clear_of_the_sentries(self):
+        record = self.project["generation"]["vegetation"]["lidarCrowns"]
+        doc = json.loads((BUILDER.PROJECT / record["file"]).read_bytes())
+        self.assertEqual(record["sha256"], hashlib.sha256((BUILDER.PROJECT / record["file"]).read_bytes()).hexdigest())
+        areas = [dict(zip(doc["columns"], row))["areaM2"] for row in doc["crowns"]]
+        line_cells = BUILDER.load_map_helper("mount_dora_patrols")._line_cells
+        lidar, kinds, sources = [], collections.Counter(), set()
+        for sector in self.project["sectors"]:
+            ox, oy = sector["origin"]["x"], sector["origin"]["y"]
+            for prop in self.maps[sector["id"]]["props"]:
+                if prop["mountDora"]["placement"] != "lidar-crown":
+                    continue
+                crown, number = prop["mountDora"]["crown"], int(prop["mountDora"]["sourceId"].rsplit("-", 1)[1])
+                x, y = ox + prop["x"], oy + prop["y"]
+                reach = max(1.0, math.sqrt(areas[number] / math.pi) / 2)
+                # The record keeps the top to 2 dp; planting measured from the exact top.
+                self.assertLessEqual(math.hypot(x + .5 - crown["top"][0], y + .5 - crown["top"][1]), reach + .01, prop)
+                pine = crown["heightM"] >= BUILDER.load_map_helper("mount_dora_foliage").CROWN_NARROW * crown["widthM"]
+                self.assertEqual(prop["kind"], ("tree-pine" if pine else "tree-broadleaf") + ("-large" if crown["heightM"] >= 12 else ""))
+                lidar.append((x, y)); kinds[prop["kind"]] += 1; sources.add(number)
+        self.assertEqual(len(lidar), record["planted"])
+        self.assertEqual(len(sources), len(lidar), "one tree per crown")
+        self.assertGreater(record["planted"], 3000)
+        self.assertEqual(set(kinds), {"tree-pine", "tree-pine-large", "tree-broadleaf", "tree-broadleaf-large"})
+        # 1.45 m from every post and every cell of its patrol route.
+        route = set()
+        for sector in self.project["sectors"]:
+            ox, oy = sector["origin"]["x"], sector["origin"]["y"]
+            for guard in sector["guards"]:
+                points = [(guard["x"] + ox, guard["y"] + oy)] + [(p["x"] + ox, p["y"] + oy) for p in guard.get("patrol", [])]
+                ring = points[1:] or points
+                route |= {points[0]}.union(*(set(line_cells(a, b)) for a, b in zip(ring, ring[1:] + ring[:1])))
+        for x, y in lidar:
+            self.assertFalse(any(math.hypot(x - gx, y - gy) <= 1.45 for gx in range(x - 2, x + 3) for gy in range(y - 2, y + 3) if (gx, gy) in route), (x, y))
 
     def test_preview_anchors_and_sentries_are_on_existing_outdoor_cells(self):
         roster = []
@@ -1293,6 +1332,116 @@ class PierAndRailwayUnits(unittest.TestCase):
         self.assertGreaterEqual(run[-1][1] - 2.5, BUILDER.RAIL_BED_WIDTH)
         self.assertGreater(run[-1][0], 31)
         self.assertEqual(len(main["nativeRailway"]["runs"]), 1)
+
+
+class LidarCrownUnits(unittest.TestCase):
+    """plant_crowns on a made-up 20 x 20 m park of four 10 m sectors."""
+
+    def setUp(self):
+        self.foliage = BUILDER.load_map_helper("mount_dora_foliage")
+        self.code = {"ground-grass": 0, "woodland": 2, "water": 1}
+        self.terrain = [0] * 400
+        self.green = bytearray([1] * 400)
+        self.blocked = bytearray(400)
+        self.props = collections.defaultdict(list)
+        self.brush = collections.defaultdict(dict)
+
+    def plant(self, crowns, tree_cells=(), occupied=(), **kw):
+        self.tree_cells, self.occupied = set(tree_cells), set(occupied)
+        return self.foliage.plant_crowns(crowns, self.terrain, self.green, self.blocked, 20, 20, 10, self.code,
+                                         lambda c, r: (c, r), self.props, self.brush, self.tree_cells, self.occupied, **kw)
+
+    def trees(self):
+        return {(c * 10 + p["x"], r * 10 + p["y"]): p for (c, r), props in self.props.items() for p in props}
+
+    @staticmethod
+    def crown(top, area=30.0, height=8.0, width=6.0, centre=None, number=0):
+        return {"id": "lidar-crown-%d" % number, "top": top, "centre": centre or top, "areaM2": area, "heightM": height, "widthM": width}
+
+    def test_an_empty_crown_gets_one_tree_nearest_its_top(self):
+        self.assertEqual(self.plant([self.crown([5.2, 5.7])]), 1)
+        (cell, prop), = self.trees().items()
+        self.assertEqual(cell, (5, 5))
+        self.assertEqual(prop["kind"], "tree-broadleaf")
+        self.assertEqual(prop["mountDora"], {"sourceId": "lidar-crown-0", "habitat": "park", "placement": "lidar-crown",
+                                             "crown": {"heightM": 8.0, "widthM": 6.0, "top": [5.2, 5.7]}})
+        self.assertEqual(self.tree_cells, {(5, 5)})
+        self.assertIn((5, 5), self.occupied)
+
+    def test_a_whole_metre_top_is_written_as_an_integer(self):
+        # house-parts.mjs re-encodes the sectors in JavaScript, which writes 21.0 as 21.
+        self.assertEqual(self.plant([self.crown([5.0, 5.7])]), 1)
+        top = next(iter(self.trees().values()))["mountDora"]["crown"]["top"]
+        self.assertEqual(json.dumps(top), "[5, 5.7]")
+
+    def test_kinds_by_height_and_shape(self):
+        cases = [(8, 6, "tree-broadleaf"), (12, 6.01, "tree-broadleaf-large"), (12, 6, "tree-pine-large"), (9.9, 5, "tree-broadleaf"), (10, 5, "tree-pine")]
+        crowns = [self.crown([3.5 + 3 * i, 3.5], area=4, height=h, width=w, number=i) for i, (h, w, _) in enumerate(cases)]
+        self.assertEqual(self.plant(crowns), 5)
+        self.assertEqual([self.trees()[(3 + 3 * i, 3)]["kind"] for i in range(5)], [kind for _, _, kind in cases])
+
+    def test_a_crown_holding_a_trunk_gets_none(self):
+        # A trunk 2.9 m from the centre of a crown 3.09 m in radius.
+        self.assertEqual(self.plant([self.crown([10.5, 10.5])], tree_cells={(13, 10)}), 0)
+        self.assertEqual(self.trees(), {})
+        # Past its radius it does not count.
+        self.assertEqual(self.plant([self.crown([10.5, 10.5], area=20.0)], tree_cells={(13, 10)}), 1)
+
+    def test_the_trunk_keeps_off_taken_unclear_and_crowded_cells(self):
+        top = [10.5, 10.5]
+        # Its own cell taken, kept clear, blocked, water or reserved: the next cell within reach.
+        for kw in ({"occupied": {(10, 10)}}, {"keep_clear": {(10, 10)}}, {"reserved": [(10, 10)]}, {"brush": True}):
+            self.props.clear(); self.brush.clear()
+            if kw.pop("brush", False):
+                self.brush[(1, 1)]["0,0,0"] = [57, False, "woodland-v1"]  # brush already on (10, 10)
+            self.assertEqual(self.plant([self.crown(top)], **kw), 1)
+            (cell,) = self.trees()
+            self.assertNotEqual(cell, (10, 10)); self.assertLessEqual(math.hypot(cell[0] + .5 - 10.5, cell[1] + .5 - 10.5), 1.5451)
+        self.props.clear(); self.blocked[10 * 20 + 10] = 1; self.terrain[10 * 20 + 11] = 1
+        self.assertEqual(self.plant([self.crown(top)]), 1)
+        self.assertNotIn(next(iter(self.trees())), {(10, 10), (11, 10)})
+        # No clear cell within reach (half the radius, at least a metre): no tree.
+        self.props.clear(); self.blocked[:] = bytearray(400); self.terrain = [0] * 400
+        everything = {(x, y) for x in range(8, 14) for y in range(8, 14)}
+        self.assertEqual(self.plant([self.crown(top, area=4)], keep_clear=everything), 0)
+        # Reach is half the radius: a 3.09 m crown reaches 1.55 m, though cells 2-3 m out are clear.
+        within = {(x, y) for x in range(5, 16) for y in range(5, 16) if math.hypot(x + .5 - 10.5, y + .5 - 10.5) <= 1.6}
+        self.assertEqual(self.plant([self.crown(top)], keep_clear=within), 0)
+        # Only green ground that nothing blocks takes a trunk.
+        self.terrain = [1] * 400
+        self.assertEqual(self.plant([self.crown(top)]), 0)
+        self.terrain = [0] * 400; self.blocked[:] = bytearray([1] * 400)
+        self.assertEqual(self.plant([self.crown(top)]), 0)
+        self.blocked[:] = bytearray(400)
+        # A trunk never stands next to another: trunks on two diagonal cells, outside this
+        # 1.13 m crown's radius, crowd every cell within its reach.
+        self.props.clear()
+        self.assertEqual(self.plant([self.crown(top, area=4, number=1)], tree_cells={(9, 9), (11, 11)}), 0)
+        self.assertEqual(self.plant([self.crown(top, area=4, number=1)], tree_cells={(9, 9)}), 1)
+
+    def test_two_crowns_side_by_side_get_trunks_two_metres_apart(self):
+        # The second crown's centre lies 4.5 m from the first trunk, past its 3.57 m radius.
+        self.assertEqual(self.plant([self.crown([10.5, 10.5], area=40.0, number=0), self.crown([11.5, 10.5], area=40.0, number=1, centre=[15, 10.5])]), 2)
+        a, b = sorted(self.trees())
+        self.assertGreaterEqual(max(abs(a[0] - b[0]), abs(a[1] - b[1])), 2)
+
+    def test_brush_around_a_new_trunk_in_woods_and_wetland_only(self):
+        self.green[:] = bytearray([2] * 400)
+        self.assertEqual(self.plant([self.crown([10.5, 10.5])], occupied={(9, 9)}), 1)
+        painted = {(c * 10 + int(k.split(",")[0]), r * 10 + int(k.split(",")[1])): v for (c, r), cells in self.brush.items() for k, v in cells.items()}
+        self.assertEqual(set(painted), {(x, y) for x in range(8, 13) for y in range(8, 13)} - {(10, 10), (9, 9)})
+        self.assertTrue(all(v == [57, False, "woodland-v1"] for v in painted.values()))
+        self.brush.clear(); self.props.clear(); self.green[:] = bytearray([1] * 400)
+        self.assertEqual(self.plant([self.crown([10.5, 10.5])]), 1)
+        self.assertEqual(dict(self.brush), {})
+
+    def test_seeded_plants_stay_exactly_as_they_are(self):
+        seeded = {"x": 1, "y": 1, "z": 0, "kind": "tree-broadleaf", "mountDora": {"placement": "seeded"}}
+        self.props[(0, 0)].append(seeded)
+        before = json.dumps(seeded, sort_keys=True)
+        self.assertEqual(self.plant([self.crown([15.5, 15.5])], tree_cells={(1, 1)}, occupied={(1, 1)}), 1)
+        self.assertIs(self.props[(0, 0)][0], seeded)
+        self.assertEqual(json.dumps(seeded, sort_keys=True), before)
 
 
 class SurveyEvidence(unittest.TestCase):

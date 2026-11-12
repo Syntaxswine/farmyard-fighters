@@ -10,6 +10,8 @@
 //   reference/lidar/bare-earth.png           1 m terrain, centimetres above NAVD88
 //   reference/lidar/bare-earth-source.png    per cell: 0 measured, 1 filled, 2 water
 //   reference/lidar/bare-earth.json          grid definition, encoding, statistics
+//   reference/lidar/crowns.json              tree crowns: top, centre, area,
+//                                            height and width of each
 //   reference/county-buildings.json          county-sketched buildings the game
 //                                            lacks, placed on their roofs
 //                                            (county-buildings.mjs), each with
@@ -29,13 +31,14 @@ import {ADDRESS_NEAR_M, ADDRESS_SLACK_M, aerialUrl, planStreetView, VIEW_RADIUS_
 import {cacheDir, MARGIN_M} from './fetch-lidar.mjs';
 import {loadPoints, pointsIn} from './points.mjs';
 import {classifyRoof, median, percentile, ROOF} from './roofs.mjs';
+import {canopyHeights, findCrowns, CROWNS} from './crowns.mjs';
 import {decodePng, encodePng, fillGaps, maskOf} from './raster.mjs';
 import {brief, occupancy, PLACE, placeCountyBuildings, underfoot} from './county-buildings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const town = path.join(root, 'maps/mount-dora'), ref = path.join(town, 'reference'), out = path.join(ref, 'lidar');
 const targets = {roofs: path.join(ref, 'lidar-roofs.json'), county: path.join(ref, 'county-buildings.json'), terrain: path.join(out, 'bare-earth.json'),
-  elevation: path.join(out, 'bare-earth.png'), source: path.join(out, 'bare-earth-source.png')};
+  elevation: path.join(out, 'bare-earth.png'), source: path.join(out, 'bare-earth-source.png'), crowns: path.join(out, 'crowns.json')};
 const hash = data => createHash('sha256').update(data).digest('hex');
 const r2 = v => v === null || Number.isNaN(v) ? null : Math.round(v * 100) / 100, r1 = v => v === null || Number.isNaN(v) ? null : Math.round(v * 10) / 10;
 const r3 = v => Math.round(v * 1000) / 1000;
@@ -302,6 +305,9 @@ export async function build() {
   }
 
   const reg = registration(index, houses);
+  // Tree crowns over the game extent, found in the lidar's frame and moved into the
+  // town (OSM) frame by taking the outline registration out.
+  const crowns = findCrowns(canopyHeights(index, (x, y) => gridZ([x, y]), extent)).map(c => ({...c, top: [c.top[0] - reg.dx, c.top[1] - reg.dy], centre: [c.centre[0] - reg.dx, c.centre[1] - reg.dy]}));
   const analyseAll = (dx, dy) => houses.map(house => {
     const g = shift(house.geometry, reg.dx + dx, reg.dy + dy), a = analyse(index, {...house, centre: [house.centre[0] + reg.dx + dx, house.centre[1] + reg.dy + dy]}, g, gridZ);
     return record(house, a);
@@ -442,8 +448,22 @@ export async function build() {
     stats: {minM: lo / 100, maxM: hi / 100, measuredShare: r3(measured / kind.length), filledShare: r3((kind.length - measured - wet) / kind.length), waterShare: r3(wet / kind.length),
       lakeLevelM: r2(t.level), lakeLevelFt: r2(t.level / .3048), lakeWaterReturns: t.waterReturns},
     collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]}};
+  const sortedOf = list => Float64Array.from(list).sort();
+  const crownHeights = sortedOf(crowns.map(c => c.heightM)), crownWidths = sortedOf(crowns.map(c => c.widthM));
+  const crownsDoc = {kind: 'mount-dora-lidar-crowns', version: 1, inputs: roofs.inputs.lidar,
+    policy: 'Public-domain USGS 3DEP lidar, flown in December 2018. Each crown is a tree the lidar saw. build-mount-dora.py plants one tree in each crown its seeded greenery leaves empty; nothing here edits the sectors or the art kit.',
+    collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]},
+    method: {rules: CROWNS,
+      canopy: `The highest unclassified (class 1) return over the bare earth in each ${CROWNS.cellM} m cell, where it stands ${CROWNS.tallM} m or more above it and the cell holds no building (class 6) return. This vendor classes no vegetation, so a little overhead wire is among it.`,
+      crowns: `Each canopy cell climbs a 3 x 3 mean of the canopy to the top it reaches. Neighbouring tops are one crown unless the lower stands ${CROWNS.prominenceM} m above the saddle between them, merged highest saddle first and never into a crown over ${CROWNS.maxAreaM2} m². A crown under ${CROWNS.minAreaM2} m² or under ${CROWNS.minWidthM} m across (four standard deviations along its minor axis) is dropped.`,
+      frame: `Town metres in the OSM frame: the lidar position minus the outline registration of lidar-roofs.json (${reg.dx}, ${reg.dy}) m.`},
+    metrics: {crowns: crowns.length, canopyAreaHa: r2(crowns.reduce((s, c) => s + c.areaM2, 0) / 1e4),
+      heightM: {p10: r2(percentile(crownHeights, .1)), p50: r2(percentile(crownHeights, .5)), p90: r2(percentile(crownHeights, .9))},
+      widthM: {p10: r2(percentile(crownWidths, .1)), p50: r2(percentile(crownWidths, .5)), p90: r2(percentile(crownWidths, .9))}},
+    columns: ['topX', 'topY', 'centreX', 'centreY', 'areaM2', 'heightM', 'widthM'],
+    crowns: crowns.map(c => [r2(c.top[0]), r2(c.top[1]), r2(c.centre[0]), r2(c.centre[1]), r2(c.areaM2), r2(c.heightM), r2(c.widthM)])};
   return {roofsText: JSON.stringify(roofs, null, 1) + '\n', countyText: JSON.stringify(countyDoc, null, 1) + '\n',
-    terrainText: JSON.stringify(terrainDoc, null, 1) + '\n', elevationPng, sourcePng, elevation, kind};
+    terrainText: JSON.stringify(terrainDoc, null, 1) + '\n', crownsText: JSON.stringify(crownsDoc) + '\n', elevationPng, sourcePng, elevation, kind};
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -455,13 +475,15 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     assert.equal(hash(fs.readFileSync(targets.roofs)), hash(built.roofsText), 'lidar-roofs.json is stale; rerun without --check.');
     assert.equal(hash(fs.readFileSync(targets.county)), hash(built.countyText), 'county-buildings.json is stale; rerun without --check.');
     assert.equal(hash(fs.readFileSync(targets.terrain)), hash(built.terrainText), 'bare-earth.json is stale; rerun without --check.');
+    assert.equal(hash(fs.readFileSync(targets.crowns)), hash(built.crownsText), 'crowns.json is stale; rerun without --check.');
     // PNG bytes depend on the zlib build; the samples must match exactly.
     assert.equal(hash(Buffer.from(decodePng(fs.readFileSync(targets.elevation)).samples.buffer)), hash(Buffer.from(built.elevation.buffer)), 'bare-earth.png is stale.');
     assert.equal(hash(Buffer.from(decodePng(fs.readFileSync(targets.source)).samples.buffer)), hash(Buffer.from(built.kind.buffer)), 'bare-earth-source.png is stale.');
-    console.log(`Lidar roofs and terrain are current (${((Date.now() - started) / 1000).toFixed(0)} s).`);
+    console.log(`Lidar roofs, terrain and crowns are current (${((Date.now() - started) / 1000).toFixed(0)} s).`);
   } else {
     fs.mkdirSync(out, {recursive: true});
     fs.writeFileSync(targets.roofs, built.roofsText); fs.writeFileSync(targets.county, built.countyText); fs.writeFileSync(targets.terrain, built.terrainText);
+    fs.writeFileSync(targets.crowns, built.crownsText);
     fs.writeFileSync(targets.elevation, built.elevationPng); fs.writeFileSync(targets.source, built.sourcePng);
     const r = JSON.parse(built.roofsText);
     console.log(JSON.stringify({collection: r.collection.acquired, density: r.collection.densityPerM2, registration: {dx: r.registration.dx, dy: r.registration.dy},
