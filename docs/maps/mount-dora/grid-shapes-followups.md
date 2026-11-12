@@ -88,7 +88,8 @@ seven causes:
   Walls can turn; ground cannot. A smooth road surface would have to be drawn
   over the tiles.
 
-Drawing the roofs over the water turned up four more gaps:
+Drawing the roofs over the water and planting the crowns turned up six more
+gaps:
 
 - **Lake Dora's OSM outline is off the lidar's water by 5–10 m** along parts
   of the shore.
@@ -113,12 +114,21 @@ Drawing the roofs over the water turned up four more gaps:
   No outline draws it.
 - **A taller roof at the marina's north-west corner** at x 503–508,
   y 955–962 (eave about 5.1 m) stands on land. No outline draws it.
-- **A roof on a dock** at x 61–67, y 631–642 (about 69 m², 3.6 m up) is
-  missing from the water roofs. The aerial view shows a white roof where two
-  docks meet. The vendor left it unclassified, so it has no building returns.
-  It stops the scanner like a solid, so crowns.json lists it among
-  `notFoliage` (multiShare 0.047) and it gets no lidar tree. Drawing it would
-  take a rule for unclassified roofs over water.
+- **Roofs on docks the vendor left unclassified** are missing from the water
+  roofs: they have no building returns.
+  - At x 61–67, y 631–642 (about 69 m², 3.6 m up), the aerial view shows a
+    white roof where two docks meet. It stops the scanner like a solid, so
+    crowns.json lists it among `notFoliage` (multiShare 0.047).
+  - Centred at x 61, y 464 (35 m², 4.25 m up), the aerial view shows a white
+    roof at the end of a dock. Its crown reads 0.118 as a whole, just over the
+    0.1 line, so crowns.json keeps it as a crown. Over the water it gets no
+    tree.
+  - Of the 124 crowns centred inside the lake's outline, 5 have a top that
+    stops the scanner, and 2 of those read under 0.15 as a whole. One is this
+    roof; the other, at x 576, y 1639, is a marsh thicket in the aerial view.
+    So the roof rule (`roofTops`) is not extended to the lake.
+
+  Drawing them would take a rule for unclassified roofs over water.
 - **Two lidar trees may stand on roofs the vendor left unclassified.** The
   roof rule in crowns.json (`roofTops`) takes out only crowns centred inside an
   outline the game draws: Dora Villa's. Two crowns that carry lidar trees read

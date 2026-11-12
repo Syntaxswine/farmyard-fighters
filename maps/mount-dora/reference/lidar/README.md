@@ -297,17 +297,19 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   those must read as water. A cell reads as water when it holds water returns,
   or no return at all, because calm water returned none. A dock or reeds in
   the water read as water too. That is a cell within 3 m of such water, with
-  no ground return (classes 2 and 20), and with most of its returns within
-  1.5 m of the lake's level, none over half a metre under it. Lake Dora's OSM
+  no ground return (classes 2 and 20), and with most of its returns between
+  half a metre under the lake's level and 1.5 m over it. Lake Dora's OSM
   outline runs 5–10 m off the lidar's water along parts of the shore.
-- **Left out.** The pieces over neither are left out. So is a piece under
-  half in the lake's outline that touches, within 1 m, only pieces left out:
-  it is part of what stands on land. These 11 pieces, 386 m², are listed in
+- **Left out.** The pieces over neither are left out. Pieces under half in
+  the lake's outline whose cells come within 1 m of one another form a group.
+  A group that touches pieces left out and none at least half in the outline
+  is part of what stands on land, and is left out with it. A slip split into
+  two pieces is so judged whole. These 11 pieces, 386 m², are listed in
   `leftOut` with their measures and reason: the marina's east-shore shed, its
   north-west tower, and scraps north of its walkway. One of them is the shed's
   9.5 m² north end, which reads as over water but lies wholly outside the
   outline. Roofs the vendor left unclassified are not among the building
-  returns at all; the roof on the dock at x 61–67 (above) is one.
+  returns at all; the two roofs on docks in the followups are such.
 - **Outline and heights.** Each piece's outline is the rectangle, in its
   frame, around its own returns. Its eave, ridge, form, pitch and ridge
   bearing come from those returns, by the roof rules above, in metres above

@@ -5034,8 +5034,8 @@
       "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas, then one tree in each tree crown the 2018 lidar saw that holds no trunk yet. Individual plants are gameplay scenery.",
       "lidarCrowns": {
         "file": "reference/lidar/crowns.json",
-        "sha256": "170af5a031002b1a74a269efc70bdd70856931f57a4b34fb8644bb0d94d9901f",
-        "bytes": 423464,
+        "sha256": "80cd3dc7ddb071eb60990f138ec5ccf0b4539eb5978266218fec1b328f70a64b",
+        "bytes": 423616,
         "acquired": [
           "2018-12-06",
           "2018-12-06"

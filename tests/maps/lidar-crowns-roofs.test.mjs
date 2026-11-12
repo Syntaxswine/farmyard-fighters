@@ -310,14 +310,18 @@ test('water roofs on a made-up shore: what is kept, what is left to an outline o
 // South of them, from y 110, calm water runs 5 m past the outline to land. A shed on the
 // land (x 103-115, y 114-132) hangs a slip over the water (x 98-103, y 120-126) joined to
 // nothing else. Another (x 103-115, y 158-176) hangs one (x 98-103, y 152-160) that also
-// meets, corner to corner, a boathouse in the lake (x 90-98, y 140-152).
+// meets, corner to corner, a boathouse in the lake (x 90-98, y 140-152). A third (x 106-118,
+// y 186-204) hangs a slip over the calm water (x 101-106, y 190-196) whose narrower west end
+// (x 99.5-101, y 191-195) reaches the outline: the two make separate pieces, both under
+// half in the outline.
 function bands() {
   const x = [], y = [], z = [], cls = [], at = (px, py, h, c) => { x.push(px); y.push(py); z.push(LEVEL + h); cls.push(c); };
   const box = (px, py, x0, y0, x1, y1) => px >= x0 && px < x1 && py >= y0 && py < y1;
-  for (let k = 0; k < 760; k++) for (let m = 0; m < 200; m++) {
+  for (let k = 0; k < 880; k++) for (let m = 0; m < 200; m++) {
     const px = 80.125 + m * .25, py = -9.875 + k * .25, band = Math.floor(py / 20), local = py - band * 20, even = m % 2 === 0, oddRow = k % 2 === 1;
     const shed = band >= 0 && band < 5 && px >= 98 && px < 112 && local >= 7 && local < 13, arm = band === 0 && px >= 106 && px < 112 && local >= 13 && local < 17;
-    const roofed = shed || arm || [[98, 120, 103, 126], [103, 114, 115, 132], [90, 140, 98, 152], [98, 152, 103, 160], [103, 158, 115, 176]].some(b => box(px, py, ...b));
+    const roofed = shed || arm || [[98, 120, 103, 126], [103, 114, 115, 132], [90, 140, 98, 152], [98, 152, 103, 160], [103, 158, 115, 176],
+      [106, 186, 118, 204], [101, 190, 106, 196], [99.5, 191, 101, 195]].some(b => box(px, py, ...b));
     const channel = (px - 100) % 5 >= 4;
     if (roofed) at(px, py, 3, 6);
     else if (px < 100) at(px, py, 0, 9);
@@ -334,8 +338,8 @@ function bands() {
 }
 
 test('water roofs: a dock is low, has no ground and stands by water; a slip joined only to a shed on land goes with it', () => {
-  const bay = [[[[60, -10], [100, -10], [100, 180], [60, 180], [60, -10]]]];
-  const {roofs: found, leftOut} = findWaterRoofs(bands(), {lake: bay, drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent: [80, -10, 130, 180]});
+  const bay = [[[[60, -10], [100, -10], [100, 210], [60, 210], [60, -10]]]];
+  const {roofs: found, leftOut} = findWaterRoofs(bands(), {lake: bay, drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent: [80, -10, 130, 210]});
   const at = b => found.find(r => near(extentOf(r), b, .3)), out = b => leftOut.find(p => near(extentOf({pieces: [p]}), b, .3));
   assert.equal(found.length, 2, JSON.stringify(found.map(extentOf)));
   // Among the docks the shed stands over water, and so does its arm, though wholly past the
@@ -366,7 +370,17 @@ test('water roofs: a dock is low, has no ground and stands by water; a slip join
   const hung = moored.pieces.find(p => p.lakeShare < WATER_ROOFS.pieceLakeMin);
   assert.ok(hung && near(extentOf({pieces: [hung]}), [98, 152, 103, 160], .3), JSON.stringify(moored.pieces.map(p => extentOf({pieces: [p]}))));
   assert.equal(moored.onLand.pieces, 1);
-  assert.equal(leftOut.length, 7);
+  // A slip split in two is judged whole: body and stub touch each other and the shed, and
+  // nothing at least half in the outline, so both go with the shed. Each alone stands over
+  // water by the lidar.
+  const body = out([101, 190, 106, 196]), stub = out([99.5, 191, 101, 195]);
+  assert.ok(out([106, 186, 118, 204]), JSON.stringify(leftOut.map(p => [extentOf({pieces: [p]}), p.reason])));
+  for (const p of [body, stub]) {
+    assert.ok(p && p.reason === 'joined only to pieces left out' && p.lakeShare < WATER_ROOFS.pieceLakeMin, JSON.stringify(p));
+    assert.ok(p.ringRead >= WATER_ROOFS.ringReadMin && p.ringWater >= WATER_ROOFS.ringWaterMin, JSON.stringify(p));
+  }
+  assert.ok(stub.lakeShare > 0 && body.lakeShare === 0);
+  assert.equal(leftOut.length, 10);
 });
 
 test('crowns.json is current with its inputs and keeps its own rules', () => {
