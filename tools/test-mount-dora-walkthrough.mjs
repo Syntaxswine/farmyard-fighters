@@ -9,10 +9,11 @@ import {createHash} from 'node:crypto';
 import {installNativeProbe,inspectWebGL} from '../sites/tactical-animal/browser-tests/native-probe.mjs';
 import {assertMapLocation} from '../sites/tactical-animal/browser-tests/map-location.mjs';
 const shelterReview=process.argv.includes('--shelter-review');
-// Fighters keeps operation and tour saves under app.js's real-time storage
-// namespace, isolated from the bare keys inherited from Farmyard Commando.
-const SAVE_NAMESPACE='farmyard-fighters:',COMMANDO_SAVES=['tactical-animal-operation-v2','farmyard-mount-dora-tour-v1'],[OPERATION_SAVE,TOUR_SAVE]=COMMANDO_SAVES.map(key=>SAVE_NAMESPACE+key);
+// Fighters keeps every save (operation slots, preparation, careers, tour) under
+// app.js's real-time storage namespace, isolated from Farmyard Commando's bare keys.
+const SAVE_NAMESPACE='farmyard-fighters:',OPERATION_SAVE=SAVE_NAMESPACE+'tactical-animal-operation-v2',TOUR_SAVE=SAVE_NAMESPACE+'farmyard-mount-dora-tour-v1';
 const readSaves=(page,keys)=>page.evaluate(keys=>keys.map(key=>localStorage.getItem(key)),keys);
+const foreignKeys=page=>page.evaluate(namespace=>Object.keys(localStorage).filter(key=>!key.startsWith(namespace)).sort(),SAVE_NAMESPACE);
 // The two-core software-rendering runner uses a normal 800x600 desktop window.
 // Keep the complete route/assertions and 390x844 touch coverage; video is opt-in.
 const desktopViewport=process.env.CI?{width:800,height:600}:{width:1440,height:1000},recordVideo=process.env.WALKTHROUGH_VIDEO==='1';
@@ -70,13 +71,12 @@ async function panTo(page,town){
     await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+dx,cy+dy,{steps:7});await page.mouse.up();await page.waitForTimeout(120);
   }throw Error('Could not bring actual ground point into the viewport: '+town);
 }
-async function walkTo(page,town,{timeout=process.env.CI?180000:60000,tolerance=.14}={}){
-  // Follow-camera easing continues after the previous route arrives. Project
-  // against settled native frames so a stale screen point cannot miss a narrow
-  // boardwalk target. This observes the real camera; it never sets its state.
-  // Easing can carry a checked point under a HUD switch, so check it settled.
-  let p=null;
-  for(let n=0;n<4&&!p;n++){
+// Follow-camera easing continues after the previous route arrives. Project
+// against settled native frames so a stale screen point cannot miss a narrow
+// boardwalk target. This observes the real camera; it never sets its state.
+// Easing can carry a checked point under a HUD switch, so check it settled.
+async function groundPoint(page,town){
+  for(let n=0;n<4;n++){
     await panTo(page,town);
     const settled=await page.evaluate(async town=>{
       const app=await import(document.querySelector('script[src*="app.js"]').src);let previous,stable=0;const start=performance.now();
@@ -87,17 +87,32 @@ async function walkTo(page,town,{timeout=process.env.CI?180000:60000,tolerance=.
       }
       throw Error('Native camera did not settle before a world-point tap.');
     },town);
-    if(await onViewport(page,settled))p=settled;
+    if(await onViewport(page,settled))return settled;
   }
-  if(!p)throw Error('Settled ground point stayed under the real-time HUD: '+town);
-  await page.mouse.click(p.x,p.y);
+  throw Error('Settled ground point stayed under the real-time HUD: '+town);
+}
+async function walkTo(page,town,{timeout=process.env.CI?180000:60000,tolerance=.14}={}){
+  const p=await groundPoint(page,town);await page.mouse.click(p.x,p.y);
   return waitInfo(page,s=>Math.hypot(s.player.x+.5-town[0],s.player.y+.5-town[1])<tolerance,'Walk did not arrive at '+town,timeout,s=>s.distance);
 }
+// bindPressHold (mobile-controls.js) turns a press held for 450 ms into a hold that
+// opens fire settings or a picker. A Playwright click sends its up only after the
+// down is acknowledged, so one slow SwiftShader frame can make it a hold; send both
+// at once, as the touch taps do, then check that no hold dialog opened.
+async function tapButton(page,selector){
+  const button=page.locator(selector);assert(await button.isEnabled(),selector+' is disabled');
+  const box=await button.boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
+  assert(await page.evaluate(({selector,x,y})=>!!document.elementFromPoint(x,y)?.closest(selector),{selector,x,y}),selector+' is covered');
+  const cdp=await page.context().newCDPSession(page);
+  try{const down=cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1}),up=cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});await down;await up;}finally{await cdp.detach();}
+}
+const holdDialogs=page=>page.evaluate(()=>[['overlay','fire settings or menu'],['control-picker','control picker']].filter(([id])=>document.getElementById(id).open).map(([,name])=>name));
 async function ready(page){return waitInfo(page,s=>s.active&&s.touring&&s.ready&&!s.paused,'Production tour did not become ready',90000);}
 async function keyboardWalk(page,before){await page.keyboard.down('d');try{await waitInfo(page,s=>s.distance>before.distance+.45,'Actual keyboard movement was not observed',20000);}finally{await page.keyboard.up('d');}return snapshot(page);}
 async function assertGL(page){
   const gl=await page.evaluate(inspectWebGL,'#viewport canvas');assert(gl.available&&!gl.contextLost);
-  const probe=await page.evaluate(()=>window.__nativeProbe||null);return {gl,probe};
+  // native-probe.mjs publishes __windowNativeProbe; the inherited __nativeProbe read was always null.
+  const probe=await page.evaluate(()=>window.__windowNativeProbe?.snapshot()||null);assert(probe&&probe.shaders.length&&probe.shaders.every(s=>s.ok)&&probe.links.every(s=>s.ok),'Native shader evidence missing or failed');return {gl,probe};
 }
 function routeTo(points,distanceLimit){
   const out=[points[0]];let distance=0;
@@ -125,7 +140,7 @@ try{
   await page.waitForFunction(()=>!document.getElementById('battle').hidden||document.getElementById('toast').textContent.includes('Cannot start'));if(await page.locator('#battle').isHidden())throw Error(await page.locator('#toast').textContent());
   await page.locator('#loading').waitFor({state:'hidden',timeout:90000});
   await menu(page,'Choose operation, animal & loadout');
-  const [operationBefore]=await readSaves(page,[OPERATION_SAVE]);assert(operationBefore);assert.deepEqual(await readSaves(page,COMMANDO_SAVES),[null,null]);
+  const [operationBefore]=await readSaves(page,[OPERATION_SAVE]);assert(operationBefore);assert.deepEqual(await foreignKeys(page),[],'Fighters wrote storage outside its namespace');
   mark('existing mission deploys through the production title/game route');
   await page.locator('#operation-select').selectOption('mount-dora');await page.locator('#animals button').filter({hasText:'goat'}).first().click();await page.getByRole('button',{name:'Mosin-Nagant',exact:true}).click();await page.getByRole('button',{name:/Frag grenades/}).click();await page.locator('#deploy').click();
   let info=await ready(page);assert.equal(info.player.species,'goat');assert.equal(info.player.weapon,'rifle');assert.equal(info.phase,'explore');assert(info.actor.visible&&info.actor.meshes>0&&info.actor.vertices>0);assert.equal(info.render.blocks,9);assert(info.memory.programs>0);assert.equal(info.memory.shaderFailures,0);
@@ -137,22 +152,37 @@ try{
   // shot that lands after the aim time, and play never leaves exploration for a turn.
   await menu(page,'Aim firearm at a point');const aimPoint=await projectPoint(page,[moved.player.x+.5-5,moved.player.y+.5]);await page.mouse.click(aimPoint.x,aimPoint.y);await page.getByRole('button',{name:/^FIRE · \d+\.\d\d s$/}).click();
   const fired=await waitInfo(page,s=>s.player.ammo.rifle===moved.player.ammo.rifle-1,'Production firearm did not fire');assert.equal(fired.phase,'explore');
-  // The former End Turn switch is the real-time Hold Fire / Fire at Will toggle.
-  const fireControl=()=>page.evaluate(()=>({label:document.getElementById('end-turn').getAttribute('aria-label'),pressed:document.getElementById('end-turn').getAttribute('aria-pressed'),target:document.getElementById('realtime-target').textContent}));
-  assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'false',target:'HOLD FIRE'});const fireAtWillContacts=(await page.evaluate(async()=>(await import(document.querySelector('script[src*="app.js"]').src)).inspectRealtime())).contacts;
-  await page.locator('#end-turn').click();await page.waitForFunction(()=>document.getElementById('end-turn').getAttribute('aria-pressed')==='true');assert.notEqual((await fireControl()).target,'HOLD FIRE');
-  await page.locator('#end-turn').click();await page.waitForFunction(()=>document.getElementById('end-turn').getAttribute('aria-pressed')==='false');assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'false',target:'HOLD FIRE'});
+  // The former End Turn switch is the real-time Hold Fire / Fire at Will toggle. With
+  // no guard in view, Fire at Will waits for a clear shot and must not spend a round.
+  const fireControl=async()=>({...await page.evaluate(()=>({label:document.getElementById('end-turn').getAttribute('aria-label'),pressed:document.getElementById('end-turn').getAttribute('aria-pressed'),target:document.getElementById('realtime-target').textContent})),dialogs:await holdDialogs(page)});
+  const fireAtWillContacts=(await page.evaluate(async()=>(await import(document.querySelector('script[src*="app.js"]').src)).inspectRealtime())).contacts;assert.deepEqual(fireAtWillContacts,[],'Fire at Will step needs no guard in view at the Donnelly start');
+  assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'false',target:'HOLD FIRE',dialogs:[]});
+  await tapButton(page,'#end-turn');await page.waitForFunction(()=>document.getElementById('end-turn').getAttribute('aria-pressed')==='true'||document.getElementById('overlay').open||document.getElementById('control-picker').open);assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'true',target:'WAITING FOR CLEAR SHOT',dialogs:[]});
+  await tapButton(page,'#end-turn');await page.waitForFunction(()=>document.getElementById('end-turn').getAttribute('aria-pressed')==='false'||document.getElementById('overlay').open||document.getElementById('control-picker').open);assert.deepEqual(await fireControl(),{label:'Fire at Will',pressed:'false',target:'HOLD FIRE',dialogs:[]});
   const held=await snapshot(page);assert.equal(held.phase,'explore');assert.deepEqual(held.player.ammo,fired.player.ammo);
-  await page.keyboard.press('g');await page.locator('#grenade-aim').waitFor({state:'visible'});await page.keyboard.down('a');await page.waitForTimeout(1000);await page.keyboard.up('a');
-  await page.waitForFunction(()=>document.getElementById('grenade').dataset.ready==='true');await page.locator('#grenade').click();
-  const thrown=await waitInfo(page,s=>s.player.ammo.grenade===fired.player.ammo.grenade-1,'Production grenade did not throw');assert.equal(thrown.phase,'explore');assert(thrown.player.hp>0);
-  mark('real firearm, grenade, ammunition and Hold Fire / Fire at Will controls operate through production gameplay',{fireAtWillContacts});
+  // Keyboard aim moves 0.85 of the 10 m range per simulated second (grenade-controls.js
+  // nudge) and pauses while art loads, so the inherited fixed 1 s hold landed anywhere
+  // from 0.7 m (97-107 self-damage at 1-3 fps) to past the 5 m blast (CI). Hold A until
+  // the real preview reads 6 m or more.
+  await page.keyboard.press('g');await page.locator('#grenade-aim').waitFor({state:'visible'});await page.keyboard.down('a');
+  try{await page.waitForFunction(()=>parseFloat(document.getElementById('grenade-detail').textContent)>=6,null,{timeout:30000});}
+  catch(error){throw Error('Keyboard grenade aim did not reach 6 m: '+await page.locator('#grenade-detail').textContent());}
+  finally{await page.keyboard.up('a');}
+  await page.waitForFunction(()=>document.getElementById('grenade').dataset.ready==='true',null,{timeout:30000}).catch(async()=>{throw Error('Grenade never became ready to throw: '+await page.locator('#grenade-warning').textContent());});
+  const grenadeAim=await page.evaluate(()=>({detail:document.getElementById('grenade-detail').textContent,warning:document.getElementById('grenade-warning').hidden?'':document.getElementById('grenade-warning').textContent}));assert.equal(grenadeAim.warning,'','Grenade preview warns');
+  await tapButton(page,'#grenade');
+  const thrown=await waitInfo(page,s=>s.player.ammo.grenade===fired.player.ammo.grenade-1,'Production grenade did not throw');assert.equal(thrown.phase,'explore');assert(thrown.player.hp>0);assert.deepEqual(await holdDialogs(page),[]);
+  mark('real firearm, grenade, ammunition and Hold Fire / Fire at Will controls operate through production gameplay',{fireAtWillContacts,grenadeAim:grenadeAim.detail,hpBeforeGrenade:held.player.hp,hpAfterGrenade:thrown.player.hp});
   for(let i=0;i<4;i++)await page.locator('#zoom-out').click();
   await walkTo(page,[478.5,478.5]);
   const cornerBefore=await snapshot(page);for(const p of [[481.5,478.5],[481.5,481.5],[478.5,481.5],[478.5,478.5]])await walkTo(page,p,{timeout:process.env.CI?60000:15000});
   info=await snapshot(page);assert(info.distance>=cornerBefore.distance+11.5);assert.equal(info.phase,'explore');await shot(page,'desktop-four-sector-corner');mark('continuous production navigation crosses both axes and four-sector corner',{snapshot:info});
-  await walkTo(page,[480.5,508.5]);const beforeWall=await snapshot(page),blocked=await panTo(page,[480.5,500.5]);await page.mouse.click(blocked.x,blocked.y);
-  await page.waitForTimeout(1200);const wall=await snapshot(page);assert(Math.hypot(wall.player.x-beforeWall.player.x,wall.player.y-beforeWall.player.y)<.15);mark('boundary-spanning building wall does not admit the animal');
+  // The tap must reach the ground and be refused (pick() toasts a missing route);
+  // a tap swallowed by a HUD switch would also leave the animal standing still.
+  await walkTo(page,[480.5,508.5]);const beforeWall=await snapshot(page),blocked=await groundPoint(page,[480.5,500.5]),refusal='No clear route to that point.';
+  assert(!await page.evaluate(refusal=>!document.getElementById('toast').hidden&&document.getElementById('toast').textContent===refusal,refusal),'A stale route refusal is still showing');
+  await page.mouse.click(blocked.x,blocked.y);await page.waitForFunction(refusal=>!document.getElementById('toast').hidden&&document.getElementById('toast').textContent===refusal,refusal,{timeout:10000});
+  await page.waitForTimeout(1200);const wall=await snapshot(page);assert(Math.hypot(wall.player.x-beforeWall.player.x,wall.player.y-beforeWall.player.y)<.15);assert.deepEqual(await holdDialogs(page),[]);mark('boundary-spanning building wall does not admit the animal');
   let failed=false;await page.route('**/maps/mount-dora/sectors/C05.map.json*',route=>{if(!failed){failed=true;log.expectedFailures.push({url:route.request().url(),status:503});return route.fulfill({status:503,body:'Controlled offline source'});}return route.continue();});
   const beforeFailure=await snapshot(page);await visit(page,'Grantham Point lighthouse');
   await page.waitForFunction(()=>document.getElementById('toast').textContent.includes('Could not load that landmark approach'),null,{timeout:30000});
@@ -168,7 +198,7 @@ try{
   for(let i=points.length-2;i>=0;i--){await walkTo(page,points[i],{timeout:process.env.CI?60000:25000,tolerance:.16});if(i%8===0)console.log('Returning actual boardwalk '+i+'/'+points.length);}
   const returned=await snapshot(page);assert(returned.distance>boardwalkBefore.distance+300);mark('actual entrance, mapped join, supported over-water walk and continuous return',{snapshot:returned});
   await page.waitForTimeout(2700);const saved=JSON.parse((await readSaves(page,[TOUR_SAVE]))[0]);assert(saved);assert(!Object.hasOwn(saved,'map'));assert(JSON.stringify(saved).length<600000);
-  assert.equal((await readSaves(page,[OPERATION_SAVE]))[0],operationBefore);assert.deepEqual(await readSaves(page,COMMANDO_SAVES),[null,null]);
+  assert.equal((await readSaves(page,[OPERATION_SAVE]))[0],operationBefore);assert.deepEqual(await foreignKeys(page),[],'Fighters wrote storage outside its namespace');
   await page.reload();await page.locator('#resume').click();info=await ready(page);
   assert(Math.hypot(info.player.x-saved.player.x,info.player.y-saved.player.y)<1e-6);assert.deepEqual(info.player.ammo,saved.player.ammo);assert.equal(info.player.species,saved.player.species);report.restoredHudLocation=await assertMapLocation(page,info.player);mark('tour reload restores global position/resources and preserves the operation save',{snapshot:info,saveBytes:JSON.stringify(saved).length});
   assert(info.source.stats.peakDecoded<=9&&info.source.stats.peakFetches<=2&&info.render.blocks<=9);
@@ -177,13 +207,13 @@ try{
   // A new, actual touch context uses its own regular preparation and production route.
   phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,...(recordVideo?{recordVideo:{dir:path.join(out,'video')}}:{})});
   await phone.addInitScript(installNativeProbe);const mobile=await phone.newPage(),mobileLog=capture(mobile,'phone');
-  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.deepEqual(await readSaves(mobile,[OPERATION_SAVE]),[null]);await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
+  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.deepEqual(await readSaves(mobile,[OPERATION_SAVE]),[null]);assert.deepEqual(await foreignKeys(mobile),[],'Fighters wrote storage outside its namespace');await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
   const stick=await mobile.locator('#joystick').boundingBox(),cdp=await phone.newCDPSession(mobile),x=stick.x+stick.width/2,y=stick.y+stick.height/2;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:x+stick.width*.24,y:y+stick.height*.12}]});try{await waitInfo(mobile,s=>s.distance>mobileBefore.distance+.45,'Actual touch joystick movement was not observed',20000);}finally{await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
   const mobileMoved=await snapshot(mobile);assert(mobileMoved.distance>mobileBefore.distance+.2);assert(mobileMoved.actor.visible);const mobileKeyboard=await keyboardWalk(mobile,mobileMoved);assert(mobileKeyboard.distance>mobileMoved.distance+.2);await shot(mobile,'phone-donnelly');
   await visit(mobile,'Grantham Point lighthouse');await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-504,s.player.y-1168)<.1&&s.render?.landmarks?.residentIds.includes('md:lighthouse'),'Phone landmark visit failed');report.phoneHudLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player);await mobile.locator('#minimap-button').click();report.phoneExpandedLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player,{expanded:true});await shot(mobile,'phone-town-map');await mobile.getByRole('button',{name:'Continue walking',exact:true}).click();await shot(mobile,'phone-lighthouse');
   await visit(mobile,'Gilbert Park');const shelter=await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x+.5-737.2963,s.player.y+.5-1181.367)<.1&&s.render?.landmarks?.fadedPlacements.includes('md:shelter:557154684'),'Open-shelter visit did not expose actor and roof focus');assert(shelter.actor.visible&&shelter.actor.meshes>0);assert(shelter.render.landmarks.occlusionMaterials>0);assert(shelter.source.stats.peakDecoded<=9&&shelter.source.stats.peakFetches<=2);await shot(mobile,'phone-gilbert-open-shelter');mark('open-shelter visit immediately shows the actor with roof focus',{snapshot:shelter});
-  assert(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));report.phoneWebGL=await assertGL(mobile);mark('390x844 production touch joystick, character, landmark and layout');
+  assert(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(await foreignKeys(mobile),[],'Fighters wrote storage outside its namespace');report.phoneWebGL=await assertGL(mobile);mark('390x844 production touch joystick, character, landmark and layout');
   for(const l of report.pages){assert.deepEqual(l.errors,[],'Page errors in '+l.name);const unexpected=l.requests.filter(r=>!l.expectedFailures.some(e=>e.url===r.url&&e.status===r.status));assert.deepEqual(unexpected,[],'Unexpected failed assets in '+l.name);const severe=l.console.filter(x=>x.type==='error'&&!/503/.test(x.text));assert.deepEqual(severe,[],'Console errors in '+l.name);}
   report.passed=true;
 }catch(error){report.passed=false;report.failure=error.stack;for(const [i,c]of (browser?.contexts()||[]).entries())for(const [j,p]of c.pages().entries())try{await p.screenshot({path:path.join(out,'failure-'+i+'-'+j+'.png')});report.failureUI=await p.evaluate(()=>({toast:document.getElementById('toast')?.textContent,loading:document.getElementById('loading')?.textContent,status:document.getElementById('tour-launch-status')?.textContent}));}catch{}write();throw error;}

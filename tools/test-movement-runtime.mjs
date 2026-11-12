@@ -59,6 +59,17 @@ async function shot(page,name){await page.screenshot({path:path.join(out,name+'.
 async function menu(page,label){await page.locator('#menu').click();await page.getByRole('button',{name:label,exact:true}).click();}
 async function visit(page,label){await menu(page,'Visit landmark');await page.getByRole('button',{name:label,exact:true}).click();}
 const onViewport=(page,p)=>page.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('#viewport'),p);
+// bindPressHold (mobile-controls.js) turns a press held for 450 ms into a hold that
+// opens a picker. A Playwright click sends its up only after the down is acknowledged,
+// so one slow SwiftShader frame can make it a hold; send both at once, as the touch
+// taps below do.
+async function tapButton(page,selector){
+  const button=page.locator(selector);assert(await button.isEnabled(),selector+' is disabled');
+  const box=await button.boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
+  assert(await page.evaluate(({selector,x,y})=>!!document.elementFromPoint(x,y)?.closest(selector),{selector,x,y}),selector+' is covered');
+  const cdp=await page.context().newCDPSession(page);
+  try{const down=cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1}),up=cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});await down;await up;}finally{await cdp.detach();}
+}
 async function panTo(page,town){
   const box=await page.locator('#viewport').boundingBox();
   for(let n=0;n<10;n++){
@@ -101,14 +112,14 @@ const entrance=features.find(f=>f.id==='osm-way-548471563').geometry.coordinates
 // the first frame that moves in the requested mode: recording after the tap's
 // round trips let Run spend most of the straight boardwalk before the first frame.
 async function stroke(page,ctx,mode,label,throttle=1){
-  const cdp=await ctx.newCDPSession(page),running=mode==='run',sneak=page.locator('#movement-cycle');
-  await cdp.send('Emulation.setCPUThrottlingRate',{rate:throttle});
-  const settling=(await snapshot(page)).frames;await waitInfo(page,s=>s.frames>=settling+3,'Native shader/input settling frames',30000);
-  const atRest=await snapshot(page);assert(atRest.player.sneaking&&!atRest.player.running);assert.equal(await sneak.getAttribute('aria-pressed'),'true');
-  const stick=await page.locator('#joystick').boundingBox(),centre={x:stick.x+stick.width/2,y:stick.y+stick.height/2},point={id:1,x:centre.x+stick.width*.3*input.x,y:centre.y+stick.width*.3*input.y},button=running?await sneak.boundingBox():null;
-  await page.evaluate(startMovementFrameTape);
+  const cdp=await ctx.newCDPSession(page),running=mode==='run',sneak=page.locator('#movement-cycle');let touched=false;
   try{
-    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,...centre}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[point]});
+    await cdp.send('Emulation.setCPUThrottlingRate',{rate:throttle});
+    const settling=(await snapshot(page)).frames;await waitInfo(page,s=>s.frames>=settling+3,'Native shader/input settling frames',30000);
+    const atRest=await snapshot(page);assert(atRest.player.sneaking&&!atRest.player.running);assert.equal(await sneak.getAttribute('aria-pressed'),'true');
+    const stick=await page.locator('#joystick').boundingBox(),centre={x:stick.x+stick.width/2,y:stick.y+stick.height/2},point={id:1,x:centre.x+stick.width*.3*input.x,y:centre.y+stick.width*.3*input.y},button=running?await sneak.boundingBox():null;
+    await page.evaluate(startMovementFrameTape);
+    touched=true;await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,...centre}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[point]});
     assert((await snapshot(page)).input.stickHeld);
     if(running){
       // CDP sends remain ordered; do not turn a quick tap into a hold while waiting for a slow down acknowledgement.
@@ -117,24 +128,34 @@ async function stroke(page,ctx,mode,label,throttle=1){
     }
     const pointerEvents=await page.evaluate(()=>window.__movementInputEvents);if(running)assert(pointerEvents.some(e=>e.id==='movement-cycle'&&e.type==='pointerup'&&e.pointerType==='touch'&&e.isPrimary===false&&e.trusted));
     // The first frame that moved, joystick held, in the requested mode; then at least
-    // two more frames and 850 ms. Every sliced frame must keep that mode (measureMovementFrames).
+    // two more frames and 850 ms. Every sliced frame must keep that mode (measureMovementFrames),
+    // and movement must begin within two frames of the mode taking effect with the stick
+    // held, as the inherited recording window required: a stall cannot be sliced away.
     await page.waitForFunction(running=>{
       const s=window.__movementFrameTape.samples,first=s.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running&&f.distance>s[i-1].distance);
       return first>=0&&s.length>=first+3&&s.at(-1).rafAt-s[first].rafAt>=850;
     },running,{timeout:30000});
     const {before,after,samples}=await page.evaluate(()=>window.__movementFrameTape.stop());
-    const first=samples.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running&&f.distance>samples[i-1].distance),last=samples.findIndex((f,i)=>i>=first+2&&f.rafAt-samples[first].rafAt>=850);
-    const observed=samples.slice(first,last+1),expected=running?14.4:7.2,wallSeconds=(observed.at(-1).rafAt-observed[0].rafAt)/1000,start=observed[0].player,remaining=length-((start.x+.5-entrance[0][0])*direction.x+(start.y+.5-entrance[0][1])*direction.y);
+    const entry=samples.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running),first=samples.findIndex((f,i)=>i>0&&f.stickHeld&&f.running===running&&f.distance>samples[i-1].distance),last=samples.findIndex((f,i)=>i>=first+2&&f.rafAt-samples[first].rafAt>=850);
+    const observed=samples.slice(first,last+1),expected=running?14.4:7.2,wallSeconds=(observed.at(-1).rafAt-observed[0].rafAt)/1000,straight=p=>length-((p.x+.5-entrance[0][0])*direction.x+(p.y+.5-entrance[0][1])*direction.y);
     // Persist the raw tape before assertions so failed CI retains every frame gap.
-    const measurement={label,expected,throttle,before,after,wallSeconds,remainingStraightMetres:remaining,tapeFrames:samples.length,firstMeasuredFrame:first,observed};(report.measurements||=[]).push(measurement);write();
+    const measurement={label,expected,throttle,before,after,wallSeconds,remainingStraightMetres:straight(observed[0].player),remainingStraightMetresAtEnd:straight(observed.at(-1).player),modeFrame:entry,firstMeasuredFrame:first,tape:samples,observed};(report.measurements||=[]).push(measurement);write();
+    assert(first-entry<=2,`Actor did not move within two frames of entering ${mode}: frames ${entry} to ${first}`);
+    assert(measurement.remainingStraightMetresAtEnd>0,'Measurement ran past the straight boardwalk');
     Object.assign(measurement,measureMovementFrames(observed,expected));write();
-    mark(label+' native frame budget and actor frustum',{...measurement,before:undefined,after:undefined,pointerEvents,wallSpeed:measurement.travel/wallSeconds});return after.info;
-  }finally{await page.evaluate(()=>window.__movementFrameTape?.stop());await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await cdp.detach();}
+    mark(label+' native frame budget and actor frustum',{...measurement,before:undefined,after:undefined,tape:undefined,pointerEvents,wallSpeed:measurement.travel/wallSeconds});return after.info;
+  }finally{await page.evaluate(()=>window.__movementFrameTape?.stop());if(touched)await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await cdp.detach();}
 }
 async function resetSaved(page){await page.reload();return deploy(page,true);}
-// The injected save must be the one that resumes: real-time play never refills
-// stamina, so zero stamina and the lit Sneak switch identify the fixture.
-function assertFixture(info){assert.equal(info.player.stamina,0,'Exhausted fixture was not restored');assert(info.player.sneaking&&!info.player.running,'Sneak fixture was not restored');return info;}
+// The injected save must be the one that resumes: its exact position, the lit Sneak
+// switch and zero stamina. Stamina is off game-wide (movement-runtime.md) and only the
+// turn-based tick refills it, so the zero survives a real-time resume; revisit this
+// when stamina returns.
+function assertFixture(info,saved){
+  assert(Math.hypot(info.player.x-saved.x,info.player.y-saved.y)<1e-6,'Fixture position was not restored');
+  assert(info.player.sneaking&&!info.player.running,'Sneak fixture was not restored');
+  assert.equal(info.player.stamina,0,'Exhausted fixture was not restored');return info;
+}
 async function timingReview(page,ctx){let info=await snapshot(page);await page.locator('#menu').click();let paused=await snapshot(page);await page.waitForTimeout(1400);let after=await snapshot(page);assert.equal(after.elapsed,paused.elapsed);assert.equal(after.distance,paused.distance);await page.getByRole('button',{name:'Continue operation',exact:true}).click();after=await waitInfo(page,s=>!s.paused&&s.frames>paused.frames,'Pause resume did not render');assert(after.elapsed-paused.elapsed<1);const cdp=await ctx.newCDPSession(page);await page.evaluate(async()=>{window.__movementInspect=(await import(document.querySelector('script[src*="app.js"]').src)).inspectMountDora;});const background=await sample(page);await cdp.send('Page.setWebLifecycleState',{state:'frozen'});await new Promise(r=>setTimeout(r,1400));await cdp.send('Page.setWebLifecycleState',{state:'active'});const resumed=await sample(page),lifecycle=await page.evaluate(()=>window.__movementLifecycle),freeze=lifecycle.find(e=>e.type==='freeze'&&e.at>=background.wall),resume=lifecycle.find(e=>e.type==='resume'&&freeze&&e.at>=freeze.at);assert.equal(resumed.info.distance,background.info.distance);if(freeze&&resume){assert.equal(resume.elapsed,freeze.elapsed,'Simulation cannot advance between lifecycle boundary events');const active=Math.max(0,freeze.at-background.info.renderedAt)/1000+Math.max(0,resumed.info.renderedAt-resume.at)/1000;assert(resumed.info.elapsed-background.info.elapsed<=active+.08,'Frozen wall time must not be simulated');report.nativeBackground={verified:true,freeze,resume,active,elapsed:resumed.info.elapsed-background.info.elapsed};}else report.nativeBackground={verified:false,reason:'This headless lifecycle command did not emit document freeze/resume events; real dialog pause is verified, hidden/blur/loading/freeze handlers are covered by controlled clock regressions.',lifecycle};await cdp.detach();info=resumed.info;mark('real dialog pause excludes suspended wall time',{pausedSeconds:1.4,backgroundSeconds:1.4,position:info.player});}
 try{
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});port=server.address().port;
@@ -146,10 +167,12 @@ try{
   const origin='http://127.0.0.1:'+port;
   fs.writeFileSync(path.join(out,'server-url.json'),JSON.stringify({origin,expiresAt:record.expiresAt,owner:record.owner,route:'/game.html?activity=mount-dora'})+'\n');
   console.log('NATIVE_REVIEW_URL '+origin+'/game.html?activity=mount-dora');
-  context=await browser.newContext({viewport:{width:800,height:600},hasTouch:true,deviceScaleFactor:1});await context.addInitScript(installNativeProbe);await context.addInitScript(observeInputs);const page=await context.newPage(),log=capture(page,'desktop');await page.goto(origin+'/game.html?activity=mount-dora');await deploy(page);await walkTo(page,[460.5,508.5]);mark('real ground route reaches the independently clear street approach');await page.locator('#movement-cycle').click();await waitInfo(page,s=>s.player.sneaking&&!s.player.running&&s.player.speed===7.2,'SNEAK switch did not halve the standing Run pace',20000);await visit(page,'Palm Island entrance');await waitInfo(page,s=>!s.paused&&Math.hypot(s.player.x-(entrance[0][0]-.5),s.player.y-(entrance[0][1]-.5))<.05,'Boardwalk approach');await page.waitForFunction(([key,p])=>{const text=localStorage.getItem(key);if(!text)return false;const s=JSON.parse(text);return Math.hypot(s.player.x-p[0],s.player.y-p[1])<.05;},[TOUR_SAVE,[entrance[0][0]-.5,entrance[0][1]-.5]],{timeout:10000});const fixture=await page.evaluate(key=>{const p=JSON.parse(localStorage.getItem(key));p.player.stamina=0;return JSON.stringify(p);},TOUR_SAVE);report.exhaustedFixture={position:JSON.parse(fixture).player,source:'Reached through production ground/landmark controls with the production SNEAK switch on; only saved stamina set to zero.'};await context.addInitScript(([key,save])=>localStorage.setItem(key,save),[TOUR_SAVE,fixture]);
-  for(const [mode,label,throttle]of [['sneak','desktop-sneak',1],['run','desktop-run-held-tap',1],['run','desktop-low-fps-run',2]]){assertFixture(await resetSaved(page));await stroke(page,context,mode,label,throttle);await shot(page,label);}
+  context=await browser.newContext({viewport:{width:800,height:600},hasTouch:true,deviceScaleFactor:1});await context.addInitScript(installNativeProbe);await context.addInitScript(observeInputs);const page=await context.newPage(),log=capture(page,'desktop');await page.goto(origin+'/game.html?activity=mount-dora');await deploy(page);await walkTo(page,[460.5,508.5]);mark('real ground route reaches the independently clear street approach');
+  await tapButton(page,'#movement-cycle');await page.waitForFunction(()=>document.getElementById('movement-cycle').getAttribute('aria-pressed')==='true'||document.getElementById('control-picker').open);assert.equal(await page.evaluate(()=>document.getElementById('control-picker').open),false,'SNEAK tap became a hold');
+  await waitInfo(page,s=>s.player.sneaking&&!s.player.running&&s.player.speed===7.2,'SNEAK switch did not halve the standing Run pace',20000);await visit(page,'Palm Island entrance');await waitInfo(page,s=>!s.paused&&Math.hypot(s.player.x-(entrance[0][0]-.5),s.player.y-(entrance[0][1]-.5))<.05,'Boardwalk approach');await page.waitForFunction(([key,p])=>{const text=localStorage.getItem(key);if(!text)return false;const s=JSON.parse(text);return s.player.sneaking===true&&Math.hypot(s.player.x-p[0],s.player.y-p[1])<.05;},[TOUR_SAVE,[entrance[0][0]-.5,entrance[0][1]-.5]],{timeout:10000});const fixture=await page.evaluate(key=>{const p=JSON.parse(localStorage.getItem(key));p.player.stamina=0;return JSON.stringify(p);},TOUR_SAVE),fixturePlayer=JSON.parse(fixture).player;report.exhaustedFixture={position:fixturePlayer,source:'Reached through production ground/landmark controls with the production SNEAK switch on; only saved stamina set to zero.'};await context.addInitScript(([key,save])=>localStorage.setItem(key,save),[TOUR_SAVE,fixture]);
+  for(const [mode,label,throttle]of [['sneak','desktop-sneak',1],['run','desktop-run-held-tap',1],['run','desktop-low-fps-run',2]]){assertFixture(await resetSaved(page),fixturePlayer);await stroke(page,context,mode,label,throttle);await shot(page,label);}
   await zoomCheck(page,'desktop');await timingReview(page,context);report.desktopWebGL=await assertGL(page);await context.close();context=null;
-  phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});await phone.addInitScript(installNativeProbe);await phone.addInitScript(observeInputs);await phone.addInitScript(([key,save])=>localStorage.setItem(key,save),[TOUR_SAVE,fixture]);const mobile=await phone.newPage();capture(mobile,'phone');await mobile.goto(origin+'/game.html?activity=mount-dora');assertFixture(await deploy(mobile,true));await stroke(mobile,phone,'run','phone-run-held-tap');await shot(mobile,'phone-run');await zoomCheck(mobile,'phone');report.phoneWebGL=await assertGL(mobile);
+  phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});await phone.addInitScript(installNativeProbe);await phone.addInitScript(observeInputs);await phone.addInitScript(([key,save])=>localStorage.setItem(key,save),[TOUR_SAVE,fixture]);const mobile=await phone.newPage();capture(mobile,'phone');await mobile.goto(origin+'/game.html?activity=mount-dora');assertFixture(await deploy(mobile,true),fixturePlayer);await stroke(mobile,phone,'run','phone-run-held-tap');await shot(mobile,'phone-run');await zoomCheck(mobile,'phone');report.phoneWebGL=await assertGL(mobile);
   for(const l of report.pages){assert.deepEqual(l.errors,[]);assert.deepEqual(l.requests,[]);assert.deepEqual(l.console.filter(x=>x.type==='error'),[]);}report.passed=true;
 }catch(error){report.passed=false;report.failure=error.stack;for(const [i,c]of (browser?.contexts()||[]).entries())for(const [j,p]of c.pages().entries())try{await p.screenshot({path:path.join(out,'failure-'+i+'-'+j+'.png')});report.failureUI=await p.evaluate(()=>({toast:document.getElementById('toast')?.textContent,loading:document.getElementById('loading')?.textContent,status:document.getElementById('tour-launch-status')?.textContent}));}catch{}write();throw error;}
 finally{await close();if(!report.cleanup.httpReleased||!report.cleanup.wsReleased||!report.cleanup.browserProcessExited||report.cleanup.errors.length)process.exitCode=1;}
