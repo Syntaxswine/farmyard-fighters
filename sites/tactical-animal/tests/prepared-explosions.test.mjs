@@ -3,8 +3,33 @@ import assert from 'node:assert/strict';
 import * as T from '../dist/aft/tactics/vendor/three.module.js';
 import {SoloTankEffects} from '../dist/tank-effects.js';
 import {PreparedGroundFire} from '../dist/prepared-ground-fire.js';
+import {FieldView} from '../dist/field-view.js';
+import {Core,createSoloGame,DEFAULT_BUILD} from '../dist/solo-game.js';
 const camera=new T.PerspectiveCamera();camera.position.set(10,14,12);
 const lights=scene=>{const result=[];scene.traverse(o=>{if(o.isPointLight)result.push(o);});return result;};
+
+test('level changes prepare barrel effects only when explosive barrels are present and retain enemy preloading',async()=>{
+  const view=Object.create(FieldView.prototype),scene=new T.Scene(),actors=[];let artRequests=0;
+  Object.assign(view,{scene,effects:[],pointers:new Map(),container:{},generation:0,samples:new Map(),failed:new Set(),actors:new Map(),parkedActors:new Map(),pending:new Map(),target:new T.Vector3(),
+    clearEnvironment(){},updateCamera(){},resize(){},route(){},onLoading(){},actor(unit){actors.push(unit.id);},
+    buildEnvironment(state){this.searchHalo={};this.art={get ready(){artRequests++;return Promise.resolve();},library:null};this.prepareExplosionGraphics(state,this.generation);}});
+  const barrels=Core.enableRealtime(createSoloGame(DEFAULT_BUILD,1947,'quiet-shift'));
+  const noBarrels=Core.enableRealtime(createSoloGame(DEFAULT_BUILD,1947,'quiet-shift'));noBarrels.props=noBarrels.props.filter(p=>p.kind!=='barrel-explosive');
+  try{
+    for(const state of [noBarrels,barrels,noBarrels]){
+      actors.length=0;view.setGame(state);assert.deepEqual(actors,state.units.map(u=>u.id));assert.equal(view.prepareGraphics,true);
+      if(state===barrels){
+        // Supply declared textures while retaining the actual preparation path.
+        view.tankEffects.loadTexture=async()=>new T.Texture();await view.effectsPreparation;
+        assert.ok(view.tankEffects.ground);assert.equal(view.tankEffects.preparedBarrels.size,2);assert.equal(artRequests,1);
+      }else{
+        assert.equal(view.hasExplosiveBarrels,false);assert.equal(view.tankEffects,null);assert.equal(view.effectsBusy,false);assert.equal(view.effectsPreparation,null);
+        assert.equal(view.burnEffects.ready,undefined);assert.equal(lights(scene).length,0);
+      }
+    }
+    assert.equal(artRequests,1);
+  }finally{view.clearEffects();}
+});
 
 test('prepared barrel fragments and effects are reused at impact without changing the scene light count',async()=>{
   const scene=new T.Scene(),geometry=new T.CylinderGeometry(.328,.328,.8,16),material=new T.MeshStandardMaterial(),textures=[];

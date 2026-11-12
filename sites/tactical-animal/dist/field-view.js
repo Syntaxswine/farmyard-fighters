@@ -148,7 +148,7 @@ export class FieldView {
   }
   clearEffects(){
     if(this.graphicsFence){this.renderer.getContext().deleteSync(this.graphicsFence);this.graphicsFence=null;}
-    for(const mesh of this.warmFeedback||[])disposeEffectMesh(mesh);this.warmFeedback=[];this.effectsBusy=false;
+    for(const mesh of this.warmFeedback||[])disposeEffectMesh(mesh);this.warmFeedback=[];this.effectsBusy=false;this.effectsPreparation=null;this.hasExplosiveBarrels=false;
     this.explosionShake?.clear();this.lastShake=null;this.shakePeak=0;this.pendingExplosions=[];
     this.windowEffects?.dispose();this.windowEffects=null;
     this.weaponAudio?.dispose();this.weaponAudio=null;this.lastDischarge=null;this.playerWeaponPose=null;
@@ -164,7 +164,9 @@ export class FieldView {
     this.state=s;this.residentWindow=null;this.lastWindowKey=null;this.prepareGraphics=false;this.samples.clear();this.failed.clear();
     for(const a of [...this.actors.values(),...(this.parkedActors?.values()||[])])this.disposeActor(a);
     this.actors.clear();this.parkedActors?.clear();this.pending.clear();this.clearEnvironment();
-    this.tankEffects=new SoloTankEffects(this.scene);this.burnEffects=new SoloBurnEffects(this.scene);this.effectsBusy=true;
+    this.hasExplosiveBarrels=(s.props||[]).some(p=>p.kind==='barrel-explosive');
+    this.tankEffects=this.hasExplosiveBarrels?new SoloTankEffects(this.scene):null;
+    this.burnEffects=new SoloBurnEffects(this.scene);this.effectsBusy=this.hasExplosiveBarrels;
     this.buildEnvironment(s);this.center();this.resize();this.lastRevision=-1;this.lastLightAt=undefined;
     this.lastFrameAt=undefined;this.lastEffect=s.effect||null;this.route([]);
     if(s.realtime&&this.searchHalo&&s.units.length<=MAX_PARKED_ACTORS+1){
@@ -345,9 +347,12 @@ export class FieldView {
       const throwPose=u.team==='squad'||u.weapon==='grenade'?createGrenadePose(worker,profile):null;
       const a={worker,paint,profile,locomotion,posture,root,pick,ring,shadow,weapon:u.weapon,equipment:worker.weapon,
         flameOperator:createFlameOperator(worker,profile),weaponPose,throwPose};
-      a.burnDissolve={value:0};a.restoreDissolve=dissolveBody(worker,a.burnDissolve);
       if(u.team==='squad')a.crawl=createCrawlPose(worker,profile,posture,u.weapon);
-      const burns=this.burnEffects;await burns.prepareActor(a);
+      const burns=this.burnEffects;
+      if(this.hasExplosiveBarrels){
+        a.burnDissolve={value:0};a.restoreDissolve=dissolveBody(worker,a.burnDissolve);
+        await burns.prepareActor(a);
+      }
       if(generation!==this.generation||this.pending.get(u.id)!==ticket){burns.forgetActor(a);this.disposeActor(a);return;}
       if(preload){root.visible=false;this.parkedActors.set(u.id,a);}
       else{this.actors.set(u.id,a);this.scene.add(root);}
