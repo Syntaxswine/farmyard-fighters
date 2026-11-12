@@ -40,9 +40,13 @@
 // lake's outline by area that touches a piece left out as not over water is part of what
 // stands on land, and is left out with it: a slip split into a body and a stub is judged
 // whole. A piece left out only because too little of its ring is read is no evidence of
-// land. All are listed in
-// `leftOut` with what was measured, so no building-class roof the lidar saw on the lake
-// goes unrecorded.
+// land. All are listed in `leftOut` with what was measured; one left out with its group
+// records the group's share and how many pieces over land it touched. Parts under
+// minAreaM2, and roofs left with none, go without a record.
+// Every piece and record lists in nearBar the measures within barBand of their bar that
+// decide it: moved across the bar alone, they would keep it, leave it out, or change why.
+// They are shares counted in grid cells, so such a piece may fall either way as the grid or
+// the registration moves.
 // (A roof the vendor left unclassified, like the one on a dock at x 61-67, y 631-642, has
 // no building returns; crowns.json lists it among the solids it drops, notFoliage.)
 // Each piece's height and form come from its own returns, by the rules the houses' roofs
@@ -52,7 +56,19 @@ import {classifyRoof, percentile} from './roofs.mjs';
 import {bounds} from '../house-reference/geometry.mjs';
 
 export const WATER_ROOFS = {cellM: .5, minAreaM2: 6, lakeReachM2: 1, drawnShareMax: .25, drawnMarginM: 1,
-  pieceMinM2: 6, pieceMinWidthM: 1.5, pieceLakeMin: .5, ringM: 3, ringReadMin: .5, ringWaterMin: .75, lowM: 1.5, dockReachM: 3, joinM: .74};
+  pieceMinM2: 6, pieceMinWidthM: 1.5, pieceLakeMin: .5, ringM: 3, ringReadMin: .5, ringWaterMin: .75, lowM: 1.5, dockReachM: 3, joinM: .74, barBand: .05};
+
+// What the water test makes of a piece's measures: kept, left out over land, or left out
+// with too little read; and the measures within barBand of their bar that decide it.
+export function waterOutcome({lakeShare, ringRead, ringWater}, rules = WATER_ROOFS) {
+  if (lakeShare >= rules.pieceLakeMin || ringRead >= rules.ringReadMin && ringWater !== null && ringWater >= rules.ringWaterMin) return 'kept';
+  return ringWater !== null && ringWater < rules.ringWaterMin ? 'land' : 'unread';
+}
+export function nearBar(w, rules = WATER_ROOFS) {
+  const bars = {lakeShare: rules.pieceLakeMin, ringRead: rules.ringReadMin, ringWater: rules.ringWaterMin}, now = waterOutcome(w, rules);
+  return Object.entries(bars).filter(([k, bar]) => w[k] !== null && w[k] !== undefined && Math.abs(w[k] - bar) <= rules.barBand
+    && waterOutcome({...w, [k]: w[k] >= bar ? bar - 1e-9 : bar}, rules) !== now).map(([k]) => k);
+}
 
 const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 // Andrew's monotone chain: the convex hull, counter-clockwise, no repeated points.
@@ -201,6 +217,9 @@ const fromQuad = (q, p) => insideQuad(q, p) ? 0 : Math.min(...q.map((a, k) => {
 // ({dx, dy}: lidar = town + reg); `level` the lake's lidar elevation; `extent` the box
 // searched. `leftOut` lists the pieces left out, with their reason and measures.
 export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules = WATER_ROOFS) {
+  // Two returns in one cell always join, and they can lie a cell's diagonal apart: the join
+  // is the returns' own clustering only from that distance up.
+  if (rules.joinM < rules.cellM * Math.SQRT2) throw new Error(`joinM ${rules.joinM} is under a cell's diagonal, ${(rules.cellM * Math.SQRT2).toFixed(3)} m`);
   const C = rules.cellM, [x0, y0, x1, y1] = extent, cols = Math.round((x1 - x0) / C), rows = Math.round((y1 - y0) / C), n = cols * rows;
   const cellOf = (x, y) => x < x0 || y < y0 || x >= x1 || y >= y1 ? -1 : Math.floor((y - y0) / C) * cols + Math.floor((x - x0) / C);
   const inLake = maskOf(lake, x0, y0, cols, rows, C), inDrawn = new Uint8Array(n), roofCell = new Uint8Array(n);
@@ -221,8 +240,8 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
     if (cls === 6) roofCell[c] = 1; else if (cls === 2 || cls === 20) ground[c] = Math.min(65535, ground[c] + 1); else if (cls === 9) water[c] = Math.min(65535, water[c] + 1);
     else if (index.z[k] - level <= rules.lowM && index.z[k] - level >= -.5) low[c] = Math.min(65535, low[c] + 1);
   }
-  // Each roof cell's building returns: two neighbouring cells join where they hold returns
-  // within joinM of each other.
+  // Each roof cell's building returns: two cells up to two apart join where they hold
+  // returns within joinM of each other.
   const roofStart = new Uint32Array(n + 1);
   for (let k = 0; k < index.total; k++) if (index.cls[k] === 6) { const c = cellOf(index.x[k] - reg.dx, index.y[k] - reg.dy); if (c >= 0) roofStart[c + 1]++; }
   for (let c = 0; c < n; c++) roofStart[c + 1] += roofStart[c];
@@ -236,7 +255,7 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
     for (let i = roofStart[a]; i < roofStart[a + 1]; i++) for (let j = roofStart[b]; j < roofStart[b + 1]; j++) if ((roofX[i] - roofX[j]) ** 2 + (roofY[i] - roofY[j]) ** 2 <= join2) return true;
     return false;
   };
-  // Roofs, eight ways, from every roof cell in the lake.
+  // Roofs, from every roof cell in the lake: cells up to two apart join by their returns.
   const roofOf = new Int32Array(n).fill(-1), found = [];
   // The cells up to r cells from a cell (a square); the eight neighbours; whether any cell
   // within r cells (a disc) passes `fn`.
@@ -315,7 +334,7 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
         if (wet.lakeShare < rules.pieceLakeMin && (wet.ringRead < rules.ringReadMin || wet.ringWater < rules.ringWaterMin)) {
           landPieces++; landM2 += area; covered -= piece.filled;
           const land = wet.ringWater !== null && wet.ringWater < rules.ringWaterMin;
-          dropped.push({pts: mine, land, record: {outline: close(corners), areaM2: area, reason: land ? 'not over water' : 'too little read around it', returns: mine.length, lakeShare: wet.lakeShare, ringRead: wet.ringRead, ringWater: wet.ringWater}});
+          dropped.push({pts: mine, land, record: {outline: close(corners), areaM2: area, reason: land ? 'not over water' : 'too little read around it', returns: mine.length, lakeShare: wet.lakeShare, ringRead: wet.ringRead, ringWater: wet.ringWater, nearBar: nearBar(wet, rules)}});
           continue;
         }
         const outline = [[[...corners, corners[0]]]], own = {x: mine.map(p => p[0]), y: mine.map(p => p[1]), z: mine.map(p => p[2])};
@@ -323,7 +342,7 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
         kept.push({pts: mine, filled: piece.filled, area, lakeShare: wet.lakeShare, ringRead: wet.ringRead, ringWater: wet.ringWater, returns: mine.length, piece: {outline: outline[0][0], areaM2: area, fill: piece.filled / piece.cells, angleDeg: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI,
           eaveM: Number.isFinite(roof.eaveZ) ? roof.eaveZ - level : percentile(heights, .25), ridgeM: percentile(heights, .98),
           form: roof.form, confidence: roof.confidence, pitchDeg: Number.isFinite(roof.pitchDeg) ? roof.pitchDeg : null, ridgeBearingDeg: roof.ridge ? roof.ridge.bearingDeg : null, returns: mine.length,
-          lakeShare: wet.lakeShare, ringRead: wet.ringRead, ringWater: wet.ringWater}});
+          lakeShare: wet.lakeShare, ringRead: wet.ringRead, ringWater: wet.ringWater, nearBar: nearBar(wet, rules)}});
       }
     }
     // The pieces kept, joined where their returns lie within joinM, are judged as a group:
@@ -348,9 +367,10 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
     for (const members of groups.values()) {
       const area = members.reduce((s, k) => s + k.area, 0), inOutline = members.reduce((s, k) => s + k.lakeShare * k.area, 0);
       if (inOutline >= rules.pieceLakeMin * area || !members.some(k => [...touches.get(k)].some(q => outSet.has(q)))) continue;
+      const landTouched = new Set(members.flatMap(k => [...touches.get(k)].filter(q => outSet.has(q)))).size;
       for (const k of members) {
         kept.splice(kept.indexOf(k), 1); landPieces++; landM2 += k.area; covered -= k.filled;
-        dropped.push({pts: k.pts, land: true, record: {outline: k.piece.outline, areaM2: k.area, reason: 'joined only to pieces left out', returns: k.returns, lakeShare: k.lakeShare, ringRead: k.ringRead, ringWater: k.ringWater}});
+        dropped.push({pts: k.pts, land: true, record: {outline: k.piece.outline, areaM2: k.area, reason: 'joined only to pieces left out', returns: k.returns, lakeShare: k.lakeShare, ringRead: k.ringRead, ringWater: k.ringWater, nearBar: nearBar(k, rules), groupLakeShare: inOutline / area, landTouched}});
       }
     }
     for (const k of kept) pieces.push(k.piece);

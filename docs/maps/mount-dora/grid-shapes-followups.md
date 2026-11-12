@@ -88,7 +88,7 @@ seven causes:
   Walls can turn; ground cannot. A smooth road surface would have to be drawn
   over the tiles.
 
-Drawing the roofs over the water and planting the crowns turned up six more
+Drawing the roofs over the water and planting the crowns turned up seven more
 gaps:
 
 - **Lake Dora's OSM outline is off the lidar's water by 5–10 m** along parts
@@ -138,6 +138,18 @@ gaps:
     tree.
 
   Drawing them would take a rule for unclassified roofs over water.
+- **Water-roof pieces sitting on a bar.** A few pieces are kept or left out by
+  a share within 0.05 of its bar, counted in grid cells (water-roofs.json
+  `nearBar`):
+  - the marina's walkway, kept by its outline share of 0.53. It is left out
+    when the registration moves 0.2 m north; the sectors' median disagreement
+    is 0.22 m.
+  - roofs 2 and 7, kept by their rings' water (0.788 and 0.787 against 0.75).
+  - roof 8's small gable, kept by its ring read at 0.528.
+
+  A better shoreline for Lake Dora would settle the walkway. Taken from the
+  lidar's water instead of OSM, as the first item in this list proposes, it would
+  give a share the registration does not move.
 - **Two lidar trees may stand on roofs the vendor left unclassified.** The
   roof rule in crowns.json (`roofTops`) takes out only crowns centred inside an
   outline the game draws: Dora Villa's. Two crowns that carry lidar trees read

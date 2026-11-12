@@ -96,7 +96,7 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
   the art kit as open roofs on posts: boathouses, covered slips and the
   marina's slip rows ([reference/lidar](reference/lidar/README.md#roofs-over-the-water)).
   The game's ground under them is unchanged: water inside Lake Dora's OSM
-  outline, land where the lidar's water runs past it (6 pieces of 4 roofs).
+  outline, land where the lidar's water runs past it (5 pieces of 3 roofs).
 - Mapped sports pitches exclude procedural trees. Tennis and pickleball polygons
   use a declared existing asphalt ground proxy without invented court markings;
   overlapping source records are retained rather than asserted as a current count.

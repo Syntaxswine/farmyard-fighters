@@ -277,7 +277,9 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   cells join into one roof, over land and water alike, where some return of
   one lies within 0.74 m of some return of the other.
   - Cells up to two apart are compared, so a roof is its returns' own cluster
-    at that distance, wherever the grid falls.
+    at that distance, wherever the grid falls. That holds from a cell's
+    diagonal up (0.707 m): two returns in one cell always join. The code
+    refuses a shorter join.
   - Cells alone would join two roofs under a metre apart at some grid offsets
     and not at others: a 3 cm shift of the grid joined the marina to the drawn
     boathouse north of it, and the whole marina went as that building's own.
@@ -289,12 +291,31 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   - from 0.811 m, the small roof at x 522, y 1006 joins the marina;
   - from about 0.86 m, the marina joins the drawn boathouse and goes.
 
-  Each roof kept holds together by links of 0.54 m or less. Rebuilt at 100
-  grid phases (0.05 m steps in x and y) and 8 registration offsets, the town
-  keeps the same 13 roofs at every one. Their pieces run 23–27 and 3,105–3,158
-  m², as the grid moves the rectangles' edges. The made-up tests hold two
-  roofs 0.85 m apart as two, and one roof with a 0.65 m gap as one, at ten
-  grid offsets each.
+  Each roof kept holds together by links of 0.54 m or less. The made-up tests
+  hold two roofs 0.85 m apart as two, and one roof with a 0.72 m gap as one, at
+  ten grid offsets each.
+- **Where the grid and the registration fall.** The town was rebuilt at 100
+  grid phases (0.05 m steps in x and y). It was also rebuilt at 24
+  registration offsets, out to 0.2 m each way; the sectors' median
+  disagreement is 0.22 m. Every run keeps the same 13 roofs. Pieces run
+  23–27 and 3,105–3,158 m², as the grid moves the rectangles' edges. Two
+  pieces change fate:
+  - the marina's walkway (below) is left out at the three offsets 0.2 m north;
+  - a 14.6 m² east-shore piece left out over land falls under the walkway's
+    rectangle at four grid phases.
+
+  These are samples, not proof: phases between them can differ.
+- **Near a bar.** Each decision rests on shares counted in grid cells, and a
+  share sitting on its bar can fall either way. For every piece and record,
+  water-roofs.json's `nearBar` lists the measures within 0.05 of their bar
+  that decide it: moved across the bar alone, they would keep the piece, leave
+  it out, or change why. On the town:
+  - the marina's 206.6 m² walkway, kept by its outline share of 0.53;
+  - roofs 2 and 7, kept by the water in their rings, 0.788 and 0.787 against
+    0.75;
+  - roof 8's 13 m² gable, kept by its ring read at 0.528;
+  - the east-shore fragment (0.526 and 0.78), which goes with its group either
+    way.
 - **Which roofs are kept.** A roof is kept when:
   - at least 1 m² of it lies in Lake Dora's OSM outline;
   - at most 25% of it lies inside an outline the game draws (OSM and county
@@ -335,9 +356,13 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   These 11 pieces, 383 m², are listed in `leftOut` with their measures and
   reason: the marina's east-shore shed, its north-west tower, and scraps north
   of its walkway. One of them is the shed's 9.5 m² north end, which reads as
-  over water but lies wholly outside the outline; at none of the 108 phases is
-  it kept. Roofs the vendor left unclassified are not among the building
-  returns at all; the roofs over the water in the followups are such.
+  over water but lies wholly outside the outline. It is left out at every
+  sampled phase. Between them, at about x 0.33–0.34, y 0.43, the walkway's
+  rectangle reaches it, and it is kept with the walkway. A piece left out with
+  its group records the group's share in the outline and how many pieces over
+  land it touched. Parts under 6 m², and roofs left with none, go without a
+  record. Roofs the vendor left unclassified are not among the building returns
+  at all; the roofs over the water in the followups are such.
 - **Outline and heights.** Each piece's outline is the rectangle, in its
   frame, around its own returns. Its eave, ridge, form, pitch and ridge
   bearing come from those returns, by the roof rules above, in metres above

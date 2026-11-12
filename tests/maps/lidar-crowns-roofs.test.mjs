@@ -8,7 +8,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {canopyHeights, findCrowns, roofCrowns, CROWNS} from '../../tools/maps/lidar/crowns.mjs';
-import {closeMask, findWaterRoofs, largestRectangle, minAreaRectangle, outlinePart, rectangleAround, WATER_ROOFS} from '../../tools/maps/lidar/water-roofs.mjs';
+import {closeMask, findWaterRoofs, largestRectangle, minAreaRectangle, nearBar, outlinePart, rectangleAround, WATER_ROOFS, waterOutcome} from '../../tools/maps/lidar/water-roofs.mjs';
 import {featuresPin} from '../../tools/maps/house-reference/features-digest.mjs';
 import {contains} from '../../tools/maps/house-reference/geometry.mjs';
 
@@ -283,8 +283,8 @@ test('water roofs on a made-up shore: what is kept, what is left to an outline o
   assert.ok(leftOut.every(p => p.lakeShare < WATER_ROOFS.pieceLakeMin));
   const shed = leftOut.find(p => near(extentOf({pieces: [p]}), [99.5, 70, 112, 100], .3)), byGrove = leftOut.find(p => near(extentOf({pieces: [p]}), [70, 98, 76, 104], .3));
   assert.ok(shed && shed.reason === 'not over water' && shed.ringWater < WATER_ROOFS.ringWaterMin, JSON.stringify(leftOut.map(p => extentOf({pieces: [p]}))));
-  assert.ok(byGrove && byGrove.ringRead < WATER_ROOFS.ringReadMin, `${byGrove && [byGrove.ringRead, byGrove.ringWater, byGrove.reason]}`);
-  assert.equal(byGrove.reason, byGrove.ringWater < WATER_ROOFS.ringWaterMin ? 'not over water' : 'too little read around it');
+  // The grove's canopy hides most of the shed's ring; what is read is the lake.
+  assert.ok(byGrove && byGrove.reason === 'too little read around it' && byGrove.ringRead < WATER_ROOFS.ringReadMin && byGrove.ringWater === 1, `${byGrove && [byGrove.ringRead, byGrove.ringWater, byGrove.reason]}`);
   // A fifth drawn: the drawn part and a metre past it stay with their outline.
   const partly = at([16, 60, 40, 70]);
   assert.ok(Math.abs(partly.drawnShare - 1 / 6) < .01);
@@ -469,8 +469,8 @@ test('water roofs: two roofs 0.85 m apart stay two wherever the grid falls', () 
   assert.ok(WATER_ROOFS.joinM < .85);
 });
 
-// One covered slip over the lake (x 20-40, y 50-70) whose returns leave a 0.65 m gap across
-// it at y 60: the north half's last row stands at 59.875, the south half's first at 60.525.
+// One covered slip over the lake (x 20-40, y 50-70) whose returns leave a 0.72 m gap across
+// it at y 60: the north half's last row stands at 59.875, the south half's first at 60.595.
 function gapped() {
   const x = [], y = [], z = [], cls = [], at = (px, py, roof) => { x.push(px); y.push(py); z.push(LEVEL + (roof ? 3 : 0)); cls.push(roof ? 6 : 9); };
   for (let gy = 0; gy < 100; gy += .25) for (let gx = 0; gx < 60; gx += .25) {
@@ -478,7 +478,7 @@ function gapped() {
     if (!(inX && py >= 50 && py < 70)) at(px, py, false);
     else if (py < 60) at(px, py, true);
   }
-  for (let py = 60.525; py < 70; py += .25) for (let px = 20.125; px < 40; px += .25) at(px, py, true);
+  for (let py = 60.595; py < 70; py += .25) for (let px = 20.125; px < 40; px += .25) at(px, py, true);
   return {total: x.length, x: Float64Array.from(x), y: Float64Array.from(y), z: Float64Array.from(z), cls: Uint8Array.from(cls)};
 }
 
@@ -488,11 +488,17 @@ test('water roofs: a gap under joinM inside a roof never splits it, wherever the
     const extent = [-10 + ox, -10 + oy, 70 + ox, 110 + oy];
     const {roofs} = findWaterRoofs(points, {lake, drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent});
     assert.equal(roofs.length, 1, `grid at ${ox}, ${oy}`);
-    assert.ok(near(extentOf(roofs[0]), [20.125, 50.125, 39.875, 69.775], .01), `${extentOf(roofs[0])}`);
-    // Joined only under 0.6 m, the two halves are two roofs.
-    assert.equal(findWaterRoofs(points, {lake, drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent}, {...WATER_ROOFS, joinM: .6}).roofs.length, 2);
+    assert.ok(near(extentOf(roofs[0]), [20.125, 50.125, 39.875, 69.845], .01), `${extentOf(roofs[0])}`);
+    // Joined only under 0.72 m (0.71, a cell's diagonal or more), the two halves are two roofs.
+    assert.equal(findWaterRoofs(points, {lake, drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent}, {...WATER_ROOFS, joinM: .71}).roofs.length, 2);
   }
-  assert.ok(WATER_ROOFS.joinM > .65);
+  assert.ok(WATER_ROOFS.joinM > .72);
+});
+
+test('water roofs: the join clusters the returns only from a cell diagonal up', () => {
+  // Two returns in one cell always join, and may lie 0.707 m apart.
+  assert.throws(() => findWaterRoofs(pair(), {lake, drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent: [-10, -10, 70, 70]}, {...WATER_ROOFS, joinM: .7}), /diagonal/);
+  assert.ok(WATER_ROOFS.joinM >= WATER_ROOFS.cellM * Math.SQRT2);
 });
 
 test('crowns.json is current with its inputs and keeps its own rules', () => {
@@ -528,6 +534,28 @@ test('crowns.json is current with its inputs and keeps its own rules', () => {
   assert.equal(record.crowns, doc.crowns.length);
 });
 
+// A measure nearBar lists lies within barBand of its bar (allowing the rounding).
+function nearBarHolds(p) {
+  const bars = {lakeShare: WATER_ROOFS.pieceLakeMin, ringRead: WATER_ROOFS.ringReadMin, ringWater: WATER_ROOFS.ringWaterMin};
+  for (const k of p.nearBar) assert.ok(p[k] !== null && Math.abs(p[k] - bars[k]) <= WATER_ROOFS.barBand + .0005, `${k} ${p[k]}`);
+}
+
+test('water roofs: nearBar names the measures near their bar that decide a piece', () => {
+  // Kept by the outline alone: its outline share decides, its ring does not.
+  assert.deepEqual(nearBar({lakeShare: .53, ringRead: .647, ringWater: .48}), ['lakeShare']);
+  assert.deepEqual(nearBar({lakeShare: .709, ringRead: .973, ringWater: .739}), [], 'a ring near its bar decides nothing here');
+  // Kept by the ring: its water share decides; an outline share far under the bar cannot.
+  assert.deepEqual(nearBar({lakeShare: .35, ringRead: .873, ringWater: .788}), ['ringWater']);
+  // Passing both ring bars by a little: either would leave it out, for a different reason.
+  assert.deepEqual(nearBar({lakeShare: 0, ringRead: .526, ringWater: .78}), ['ringRead', 'ringWater']);
+  // Left out over land: a read share near its bar changes nothing, a water share would.
+  assert.deepEqual(nearBar({lakeShare: 0, ringRead: .508, ringWater: .181}), []);
+  assert.deepEqual(nearBar({lakeShare: 0, ringRead: .9, ringWater: .72}), ['ringWater']);
+  // Nothing read: no share of water to move, and the piece is unread, not land.
+  assert.deepEqual(nearBar({lakeShare: .48, ringRead: 0, ringWater: null}), ['lakeShare']);
+  assert.deepEqual(['kept', 'land', 'unread'], [waterOutcome({lakeShare: .5, ringRead: 0, ringWater: null}), waterOutcome({lakeShare: 0, ringRead: .9, ringWater: .74}), waterOutcome({lakeShare: 0, ringRead: .4, ringWater: 1})]);
+});
+
 test('water-roofs.json is current with its inputs and keeps its own rules', () => {
   const doc = json('reference/lidar/water-roofs.json');
   assert.equal(doc.kind, 'mount-dora-lidar-water-roofs');
@@ -543,12 +571,20 @@ test('water-roofs.json is current with its inputs and keeps its own rules', () =
   assert.ok(Math.abs(doc.metrics.leftOutM2 - doc.leftOut.reduce((s, p) => s + p.areaM2, 0)) < .1);
   for (const p of doc.leftOut) {
     assert.ok(['not over water', 'too little read around it', 'too few returns to fit', 'joined only to pieces left out'].includes(p.reason));
-    if (p.reason === 'not over water') assert.ok(p.lakeShare < WATER_ROOFS.pieceLakeMin && p.ringWater !== null && p.ringWater < WATER_ROOFS.ringWaterMin);
-    if (p.reason === 'too little read around it') assert.ok(p.lakeShare < WATER_ROOFS.pieceLakeMin && p.ringRead < WATER_ROOFS.ringReadMin && (p.ringWater === null || p.ringWater >= WATER_ROOFS.ringWaterMin));
-    // A piece goes with its group, which may hold one half in the outline: the group's share
-    // decides, not the piece's.
-    if (p.reason === 'joined only to pieces left out') assert.ok(p.lakeShare >= 0 && p.lakeShare <= 1);
+    // Shares are written to 3 decimals: a share just under a bar may read as the bar.
+    const under = (v, bar) => v < bar + .0005, atLeast = (v, bar) => v > bar - .0005;
+    if (p.reason === 'not over water') assert.ok(under(p.lakeShare, WATER_ROOFS.pieceLakeMin) && p.ringWater !== null && under(p.ringWater, WATER_ROOFS.ringWaterMin), JSON.stringify(p));
+    if (p.reason === 'too little read around it') assert.ok(under(p.lakeShare, WATER_ROOFS.pieceLakeMin) && under(p.ringRead, WATER_ROOFS.ringReadMin) && (p.ringWater === null || atLeast(p.ringWater, WATER_ROOFS.ringWaterMin)), JSON.stringify(p));
+    // A piece goes with its group, whose share decides, not the piece's own; the record says
+    // what decided it.
+    if (p.reason === 'joined only to pieces left out') assert.ok(under(p.groupLakeShare, WATER_ROOFS.pieceLakeMin) && p.landTouched >= 1, JSON.stringify(p));
+    if (p.reason !== 'too few returns to fit') nearBarHolds(p);
   }
+  // The town's pieces whose fate a bar decides: the marina's walkway by its outline share,
+  // roofs 2 and 7 by their rings' water.
+  const pieceAt = (id, x, y) => doc.roofs.find(r => r.id === id).pieces.find(p => p.outline.some(q => Math.abs(q[0] - x) < .5 && Math.abs(q[1] - y) < .5));
+  assert.deepEqual(pieceAt('lidar-water-roof-9', 558.5, 961).nearBar, ['lakeShare']);
+  for (const id of ['lidar-water-roof-2', 'lidar-water-roof-7']) assert.deepEqual(doc.roofs.find(r => r.id === id).pieces[0].nearBar, ['ringWater'], id);
   for (const r of doc.roofs) {
     assert.ok(r.drawnShare <= WATER_ROOFS.drawnShareMax && r.areaM2 >= WATER_ROOFS.minAreaM2, r.id);
     assert.ok(r.pieces.length > 0, r.id);
@@ -561,6 +597,7 @@ test('water-roofs.json is current with its inputs and keeps its own rules', () =
       assert.ok(p.lakeShare >= WATER_ROOFS.pieceLakeMin || p.ringRead >= WATER_ROOFS.ringReadMin && p.ringWater >= WATER_ROOFS.ringWaterMin, r.id);
       assert.ok(forms.has(p.form) && p.eaveM > 0 && p.eaveM <= p.ridgeM + .01, r.id);
       if (['gable', 'hip'].includes(p.form)) assert.ok(p.ridgeBearingDeg >= 0 && p.ridgeBearingDeg < 180, r.id);
+      nearBarHolds(p);
     }
   }
 });

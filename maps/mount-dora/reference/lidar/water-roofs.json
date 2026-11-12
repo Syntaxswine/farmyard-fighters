@@ -35,10 +35,11 @@
    "ringWaterMin": 0.75,
    "lowM": 1.5,
    "dockReachM": 3,
-   "joinM": 0.74
+   "joinM": 0.74,
+   "barBand": 0.05
   },
   "roofs": "Building (class 6) returns, moved into the town frame by the outline registration (-0.04, 0.84) m and binned in 0.5 m cells; two cells join into one roof, over land and water alike, where some return of one lies within 0.74 m of some return of the other (cells up to two apart are compared, so a roof is its returns' own cluster at that distance, wherever the grid falls). A roof is kept when at least 1 m² of it lies in Lake Dora's OSM outline, and at most 25% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.",
-  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them) and 75% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within 3 m of such water, with no ground return (classes 2 and 20) and most of its returns between half a metre under the lake's level and 1.5 m over it. The rest are left out: 'not over water' where what is read of the ring is not water, 'too little read around it' where it is water but under 50% of the ring is read. The pieces kept form groups, joined where their returns lie within 0.74 m of one another; a group under half in the lake's outline by area that touches a piece left out as not over water is part of what stands on land, and is left out with it. All are listed in leftOut with their measures.",
+  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them) and 75% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within 3 m of such water, with no ground return (classes 2 and 20) and most of its returns between half a metre under the lake's level and 1.5 m over it. The rest are left out: 'not over water' where what is read of the ring is not water, 'too little read around it' where it is water but under 50% of the ring is read. The pieces kept form groups, joined where their returns lie within 0.74 m of one another; a group under half in the lake's outline by area that touches a piece left out as not over water is part of what stands on land, and is left out with it, recording the group's share (groupLakeShare) and how many such pieces it touched (landTouched). All are listed in leftOut with their measures. Parts under 6 m², and roofs left with none, go without a record. nearBar lists, for each piece and record, the measures within 0.05 of their bar that decide it (moved across the bar alone, they would keep it, leave it out, or change why): shares counted in grid cells, which may fall either way as the grid or the registration moves.",
   "heights": "Per piece, from its own returns, in metres above the lake's lidar level: the eave from the roof planes as in lidar-roofs.json (the 25th percentile where none is found), the ridge at the 98th percentile; form and pitch by the same rules (roofs.mjs)."
  },
  "lakeLevelM": 18.82,
@@ -107,7 +108,8 @@
      "returns": 743,
      "lakeShare": 1,
      "ringRead": 0.815,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   },
@@ -160,7 +162,8 @@
      "returns": 1579,
      "lakeShare": 0.709,
      "ringRead": 0.973,
-     "ringWater": 0.739
+     "ringWater": 0.739,
+     "nearBar": []
     }
    ]
   },
@@ -213,7 +216,10 @@
      "returns": 709,
      "lakeShare": 0.35,
      "ringRead": 0.873,
-     "ringWater": 0.788
+     "ringWater": 0.788,
+     "nearBar": [
+      "ringWater"
+     ]
     }
    ]
   },
@@ -266,7 +272,8 @@
      "returns": 699,
      "lakeShare": 1,
      "ringRead": 0.832,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   },
@@ -319,7 +326,8 @@
      "returns": 491,
      "lakeShare": 1,
      "ringRead": 0.867,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   },
@@ -372,7 +380,8 @@
      "returns": 1163,
      "lakeShare": 1,
      "ringRead": 0.974,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   },
@@ -425,7 +434,8 @@
      "returns": 4042,
      "lakeShare": 1,
      "ringRead": 0.889,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   },
@@ -478,7 +488,10 @@
      "returns": 1144,
      "lakeShare": 0.119,
      "ringRead": 0.914,
-     "ringWater": 0.787
+     "ringWater": 0.787,
+     "nearBar": [
+      "ringWater"
+     ]
     }
    ]
   },
@@ -531,7 +544,8 @@
      "returns": 167,
      "lakeShare": 0,
      "ringRead": 0.624,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -568,7 +582,8 @@
      "returns": 2503,
      "lakeShare": 0.355,
      "ringRead": 0.747,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -605,7 +620,10 @@
      "returns": 213,
      "lakeShare": 0,
      "ringRead": 0.528,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": [
+      "ringRead"
+     ]
     }
    ]
   },
@@ -658,7 +676,10 @@
      "returns": 2896,
      "lakeShare": 0.53,
      "ringRead": 0.647,
-     "ringWater": 0.48
+     "ringWater": 0.48,
+     "nearBar": [
+      "lakeShare"
+     ]
     },
     {
      "outline": [
@@ -695,7 +716,8 @@
      "returns": 218,
      "lakeShare": 1,
      "ringRead": 0.366,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -732,7 +754,8 @@
      "returns": 221,
      "lakeShare": 1,
      "ringRead": 0.403,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -769,7 +792,8 @@
      "returns": 228,
      "lakeShare": 1,
      "ringRead": 0.405,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -806,7 +830,8 @@
      "returns": 10703,
      "lakeShare": 1,
      "ringRead": 0.862,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -843,7 +868,8 @@
      "returns": 4392,
      "lakeShare": 1,
      "ringRead": 0.929,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -880,7 +906,8 @@
      "returns": 6498,
      "lakeShare": 1,
      "ringRead": 0.858,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   },
@@ -933,7 +960,8 @@
      "returns": 2136,
      "lakeShare": 0.718,
      "ringRead": 0.712,
-     "ringWater": 0.531
+     "ringWater": 0.531,
+     "nearBar": []
     },
     {
      "outline": [
@@ -970,7 +998,8 @@
      "returns": 187,
      "lakeShare": 1,
      "ringRead": 0.539,
-     "ringWater": 0.388
+     "ringWater": 0.388,
+     "nearBar": []
     },
     {
      "outline": [
@@ -1007,7 +1036,8 @@
      "returns": 5881,
      "lakeShare": 1,
      "ringRead": 0.899,
-     "ringWater": 0.725
+     "ringWater": 0.725,
+     "nearBar": []
     }
    ]
   },
@@ -1060,7 +1090,8 @@
      "returns": 167,
      "lakeShare": 1,
      "ringRead": 0.55,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   },
@@ -1113,7 +1144,8 @@
      "returns": 7129,
      "lakeShare": 1,
      "ringRead": 0.841,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     },
     {
      "outline": [
@@ -1150,7 +1182,8 @@
      "returns": 866,
      "lakeShare": 1,
      "ringRead": 0.661,
-     "ringWater": 1
+     "ringWater": 1,
+     "nearBar": []
     }
    ]
   }
@@ -1184,7 +1217,8 @@
    "returns": 635,
    "lakeShare": 0,
    "ringRead": 0.508,
-   "ringWater": 0.181
+   "ringWater": 0.181,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1214,7 +1248,8 @@
    "returns": 132,
    "lakeShare": 0,
    "ringRead": 0.395,
-   "ringWater": 0
+   "ringWater": 0,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1244,7 +1279,8 @@
    "returns": 41,
    "lakeShare": 0,
    "ringRead": 0.173,
-   "ringWater": 0.067
+   "ringWater": 0.067,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1274,7 +1310,8 @@
    "returns": 121,
    "lakeShare": 0,
    "ringRead": 0.321,
-   "ringWater": 0.624
+   "ringWater": 0.624,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1304,7 +1341,13 @@
    "returns": 112,
    "lakeShare": 0,
    "ringRead": 0.526,
-   "ringWater": 0.78
+   "ringWater": 0.78,
+   "nearBar": [
+    "ringRead",
+    "ringWater"
+   ],
+   "groupLakeShare": 0,
+   "landTouched": 2
   },
   {
    "outline": [
@@ -1334,7 +1377,8 @@
    "returns": 94,
    "lakeShare": 0,
    "ringRead": 0.53,
-   "ringWater": 0.286
+   "ringWater": 0.286,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1364,7 +1408,8 @@
    "returns": 2284,
    "lakeShare": 0.011,
    "ringRead": 0.588,
-   "ringWater": 0.664
+   "ringWater": 0.664,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1394,7 +1439,8 @@
    "returns": 52,
    "lakeShare": 0,
    "ringRead": 0.234,
-   "ringWater": 0.018
+   "ringWater": 0.018,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1424,7 +1470,8 @@
    "returns": 488,
    "lakeShare": 0,
    "ringRead": 0.333,
-   "ringWater": 1
+   "ringWater": 1,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1454,7 +1501,8 @@
    "returns": 53,
    "lakeShare": 0,
    "ringRead": 0,
-   "ringWater": null
+   "ringWater": null,
+   "nearBar": []
   },
   {
    "outline": [
@@ -1484,7 +1532,8 @@
    "returns": 1294,
    "lakeShare": 0,
    "ringRead": 0.643,
-   "ringWater": 0.445
+   "ringWater": 0.445,
+   "nearBar": []
   }
  ]
 }

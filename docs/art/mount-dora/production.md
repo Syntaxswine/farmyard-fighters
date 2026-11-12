@@ -66,7 +66,7 @@ the named lighthouse point, two explicitly approximate park structures,
 69 pieces along the two complete source boardwalk polylines, 106 raised deck
 pieces along the 19 mapped piers, 89 railway placements holding 992
 Nautilus track pieces along the railway's track runs, and 13 boathouses
-holding 25 roof pieces over Lake Dora from the 2018 lidar.
+holding 24 roof pieces over Lake Dora from the 2018 lidar.
 
 The original building renderer receives compiled geographic wall runs without
 half-metre cell snapping, floor cells, rooms, stairs or invented entrances. Its
