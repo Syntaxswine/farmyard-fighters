@@ -35,10 +35,11 @@
    "ringWaterMin": 0.75,
    "lowM": 1.5,
    "dockReachM": 3,
-   "touchM": 1
+   "touchM": 1,
+   "joinM": 0.7
   },
-  "roofs": "Building (class 6) returns, moved into the town frame by the outline registration (-0.04, 0.84) m and binned in 0.5 m cells; cells holding them join eight ways into roofs, over land and water alike. A roof is kept when at least 1 m² of it lies in Lake Dora's OSM outline, and at most 25% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.",
-  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them) and 75% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within 3 m of such water, with no ground return (classes 2 and 20) and most of its returns between half a metre under the lake's level and 1.5 m over it. The rest are left out. Pieces under half in the lake's outline whose cells come within 1 m of one another form a group; a group that touches pieces left out and none at least half in the outline is part of what stands on land, and is left out with it. Both are listed in leftOut with their measures.",
+  "roofs": "Building (class 6) returns, moved into the town frame by the outline registration (-0.04, 0.84) m and binned in 0.5 m cells; neighbouring cells (eight ways) join into roofs, over land and water alike, where some return of one lies within 0.7 m of some return of the other. A roof is kept when at least 1 m² of it lies in Lake Dora's OSM outline, and at most 25% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.",
+  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them) and 75% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within 3 m of such water, with no ground return (classes 2 and 20) and most of its returns between half a metre under the lake's level and 1.5 m over it. The rest are left out. The pieces kept form groups, joined where their cells' centres come within 1 m of one another; a group under half in the lake's outline by area that touches pieces left out as not over water is part of what stands on land, and is left out with it. Both are listed in leftOut with their measures.",
   "heights": "Per piece, from its own returns, in metres above the lake's lidar level: the eave from the roof planes as in lidar-roofs.json (the 25th percentile where none is found), the ridge at the 98th percentile; form and pitch by the same rules (roofs.mjs)."
  },
  "lakeLevelM": 18.82,
@@ -46,10 +47,10 @@
   "roofs": 13,
   "pieces": 24,
   "piecesAreaM2": 3155.1,
-  "roofsAreaM2": 4167.3,
+  "roofsAreaM2": 4162.5,
   "leftToOutlinesM2": 429.3,
   "leftOut": 11,
-  "leftOutM2": 385.7,
+  "leftOutM2": 382.7,
   "forms": {
    "flat": 11,
    "gable": 6,
@@ -611,17 +612,17 @@
   },
   {
    "id": "lidar-water-roof-9",
-   "areaM2": 2391.25,
-   "lakeShare": 0.728,
+   "areaM2": 2386.5,
+   "lakeShare": 0.73,
    "drawnShare": 0.147,
    "leftToOutlinesM2": 429.25,
-   "outlinedM2": 1956.75,
-   "coverage": 0.768,
+   "outlinedM2": 1952,
+   "coverage": 0.769,
    "onLand": {
     "pieces": 10,
-    "areaM2": 351.81
+    "areaM2": 348.86
    },
-   "returns": 30873,
+   "returns": 30826,
    "pieces": [
     {
      "outline": [
@@ -1219,32 +1220,32 @@
   {
    "outline": [
     [
-     533.61,
-     959.53
+     524.98,
+     960.74
     ],
     [
-     537.93,
-     959.53
+     538.07,
+     960.74
     ],
     [
-     537.93,
-     960.98
+     538.07,
+     961
     ],
     [
-     533.61,
-     960.98
+     524.98,
+     961
     ],
     [
-     533.61,
-     959.53
+     524.98,
+     960.74
     ]
    ],
-   "areaM2": 6.26,
+   "areaM2": 3.31,
    "reason": "not over water",
-   "returns": 44,
+   "returns": 41,
    "lakeShare": 0,
-   "ringRead": 0.246,
-   "ringWater": 0.079
+   "ringRead": 0.173,
+   "ringWater": 0.067
   },
   {
    "outline": [

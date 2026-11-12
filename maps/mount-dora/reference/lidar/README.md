@@ -273,8 +273,20 @@ OpenStreetMap or county outline draws: boathouses, covered slips, the marina's
 four slip rows and the hip roof at the T-dock's shore end. Between them they
 have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
 
-- **Roofs.** Building returns, in the town frame, bin into 0.5 m cells that
-  join eight ways over land and water alike.
+- **Roofs.** Building returns, in the town frame, bin into 0.5 m cells.
+  Neighbouring cells (eight ways) join into roofs, over land and water alike,
+  where some return of one lies within 0.7 m of some return of the other.
+  Cells alone would join two roofs under a metre apart at some grid offsets and
+  not at others. A 3 cm shift of the grid joined the marina to the drawn
+  boathouse north of it, and the whole marina went as that building's own.
+  The gap between returns does not move with the grid or the registration:
+  - each roof kept here holds together by links of 0.54 m or less;
+  - the nearest roof returns outside the marina lie 0.83 m from it, on that
+    boathouse's south side;
+  - the one roof that would split under 0.62 m is a drawn one, left to its
+    outline either way.
+
+  The made-up test rebuilds two roofs 0.75 m apart at ten grid offsets.
 - **Which roofs are kept.** A roof is kept when:
   - at least 1 m² of it lies in Lake Dora's OSM outline;
   - at most 25% of it lies inside an outline the game draws (OSM and county
@@ -300,11 +312,12 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   no ground return (classes 2 and 20), and with most of its returns between
   half a metre under the lake's level and 1.5 m over it. Lake Dora's OSM
   outline runs 5–10 m off the lidar's water along parts of the shore.
-- **Left out.** The pieces over neither are left out. Pieces under half in
-  the lake's outline whose cells come within 1 m of one another form a group.
-  A group that touches pieces left out and none at least half in the outline
-  is part of what stands on land, and is left out with it. A slip split into
-  two pieces is so judged whole. These 11 pieces, 386 m², are listed in
+- **Left out.** The pieces over neither are left out. The pieces kept form
+  groups, joined where their cells' centres come within 1 m of one another. A
+  group under half in the lake's outline, by area, that touches pieces left out
+  as not over water is part of what stands on land, and is left out with it. A
+  slip split into a body and a stub is so judged whole, even where the stub
+  reaches into the outline. These 11 pieces, 383 m², are listed in
   `leftOut` with their measures and reason: the marina's east-shore shed, its
   north-west tower, and scraps north of its walkway. One of them is the shed's
   9.5 m² north end, which reads as over water but lies wholly outside the

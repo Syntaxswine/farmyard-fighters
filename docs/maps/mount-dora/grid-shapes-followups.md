@@ -114,8 +114,8 @@ gaps:
   No outline draws it.
 - **A taller roof at the marina's north-west corner** at x 503–508,
   y 955–962 (eave about 5.1 m) stands on land. No outline draws it.
-- **Roofs on docks the vendor left unclassified** are missing from the water
-  roofs: they have no building returns.
+- **Roofs over the water the vendor left unclassified** are missing from the
+  water roofs: they have no building returns.
   - At x 61–67, y 631–642 (about 69 m², 3.6 m up), the aerial view shows a
     white roof where two docks meet. It stops the scanner like a solid, so
     crowns.json lists it among `notFoliage` (multiShare 0.047).
@@ -123,10 +123,19 @@ gaps:
     roof at the end of a dock. Its crown reads 0.118 as a whole, just over the
     0.1 line, so crowns.json keeps it as a crown. Over the water it gets no
     tree.
+  - A shelter on the Palm Island boardwalk, white-roofed in the aerial view,
+    has its crown's top at x 323, y 1450 (145 m²; 0.19 as a whole, its top
+    0). No OSM, county or authored outline draws it.
   - Of the 124 crowns centred inside the lake's outline, 5 have a top that
-    stops the scanner, and 2 of those read under 0.15 as a whole. One is this
-    roof; the other, at x 576, y 1639, is a marsh thicket in the aerial view.
-    So the roof rule (`roofTops`) is not extended to the lake.
+    stops the scanner. At least three of the five are roofs:
+    - the roof at x 61, y 464;
+    - the Palm Island shelter;
+    - the edge of the drawn Palm Island Parkway Pavilion, whose crown's top is
+      at x 569, y 1390 (0.153) and its centre is over the lake.
+  - A marsh thicket at x 576, y 1639 reads 0.103, lower than all three roofs
+    (0.118–0.19). No whole-crown bar separates them, so the roof rule
+    (`roofTops`) is not extended to the lake. None of these crowns carries a
+    tree.
 
   Drawing them would take a rule for unclassified roofs over water.
 - **Two lidar trees may stand on roofs the vendor left unclassified.** The
