@@ -1,4 +1,4 @@
-# Mount Dora lidar: roofs, bare earth and trees
+# Mount Dora lidar: roofs, bare earth, trees and roofs over the water
 
 Roof form, eave and ridge heights and ground elevation for each of the 950
 game buildings, and a 1 m bare-earth grid of the whole map, measured from USGS
@@ -6,8 +6,10 @@ game buildings, and a 1 m bare-earth grid of the whole map, measured from USGS
 give storeys and materials but never the roof shape; this fills that gap and
 puts a measured height on every building.
 
-It also finds the tree crowns. The generator plants a tree in each crown its
-seeded greenery leaves empty ([crowns.json](crowns.json)). Nothing else here
+It also finds the tree crowns and the roofs over the lake. The generator plants
+a tree in each crown its seeded greenery leaves empty
+([crowns.json](crowns.json)), and the art kit draws each roof over the water as
+an open roof on posts ([water-roofs.json](water-roofs.json)). Nothing else here
 changes the generator, the sectors, `features.json` or the art kit. The Pages
 build does not publish `maps/mount-dora/reference/`.
 
@@ -241,6 +243,46 @@ post and patrol route and a cell from every marker, so neither moves. The
 seeded plants are unchanged. `project.json` pins the file
 (`generation.vegetation.lidarCrowns`).
 
+## Roofs over the water
+
+[water-roofs.json](water-roofs.json) holds 12 roofs on Lake Dora that no
+OpenStreetMap or county outline draws: boathouses, covered slips, the marina's
+four slip rows and the hip roof at the T-dock's shore end. Between them they
+have 22 pieces and 3,096 m². `tools/maps/lidar/water-roofs.mjs` finds them:
+
+- **Roofs.** Building returns, in the town frame, bin into 0.5 m cells that
+  join eight ways over land and water alike.
+- **Which roofs are kept.** A roof is kept when:
+  - at least 1 m² of it lies in Lake Dora's OSM outline;
+  - at most 25% of it lies inside an outline the game draws (OSM and county
+    buildings, the generator's structures).
+
+  A roof joined to a drawn one beyond that share belongs to that building: a
+  wing, a porch, or an attached boathouse its county sketch leaves out.
+- **Left to the outlines.** Cells within 1 m of a drawn outline are left to it:
+  429 m² of the marina's walkway, which a county sketch covers.
+- **Parts and pieces.** The rest of a roof splits into parts. Each part is the
+  smallest rectangle around it, unless that would roof over open water of a
+  piece's size: a 6 m² rectangle, 1.5 m wide, that its cells do not fill.
+  Otherwise the part becomes the largest rectangles its cells fill, one after
+  another, in the frame where the largest is biggest. That frame is the main
+  body's, not one a stray corner turned. A turned roof's staircase on the grid
+  is not open water.
+- **Over water.** A piece stands over water where half of it lies in the
+  lake's outline, or where the lidar sees water around it. To see water, half
+  the cells within 3 m of the piece must read as water or ground, and 75% of
+  those must read as water. A cell reads as water when it holds water returns,
+  or no return at all, because calm water returned none. Lake Dora's OSM
+  outline runs 5–10 m off the lidar's water along parts of the shore. 399 m²
+  of pieces over neither are left out (`onLand`).
+- **Outline and heights.** Each piece's outline is the rectangle, in its
+  frame, around its own returns. Its eave, ridge, form, pitch and ridge
+  bearing come from those returns, by the roof rules above, in metres above
+  the lake's lidar level (18.82 m).
+
+The art kit draws each roof as a `boathouse` placement
+([production.md](../../../../docs/art/mount-dora/production.md)).
+
 ## Files
 
 | File | Written by | Contents |
@@ -251,6 +293,7 @@ seeded plants are unchanged. `project.json` pins the file
 | `bare-earth-source.png` | `build-lidar.mjs` | Per cell: measured, filled or water |
 | `bare-earth.json` | `build-lidar.mjs` | Grid definition, encoding, statistics |
 | `crowns.json` | `build-lidar.mjs` | Tree crowns: top, centre, area, height and width |
+| `water-roofs.json` | `build-lidar.mjs` | Roofs over the lake no outline draws, as rectangle pieces |
 
 ## Running it
 
@@ -263,8 +306,8 @@ node tools/maps/lidar/build-lidar.mjs --check  # needs the cache; re-derives eve
 node --test tests/maps/lidar.test.mjs tests/maps/lidar-crowns-roofs.test.mjs  # no cache needed
 ```
 
-`lidar-crowns-roofs.test.mjs` checks the crown rules on made-up canopies, and
-crowns.json against its inputs and rules.
+`lidar-crowns-roofs.test.mjs` checks the crown and water-roof rules on made-up
+canopies and a made-up shore, and both files against their inputs and rules.
 
 The test decodes one committed node
 (`tests/maps/fixtures/lidar-ept-11-1070-1042-1017.laz`, 63 KB). It checks the
@@ -284,6 +327,9 @@ decoder, roof rules, raster helpers and statistics.
   outline; `planes` and `upperEaveM` show the parts.
 - A little overhead wire wider than 1.5 m may read as a crown, and a tree
   leaning over a roof loses the cells that hold building returns.
+- A roof over the water shows its top only: its walls, cover and posts are
+  unknown, and the art kit draws them open, metal and inferred. A roof whose
+  ridge the planes do not explain (`other`) is drawn flat.
 
 ## Proposed use in the generator (not applied)
 

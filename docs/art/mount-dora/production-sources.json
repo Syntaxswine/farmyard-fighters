@@ -37,6 +37,11 @@
       "usedFor": "Lighthouse landmark in Grantham Point."
     },
     {
+      "id": "usgs-3dep-2018",
+      "url": "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/FL_Peninsular_Lake_2018",
+      "usedFor": "Boathouses and covered slips over Lake Dora with no OSM or county outline: outline, eave and roof form from the December 2018 point cloud (maps/mount-dora/reference/lidar/water-roofs.json). Walls, cover and posts are inferred. Public domain."
+    },
+    {
       "id": "chamber-history",
       "url": "https://www.mountdora.com/mount-dora-history/",
       "usedFor": "35-foot lighthouse historical context."

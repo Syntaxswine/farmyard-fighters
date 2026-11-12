@@ -92,6 +92,10 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
   7,157 crowns ([reference/lidar](reference/lidar/README.md#tree-crowns)). It is
   mature from 12 m tall, and a pine where the crown is twice as tall as it is
   wide. They go in after the sentries and markers, so neither moves.
+- Roofs the lidar sees over Lake Dora with no OSM or county outline are drawn by
+  the art kit as open roofs on posts: boathouses, covered slips and the
+  marina's slip rows ([reference/lidar](reference/lidar/README.md#roofs-over-the-water)).
+  The water under them stays water.
 - Mapped sports pitches exclude procedural trees. Tennis and pickleball polygons
   use a declared existing asphalt ground proxy without invented court markings;
   overlapping source records are retained rather than asserted as a current count.

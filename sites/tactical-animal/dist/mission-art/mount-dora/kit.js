@@ -9,6 +9,8 @@ const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
 const closed=ring=>ring.length>1&&Math.hypot(...ring[0].map((v,i)=>v-ring.at(-1)[i]))<1e-6?ring.slice(0,-1):ring;
 const TRELLIS_THICKNESS=.4;
+// Open structures: only their roofs fade, while the focus stands under one.
+const OPEN_KINDS=new Set(['pavilion','stage','boathouse']);
 // AFT's one-tile timber trellis panel (TRELLIS_BEAMS: two posts, two rails and an X
 // brace in a 1 x 2 m panel) cut down to `height` along a run from `from` to `to`
 // (local [x,z] metres): one panel per metre of the run, panel heights scaled, beam
@@ -57,9 +59,12 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
    const f=fit(poly[0]),w=f.hi[0]-f.lo[0],d=f.hi[1]-f.lo[1];
    if(treatment.roofStyle==='flat'||w>190||d>190||w<.5||d<.5){shape([poly],stories*2.12,group,treatment.roof,'roof');for(const ring of poly){const loop=closed(ring);for(let i=0;i<loop.length;i++){const a=loop[i],b=loop[(i+1)%loop.length],len=Math.hypot(b[0]-a[0],b[1]-a[1]);box(group,[(a[0]+b[0])/2,stories*2.12-.06,(a[1]+b[1])/2],[len,.12,.16],treatment.wall||'cream-siding',-Math.atan2(b[1]-a[1],b[0]-a[0])).userData.occlusionRole='roof';}}continue;}
    const axis=treatment.roofAxis||(w>=d?'x':'y'),span=axis==='x'?d:w,pitch=Math.max(5,Math.min(treatment.pitch,Math.atan((treatment.roofRiseLimit||4)/(span/2))*180/Math.PI));
-   const native=createRoofGroup(T,{id:'md-roof-'+pi,x:24,y:24,width:w,depth:d,z:stories,style:treatment.roofStyle,axis,pitch,overhang:0,material:'slate',seed:seed>>>0},{materialMap:{slate:material(treatment.roof,[1,1,1],true,treatment.roofFinish),fascia:material('cream-siding',[1,1,1],true),soffit:material('dark-wood',[1,1,1],true)}});
+   // roof-core sets eaves on whole storeys, 1 to 5; a measured eave between them (a
+   // boathouse's) is built on the nearest one it takes and lifted the difference.
+   const layers=Math.min(5,Math.max(1,Math.round(stories))),lift=(stories-layers)*2.12;
+   const native=createRoofGroup(T,{id:'md-roof-'+pi,x:24,y:24,width:w,depth:d,z:layers,style:treatment.roofStyle,axis,pitch,overhang:0,material:'slate',seed:seed>>>0},{materialMap:{slate:material(treatment.roof,[1,1,1],true,treatment.roofFinish),fascia:material('cream-siding',[1,1,1],true),soffit:material('dark-wood',[1,1,1],true)}});
    const mesh=native.children[0],ng=mesh.geometry,positions=[],normals=[],uvs=[],colors=[],rings=poly.map(closed),contour=rings[0].map(p=>new T.Vector2(...p)),holes=rings.slice(1).map(r=>r.map(p=>new T.Vector2(...p))),all=[...contour,...holes.flat()],triangles=T.ShapeUtils.triangulateShape(contour,holes).map(t=>t.map(i=>all[i].toArray()));
-   const P=i=>{const a=ng.attributes.position,n=ng.attributes.normal,uv=ng.attributes.uv,col=ng.attributes.color,x=a.getX(i)-24+f.lo[0],z=a.getZ(i)-24+f.lo[1];return {p:[x*f.c-z*f.s,a.getY(i),x*f.s+z*f.c],n:[n.getX(i)*f.c-n.getZ(i)*f.s,n.getY(i),n.getX(i)*f.s+n.getZ(i)*f.c],uv:[uv.getX(i),uv.getY(i)],col:[col.getX(i),col.getY(i),col.getZ(i)]};};
+   const P=i=>{const a=ng.attributes.position,n=ng.attributes.normal,uv=ng.attributes.uv,col=ng.attributes.color,x=a.getX(i)-24+f.lo[0],z=a.getZ(i)-24+f.lo[1];return {p:[x*f.c-z*f.s,a.getY(i)+lift,x*f.s+z*f.c],n:[n.getX(i)*f.c-n.getZ(i)*f.s,n.getY(i),n.getX(i)*f.s+n.getZ(i)*f.c],uv:[uv.getX(i),uv.getY(i)],col:[col.getX(i),col.getY(i),col.getZ(i)]};};
    const interpolate=(a,b,t)=>Object.fromEntries(Object.keys(a).map(k=>[k,mix(a[k],b[k],t)]));
    function clip(input,tri){let result=input;const sign=cross(...tri)>=0?1:-1;for(let k=0;k<3;k++){const a=tri[k],b=tri[(k+1)%3],prev=result;result=[];for(let i=0;i<prev.length;i++){const q=prev[i],v=prev[(i+1)%prev.length],qa=sign*cross(a,b,[q.p[0],q.p[2]]),va=sign*cross(a,b,[v.p[0],v.p[2]]);if(qa>=-1e-7)result.push(q);if((qa>1e-7&&va< -1e-7)||(qa< -1e-7&&va>1e-7))result.push(interpolate(q,v,qa/(qa-va)));}}return result;}
    // Top and underside use the same footprint; native vertical fascia is replaced
@@ -154,6 +159,11 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
     for(const [k,end]of [a,b].entries())if(p.trellis?.caps?.[k])trellisRun(group,end.map((v,i)=>v-n[i]*inset),end.map((v,i)=>v+n[i]*inset),under);}
    // Long rails and sparse posts, with open ends and source-anchored joins.
    for(const ends of p.rails){const [x,z]=ends.map(q=>q.map((v,i)=>v-p.anchor[i]));box(group,[(x[0]+z[0])/2,.88,(x[1]+z[1])/2],[len,.08,.08],'wood',yaw);box(group,[(x[0]+z[0])/2,.46,(x[1]+z[1])/2],[len,.06,.06],'wood',yaw);for(let i=0,n=Math.ceil(len/2);i<=n;i++){const q=mix(x,z,i/n);cylinder(group,[q[0],.45,q[1]],.055,.9,'dark-wood',.055,6);}}
+  }else if(p.kind==='boathouse'){
+   // A roof the 2018 lidar sees over the lake, on inferred posts; walls unknown, drawn
+   // open. Each piece stands at its own measured eave (build-playable.mjs).
+   for(const [x,z,top]of p.posts)cylinder(group,[x-p.anchor[0],top/2,z-p.anchor[1]],.15,top,'dark-wood',.15,8);
+   for(const piece of p.pieces){const points=piece.points.map(q=>q.map((v,i)=>v-p.anchor[i]));roof(group,[[points]],{...p.treatment,roofStyle:piece.style,pitch:piece.pitch,...(piece.axis?{roofAxis:piece.axis}:{})},piece.eave/2.12,p.seed);}
   }else throw Error('Unknown Mount Dora placement '+p.kind);
   batchPlacement(group);group.updateMatrixWorld(true);return group;
   }catch(error){release(group);throw error;}
@@ -166,9 +176,9 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
   if(!Array.isArray(point)||point.length!==2||!point.every(Number.isFinite)||!Number.isFinite(eyeHeight)||!Number.isFinite(opacity)||opacity<.05||opacity>.8||camera&&!camera.isCamera)throw Error('Supply a town focus point, host camera and bounded fade opacity.');
   focusState={point:[...point],options:{camera,eyeHeight,opacity}};root.updateWorldMatrix(true,true);camera?.updateMatrixWorld(true);const eye=camera?.getWorldPosition(new T.Vector3()),direction=camera?.getWorldDirection(new T.Vector3()),target=root.localToWorld(new T.Vector3(point[0],eyeHeight,point[1])),key=[...target.toArray(),...(eye?.toArray()||[])].map(n=>Math.round(n*10)).join(',')+'|'+(direction?.toArray().map(n=>Math.round(n*1000)).join(',')||'')+'|'+opacity+'|'+created+','+evicted;if(key===focusKey)return;focusKey=key;
   let ray=null;if(camera){const screen=target.clone().project(camera);ray=new T.Raycaster();ray.setFromCamera(new T.Vector2(screen.x,screen.y),camera);ray.far=Math.max(0,target.clone().sub(ray.ray.origin).dot(ray.ray.direction)-.05);}const wanted=new Set();
-  for(const [id,group]of resident){const p=group.userData.placementRecord;if(!['building','lighthouse','pavilion','stage'].includes(p.kind))continue;const open=p.kind==='pavilion'||p.kind==='stage',meshes=group.children.filter(m=>m.isMesh&&(!open||m.userData.occlusionRole==='roof'));if((open&&inside(point,p.points))||(ray&&ray.intersectObjects(meshes,false).length))wanted.add(id);}
+  for(const [id,group]of resident){const p=group.userData.placementRecord;if(!['building','lighthouse','pavilion','stage','boathouse'].includes(p.kind))continue;const open=OPEN_KINDS.has(p.kind),meshes=group.children.filter(m=>m.isMesh&&(!open||m.userData.occlusionRole==='roof'));if((open&&(p.pieces?p.pieces.some(q=>inside(point,q.points)):inside(point,p.points)))||(ray&&ray.intersectObjects(meshes,false).length))wanted.add(id);}
   for(const id of [...fades.keys()])if(!wanted.has(id)||fades.get(id).opacity!==opacity)restoreFade(id);
-  for(const id of wanted){if(fades.has(id))continue;const group=resident.get(id),p=group.userData.placementRecord,open=p.kind==='pavilion'||p.kind==='stage',state={opacity,changes:[],variants:new Map()};for(const mesh of group.children){if(!mesh.isMesh||open&&mesh.userData.occlusionRole!=='roof')continue;const base=mesh.material;if(!state.variants.has(base)){const v=base.clone();v.onBeforeCompile=base.onBeforeCompile;v.customProgramCacheKey=base.customProgramCacheKey;v.transparent=true;v.opacity=opacity;v.depthWrite=false;v.needsUpdate=true;state.variants.set(base,v);}state.changes.push([mesh,base]);mesh.material=state.variants.get(base);}fades.set(id,state);}
+  for(const id of wanted){if(fades.has(id))continue;const group=resident.get(id),p=group.userData.placementRecord,open=OPEN_KINDS.has(p.kind),state={opacity,changes:[],variants:new Map()};for(const mesh of group.children){if(!mesh.isMesh||open&&mesh.userData.occlusionRole!=='roof')continue;const base=mesh.material;if(!state.variants.has(base)){const v=base.clone();v.onBeforeCompile=base.onBeforeCompile;v.customProgramCacheKey=base.customProgramCacheKey;v.transparent=true;v.opacity=opacity;v.depthWrite=false;v.needsUpdate=true;state.variants.set(base,v);}state.changes.push([mesh,base]);mesh.material=state.variants.get(base);}fades.set(id,state);}
  }
  function updateResident(bounds){if(disposed)return [];const placements=placementsForBounds(bounds),want=new Set(placements.map(p=>p.id));for(const [id,group]of resident)if(!want.has(id)){restoreFade(id);release(group);resident.delete(id);evicted++;}
   try{for(const p of placements)if(!resident.has(p.id)){const group=make(p);group.userData.placementRecord=p;resident.set(p.id,group);root.add(group);created++;}}catch(error){dispose();throw error;}

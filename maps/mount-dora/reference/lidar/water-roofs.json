@@ -1,0 +1,1064 @@
+{
+ "kind": "mount-dora-lidar-water-roofs",
+ "version": 2,
+ "inputs": {
+  "features": {
+   "file": "maps/mount-dora/features.json",
+   "sha256OfFieldsRead": "facf21e6262a1f37be37b79c2b2818919c7937783d488db7e106de16732a5215",
+   "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geographicGeometry (else geometry)"
+  },
+  "lidar": {
+   "file": "maps/mount-dora/reference/lidar/source.json",
+   "sha256": "e9712f29c3b1f637e8c1742a95ed40f0321748e023b9b7fed8d2dda664586e4f"
+  }
+ },
+ "policy": "Public-domain USGS 3DEP lidar, flown in December 2018. Roofs the lidar sees on Lake Dora where no OpenStreetMap or county outline exists: boathouses and covered slips. The art kit draws each piece as a roof on posts; walls, if any, are unknown.",
+ "collection": {
+  "dataset": "FL_Peninsular_Lake_2018",
+  "acquired": [
+   "2018-12-06",
+   "2018-12-06"
+  ]
+ },
+ "method": {
+  "rules": {
+   "cellM": 0.5,
+   "minAreaM2": 6,
+   "lakeReachM2": 1,
+   "drawnShareMax": 0.25,
+   "drawnMarginM": 1,
+   "pieceMinM2": 6,
+   "pieceMinWidthM": 1.5,
+   "pieceLakeMin": 0.5,
+   "ringM": 3,
+   "ringReadMin": 0.5,
+   "ringWaterMin": 0.75
+  },
+  "roofs": "Building (class 6) returns, moved into the town frame by the outline registration (-0.04, 0.84) m and binned in 0.5 m cells; cells holding them join eight ways into roofs, over land and water alike. A roof is kept when at least 1 m² of it lies in Lake Dora's OSM outline, and at most 25% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.",
+  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them) and 75% of those read as water (water returns, or none at all); the rest (onLand) are left out.",
+  "heights": "Per piece, from its own returns, in metres above the lake's lidar level: the eave from the roof planes as in lidar-roofs.json (the 25th percentile where none is found), the ridge at the 98th percentile; form and pitch by the same rules (roofs.mjs)."
+ },
+ "lakeLevelM": 18.82,
+ "metrics": {
+  "roofs": 12,
+  "pieces": 22,
+  "piecesAreaM2": 3095.5,
+  "roofsAreaM2": 4118.3,
+  "leftToOutlinesM2": 429.3,
+  "onLandM2": 398.7,
+  "forms": {
+   "flat": 11,
+   "gable": 5,
+   "hip": 2,
+   "other": 4
+  }
+ },
+ "roofs": [
+  {
+   "id": "lidar-water-roof-0",
+   "areaM2": 56.5,
+   "lakeShare": 1,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 56.5,
+   "coverage": 1,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 743,
+   "pieces": [
+    {
+     "outline": [
+      [
+       1.67,
+       384.72
+      ],
+      [
+       10.85,
+       377.84
+      ],
+      [
+       13.99,
+       382.02
+      ],
+      [
+       4.81,
+       388.91
+      ],
+      [
+       1.67,
+       384.72
+      ]
+     ],
+     "areaM2": 60.09,
+     "fill": 0.779,
+     "angleDeg": -36.9,
+     "eaveM": 3.23,
+     "ridgeM": 5.58,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 743,
+     "lakeShare": 1,
+     "ringRead": 0.696,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-1",
+   "areaM2": 87.5,
+   "lakeShare": 0.709,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 87.5,
+   "coverage": 1,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 1579,
+   "pieces": [
+    {
+     "outline": [
+      [
+       111.8,
+       550.77
+      ],
+      [
+       109.08,
+       541.72
+      ],
+      [
+       117.86,
+       539.08
+      ],
+      [
+       120.58,
+       548.14
+      ],
+      [
+       111.8,
+       550.77
+      ]
+     ],
+     "areaM2": 86.71,
+     "fill": 0.849,
+     "angleDeg": -106.7,
+     "eaveM": 3.23,
+     "ridgeM": 3.53,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 1579,
+     "lakeShare": 0.709,
+     "ringRead": 0.784,
+     "ringWater": 0.765
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-2",
+   "areaM2": 51,
+   "lakeShare": 1,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 51,
+   "coverage": 1,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 699,
+   "pieces": [
+    {
+     "outline": [
+      [
+       132.91,
+       637.83
+      ],
+      [
+       138.65,
+       637.83
+      ],
+      [
+       138.65,
+       646.07
+      ],
+      [
+       132.91,
+       646.07
+      ],
+      [
+       132.91,
+       637.83
+      ]
+     ],
+     "areaM2": 47.31,
+     "fill": 0.872,
+     "angleDeg": 0,
+     "eaveM": 3.28,
+     "ridgeM": 4.03,
+     "form": "hip",
+     "confidence": 0.952,
+     "pitchDeg": 16,
+     "ridgeBearingDeg": 179.5,
+     "returns": 699,
+     "lakeShare": 1,
+     "ringRead": 0.516,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-3",
+   "areaM2": 35.25,
+   "lakeShare": 1,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 35.25,
+   "coverage": 1,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 491,
+   "pieces": [
+    {
+     "outline": [
+      [
+       122.6,
+       638.08
+      ],
+      [
+       130.98,
+       638.08
+      ],
+      [
+       130.98,
+       642.09
+      ],
+      [
+       122.6,
+       642.09
+      ],
+      [
+       122.6,
+       638.08
+      ]
+     ],
+     "areaM2": 33.54,
+     "fill": 0.922,
+     "angleDeg": 0,
+     "eaveM": 2.6,
+     "ridgeM": 2.78,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 491,
+     "lakeShare": 1,
+     "ringRead": 0.447,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-4",
+   "areaM2": 52.5,
+   "lakeShare": 1,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 52.5,
+   "coverage": 1,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 1163,
+   "pieces": [
+    {
+     "outline": [
+      [
+       104.49,
+       638.22
+      ],
+      [
+       116.3,
+       638.22
+      ],
+      [
+       116.3,
+       642.61
+      ],
+      [
+       104.49,
+       642.61
+      ],
+      [
+       104.49,
+       638.22
+      ]
+     ],
+     "areaM2": 51.84,
+     "fill": 0.84,
+     "angleDeg": 0,
+     "eaveM": 2.61,
+     "ridgeM": 2.86,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 1163,
+     "lakeShare": 1,
+     "ringRead": 0.53,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-5",
+   "areaM2": 276.5,
+   "lakeShare": 1,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 276.5,
+   "coverage": 0.939,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 4174,
+   "pieces": [
+    {
+     "outline": [
+      [
+       144,
+       661.27
+      ],
+      [
+       152,
+       661.27
+      ],
+      [
+       152,
+       693.45
+      ],
+      [
+       144,
+       693.45
+      ],
+      [
+       144,
+       661.27
+      ]
+     ],
+     "areaM2": 257.37,
+     "fill": 0.998,
+     "angleDeg": 0,
+     "eaveM": 2.97,
+     "ridgeM": 4.72,
+     "form": "hip",
+     "confidence": 1,
+     "pitchDeg": 26,
+     "ridgeBearingDeg": 179.4,
+     "returns": 4042,
+     "lakeShare": 1,
+     "ringRead": 0.589,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-6",
+   "areaM2": 80.25,
+   "lakeShare": 0.125,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 80.25,
+   "coverage": 1,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 1144,
+   "pieces": [
+    {
+     "outline": [
+      [
+       197.3,
+       750.15
+      ],
+      [
+       208.94,
+       748.49
+      ],
+      [
+       209.92,
+       755.31
+      ],
+      [
+       198.28,
+       756.97
+      ],
+      [
+       197.3,
+       750.15
+      ]
+     ],
+     "areaM2": 81.05,
+     "fill": 0.83,
+     "angleDeg": -8.1,
+     "eaveM": 3.25,
+     "ridgeM": 4.36,
+     "form": "gable",
+     "confidence": 1,
+     "pitchDeg": 21.1,
+     "ridgeBearingDeg": 78.7,
+     "returns": 1144,
+     "lakeShare": 0.119,
+     "ringRead": 0.772,
+     "ringWater": 0.811
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-7",
+   "areaM2": 213.75,
+   "lakeShare": 0.359,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 213.75,
+   "coverage": 0.824,
+   "onLand": {
+    "pieces": 1,
+    "areaM2": 12.99
+   },
+   "returns": 3153,
+   "pieces": [
+    {
+     "outline": [
+      [
+       211.39,
+       766.75
+      ],
+      [
+       211.9,
+       768.62
+      ],
+      [
+       206.68,
+       770.04
+      ],
+      [
+       206.17,
+       768.17
+      ],
+      [
+       211.39,
+       766.75
+      ]
+     ],
+     "areaM2": 10.49,
+     "fill": 0.977,
+     "angleDeg": 74.7,
+     "eaveM": 2.47,
+     "ridgeM": 2.61,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 167,
+     "lakeShare": 0,
+     "ringRead": 0.517,
+     "ringWater": 1
+    },
+    {
+     "outline": [
+      [
+       212.43,
+       768.52
+      ],
+      [
+       217.16,
+       785.88
+      ],
+      [
+       208,
+       788.38
+      ],
+      [
+       203.27,
+       771.02
+      ],
+      [
+       212.43,
+       768.52
+      ]
+     ],
+     "areaM2": 170.82,
+     "fill": 0.968,
+     "angleDeg": 74.7,
+     "eaveM": 2.61,
+     "ridgeM": 4.6,
+     "form": "other",
+     "confidence": 1,
+     "pitchDeg": 21,
+     "ridgeBearingDeg": null,
+     "returns": 2503,
+     "lakeShare": 0.355,
+     "ringRead": 0.617,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-8",
+   "areaM2": 2391.25,
+   "lakeShare": 0.728,
+   "drawnShare": 0.147,
+   "leftToOutlinesM2": 429.25,
+   "outlinedM2": 1956.75,
+   "coverage": 0.768,
+   "onLand": {
+    "pieces": 10,
+    "areaM2": 351.81
+   },
+   "returns": 30873,
+   "pieces": [
+    {
+     "outline": [
+      [
+       558.51,
+       961.01
+      ],
+      [
+       580.48,
+       961.01
+      ],
+      [
+       580.48,
+       970.41
+      ],
+      [
+       558.51,
+       970.41
+      ],
+      [
+       558.51,
+       961.01
+      ]
+     ],
+     "areaM2": 206.55,
+     "fill": 0.99,
+     "angleDeg": 0,
+     "eaveM": 2.99,
+     "ridgeM": 3.91,
+     "form": "other",
+     "confidence": 1,
+     "pitchDeg": 11.3,
+     "ridgeBearingDeg": null,
+     "returns": 2896,
+     "lakeShare": 0.53,
+     "ringRead": 0.604,
+     "ringWater": 0.454
+    },
+    {
+     "outline": [
+      [
+       561.54,
+       970.74
+      ],
+      [
+       564.44,
+       970.74
+      ],
+      [
+       564.44,
+       976.37
+      ],
+      [
+       561.54,
+       976.37
+      ],
+      [
+       561.54,
+       970.74
+      ]
+     ],
+     "areaM2": 16.34,
+     "fill": 0.931,
+     "angleDeg": 0,
+     "eaveM": 2.46,
+     "ridgeM": 4.74,
+     "form": "flat",
+     "confidence": 0.771,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 218,
+     "lakeShare": 1,
+     "ringRead": 0.35,
+     "ringWater": 1
+    },
+    {
+     "outline": [
+      [
+       519.22,
+       971.05
+      ],
+      [
+       521.72,
+       971.05
+      ],
+      [
+       521.72,
+       975.97
+      ],
+      [
+       519.22,
+       975.97
+      ],
+      [
+       519.22,
+       971.05
+      ]
+     ],
+     "areaM2": 12.34,
+     "fill": 0.967,
+     "angleDeg": 0,
+     "eaveM": 2.77,
+     "ridgeM": 4.54,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 221,
+     "lakeShare": 1,
+     "ringRead": 0.403,
+     "ringWater": 1
+    },
+    {
+     "outline": [
+      [
+       536.54,
+       971.19
+      ],
+      [
+       539.95,
+       971.19
+      ],
+      [
+       539.95,
+       976
+      ],
+      [
+       536.54,
+       976
+      ],
+      [
+       536.54,
+       971.19
+      ]
+     ],
+     "areaM2": 16.4,
+     "fill": 0.986,
+     "angleDeg": 0,
+     "eaveM": 2.74,
+     "ridgeM": 2.93,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 228,
+     "lakeShare": 1,
+     "ringRead": 0.264,
+     "ringWater": 1
+    },
+    {
+     "outline": [
+      [
+       512.04,
+       976
+      ],
+      [
+       528.98,
+       976
+      ],
+      [
+       528.98,
+       1005.45
+      ],
+      [
+       512.04,
+       1005.45
+      ],
+      [
+       512.04,
+       976
+      ]
+     ],
+     "areaM2": 498.69,
+     "fill": 0.999,
+     "angleDeg": 0,
+     "eaveM": 3.2,
+     "ridgeM": 4.75,
+     "form": "gable",
+     "confidence": 1,
+     "pitchDeg": 11.2,
+     "ridgeBearingDeg": 0.1,
+     "returns": 10703,
+     "lakeShare": 1,
+     "ringRead": 0.788,
+     "ringWater": 1
+    },
+    {
+     "outline": [
+      [
+       537.5,
+       976.01
+      ],
+      [
+       548.34,
+       976.01
+      ],
+      [
+       548.34,
+       1003.99
+      ],
+      [
+       537.5,
+       1003.99
+      ],
+      [
+       537.5,
+       976.01
+      ]
+     ],
+     "areaM2": 303.22,
+     "fill": 0.987,
+     "angleDeg": 0,
+     "eaveM": 3.14,
+     "ridgeM": 4.07,
+     "form": "gable",
+     "confidence": 1,
+     "pitchDeg": 10.5,
+     "ridgeBearingDeg": 179.7,
+     "returns": 4392,
+     "lakeShare": 1,
+     "ringRead": 0.76,
+     "ringWater": 1
+    },
+    {
+     "outline": [
+      [
+       554.54,
+       976.52
+      ],
+      [
+       571.46,
+       976.52
+      ],
+      [
+       571.46,
+       1002.48
+      ],
+      [
+       554.54,
+       1002.48
+      ],
+      [
+       554.54,
+       976.52
+      ]
+     ],
+     "areaM2": 439.28,
+     "fill": 0.999,
+     "angleDeg": 0,
+     "eaveM": 3.19,
+     "ridgeM": 4.76,
+     "form": "gable",
+     "confidence": 1,
+     "pitchDeg": 11.5,
+     "ridgeBearingDeg": 179.7,
+     "returns": 6498,
+     "lakeShare": 1,
+     "ringRead": 0.795,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-9",
+   "areaM2": 461.25,
+   "lakeShare": 0.837,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 461.25,
+   "coverage": 0.872,
+   "onLand": {
+    "pieces": 1,
+    "areaM2": 33.87
+   },
+   "returns": 9036,
+   "pieces": [
+    {
+     "outline": [
+      [
+       496,
+       961.5
+      ],
+      [
+       508.23,
+       961.5
+      ],
+      [
+       508.23,
+       969.99
+      ],
+      [
+       496,
+       969.99
+      ],
+      [
+       496,
+       961.5
+      ]
+     ],
+     "areaM2": 103.79,
+     "fill": 0.991,
+     "angleDeg": 0,
+     "eaveM": 3.15,
+     "ridgeM": 5.25,
+     "form": "other",
+     "confidence": 1,
+     "pitchDeg": 11.7,
+     "ridgeBearingDeg": null,
+     "returns": 2136,
+     "lakeShare": 0.718,
+     "ringRead": 0.655,
+     "ringWater": 0.543
+    },
+    {
+     "outline": [
+      [
+       496.52,
+       970.04
+      ],
+      [
+       498.34,
+       970.04
+      ],
+      [
+       498.34,
+       975.8
+      ],
+      [
+       496.52,
+       975.8
+      ],
+      [
+       496.52,
+       970.04
+      ]
+     ],
+     "areaM2": 10.52,
+     "fill": 0.979,
+     "angleDeg": 0,
+     "eaveM": 2.67,
+     "ridgeM": 2.85,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 187,
+     "lakeShare": 1,
+     "ringRead": 0.488,
+     "ringWater": 0.372
+    },
+    {
+     "outline": [
+      [
+       496,
+       976.01
+      ],
+      [
+       505.99,
+       976.01
+      ],
+      [
+       505.99,
+       1004.26
+      ],
+      [
+       496,
+       1004.26
+      ],
+      [
+       496,
+       976.01
+      ]
+     ],
+     "areaM2": 282.21,
+     "fill": 1,
+     "angleDeg": 0,
+     "eaveM": 3.05,
+     "ridgeM": 4.01,
+     "form": "gable",
+     "confidence": 0.966,
+     "pitchDeg": 11.5,
+     "ridgeBearingDeg": 179,
+     "returns": 5881,
+     "lakeShare": 1,
+     "ringRead": 0.766,
+     "ringWater": 0.717
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-10",
+   "areaM2": 13.25,
+   "lakeShare": 1,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 13.25,
+   "coverage": 1,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 167,
+   "pieces": [
+    {
+     "outline": [
+      [
+       521.59,
+       1006.08
+      ],
+      [
+       525.43,
+       1006.08
+      ],
+      [
+       525.43,
+       1009.38
+      ],
+      [
+       521.59,
+       1009.38
+      ],
+      [
+       521.59,
+       1006.08
+      ]
+     ],
+     "areaM2": 12.67,
+     "fill": 0.946,
+     "angleDeg": 0,
+     "eaveM": 2.46,
+     "ridgeM": 2.81,
+     "form": "other",
+     "confidence": 0.778,
+     "pitchDeg": 10.4,
+     "ridgeBearingDeg": null,
+     "returns": 167,
+     "lakeShare": 1,
+     "ringRead": 0.371,
+     "ringWater": 1
+    }
+   ]
+  },
+  {
+   "id": "lidar-water-roof-11",
+   "areaM2": 399.25,
+   "lakeShare": 1,
+   "drawnShare": 0,
+   "leftToOutlinesM2": 0,
+   "outlinedM2": 399.25,
+   "coverage": 0.968,
+   "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "returns": 8064,
+   "pieces": [
+    {
+     "outline": [
+      [
+       492.73,
+       1627.45
+      ],
+      [
+       506.75,
+       1638.67
+      ],
+      [
+       494.26,
+       1654.28
+      ],
+      [
+       480.24,
+       1643.06
+      ],
+      [
+       492.73,
+       1627.45
+      ]
+     ],
+     "areaM2": 359.13,
+     "fill": 0.977,
+     "angleDeg": 38.7,
+     "eaveM": 2.84,
+     "ridgeM": 3.01,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 7129,
+     "lakeShare": 1,
+     "ringRead": 0.652,
+     "ringWater": 1
+    },
+    {
+     "outline": [
+      [
+       502.73,
+       1630.33
+      ],
+      [
+       509.61,
+       1635.84
+      ],
+      [
+       507.12,
+       1638.95
+      ],
+      [
+       500.24,
+       1633.44
+      ],
+      [
+       502.73,
+       1630.33
+      ]
+     ],
+     "areaM2": 35.15,
+     "fill": 1,
+     "angleDeg": 38.7,
+     "eaveM": 2.85,
+     "ridgeM": 3,
+     "form": "flat",
+     "confidence": 1,
+     "pitchDeg": null,
+     "ridgeBearingDeg": null,
+     "returns": 866,
+     "lakeShare": 1,
+     "ringRead": 0.464,
+     "ringWater": 1
+    }
+   ]
+  }
+ ]
+}

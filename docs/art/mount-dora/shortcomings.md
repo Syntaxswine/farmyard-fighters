@@ -29,6 +29,9 @@ Line references above name stable functions; exact source hashes are in art prov
 - The OSM label `Evans Park` maps to the city's Elizabeth Evans Park. The lakefront pavilion has no independently verified point in this subset. Nearby mapped lawn-bowling shelters remain those shelters; do not relabel them to fill the gap. The pavilion gallery is a shape/material reference anchored to the park record, with exact placement deferred.
 - Small hotel way 560095897 is one associated building. Grand Lobby, Gables, Tavern, Gatehouse, Lake House, Terrace and Sunset retain separate OSM identities and labels. The association and the yellow/white veranda character do not prove the complete property boundary, current room use or surveyed interiors.
 - Bridge `layer=1`, source `ele` tags and native floor pitch are not a terrain-height survey. Native kit intervals are 2.12 m; the 10.6 m lighthouse is a five-interval visual proxy. No road grades, decks, interiors or visitor access are certified.
+- Boathouses come from lidar roofs alone. Their walls, roof cover and posts
+  are unknown and drawn open, metal and inferred
+  ([production.md](production.md#geometry-and-collision)).
 - The actor-free authoring project is not a playable Farmyard mission. Missing game support should be refused explicitly rather than silently flattening features.
 
 ## Recommendation under the shared design criteria

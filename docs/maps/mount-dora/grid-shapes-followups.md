@@ -68,7 +68,10 @@ seven causes:
 - **Roofs over the water.** Where our map has open water, the lidar sees
   about 800 m² of roof: boathouses and covered slips. It also sees a roofed
   structure at the T-dock's shore end. No OpenStreetMap or county outline
-  exists for any of them.
+  exists for any of them. *Drawn on the stacked branch
+  `claude/mount-dora-lidar-trees`: 12 roofs map-wide, with the marina's four
+  slip rows and the T-dock's hip roof among them. About 300 m² of that 800
+  turned out to be shore houses' own roofs (below).*
 - **The tree belt.** Between Lake Dora Road and McDonald Street, unclassified
   returns 2.5 m or more above the ground cover 2,936 of 5,423 m² (54%). This
   vendor has no vegetation class, and a little of that area is overhead wire.
@@ -84,6 +87,27 @@ seven causes:
   but terrain is one material per 1 m tile, so its edges step every metre.
   Walls can turn; ground cannot. A smooth road surface would have to be drawn
   over the tiles.
+
+Drawing the roofs over the water turned up four more gaps:
+
+- **Lake Dora's OSM outline is off the lidar's water by 5–10 m** along parts
+  of the shore.
+  - Two boathouses at x 197–217, y 748–788 stand in lidar water, mostly
+    outside the outline. The game draws land under them.
+  - North of them, at x 0–130, y 360–520, the outline reaches inland over the
+    shore houses.
+  - Fix: take the shoreline from the lidar's water (class 9, and calm water
+    with no returns).
+- **Shore houses' roofs run past their county sketches toward the water.**
+  These are wings, porches, and perhaps attached boathouses. The largest is
+  about 300 m² at x 30–65, y 405–440, behind four county sketches. They join
+  the drawn houses' roofs, so they stay with them, under "County sketches can
+  leave parts out" above.
+- **A long low roof on the marina's east shore** at x 578–590, y 975–1020
+  (12 × 45 m, eave about 3.1 m) joins the slips' walkway but stands on land.
+  No outline draws it.
+- **A taller roof at the marina's north-west corner** at x 503–508,
+  y 955–962 (eave about 5.1 m) stands on land. No outline draws it.
 
 ## Known shape and placement limits
 

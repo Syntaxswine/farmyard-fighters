@@ -7,6 +7,7 @@ import {PLACEMENTS,ART_REVISION,SOURCE_FEATURES_SHA256,REPLACEMENT_SOURCE_IDS,pl
 import {WALKER_RADIUS} from '../dist/mount-dora-world.js';
 import {UNIT_RADIUS} from '../dist/solo-game.js';
 import {earFor} from '../../../maps/mount-dora/art/tools/pier-joints.mjs';
+import {onPierDeck} from '../../../maps/mount-dora/art/tools/boathouse.mjs';
 import {createMountDoraArt,loadMountDoraAtlas,trellisBoxes} from '../dist/mission-art/mount-dora/kit.js';
 import {TRELLIS_BEAMS} from '../dist/aft/tactics/bridge-trellis.js';
 import {TownEnvironment} from '../dist/mount-dora-view.js';
@@ -361,4 +362,84 @@ test('the retained Nautilus railway files are the ones SOURCE.json records',()=>
   const retained=fs.readFileSync(new URL('../../../maps/mount-dora/art/source/nautilus/packages/railway-visuals/'+f.path,import.meta.url)),shipped=fs.readFileSync(new URL('source/packages/railway-visuals/'+f.path,base));
   assert.equal(retained.length,f.bytes);assert.equal(sha(retained),f.sha256);assert.equal(createHash('sha1').update(`blob ${retained.length}\0`).update(retained).digest('hex'),f.gitBlob);assert.ok(shipped.equals(retained),f.path);
  }
+});
+const waterRoofsBytes=fs.readFileSync(new URL('../../../maps/mount-dora/reference/lidar/water-roofs.json',import.meta.url)),waterRoofs=JSON.parse(waterRoofsBytes),boathouses=PLACEMENTS.filter(p=>p.kind==='boathouse');
+const insetCorners=points=>{const ring=points.slice(0,4),c=[ring.reduce((n,q)=>n+q[0],0)/4,ring.reduce((n,q)=>n+q[1],0)/4];return ring.map(q=>{const d=Math.hypot(c[0]-q[0],c[1]-q[1]);return [q[0]+(c[0]-q[0])*.2/d,q[1]+(c[1]-q[1])*.2/d];});};
+const onAnyDeck=q=>PLACEMENTS.some(o=>o.kind==='pier'&&deckCovers(q,o,.15));
+test('each lidar water roof is one open boathouse with its own pieces, eaves and forms',()=>{
+ assert.equal(boathouses.length,waterRoofs.roofs.length);assert.ok(boathouses.length>=10);
+ assert.equal(JSON.parse(fs.readFileSync(new URL('provenance.json',base))).waterRoofs.sha256,sha(waterRoofsBytes));
+ for(const roof of waterRoofs.roofs){
+  const p=boathouses.find(b=>b.sourceIds[0]===roof.id);assert.ok(p,roof.id);assert.equal(p.id,'md:water-roof:'+roof.id.split('-').at(-1));
+  assert.equal(p.pieces.length,roof.pieces.length);
+  for(const [i,source]of roof.pieces.entries()){
+   const piece=p.pieces[i],confident=['gable','hip','flat'].includes(source.form)&&source.confidence>=.7;
+   assert.deepEqual(piece.points,source.outline);assert.equal(piece.eave,source.eaveM);
+   assert.equal(piece.style,confident?source.form:'flat',roof.id);
+   if(piece.style==='flat'){assert.equal(piece.pitch,0);assert.equal(piece.axis,undefined);}
+   else{assert.equal(piece.pitch,Math.max(12,Math.min(40,Math.round(source.pitchDeg))));assert.ok(['x','y'].includes(piece.axis));}
+   for(const [x,y]of piece.points)assert.ok(x>=p.bounds[0]&&x<=p.bounds[2]&&y>=p.bounds[1]&&y<=p.bounds[3],roof.id);
+  }
+  assert.equal(p.collisionPolicy,'additional-solids');assert.deepEqual(p.replacesSourceIds,[]);
+  assert.deepEqual(p.solids,p.posts.map(([x,y])=>({kind:'circle',centre:[x,y],radius:.15})));
+  assert.equal(p.provenance.walls,'unknown; drawn open');assert.match(p.provenance.source,/water-roofs\.json.*2018-12-06/);assert.deepEqual(p.provenance.sourceRefs,['usgs-3dep-2018']);
+ }
+ // A gable's ridge follows the lidar's: the marina's slip rows (the gables of the two
+ // roofs at x 490-590, y 950-1010) run north-south, across their outlines' first side,
+ // which runs east-west.
+ const rows=boathouses.filter(p=>p.anchor[0]>490&&p.anchor[0]<590&&p.anchor[1]>950&&p.anchor[1]<1010).flatMap(p=>p.pieces).filter(q=>q.style==='gable');
+ assert.ok(rows.length>=4);for(const q of rows){assert.equal(q.points[1][1],q.points[0][1]);assert.equal(q.axis,'y');}
+});
+test('the builder places posts by the deck rule the game walks on',()=>{
+ // boathouse.mjs onPierDeck must answer as manifest.js deckCovers does, run-ons included,
+ // on a 0.25 m grid round every pier piece and at the margins the builder and game use.
+ let checked=0,covered=0;
+ for(const p of PLACEMENTS.filter(p=>p.kind==='pier'))for(let y=Math.floor(p.bounds[1]);y<=p.bounds[3];y+=.25)for(let x=Math.floor(p.bounds[0]);x<=p.bounds[2];x+=.25)for(const m of [0,.15,WALKER_RADIUS]){
+  const q=[x,y],game=deckCovers(q,p,m);assert.equal(onPierDeck(q,p,m),game,`${p.id} ${q} ${m}`);checked++;covered+=game;}
+ assert.ok(checked>50000&&covered>checked/10,`${checked} ${covered}`);
+ assert.ok(PLACEMENTS.some(p=>p.kind==='pier'&&p.deck.extend.some(e=>e>.1)),'some piece runs on past a joint');
+});
+test('boathouse posts stand at every corner and every 6 m, a metre apart, sliding off pier decks',()=>{
+ // Near a deck (within 4 m) a post may have slid along its side, up to 3 m, or been left off.
+ const nearDeck=(q,m)=>PLACEMENTS.some(o=>o.kind==='pier'&&deckCovers(q,o,m));
+ for(const p of boathouses){
+  for(const [i,a]of p.posts.entries())for(const b of p.posts.slice(i+1))assert.ok(Math.hypot(a[0]-b[0],a[1]-b[1])>=1,p.id);
+  for(const q of p.posts)assert.ok(!onAnyDeck(q),p.id+' '+q);
+  for(const piece of p.pieces){const corners=insetCorners(piece.points);
+   for(let k=0;k<4;k++){const a=corners[k],b=corners[(k+1)%4],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.5);
+    for(let i=0;i<=n;i++){const q=[a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n];if(nearDeck(q,4))continue;assert.ok(p.posts.some(o=>Math.hypot(o[0]-q[0],o[1]-q[1])<=4),p.id+' '+q);}
+    const reach=onAnyDeck(a)?3:1;if(!/left off/.test(p.provenance.posts)||!onAnyDeck(a))assert.ok(p.posts.some(o=>Math.hypot(o[0]-a[0],o[1]-a[1])<reach+1e-9),p.id+' corner '+a);}}
+  // A post reaches the highest eave of the pieces it stands under.
+  for(const [x,y,top]of p.posts)assert.ok(top>=Math.max(...p.pieces.filter(q=>insetCorners(q.points).some(c=>Math.hypot(c[0]-x,c[1]-y)<1)).map(q=>q.eave),0)-1e-9,p.id);
+ }
+ const moved=boathouses.map(p=>Number(/(\d+) moved off a mapped pier deck/.exec(p.provenance.posts)?.[1]??0));
+ assert.ok(moved.reduce((s,v)=>s+v,0)>=2,'some boathouses stand over mapped piers');
+});
+test('the kit draws each boathouse inside its bounds, its roofs at their eaves, fading only under a roof',()=>{
+ const kit=createMountDoraArt({THREE:T,atlas:new T.Texture()});
+ for(const p of boathouses){
+  kit.updateResident(p.bounds);const g=kit.root.getObjectByName(p.id),box=new T.Box3().setFromObject(g,true);assert.ok(g,p.id);
+  assert.ok(box.min.x>=p.bounds[0]-.002&&box.max.x<=p.bounds[2]+.002&&box.min.z>=p.bounds[1]-.002&&box.max.z<=p.bounds[3]+.002,p.id);
+  const eaves=p.pieces.map(q=>q.eave);assert.ok(box.min.y>=-.001,p.id);assert.ok(box.max.y>=Math.max(...eaves)-.001&&box.max.y<=Math.max(...eaves)+4.2,`${p.id} ${box.max.y}`);
+  const roofs=g.children.filter(m=>m.isMesh&&m.userData.occlusionRole==='roof');assert.ok(roofs.length>0,p.id);
+  // The posts (the timber that is not the fascia) stand from the water to the eave they carry.
+  const timber=g.children.find(m=>m.isMesh&&m.userData.occlusionRole!=='roof'&&m.material.name==='md:dark-wood:1,1,1:false');assert.ok(timber,p.id);
+  const tb=new T.Box3().setFromObject(timber,true);assert.ok(Math.abs(tb.min.y)<.01&&Math.abs(tb.max.y-Math.max(...p.posts.map(q=>q[2])))<.01,`${p.id} posts ${tb.min.y}..${tb.max.y}`);
+  // Each roof surface starts at its pieces' measured eave: a pitched one (the silver
+  // finish) lifted off roof-core's whole storey, its 0.12 m slab (ROOF_LIMITS.thickness)
+  // hanging under the eave as the kit's skirt does; a flat one laid at the eave.
+  for(const [pitched,name,slab]of [[true,'md:blue-metal:1,1,1:true:silver',.12],[false,'md:blue-metal:1,1,1:true',0]]){
+   const pieces=p.pieces.filter(q=>(q.style!=='flat')===pitched),mesh=roofs.find(m=>m.material.name===name);
+   assert.equal(!!mesh,pieces.length>0,p.id+' '+name);if(!mesh)continue;
+   const low=new T.Box3().setFromObject(mesh,true).min.y;assert.ok(Math.abs(low-(Math.min(...pieces.map(q=>q.eave))-slab))<.02,`${p.id} ${name} ${low}`);}
+  const piece=p.pieces[0],under=piece.points.slice(0,4).reduce((c,q)=>[c[0]+q[0]/4,c[1]+q[1]/4],[0,0]);
+  kit.setFocus(under);assert.ok(kit.metrics().fadedPlacements.includes(p.id),p.id);
+  for(const m of g.children.filter(m=>m.isMesh&&m.userData.occlusionRole!=='roof'))assert.equal(m.material.opacity,1,p.id);
+  kit.setFocus([p.bounds[0]-30,p.bounds[1]-30]);assert.ok(!kit.metrics().fadedPlacements.includes(p.id),p.id);kit.setFocus(null);
+ }
+ // A pitched piece is built on roof-core's storey and lifted to the measured eave.
+ const gable=boathouses.find(p=>p.pieces.some(q=>q.style==='gable'));kit.updateResident(gable.bounds);
+ const g=kit.root.getObjectByName(gable.id),tops=g.children.filter(m=>m.isMesh&&m.userData.occlusionRole==='roof').map(m=>new T.Box3().setFromObject(m,true).max.y);
+ assert.ok(Math.max(...tops)>Math.max(...gable.pieces.map(q=>q.eave))+.5,'a gable rises above its eave');
+ kit.dispose();
 });

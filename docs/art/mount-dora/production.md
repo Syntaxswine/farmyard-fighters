@@ -64,8 +64,9 @@ There are 950 exact source MultiPolygons, including holes, ten separate Inn
 records, five historical court records, three actual mapped shelter contours,
 the named lighthouse point, two explicitly approximate park structures,
 69 pieces along the two complete source boardwalk polylines, 106 raised deck
-pieces along the 19 mapped piers, and 89 railway placements holding 992
-Nautilus track pieces along the railway's track runs.
+pieces along the 19 mapped piers, 89 railway placements holding 992
+Nautilus track pieces along the railway's track runs, and 12 boathouses
+holding 22 roof pieces over Lake Dora from the 2018 lidar.
 
 The original building renderer receives compiled geographic wall runs without
 half-metre cell snapping, floor cells, rooms, stairs or invented entrances. Its
@@ -88,7 +89,7 @@ Each placement and returned solid carries `collisionPolicy`:
 | --- | --- |
 | `retain-source-walls` | Keep native closed-house collision; avoid registering the optional footprint again. |
 | `replace-source-walls` | Remove only the mapped shelter's closed wall/cap owners; use its post circles and retain walkable ground. |
-| `additional-solids` | Add lighthouse, boardwalk rail or approximate structure posts; courts, piers and railway track supply no solids. |
+| `additional-solids` | Add lighthouse, boardwalk rail, approximate structure posts or boathouse posts; courts, piers and railway track supply no solids. |
 
 `solidsForBounds(bounds)` returns `{id, placementId, sourceIds, collisionPolicy,
 ...shape}`. Shapes are `{kind:'polygon',polygons}` (MultiPolygon coordinates,
@@ -190,6 +191,33 @@ draws one `InstancedMesh` per part of the piece (bed, two rails, ties, plates):
 five draw calls whatever its length. The meshes borrow the kit's geometry and
 materials, which eviction never disposes; teardown disposes the kit. Pieces meet
 with small wedges at bends. Track adds no solids: the bed is walkable ground.
+
+Boathouses (`kind: 'boathouse'`) draw the roofs the 2018 lidar sees over Lake
+Dora where no OSM or county outline exists, one placement per roof in
+`maps/mount-dora/reference/lidar/water-roofs.json`
+([method](../../../maps/mount-dora/reference/lidar/README.md#roofs-over-the-water)).
+`provenance.json` pins that file (`waterRoofs`). The rules below live in
+`maps/mount-dora/art/tools/boathouse.mjs`, tested on made-up pieces in
+`tests/maps/mount-dora-boathouse.test.mjs`.
+
+- **Pieces.** Each piece is a rectangle with its own measured eave above the
+  lake.
+- **Form.** A piece takes the lidar's form where that is confident (0.7, the
+  buildings' rule) and is flat otherwise. Pitch is held to the buildings'
+  12–40°, and the ridge runs along the lidar's.
+- **Built on a whole storey.** roof-core sets eaves on whole 2.12 m storeys, so
+  the kit builds a pitched piece on the nearest storey and lifts it the
+  difference.
+- **Walls and cover.** Walls, roof cover and posts are unknown. The kit draws
+  the roof open, under the metal the county records draw (`COVERS.metal`), as
+  covered slips commonly are.
+- **Posts.** Posts are inferred: 0.15 m timber at each piece's corners, 0.2 m
+  in, and at most 6 m apart along each side. Posts within a metre of each other
+  are one post. None stands on a pier deck: four are left off, and each
+  placement's provenance says how many.
+- **Solids and fade.** Posts are the only solids, and the water under the roof
+  stays water. Like a pavilion, only the roof fades, while the focus stands
+  under a piece.
 
 ## Sources and limits
 
