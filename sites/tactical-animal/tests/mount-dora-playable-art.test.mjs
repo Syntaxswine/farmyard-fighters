@@ -8,7 +8,7 @@ import {WALKER_RADIUS} from '../dist/mount-dora-world.js';
 import {UNIT_RADIUS} from '../dist/solo-game.js';
 import {earFor} from '../../../maps/mount-dora/art/tools/pier-joints.mjs';
 import {onPierDeck} from '../../../maps/mount-dora/art/tools/boathouse.mjs';
-import {createMountDoraArt,loadMountDoraAtlas,trellisBoxes} from '../dist/mission-art/mount-dora/kit.js';
+import {createMountDoraArt,loadMountDoraAtlas,trellisBoxes,ridgeDirection} from '../dist/mission-art/mount-dora/kit.js';
 import {TRELLIS_BEAMS} from '../dist/aft/tactics/bridge-trellis.js';
 import {TownEnvironment} from '../dist/mount-dora-view.js';
 const base=new URL('../dist/mission-art/mount-dora/',import.meta.url),raw=fs.readFileSync(new URL('../../../maps/mount-dora/features.json',import.meta.url)),features=JSON.parse(raw).features;
@@ -364,6 +364,7 @@ test('the retained Nautilus railway files are the ones SOURCE.json records',()=>
  }
 });
 const waterRoofsBytes=fs.readFileSync(new URL('../../../maps/mount-dora/reference/lidar/water-roofs.json',import.meta.url)),waterRoofs=JSON.parse(waterRoofsBytes),boathouses=PLACEMENTS.filter(p=>p.kind==='boathouse');
+const pointIn=(q,ring)=>{let yes=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const a=ring[i],b=ring[j];if((a[1]>q[1])!==(b[1]>q[1])&&q[0]<(b[0]-a[0])*(q[1]-a[1])/(b[1]-a[1])+a[0])yes=!yes;}return yes;};
 const insetCorners=points=>{const ring=points.slice(0,4),c=[ring.reduce((n,q)=>n+q[0],0)/4,ring.reduce((n,q)=>n+q[1],0)/4];return ring.map(q=>{const d=Math.hypot(c[0]-q[0],c[1]-q[1]);return [q[0]+(c[0]-q[0])*.2/d,q[1]+(c[1]-q[1])*.2/d];});};
 const onAnyDeck=q=>PLACEMENTS.some(o=>o.kind==='pier'&&deckCovers(q,o,.15));
 test('each lidar water roof is one open boathouse with its own pieces, eaves and forms',()=>{
@@ -374,21 +375,45 @@ test('each lidar water roof is one open boathouse with its own pieces, eaves and
   assert.equal(p.pieces.length,roof.pieces.length);
   for(const [i,source]of roof.pieces.entries()){
    const piece=p.pieces[i],confident=['gable','hip','flat'].includes(source.form)&&source.confidence>=.7;
-   assert.deepEqual(piece.points,source.outline);assert.equal(piece.eave,source.eaveM);
+   assert.deepEqual(piece.points,source.outline);assert.equal(piece.eave,source.eaveM);assert.equal(piece.lakeShare,source.lakeShare);
    assert.equal(piece.style,confident?source.form:'flat',roof.id);
-   if(piece.style==='flat'){assert.equal(piece.pitch,0);assert.equal(piece.axis,undefined);}
-   else{assert.equal(piece.pitch,Math.max(12,Math.min(40,Math.round(source.pitchDeg))));assert.ok(['x','y'].includes(piece.axis));}
+   if(piece.style==='flat'){assert.equal(piece.pitch,0);assert.equal(piece.ridgeBearingDeg,undefined);}
+   else{assert.equal(piece.pitch,Math.max(12,Math.min(40,Math.round(source.pitchDeg))));assert.equal(piece.ridgeBearingDeg,source.ridgeBearingDeg);}
    for(const [x,y]of piece.points)assert.ok(x>=p.bounds[0]&&x<=p.bounds[2]&&y>=p.bounds[1]&&y<=p.bounds[3],roof.id);
   }
   assert.equal(p.collisionPolicy,'additional-solids');assert.deepEqual(p.replacesSourceIds,[]);
   assert.deepEqual(p.solids,p.posts.map(([x,y])=>({kind:'circle',centre:[x,y],radius:.15})));
   assert.equal(p.provenance.walls,'unknown; drawn open');assert.match(p.provenance.source,/water-roofs\.json.*2018-12-06/);assert.deepEqual(p.provenance.sourceRefs,['usgs-3dep-2018']);
+  assert.match(p.provenance.ground,/lakeShare/);assert.doesNotMatch(JSON.stringify(p.provenance),/on the water/);
  }
- // A gable's ridge follows the lidar's: the marina's slip rows (the gables of the two
- // roofs at x 490-590, y 950-1010) run north-south, across their outlines' first side,
- // which runs east-west.
- const rows=boathouses.filter(p=>p.anchor[0]>490&&p.anchor[0]<590&&p.anchor[1]>950&&p.anchor[1]<1010).flatMap(p=>p.pieces).filter(q=>q.style==='gable');
- assert.ok(rows.length>=4);for(const q of rows){assert.equal(q.points[1][1],q.points[0][1]);assert.equal(q.axis,'y');}
+});
+test('the game draws each boathouse piece over the ground its lake share says',()=>{
+ // The game paints Lake Dora's OSM outline as water (decks over it as bridge); a piece's
+ // lakeShare is its share inside that outline. Where the lidar's water runs past the outline
+ // the game draws land, and the piece records it.
+ let land=0;
+ for(const p of boathouses)for(const q of p.pieces){
+  const xs=q.points.map(v=>v[0]),ys=q.points.map(v=>v[1]);let cells=0,water=0;
+  for(let y=Math.floor(Math.min(...ys));y<=Math.max(...ys);y++)for(let x=Math.floor(Math.min(...xs));x<=Math.max(...xs);x++){
+   if(!pointIn([x+.5,y+.5],q.points))continue;cells++;water+=['water','bridge'].includes(tileAt(x,y));}
+  if(cells>=4)assert.ok(Math.abs(water/cells-q.lakeShare)<=.2,`${p.id}: game water ${(water/cells).toFixed(2)} vs lakeShare ${q.lakeShare}`);
+  land+=q.lakeShare<.5;}
+ assert.ok(land>=3,'some pieces stand where the game draws land');
+});
+test('each pitched roof ridge follows the lidar bearing, however its outline starts',()=>{
+ const along=(d,b)=>{const t=b*Math.PI/180;return Math.abs(d[0]*Math.sin(t)-d[1]*Math.cos(t));};
+ const pitched=boathouses.flatMap(p=>p.pieces.filter(q=>q.style!=='flat').map(q=>[p,q]));assert.ok(pitched.length>=7);
+ for(const [p,q]of pitched){const ring=q.points.slice(0,4);
+  for(let k=0;k<4;k++){const r=[...ring.slice(k),...ring.slice(0,k)];assert.ok(along(ridgeDirection([...r,r[0]],q.ridgeBearingDeg),q.ridgeBearingDeg)>.99,`${p.id} start ${k}`);}}
+ // And as drawn: the top of each pitched piece's roof surface runs along the bearing.
+ const kit=createMountDoraArt({THREE:T,atlas:new T.Texture()});
+ for(const [p,q]of pitched){kit.updateResident(p.bounds);const g=kit.root.getObjectByName(p.id),mesh=g.children.find(m=>m.isMesh&&m.material.name==='md:blue-metal:1,1,1:true:silver'),a=mesh.geometry.attributes.position,pts=[];
+  for(let i=0;i<a.count;i++){const x=a.getX(i)+p.anchor[0],z=a.getZ(i)+p.anchor[1];if(pointIn([x,z],q.points))pts.push([x,a.getY(i),z]);}
+  const top=Math.max(...pts.map(v=>v[1])),ridge=pts.filter(v=>v[1]>top-.02),mx=ridge.reduce((s,v)=>s+v[0],0)/ridge.length,mz=ridge.reduce((s,v)=>s+v[2],0)/ridge.length;
+  let xx=0,zz=0,xz=0;for(const v of ridge){xx+=(v[0]-mx)**2;zz+=(v[2]-mz)**2;xz+=(v[0]-mx)*(v[2]-mz);}
+  const angle=Math.atan2(2*xz,xx-zz)/2,spread=Math.hypot(xx-zz,2*xz)/(xx+zz||1);
+  assert.ok(spread>.9&&along([Math.cos(angle),Math.sin(angle)],q.ridgeBearingDeg)>.99,`${p.id}: drawn ridge ${(angle*180/Math.PI).toFixed(1)} deg from east, lidar bearing ${q.ridgeBearingDeg}`);}
+ kit.dispose();
 });
 test('the builder places posts by the deck rule the game walks on',()=>{
  // boathouse.mjs onPierDeck must answer as manifest.js deckCovers does, run-ons included,

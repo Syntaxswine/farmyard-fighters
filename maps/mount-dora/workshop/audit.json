@@ -7,7 +7,7 @@
   },
   "sourceMode": "project",
   "projectId": "mount-dora-downtown",
-  "projectSha256": "94870c99e829298d83d080eeab3bcaf1e3942643c4612f9ae8ee20fa55774474",
+  "projectSha256": "09f2aaaa38c16cbc62fa4983c95c7d3d5f7f0279ca9c18c5350d6d0e79c3aca4",
   "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
   "sectorCount": 42,
   "expectedSectorCount": 42,
@@ -17,8 +17,8 @@
     {
       "id": "A01",
       "file": "sectors/A01.map.json",
-      "sha256": "ee9c0a7f2dba764d3b44785cc7a7c931f70c1bac545d79cd14daa17223462d10",
-      "bytes": 1161057,
+      "sha256": "3d0575f5115e91be9e270e13b4449c17e0ff730fcac2a8b56b6140e3a7f0b575",
+      "bytes": 1161056,
       "levels": 5,
       "nativeReady": true,
       "errors": [],
@@ -48,13 +48,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "7461ad5ea9230df94547d7225b960f74986410190ba26d5e84f0a9e13726fe6b"
+      "normalizedSha256": "21ce2ae828efde52b025aa1fa74383510e5d30cd4484daaf12ff42e18a576b9f"
     },
     {
       "id": "B01",
       "file": "sectors/B01.map.json",
-      "sha256": "4207795ce36ced292a6ea9744a93e3cfc8d8fe68adde93b660da4b1303133877",
-      "bytes": 1153644,
+      "sha256": "3a7bc9ec28fce2f622123037958ba69370ad7925a6c738bb718243aae53d727e",
+      "bytes": 1153550,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -81,13 +81,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "da08fa818f8a1e7a3caf01607b7a0e281d3d57bfb3b8990f4cd41c201f37e692"
+      "normalizedSha256": "6274d25d9c7babae53623b197c4e94a6f069b5e92390306c5fd368ebc405cbcf"
     },
     {
       "id": "C01",
       "file": "sectors/C01.map.json",
-      "sha256": "18a0eb4d3a6a37492d197f46d87e5cb63f3de1f829f72fe190feb5d646bfac6c",
-      "bytes": 1096421,
+      "sha256": "5e0c64c89eb4152e87582345c5c73c043863c6db93d014d00f3ffad01e4755a5",
+      "bytes": 1097047,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -117,13 +117,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "84006b660119f186f0468d70780f483885120dbe558072a1207e833fb1319229"
+      "normalizedSha256": "f207e62a717dff0c1a46a2c38e60ed72e1a26a8103c43737bc29eaafaa8bbf75"
     },
     {
       "id": "D01",
       "file": "sectors/D01.map.json",
-      "sha256": "5a919412ad9f427e95a4ee68995b54724ff2bfdd91b273a8c27167467c31d3e2",
-      "bytes": 1078235,
+      "sha256": "fa63839ab87084fcb6a3672e1c73c8c425599368bfc9f49e49f93f38a383b791",
+      "bytes": 1078768,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -150,13 +150,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "77e839bbf02b3c1831a9abe7acdf85ad83d68ee0a246d00c69ddb70ea298662c"
+      "normalizedSha256": "e2c18db1300009cbff0fcc032c0299705bb9d7828393f65926fdcbe112c2291b"
     },
     {
       "id": "E01",
       "file": "sectors/E01.map.json",
-      "sha256": "d6351bc1f548f9785d30c50890c9bd56ade2d7a671843dc42ee42e1e7c7147c9",
-      "bytes": 1049945,
+      "sha256": "9540159e05c5b31804b3a93dfcdd616ca1585a4bf43cf792cc921c80eb5c2219",
+      "bytes": 1050830,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -186,13 +186,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "71bf0f1a8e2264a494d2a301cd4606620fc879fedfcc6cd571b4df947998078d"
+      "normalizedSha256": "b12b91722506198d40df9093790f322477f95708d72b14dacfcf2cff0ef8b234"
     },
     {
       "id": "F01",
       "file": "sectors/F01.map.json",
-      "sha256": "d8104fadc22931993bb39c3053b18f39b35060bbea77ade35a2acbbf843e5aba",
-      "bytes": 1035777,
+      "sha256": "75618bd8e7da419d55d725a224d259bbf355b49308775e1aa76db8cd0b81d18f",
+      "bytes": 1036269,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -219,13 +219,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "6a195978adfde890fc2164a6400d6739ce97cfef0a7b40cf81488a907c647328"
+      "normalizedSha256": "243424deb3fbeeafcf14a6f9fbb09c348eedf07136e47ac6505679b71e968683"
     },
     {
       "id": "A02",
       "file": "sectors/A02.map.json",
-      "sha256": "b138e5dbbe79cfc4f281aa434ebd28ba461735105bc9b03f4860325856160559",
-      "bytes": 1249090,
+      "sha256": "8b6f47658316b16f05a9a139e7811f3997158b14d5384ce156b5b41e39295543",
+      "bytes": 1248808,
       "levels": 6,
       "nativeReady": true,
       "errors": [],
@@ -252,13 +252,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "65e26f060d1ad4ed172026d57a6e70e8dcb5c117534f8ef2d2f8c098c58b67d0"
+      "normalizedSha256": "7178ffd97c2849726211857b6ee1edc0b218d1f60d8b5a30415e41a97d4562b3"
     },
     {
       "id": "B02",
       "file": "sectors/B02.map.json",
-      "sha256": "16c581378d0fa74bc66547685b676708defbf51c3c9cea71807e1ae470b8c96b",
-      "bytes": 1153521,
+      "sha256": "1c637a97b430e2c1586f910831cc8a94da5d87094de0b72ed9fed772ee7a2710",
+      "bytes": 1153812,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -286,13 +286,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "8303f34cb1204b741188893fd11741eea66f2811ca060e2966a77c84fbb2fc7a"
+      "normalizedSha256": "bc3e282810608d8cdbb908495afd93b3da5dc29ba4b5d90e95fce4f3099d2adc"
     },
     {
       "id": "C02",
       "file": "sectors/C02.map.json",
-      "sha256": "364cb0e5f215101d7d5e9d2ab26ee9a4a70c60ef9e2442f8e149bd1c9676b27f",
-      "bytes": 1093946,
+      "sha256": "c5787720bf3ab1ba3e7686176dec24c0ed62f19518dbcbbcb144603dfb8988e5",
+      "bytes": 1095212,
       "levels": 5,
       "nativeReady": true,
       "errors": [],
@@ -322,13 +322,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "d127becb54b598af504ff4b2c34946c935916a85c979994b4ced155487b94c4b"
+      "normalizedSha256": "97f4f5d922a116232c8093ce5daec67f5c2d046532a6f5d34ebb0ce603f49ac0"
     },
     {
       "id": "D02",
       "file": "sectors/D02.map.json",
-      "sha256": "f329ee635fa3b6ff98b944b4a9dd8df2a6f615dbdcda0b913c32a1a55b17df81",
-      "bytes": 1053023,
+      "sha256": "bcf26ac73f2b30fec18055e043d916cc470ee52ebea69d8b7516f67d276da10e",
+      "bytes": 1053145,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -355,13 +355,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "e22d6c9c717adf978cfa5d31cce40d78c70cb63dabf7b978069a103e14f78b77"
+      "normalizedSha256": "14e285012164ebaf2b64ea3a62f35f57d3e5058c37816588d63a56dbc7560d8c"
     },
     {
       "id": "E02",
       "file": "sectors/E02.map.json",
-      "sha256": "0411e499d9e892a00c524ed398c42e25b3dbc5c12ff48ca2eb9363d080ccda41",
-      "bytes": 1251177,
+      "sha256": "2f6082cd7034adeeaa80ce5fd5adb9b6c1a09c612145e3234bb0c3b909b12cd8",
+      "bytes": 1251395,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -388,13 +388,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "768eeb3aaa17bf5a314249068172445188ddef5fcadd02acafa0113ee51dc977"
+      "normalizedSha256": "c82b2a5555cd9d2cff5c2684d3790116b92bc44874877a36cd3ef08817a0cfef"
     },
     {
       "id": "F02",
       "file": "sectors/F02.map.json",
-      "sha256": "e76115d0ba19127faacd1db50a38cfd014cec5904f92b9e08c40e7a32ef2ba82",
-      "bytes": 1156947,
+      "sha256": "18f0f3d2813294d5bab5b1b175ff0eee2a175aa4a18644072b2b971c7f4c4b8d",
+      "bytes": 1156052,
       "levels": 4,
       "nativeReady": true,
       "errors": [],
@@ -421,13 +421,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "15b47c4b5b0ed6bbc990c7bcd6ad019a14942d95fbf00690cfa63e697c7fcd99"
+      "normalizedSha256": "0eda8def50afbf05b3305ba78d72b476d38c8343a7404b9719b99a1260de7716"
     },
     {
       "id": "A03",
       "file": "sectors/A03.map.json",
-      "sha256": "dcfa7837fa61f39faa58c29d95d3a03163f746190592863f9dba070a1a9b2fa4",
-      "bytes": 763067,
+      "sha256": "02a3f345074c710871c68069b2dc0898d7b6d4e69a1b7c558d3ceaea4a3aee13",
+      "bytes": 763392,
       "levels": 4,
       "nativeReady": true,
       "errors": [],
@@ -457,13 +457,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "2e74330dc776d6ee44b4d7d497664c42d275ecf6fa27ac7a0a4165b1f82801d3"
+      "normalizedSha256": "d1cba254ed149d9ad53515d25bd5e6f62cfc5045e552e88adad13891e0b25fa3"
     },
     {
       "id": "B03",
       "file": "sectors/B03.map.json",
-      "sha256": "72ea26f115b64936b65906f4b439610669e5aca10238b659f45b4fd4fb34f712",
-      "bytes": 1290305,
+      "sha256": "d833e47343c4d4ce26791fe8634d02c8b7b34f24ea1229f8ed39e27e8d527f74",
+      "bytes": 1290952,
       "levels": 4,
       "nativeReady": true,
       "errors": [],
@@ -490,13 +490,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "f42405704f98a4e5e83896218ac03cbdca3ef199cc2782efdb8e3c2ce20c35d9"
+      "normalizedSha256": "cba43bc74b786835c13922e94522f547ec31b20820ea24280ee135792dc82f4f"
     },
     {
       "id": "C03",
       "file": "sectors/C03.map.json",
-      "sha256": "64ebaacbfe54e5aef22c132c9653d4ecbe7e1a0c739117e5f64a416caf9f8869",
-      "bytes": 1191225,
+      "sha256": "a15a0b8a34cf9a1f7bc37624172c4705c8564a7770c1ddef09d2468c8e759025",
+      "bytes": 1191963,
       "levels": 5,
       "nativeReady": true,
       "errors": [],
@@ -523,13 +523,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "36543c7e1e61e6f3f6e64e34bb2c7ddfb995815ff63dff31d19f8690c7234c1a"
+      "normalizedSha256": "839a9ff1075397b504b74f07d494f2f50d53ecfa62f83200fc91397e8a4f7a63"
     },
     {
       "id": "D03",
       "file": "sectors/D03.map.json",
-      "sha256": "15f5691a6d0a3aa80f5ae68c17d4e73063537504ecc3d89cb4a0e56d2ca712ff",
-      "bytes": 1075501,
+      "sha256": "02c9948bfaf4fd389548eac3372e5ca535deebcf21d33c478817857f0eb4f82e",
+      "bytes": 1075967,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -557,13 +557,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "743f2c4151b00760b82267a526f5ae3b9335a17293faac4430b33cb54a380b39"
+      "normalizedSha256": "080ab3eeeac4156e2ec931cbaea4f7aef2e608268e4934503548ae7a2d370868"
     },
     {
       "id": "E03",
       "file": "sectors/E03.map.json",
-      "sha256": "bca674be75e9e98efe7f89561ae8d8c0cc88ddb7722cb4c2051e00f94a8a6349",
-      "bytes": 1098792,
+      "sha256": "35794e0551255b664e55a553977abba45fb5cde9c28e3c2abb7eb21e72eeb2d9",
+      "bytes": 1099220,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -593,13 +593,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "c555f2152e5e0685e49311000040ebd3512f33b5008e170e4dd203f49cfa4c67"
+      "normalizedSha256": "779f0c12e00444b42012699f55dde79502bd78e65353e888094b96d7b20067d7"
     },
     {
       "id": "F03",
       "file": "sectors/F03.map.json",
-      "sha256": "7378ba9d7fdb0cfcf22596541897994c84f034b19c7aa5ebe65f7ccc74e03fc7",
-      "bytes": 1099074,
+      "sha256": "56eadab265e353e88102c87b05bd9062bcb9035dac0d5ba76018e36891b0a24c",
+      "bytes": 1098567,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -629,13 +629,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "5661035194e59cfa92acc78106ccea155d7d78232f1a5eb85b83509e3f48e7ac"
+      "normalizedSha256": "4add04fb2be3d84900936b8eff9afbb9dec934ae4dd7f59e0fa9f3628e65af10"
     },
     {
       "id": "A04",
       "file": "sectors/A04.map.json",
-      "sha256": "eeb800534bc10df14ff4ba259f62af21fec1f9b268390194c33355346660c99e",
-      "bytes": 493015,
+      "sha256": "83a746506a921f86ac9a671eb71b85ffb684fb05bfa876f62e266f391736a917",
+      "bytes": 493055,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -662,13 +662,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "d1c685e70d1a27cc3d82fae409425ad1b897770c261801a9ccc9fae74d7d5af5"
+      "normalizedSha256": "ef1641325ff8a9a18ec200a09d11bc4b2812074a4c8aa4f97eff80001878e1d2"
     },
     {
       "id": "B04",
       "file": "sectors/B04.map.json",
-      "sha256": "7a424500f937a8b716a4428ead1058ca89bf11d9f39f2e376ebf3b9b9e9071bd",
-      "bytes": 1460240,
+      "sha256": "ece18da68954dd1ea6296602570cc8d13195245c698994d7892a57b01e7d962d",
+      "bytes": 1460145,
       "levels": 4,
       "nativeReady": true,
       "errors": [],
@@ -695,13 +695,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "f0f5031748e647952062cbb3d423cd8e9de95dcbebf75a97a7413d1f635e4b76"
+      "normalizedSha256": "c2767907cf12822ff383dbc5dc2072c342fda41eca06c2850952d8eff40dfc16"
     },
     {
       "id": "C04",
       "file": "sectors/C04.map.json",
-      "sha256": "57e1ae116e2a6f5a6dddb8889f2e4d96cca7ff339e5211b67b826ca6e102bd2f",
-      "bytes": 1146297,
+      "sha256": "458666db34c34e2f1964276f758eeffe208bc6b7793d8fa373469d9b3ec7260c",
+      "bytes": 1146078,
       "levels": 5,
       "nativeReady": true,
       "errors": [],
@@ -728,13 +728,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "3facabafa4188a0acccc9dc1ec0f27a9a75008b4f33d646f57659e34287f0493"
+      "normalizedSha256": "c5a51c3623259a7e8e09da96f3c8d1db67b9d94a956e6375c426318006d7f3a9"
     },
     {
       "id": "D04",
       "file": "sectors/D04.map.json",
-      "sha256": "af67003adba34a0919b5284ce263c043e8decab053025253f819c1a3555cd109",
-      "bytes": 1171847,
+      "sha256": "a6094890517927551a843b58a398d04f8ed4d468a71cbb41af55585206a0ad23",
+      "bytes": 1171251,
       "levels": 5,
       "nativeReady": true,
       "errors": [],
@@ -761,13 +761,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "3456198fcd159b700abca2e906dfa7aed74d65f78a50a9746a95ad299f6fe4e0"
+      "normalizedSha256": "34943b5fd5ab80bd8f907aef519da52f496adf34e2c6ba751f8fe3ccdf442ce7"
     },
     {
       "id": "E04",
       "file": "sectors/E04.map.json",
-      "sha256": "94c6b08d85561d22749a93c1aec05db59416365d9b493d715cddd8b5c1620684",
-      "bytes": 1077482,
+      "sha256": "4c07a3514d72ef2f3de7289d979efe3bd07a356af304de0e4cc44fa11f26b821",
+      "bytes": 1077620,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -795,13 +795,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "d631930d1a8d4cec949aa52c6fba0067205a8854b02350474fef195dc8102eec"
+      "normalizedSha256": "0c293996e7257604ebcbf58612b05b658c4aa86af7924adf92f7b6e535d29e5f"
     },
     {
       "id": "F04",
       "file": "sectors/F04.map.json",
-      "sha256": "009942194fee972f543d20ab3cce94666abc206aa9d45686a0bb45411cd437b4",
-      "bytes": 1068921,
+      "sha256": "22e1f4edf3fa6c3510443d3d2c7b75a30a551773a261516ad989617bae0563c0",
+      "bytes": 1068914,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -828,7 +828,7 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "f0651aa85880e9cffef798c244e16d10c37b34163096a04a830ee076dc91318c"
+      "normalizedSha256": "cbc1a93b006110b2b557b972a9328e4749163fec9711002cf3622a8888a3b3f4"
     },
     {
       "id": "A05",
@@ -849,8 +849,8 @@
     {
       "id": "B05",
       "file": "sectors/B05.map.json",
-      "sha256": "5676cfe4ceec203f0464d8efb8346cf2d321fa2929c175eed20991509b4b4b09",
-      "bytes": 688205,
+      "sha256": "99be8e27e0ec60f00f48689e3c1fec797e6ec6fdfea8bb98be6c2de845931d77",
+      "bytes": 688221,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -877,13 +877,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "4b00d1a273d42587be757aff33c8204c6c878d90ea53947efb462f9732d1446d"
+      "normalizedSha256": "c7527ddfd74cec205e931fa42916fb9dbb48f4840fcd3587af8ad1b6a3dd58cd"
     },
     {
       "id": "C05",
       "file": "sectors/C05.map.json",
-      "sha256": "58b871ca6d41cdc9fa361322e37054c0eb8b74359935d6f99a860e13facd7ad8",
-      "bytes": 859476,
+      "sha256": "9a0621de93d8ca8dbc6670253356093216d49066ba8411077f697d9fc2350b48",
+      "bytes": 859500,
       "levels": 5,
       "nativeReady": true,
       "errors": [],
@@ -910,12 +910,12 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "73f05785222fe94f8964816fad60181d13fbdb73689ed258cada50768650d877"
+      "normalizedSha256": "768373fed70dacd56ccdcd268d081500cd26cbcc68cd43604cfb6e2f591d9707"
     },
     {
       "id": "D05",
       "file": "sectors/D05.map.json",
-      "sha256": "eac7fbaf76c21408b7ccd4413b93e965cd8f40d3ccf40741b65ec2ba4e1396ae",
+      "sha256": "a2b4e42a22bbed2626ff065ddabac2992a9b387f9553f0b3d68229476d042fc2",
       "bytes": 1126548,
       "levels": 4,
       "nativeReady": true,
@@ -943,13 +943,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "aa0461b485e8e17d9ea089f50e29288822a87e37b85d45262f7c76c2718658a1"
+      "normalizedSha256": "3a7afbb982c32c954b7b13a8aa6f2df6aab8931607981c75cde936a12c99df32"
     },
     {
       "id": "E05",
       "file": "sectors/E05.map.json",
-      "sha256": "d390779c50c7da5c1d9868aba675ff623abf044fb78fd075fd0c8a67a46404dd",
-      "bytes": 1119783,
+      "sha256": "fa89907439c8155b42bbc5a10ec2292ef586b35802e1795fa59d8fe106671220",
+      "bytes": 1119194,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -976,13 +976,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "ea48a33532e717b0643f3d9ab0bd0c26392f8a9c5ade9d38bb3c6c1afbb6e52b"
+      "normalizedSha256": "dd979656e1548976c3c1af990eb2c897dc99b8535b62c5a8eafed5329d9c284f"
     },
     {
       "id": "F05",
       "file": "sectors/F05.map.json",
-      "sha256": "81f3883cad3b45f4bbebaf9abcaef4ad12b84adc3df307da07690ed28baf3a2b",
-      "bytes": 1117749,
+      "sha256": "1b2c45cb463c8c254cb34f2321df010414d68f32d88e0929f8d5c5da0329e9ef",
+      "bytes": 1117470,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1009,7 +1009,7 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "80b31c0ce372fbfd378771371b2f552fcbcba4f6a0cde9f2a795ca9b2a032d54"
+      "normalizedSha256": "cfd4123e838017025e8ff68847058b64414d1274c1deea3ec15a35b189c9bd9d"
     },
     {
       "id": "A06",
@@ -1030,8 +1030,8 @@
     {
       "id": "B06",
       "file": "sectors/B06.map.json",
-      "sha256": "31e22b5343e50666fc7150223be2a1aba0b5cfa602a526e7ad4b1640c570029d",
-      "bytes": 684946,
+      "sha256": "ef0543c696f77bba6f286a2d3f438f3f6a64d6f352ac4c08ebc824bdf5632079",
+      "bytes": 684962,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1058,13 +1058,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "fb3a5263d9bf9d703cc641ab2eba72d0534184582588de83b7f25465f661429d"
+      "normalizedSha256": "633bc35cd354a1a98e19e3b0635c718866f9cc1be9fba94e16f455be51e454f3"
     },
     {
       "id": "C06",
       "file": "sectors/C06.map.json",
-      "sha256": "b5835d85cd14b1857738ec1e5f255d77f28a23fabb46709e900437827bdd3a8b",
-      "bytes": 977045,
+      "sha256": "7e645b91a04dde80b087c65280e7a981ecf41a90a3ef1270b98a14bac7fe3cde",
+      "bytes": 977077,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1091,13 +1091,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "f50424c3ceba51acd789c7ecdfae29c9a0f1ceaadcff85bb14ef1392d3cb934d"
+      "normalizedSha256": "9972caa64aaca88d02ea394aa29375200a4197cd6171c7477c53662e69067354"
     },
     {
       "id": "D06",
       "file": "sectors/D06.map.json",
-      "sha256": "02707b0bde4a19e9e9027cf4870a5c760b0f1736502302059f6254a05beeaedf",
-      "bytes": 1123976,
+      "sha256": "ac34e36ea6df30ab398843135ff51e12c085bf5c3fcfe81bcf04d29473a9060f",
+      "bytes": 1123574,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1124,13 +1124,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "1f2657f57107203f6b6e44a5cca09a27092d5652983f87ca4ca62a57d6b28daf"
+      "normalizedSha256": "c51adf526d0491aeced1aca686d47324e3fd8335d9727a8d233d0f99e642666e"
     },
     {
       "id": "E06",
       "file": "sectors/E06.map.json",
-      "sha256": "44a6d6e323bb656eb22763559319722543a66b1498eba855d93480a6f5b0f27b",
-      "bytes": 1094318,
+      "sha256": "6b4364a418aefa9771c16f7721aa91c2f11a6ca93fef2885ffaeccc4f08eccfe",
+      "bytes": 1094337,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1157,13 +1157,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "295672f48e8f036a06494e663dd4bc5287845c8ee13c5c825fb6761ce05dd8a9"
+      "normalizedSha256": "c100b9478af172ebb37eedb88f664b20a980ac1fe1bcf720a16d5486761b194d"
     },
     {
       "id": "F06",
       "file": "sectors/F06.map.json",
-      "sha256": "c293591251c5aac551069d3eb35730653045acba1aa7f21ff59112c54d9c63cd",
-      "bytes": 1071303,
+      "sha256": "53a1c9aade8e7acc81194b407e208f4223cc8a2c125539d8b17b1be45a55c0b7",
+      "bytes": 1070888,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1190,7 +1190,7 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "f6ef15d2d0b91733a76c79ea485bb15fe8539337e9ea5a8b52ab0a222e2f4bbc"
+      "normalizedSha256": "a6bbabd93975bfc14681d10e779fc3644cc92188b964d9b04e83d81dc26954f7"
     },
     {
       "id": "A07",
@@ -1211,8 +1211,8 @@
     {
       "id": "B07",
       "file": "sectors/B07.map.json",
-      "sha256": "a4857956d1034ce1fa64e71ff4ed5b90c8376b432a0134206dcf1d0efef93216",
-      "bytes": 1243596,
+      "sha256": "8e8beba69352c62ac298e0f9766e2e51478d4151c1191ed66162a460dd5c2d9f",
+      "bytes": 1243250,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1239,13 +1239,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "db88f43ea3fba65b35672ea8837413660cd3d7a4e040fd1cdc99889c915ead75"
+      "normalizedSha256": "2c73e89b44b75a31c607ae69b88c062605b08cba446cb3f90d34e1ec834632d2"
     },
     {
       "id": "C07",
       "file": "sectors/C07.map.json",
-      "sha256": "704ee48565e17667e864edb2ae7223793b0c14934111f7eddff028a4e7225557",
-      "bytes": 1465272,
+      "sha256": "5eab2f787e5a1b91079cd091de274d99d1a461bccc9a13a739c1676bb6c3f338",
+      "bytes": 1463962,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1272,13 +1272,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "ea06749f62087a8701bccc156b02ef237816979920c6922081461c505f080e17"
+      "normalizedSha256": "e6472ad7ecb508c03d447deecebf0bf52c7750ddbd31f089372803184527fab4"
     },
     {
       "id": "D07",
       "file": "sectors/D07.map.json",
-      "sha256": "f1f3cb14e6ff7d631526d619a24842e9edbb53bba928411c8861826554da0a1f",
-      "bytes": 1283579,
+      "sha256": "9e3a9511f1db833e6373e3143bea5e92668e408ba5863ea5781f367ae6ca8f2d",
+      "bytes": 1283376,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1305,13 +1305,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "5f2965272313ba4f159776eb242af0f0e94205b2e7f9bf5c4d841bd6dcb0e83b"
+      "normalizedSha256": "387e3c79125bc0d66201df532b5620cb0d5a65a69c783c759f8cd3229b68bd26"
     },
     {
       "id": "E07",
       "file": "sectors/E07.map.json",
-      "sha256": "e034481bc550c6d60907e96083d4695255730e021abc01bcab028604555b3ef2",
-      "bytes": 995751,
+      "sha256": "d7b53f86ac9929cef0b7a1ee0e22c4db39fd4bdacea1505e7ed7fb6b510f81b7",
+      "bytes": 995755,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1338,13 +1338,13 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "a1f05a53d632b4794b653fa12ea3c0f03d77efda7c618ac63947f0e6afe02a15"
+      "normalizedSha256": "544b1d8e92777a54bbe37bf1838326a971ec989b9662df76ddd1488c1ef75712"
     },
     {
       "id": "F07",
       "file": "sectors/F07.map.json",
-      "sha256": "5659cd3edb5b01f466e7f2c88c6d7b00d3ed5b5c53d37092910ed008fde5d179",
-      "bytes": 1051285,
+      "sha256": "9539c927f6a2082ffa2879ba29d2c7d9667f91e0ec40b1014b13c1df7bf2818c",
+      "bytes": 1052049,
       "levels": 3,
       "nativeReady": true,
       "errors": [],
@@ -1371,7 +1371,7 @@
       },
       "history": true,
       "exportReopen": true,
-      "normalizedSha256": "45983828ab7661bfc05eab0cceac2e3ffc65cfe2ac35a30c881e65614e0738c4"
+      "normalizedSha256": "85ccacf685ab8edbd50ccd5b40c3f16bfc261f283d6795f9818ccaaaa4c3d34d"
     }
   ],
   "unexpectedErrors": []

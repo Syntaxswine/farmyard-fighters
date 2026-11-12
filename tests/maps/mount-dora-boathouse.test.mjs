@@ -25,21 +25,13 @@ test('a piece takes the lidar form where it is confident, and is flat otherwise'
   assert.equal(pieceRoof(piece(east, {pitchDeg: null})).pitch, 20);
 });
 
-test('the ridge runs along the first side where the lidar bearing does', () => {
-  const east = rect(0, 0, 10, 4), south = [[0, 0], [0, 10], [4, 10], [4, 0], [0, 0]];
-  // Bearings run clockwise from north; town y runs south.
-  assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 90})).axis, 'x');
-  assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 0})).axis, 'y');
-  assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 179})).axis, 'y');
-  assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 46})).axis, 'x');
-  assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 44})).axis, 'y');
-  assert.equal(pieceRoof(piece(south, {ridgeBearingDeg: 0})).axis, 'x');
-  assert.equal(pieceRoof(piece(south, {ridgeBearingDeg: 90})).axis, 'y');
-  // A first side turned 30 degrees clockwise from east bears 120 degrees.
-  const t = Math.PI / 6, turned = [[0, 0], [10 * Math.cos(t), 10 * Math.sin(t)], [10 * Math.cos(t) - 4 * Math.sin(t), 10 * Math.sin(t) + 4 * Math.cos(t)], [-4 * Math.sin(t), 4 * Math.cos(t)], [0, 0]];
-  assert.equal(pieceRoof(piece(turned, {ridgeBearingDeg: 120})).axis, 'x');
-  assert.equal(pieceRoof(piece(turned, {ridgeBearingDeg: 30})).axis, 'y');
-  assert.equal(pieceRoof(piece(east)).axis, undefined, 'no bearing, no axis: the kit runs the ridge along the longer side');
+test('a pitched piece carries the lidar ridge bearing to the kit; a flat one none', () => {
+  const east = rect(0, 0, 10, 4);
+  assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 78.7})).ridgeBearingDeg, 78.7);
+  assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 0})).ridgeBearingDeg, 0);
+  assert.equal('ridgeBearingDeg' in pieceRoof(piece(east)), false, 'no bearing: the kit runs the ridge along the longer side');
+  assert.equal('ridgeBearingDeg' in pieceRoof(piece(east, {form: 'other', ridgeBearingDeg: 90})), false);
+  assert.equal('ridgeBearingDeg' in pieceRoof(piece(east, {confidence: .5, ridgeBearingDeg: 90})), false);
 });
 
 const near = (a, b, tol = 1e-6) => Math.hypot(a[0] - b[0], a[1] - b[1]) <= tol;
@@ -84,11 +76,16 @@ test('a post on a pier deck slides off it, forward first, or is left off past 3 
   const left = boathousePosts([piece(outline)], wide);
   assert.equal(left.leftOff, 2); assert.equal(left.moved, 0);
   assert.ok(left.posts.every(p => !wide(p)));
-  // A corner post slides along the side it starts: the north-west corner east along the
-  // north side; the south-west one starts the west side, wholly on this deck, so is left off.
+  // A corner post may slide along either side meeting at it: the north-west corner east
+  // along the north side it starts; the south-west one starts the west side, wholly on this
+  // deck, so slides back east along the south side that ends at it.
   const corner = q => q[0] < 1;
   const cornered = boathousePosts([piece(outline)], corner);
-  assert.equal(cornered.moved, 1); assert.equal(cornered.leftOff, 1);
+  assert.equal(cornered.moved, 2); assert.equal(cornered.leftOff, 0);
   assert.ok(cornered.posts.every(p => !corner(p)));
   assert.ok(cornered.posts.some(p => Math.abs(p[0] - 1.09) < .01 && p[1] < 1));
+  assert.ok(cornered.posts.some(p => Math.abs(p[0] - 1.09) < .01 && p[1] > 3));
+  // A middle post never slides past its own side's start.
+  const strip = q => q[0] > 5.05 && q[0] < 6.95 || q[0] < 1;
+  assert.ok(boathousePosts([piece(outline)], strip).posts.every(p => !strip(p)));
 });

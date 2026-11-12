@@ -168,17 +168,19 @@ for(const f of source.features.filter(f=>f.nativeRailway)){
 // a pier deck. Walls and cover are unknown: drawn open on posts, under the metal the
 // county records draw (COVERS.metal), as covered slips commonly are.
 const waterRoofsBytes=fs.readFileSync(path.join(repo,'maps/mount-dora/reference/lidar/water-roofs.json')),waterRoofs=JSON.parse(waterRoofsBytes);
-// On a drawn pier deck (boathouse.mjs onPierDeck), or inside a mapped platform outline.
-const onAnyDeck=(q,margin)=>output.some(p=>p.kind==='pier-deck'?pointInside(q,p.points):p.kind==='pier'&&onPierDeck(q,p,margin));
+// On a drawn pier deck (boathouse.mjs onPierDeck), or within `margin` of a mapped platform outline.
+const fromRing=(q,ring)=>Math.min(...ring.slice(1).map((b,i)=>{const a=ring[i],d=[b[0]-a[0],b[1]-a[1]],t=Math.max(0,Math.min(1,((q[0]-a[0])*d[0]+(q[1]-a[1])*d[1])/(d[0]**2+d[1]**2||1)));return Math.hypot(q[0]-a[0]-d[0]*t,q[1]-a[1]-d[1]*t);}));
+const onAnyDeck=(q,margin)=>output.some(p=>p.kind==='pier-deck'?pointInside(q,p.points)||fromRing(q,p.points)<=margin:p.kind==='pier'&&onPierDeck(q,p,margin));
 for(const roof of waterRoofs.roofs){
  const id='md:water-roof:'+roof.id.replace(/^lidar-water-roof-/,''),points=roof.pieces.flatMap(pc=>pc.outline);
- const pieces=roof.pieces.map(pc=>{const {style,pitch,axis}=pieceRoof(pc),out={points:pc.outline.map(q=>q.map(r)),eave:pc.eaveM,style,pitch,form:pc.form,confidence:pc.confidence};if(axis)out.axis=axis;return out;});
+ const pieces=roof.pieces.map(pc=>{const {style,pitch,ridgeBearingDeg}=pieceRoof(pc),out={points:pc.outline.map(q=>q.map(r)),eave:pc.eaveM,style,pitch,form:pc.form,confidence:pc.confidence,lakeShare:pc.lakeShare};if(ridgeBearingDeg!==undefined)out.ridgeBearingDeg=ridgeBearingDeg;return out;});
  const {posts,moved,leftOff}=boathousePosts(roof.pieces,q=>onAnyDeck(q,BOATHOUSE_POSTS.radiusM),BOATHOUSE_POSTS,r);
  output.push({id,kind:'boathouse',sourceIds:[roof.id],anchor:centre(bound(points)),bounds:expand(bound(points),.3),pieces,posts,
   treatment:{...COVERS.metal,wall:'dark-wood'},seed:hash(id),collisionPolicy:'additional-solids',solids:posts.map(([x,y])=>({kind:'circle',centre:[x,y],radius:BOATHOUSE_POSTS.radiusM})),replacesSourceIds:[],
   provenance:{position:'lidar-water-roof',source:'maps/mount-dora/reference/lidar/water-roofs.json, USGS 3DEP '+waterRoofs.collection.dataset+' flown '+waterRoofs.collection.acquired.join(' to '),
    footprint:'rectangles around the roof\'s own building returns, in the town frame (the outline registration taken out); about a lidar cell (0.5 m) uncertain',
-   height:'eave per piece above the lake\'s lidar level ('+waterRoofs.lakeLevelM+' m); the game stands the posts on the water',
+   height:'eave per piece above the lake\'s lidar level ('+waterRoofs.lakeLevelM+' m); posts stand on the game\'s ground level',
+   ground:'unchanged: the game paints water inside Lake Dora\'s OSM outline (each piece\'s lakeShare) and land where the lidar\'s water runs past that outline',
    roof:'form from the lidar where confident (0.7), flat otherwise; cover unknown, drawn as metal',walls:'unknown; drawn open',posts:'inferred: corners and at most '+BOATHOUSE_POSTS.gapM+' m apart'+(moved?'; '+moved+' moved off a mapped pier deck':'')+(leftOff?'; '+leftOff+' left off one':''),
    notSeen:'Boathouses built or removed since December 2018',sourceRefs:['usgs-3dep-2018']}});
 }

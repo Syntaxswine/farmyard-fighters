@@ -6,27 +6,24 @@
 // A piece takes the lidar's form where that is confident, by the buildings' own rule in
 // build-playable.mjs (0.7), and is flat otherwise; an `other` roof (a shed, or a form the
 // planes do not explain) is drawn flat. A pitched piece's pitch is held to the buildings'
-// 12-40 degrees, and its ridge follows the lidar's bearing.
+// 12-40 degrees, and it carries the lidar's ridge bearing: the kit turns that into its
+// ridge axis in the frame it fits the outline in (kit.js ridgeAxis).
 export const BOATHOUSE_ROOF = Object.freeze({forms: Object.freeze(['gable', 'hip', 'flat']), confidence: .7, pitchDeg: Object.freeze([12, 40]), fallbackPitchDeg: 20});
 
 // Posts are inferred: at a piece's corners, insetM in, and at most gapM apart along each
 // side. Posts within mergeM of each other are one post, standing to the highest eave it
 // serves. A post that would stand on a pier deck slides along its side to the nearest
-// place off the deck (stepM steps, nearer first, forward on a tie), up to slideM; past
-// that it is left off.
+// place off the deck (stepM steps, nearer first, forward on a tie), up to slideM; a corner
+// post may slide back along the side that ends at it. Past slideM it is left off.
 export const BOATHOUSE_POSTS = Object.freeze({gapM: 6, radiusM: .15, insetM: .2, mergeM: 1, slideM: 3, stepM: .1});
 
-// The roof the kit draws for one piece: roof-core's `style`, its `pitch`, and `axis`
-// ('x' runs the ridge along the outline's first side, as the kit fits the outline).
+// The roof the kit draws for one piece: roof-core's `style`, its `pitch`, and the lidar's
+// `ridgeBearingDeg` where the piece is pitched and the lidar found a ridge.
 export function pieceRoof(piece, rules = BOATHOUSE_ROOF) {
   const style = rules.forms.includes(piece.form) && piece.confidence >= rules.confidence ? piece.form : 'flat';
   if (style === 'flat') return {style, pitch: 0};
   const [lo, hi] = rules.pitchDeg, roof = {style, pitch: Math.max(lo, Math.min(hi, Math.round(piece.pitchDeg ?? rules.fallbackPitchDeg)))};
-  if (Number.isFinite(piece.ridgeBearingDeg)) {
-    // Bearings run clockwise from north and town y runs south: a bearing b points (sin b, -cos b).
-    const [a, b] = piece.outline, e = [b[0] - a[0], b[1] - a[1]], t = piece.ridgeBearingDeg * Math.PI / 180;
-    roof.axis = Math.abs((e[0] * Math.sin(t) - e[1] * Math.cos(t)) / Math.hypot(...e)) >= Math.SQRT1_2 ? 'x' : 'y';
-  }
+  if (Number.isFinite(piece.ridgeBearingDeg)) roof.ridgeBearingDeg = piece.ridgeBearingDeg;
   return roof;
 }
 
@@ -50,15 +47,20 @@ export function boathousePosts(pieces, onDeck, rules = BOATHOUSE_POSTS, round = 
     const ring = piece.outline.slice(0, 4), c = [ring.reduce((n, q) => n + q[0], 0) / 4, ring.reduce((n, q) => n + q[1], 0) / 4];
     const inset = ring.map(q => { const d = Math.hypot(c[0] - q[0], c[1] - q[1]); return [q[0] + (c[0] - q[0]) * rules.insetM / d, q[1] + (c[1] - q[1]) * rules.insetM / d]; });
     for (let k = 0; k < 4; k++) {
-      const a = inset[k], b = inset[(k + 1) % 4], len = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(len / rules.gapM));
-      const at = t => [round(a[0] + (b[0] - a[0]) * t), round(a[1] + (b[1] - a[1]) * t)];
+      const a = inset[k], b = inset[(k + 1) % 4], before = inset[(k + 3) % 4], len = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(len / rules.gapM));
+      const back = Math.hypot(before[0] - a[0], before[1] - a[1]);
+      // The place `d` metres along this side from its start; behind the start, along the
+      // side before it, for a corner post.
+      const at = d => d >= 0 ? [round(a[0] + (b[0] - a[0]) * d / len), round(a[1] + (b[1] - a[1]) * d / len)]
+        : [round(a[0] + (before[0] - a[0]) * -d / back), round(a[1] + (before[1] - a[1]) * -d / back)];
       for (let i = 0; i < n; i++) {
-        let q = at(i / n);
+        const d0 = len * i / n;
+        let q = at(d0);
         if (onDeck(q)) {
           let free = null;
           for (let step = 1; step * rules.stepM <= rules.slideM + 1e-9 && !free; step++) for (const sign of [1, -1]) {
-            const t = i / n + sign * step * rules.stepM / len;
-            if (t >= 0 && t <= 1 && !onDeck(at(t))) { free = at(t); break; }
+            const d = d0 + sign * step * rules.stepM;
+            if ((d >= 0 || i === 0 && -d <= back) && d <= len && !onDeck(at(d))) { free = at(d); break; }
           }
           if (!free) { leftOff++; continue; }
           q = free; moved++;

@@ -311,7 +311,10 @@ export async function build() {
   const reg = registration(index, houses);
   // Tree crowns over the game extent, found in the lidar's frame and moved into the
   // town (OSM) frame by taking the outline registration out.
-  const crowns = findCrowns(canopyHeights(index, (x, y) => gridZ([x, y]), extent)).map(c => ({...c, top: [c.top[0] - reg.dx, c.top[1] - reg.dy], centre: [c.centre[0] - reg.dx, c.centre[1] - reg.dy]}));
+  // The penetration rule is counted by finding the crowns once more without it.
+  const canopy = canopyHeights(index, (x, y) => gridZ([x, y]), extent);
+  const crowns = findCrowns(canopy).map(c => ({...c, top: [c.top[0] - reg.dx, c.top[1] - reg.dy], centre: [c.centre[0] - reg.dx, c.centre[1] - reg.dy]}));
+  const notFoliage = findCrowns(canopy, {...CROWNS, minMultiShare: 0}).length - crowns.length;
   const analyseAll = (dx, dy) => houses.map(house => {
     const g = shift(house.geometry, reg.dx + dx, reg.dy + dy), a = analyse(index, {...house, centre: [house.centre[0] + reg.dx + dx, house.centre[1] + reg.dy + dy]}, g, gridZ);
     return record(house, a);
@@ -395,7 +398,7 @@ export async function build() {
   // generator's own structures (the mapped shelters among them).
   const drawn = [...houses.map(h => h.geometry), ...placedCounty.buildings.map(b => b.geometry),
     ...(JSON.parse(featuresBytes).authoredStructures ?? []).map(st => (st.geographicGeometry ?? st.geometry).coordinates)];
-  const waterRoofs = findWaterRoofs(index, {lake, drawn, reg, level: t.level, extent});
+  const {roofs: waterRoofs, leftOut: waterLeftOut} = findWaterRoofs(index, {lake, drawn, reg, level: t.level, extent});
   const countyCompared = countyBuildings.filter(b => b.county.suggested.stories && b.lidar.storeysFromLidar);
   const countyDoc = {kind: 'mount-dora-county-buildings', version: 1,
     inputs: {features: featuresPin(featuresBytes), houseReference: {file: 'maps/mount-dora/reference/house-reference.json', sha256: hash(countyBytes), usedFor: 'countyOnly sketches and the records game buildings hold'},
@@ -458,34 +461,38 @@ export async function build() {
       lakeLevelM: r2(t.level), lakeLevelFt: r2(t.level / .3048), lakeWaterReturns: t.waterReturns},
     collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]}};
   const pieces = waterRoofs.flatMap(w => w.pieces);
-  const waterRoofsDoc = {kind: 'mount-dora-lidar-water-roofs', version: 2, inputs: {features: featuresPin(featuresBytes), lidar: roofs.inputs.lidar},
+  const waterRoofsDoc = {kind: 'mount-dora-lidar-water-roofs', version: 3, inputs: {features: featuresPin(featuresBytes), lidar: roofs.inputs.lidar},
     policy: 'Public-domain USGS 3DEP lidar, flown in December 2018. Roofs the lidar sees on Lake Dora where no OpenStreetMap or county outline exists: boathouses and covered slips. The art kit draws each piece as a roof on posts; walls, if any, are unknown.',
     collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]},
     method: {rules: WATER_ROOFS,
       roofs: `Building (class 6) returns, moved into the town frame by the outline registration (${reg.dx}, ${reg.dy}) m and binned in ${WATER_ROOFS.cellM} m cells; cells holding them join eight ways into roofs, over land and water alike. A roof is kept when at least ${WATER_ROOFS.lakeReachM2} m² of it lies in Lake Dora's OSM outline, and at most ${WATER_ROOFS.drawnShareMax * 100}% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.`,
-      outline: `Cells within ${WATER_ROOFS.drawnMarginM} m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of ${WATER_ROOFS.minAreaM2} m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of ${WATER_ROOFS.pieceMinM2} m², ${WATER_ROOFS.pieceMinWidthM} m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where ${WATER_ROOFS.pieceLakeMin * 100}% of it lies in the lake's outline, or where the lidar sees water around it: ${WATER_ROOFS.ringReadMin * 100}% of the cells within ${WATER_ROOFS.ringM} m read as water or ground (no roof over them) and ${WATER_ROOFS.ringWaterMin * 100}% of those read as water (water returns, or none at all); the rest (onLand) are left out.`,
+      outline: `Cells within ${WATER_ROOFS.drawnMarginM} m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of ${WATER_ROOFS.minAreaM2} m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of ${WATER_ROOFS.pieceMinM2} m², ${WATER_ROOFS.pieceMinWidthM} m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where ${WATER_ROOFS.pieceLakeMin * 100}% of it lies in the lake's outline, or where the lidar sees water around it: ${WATER_ROOFS.ringReadMin * 100}% of the cells within ${WATER_ROOFS.ringM} m read as water or ground (no roof over them) and ${WATER_ROOFS.ringWaterMin * 100}% of those read as water (water returns; no return at all; or, with no ground return, returns within ${WATER_ROOFS.lowM} m of the lake's level, a dock or reeds). The rest are left out and listed in leftOut with their measures.`,
       heights: 'Per piece, from its own returns, in metres above the lake\'s lidar level: the eave from the roof planes as in lidar-roofs.json (the 25th percentile where none is found), the ridge at the 98th percentile; form and pitch by the same rules (roofs.mjs).'},
     lakeLevelM: r2(t.level),
     metrics: {roofs: waterRoofs.length, pieces: pieces.length, piecesAreaM2: r1(pieces.reduce((n, p) => n + p.areaM2, 0)), roofsAreaM2: r1(waterRoofs.reduce((n, w) => n + w.areaM2, 0)),
-      leftToOutlinesM2: r1(waterRoofs.reduce((n, w) => n + w.leftToOutlinesM2, 0)), onLandM2: r1(waterRoofs.reduce((n, w) => n + w.onLand.areaM2, 0)), forms: tally(pieces, p => p.form)},
+      leftToOutlinesM2: r1(waterRoofs.reduce((n, w) => n + w.leftToOutlinesM2, 0)), leftOut: waterLeftOut.length, leftOutM2: r1(waterLeftOut.reduce((n, p) => n + p.areaM2, 0)), forms: tally(pieces, p => p.form)},
     roofs: waterRoofs.map((w, i) => ({id: `lidar-water-roof-${i}`, areaM2: r2(w.areaM2), lakeShare: r3(w.lakeShare), drawnShare: r3(w.drawnShare), leftToOutlinesM2: r2(w.leftToOutlinesM2),
       outlinedM2: r2(w.outlinedM2), coverage: r3(w.coverage), onLand: {pieces: w.onLand.pieces, areaM2: r2(w.onLand.areaM2)}, returns: w.returns,
       pieces: w.pieces.map(p => ({outline: p.outline.map(q => q.map(r2)), areaM2: r2(p.areaM2), fill: r3(p.fill), angleDeg: r1(p.angleDeg), eaveM: r2(p.eaveM), ridgeM: r2(p.ridgeM),
-        form: p.form, confidence: r3(p.confidence), pitchDeg: p.pitchDeg === null ? null : r1(p.pitchDeg), ridgeBearingDeg: p.ridgeBearingDeg === null ? null : r1(p.ridgeBearingDeg), returns: p.returns, lakeShare: r3(p.lakeShare), ringRead: r3(p.ringRead), ringWater: r3(p.ringWater)}))}))};
+        form: p.form, confidence: r3(p.confidence), pitchDeg: p.pitchDeg === null ? null : r1(p.pitchDeg), ridgeBearingDeg: p.ridgeBearingDeg === null ? null : r1(p.ridgeBearingDeg), returns: p.returns, lakeShare: r3(p.lakeShare), ringRead: r3(p.ringRead), ringWater: r3(p.ringWater)}))})),
+    leftOut: waterLeftOut.map(p => ({outline: p.outline.map(q => q.map(r2)), areaM2: r2(p.areaM2), reason: p.reason, returns: p.returns,
+      ...(p.lakeShare === undefined ? {} : {lakeShare: r3(p.lakeShare), ringRead: r3(p.ringRead), ringWater: r3(p.ringWater)})}))};
   const sortedOf = list => Float64Array.from(list).sort();
-  const crownHeights = sortedOf(crowns.map(c => c.heightM)), crownWidths = sortedOf(crowns.map(c => c.widthM));
-  const crownsDoc = {kind: 'mount-dora-lidar-crowns', version: 1, inputs: roofs.inputs.lidar,
+  const crownHeights = sortedOf(crowns.map(c => c.heightM)), crownWidths = sortedOf(crowns.map(c => c.widthM)), crownShares = sortedOf(crowns.map(c => c.multiShare));
+  const crownsDoc = {kind: 'mount-dora-lidar-crowns', version: 2, inputs: {lidar: roofs.inputs.lidar, features: featuresPin(featuresBytes)},
     policy: 'Public-domain USGS 3DEP lidar, flown in December 2018. Each crown is a tree the lidar saw. build-mount-dora.py plants one tree in each crown its seeded greenery leaves empty; nothing here edits the sectors or the art kit.',
     collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]},
     method: {rules: CROWNS,
-      canopy: `The highest unclassified (class 1) return over the bare earth in each ${CROWNS.cellM} m cell, where it stands ${CROWNS.tallM} m or more above it and the cell holds no building (class 6) return. This vendor classes no vegetation, so a little overhead wire is among it.`,
+      canopy: `The highest unclassified (class 1) return over the bare earth in each ${CROWNS.cellM} m cell, where it stands ${CROWNS.tallM} m or more above it and the cell holds no building (class 6) return. This vendor classes no vegetation, so wires, poles, signs and roofs it left unclassified are among it.`,
       crowns: `Each canopy cell climbs a 3 x 3 mean of the canopy to the top it reaches. Neighbouring tops are one crown unless the lower stands ${CROWNS.prominenceM} m above the saddle between them, merged highest saddle first and never into a crown over ${CROWNS.maxAreaM2} m². A crown under ${CROWNS.minAreaM2} m² or under ${CROWNS.minWidthM} m across (four standard deviations along its minor axis) is dropped.`,
-      frame: `Town metres in the OSM frame: the lidar position minus the outline registration of lidar-roofs.json (${reg.dx}, ${reg.dy}) m.`},
-    metrics: {crowns: crowns.length, canopyAreaHa: r2(crowns.reduce((s, c) => s + c.areaM2, 0) / 1e4),
+      foliage: `A crown is kept only where at least ${CROWNS.minMultiShare * 100}% of its canopy returns (unclassified, ${CROWNS.tallM} m or more up) came from pulses that returned more than once: foliage lets a pulse through, a wire, pole, sign or solid roof stops it. multiShare records each crown's share; notFoliage counts the crowns the rule drops.`,
+      frame: `Town metres in the OSM frame: the lidar position minus the outline registration of lidar-roofs.json (${reg.dx}, ${reg.dy}) m, which features.json's OSM outlines set.`},
+    metrics: {crowns: crowns.length, notFoliage, canopyAreaHa: r2(crowns.reduce((s, c) => s + c.areaM2, 0) / 1e4),
+      multiShare: {p10: r3(percentile(crownShares, .1)), p50: r3(percentile(crownShares, .5))},
       heightM: {p10: r2(percentile(crownHeights, .1)), p50: r2(percentile(crownHeights, .5)), p90: r2(percentile(crownHeights, .9))},
       widthM: {p10: r2(percentile(crownWidths, .1)), p50: r2(percentile(crownWidths, .5)), p90: r2(percentile(crownWidths, .9))}},
-    columns: ['topX', 'topY', 'centreX', 'centreY', 'areaM2', 'heightM', 'widthM'],
-    crowns: crowns.map(c => [r2(c.top[0]), r2(c.top[1]), r2(c.centre[0]), r2(c.centre[1]), r2(c.areaM2), r2(c.heightM), r2(c.widthM)])};
+    columns: ['topX', 'topY', 'centreX', 'centreY', 'areaM2', 'heightM', 'widthM', 'multiShare'],
+    crowns: crowns.map(c => [r2(c.top[0]), r2(c.top[1]), r2(c.centre[0]), r2(c.centre[1]), r2(c.areaM2), r2(c.heightM), r2(c.widthM), r3(c.multiShare)])};
   return {roofsText: JSON.stringify(roofs, null, 1) + '\n', countyText: JSON.stringify(countyDoc, null, 1) + '\n',
     terrainText: JSON.stringify(terrainDoc, null, 1) + '\n', crownsText: JSON.stringify(crownsDoc) + '\n', waterRoofsText: JSON.stringify(waterRoofsDoc, null, 1) + '\n',
     elevationPng, sourcePng, elevation, kind};

@@ -1,6 +1,6 @@
 {
   "schema": "mount-dora-route-evidence/1",
-  "sourceProjectSHA256": "94870c99e829298d83d080eeab3bcaf1e3942643c4612f9ae8ee20fa55774474",
+  "sourceProjectSHA256": "09f2aaaa38c16cbc62fa4983c95c7d3d5f7f0279ca9c18c5350d6d0e79c3aca4",
   "sourceDigest": "2b742d1768425de6a41a60818a0d2fd3a72b71f1969de94a50ff9041ce216193",
   "coordinateFrame": "town east/south metres; game = town - (0.5,0.5)",
   "bounds": [
@@ -25,7 +25,7 @@
       500.5
     ]
   },
-  "reachableOutdoorCells": 1668722,
+  "reachableOutdoorCells": 1668820,
   "reachedLandSectors": 39,
   "sectors": [
     {
@@ -34,71 +34,71 @@
     },
     {
       "id": "B01",
-      "reachedOutdoorCells": 47885
+      "reachedOutdoorCells": 47887
     },
     {
       "id": "C01",
-      "reachedOutdoorCells": 48282
+      "reachedOutdoorCells": 48286
     },
     {
       "id": "D01",
-      "reachedOutdoorCells": 48839
+      "reachedOutdoorCells": 48845
     },
     {
       "id": "E01",
-      "reachedOutdoorCells": 50024
+      "reachedOutdoorCells": 50027
     },
     {
       "id": "F01",
-      "reachedOutdoorCells": 50778
+      "reachedOutdoorCells": 50783
     },
     {
       "id": "A02",
-      "reachedOutdoorCells": 43073
+      "reachedOutdoorCells": 43075
     },
     {
       "id": "B02",
-      "reachedOutdoorCells": 45845
+      "reachedOutdoorCells": 45847
     },
     {
       "id": "C02",
-      "reachedOutdoorCells": 48823
+      "reachedOutdoorCells": 48824
     },
     {
       "id": "D02",
-      "reachedOutdoorCells": 49990
+      "reachedOutdoorCells": 49997
     },
     {
       "id": "E02",
-      "reachedOutdoorCells": 43034
+      "reachedOutdoorCells": 43037
     },
     {
       "id": "F02",
-      "reachedOutdoorCells": 50275
+      "reachedOutdoorCells": 50281
     },
     {
       "id": "A03",
-      "reachedOutdoorCells": 21430
+      "reachedOutdoorCells": 21431
     },
     {
       "id": "B03",
-      "reachedOutdoorCells": 40458
+      "reachedOutdoorCells": 40461
     },
     {
       "id": "C03",
-      "reachedOutdoorCells": 45901
+      "reachedOutdoorCells": 45903
     },
     {
       "id": "D03",
-      "reachedOutdoorCells": 49306
+      "reachedOutdoorCells": 49307
     },
     {
       "id": "E03",
-      "reachedOutdoorCells": 48226
+      "reachedOutdoorCells": 48227
     },
     {
       "id": "F03",
-      "reachedOutdoorCells": 50058
+      "reachedOutdoorCells": 50062
     },
     {
       "id": "A04",
@@ -106,23 +106,23 @@
     },
     {
       "id": "B04",
-      "reachedOutdoorCells": 46980
+      "reachedOutdoorCells": 46985
     },
     {
       "id": "C04",
-      "reachedOutdoorCells": 50808
+      "reachedOutdoorCells": 50813
     },
     {
       "id": "D04",
-      "reachedOutdoorCells": 49379
+      "reachedOutdoorCells": 49382
     },
     {
       "id": "E04",
-      "reachedOutdoorCells": 51407
+      "reachedOutdoorCells": 51408
     },
     {
       "id": "F04",
-      "reachedOutdoorCells": 51240
+      "reachedOutdoorCells": 51242
     },
     {
       "id": "A05",
@@ -142,11 +142,11 @@
     },
     {
       "id": "E05",
-      "reachedOutdoorCells": 49566
+      "reachedOutdoorCells": 49569
     },
     {
       "id": "F05",
-      "reachedOutdoorCells": 45385
+      "reachedOutdoorCells": 45389
     },
     {
       "id": "A06",
@@ -162,15 +162,15 @@
     },
     {
       "id": "D06",
-      "reachedOutdoorCells": 49793
+      "reachedOutdoorCells": 49795
     },
     {
       "id": "E06",
-      "reachedOutdoorCells": 50489
+      "reachedOutdoorCells": 50491
     },
     {
       "id": "F06",
-      "reachedOutdoorCells": 50140
+      "reachedOutdoorCells": 50146
     },
     {
       "id": "A07",
@@ -178,23 +178,23 @@
     },
     {
       "id": "B07",
-      "reachedOutdoorCells": 21632
+      "reachedOutdoorCells": 21634
     },
     {
       "id": "C07",
-      "reachedOutdoorCells": 34259
+      "reachedOutdoorCells": 34262
     },
     {
       "id": "D07",
-      "reachedOutdoorCells": 47365
+      "reachedOutdoorCells": 47366
     },
     {
       "id": "E07",
-      "reachedOutdoorCells": 53407
+      "reachedOutdoorCells": 53410
     },
     {
       "id": "F07",
-      "reachedOutdoorCells": 56235
+      "reachedOutdoorCells": 56238
     }
   ],
   "routes": [

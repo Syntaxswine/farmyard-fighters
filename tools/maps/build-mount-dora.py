@@ -1518,6 +1518,7 @@ def build_project(project=PROJECT):
     # A pitch can be nested in a park polygon. It must not inherit the park's
     # procedural trees, and hard courts need a visible existing ground proxy.
     # Keep overlapping/historical source polygons; do not invent court markings.
+    pitch_cells = set()
     for feature in features:
         if feature["tags"].get("leisure") != "pitch" or feature["geometry"]["type"] != "MultiPolygon":
             continue
@@ -1535,6 +1536,7 @@ def build_project(project=PROJECT):
             paint_polygon(terrain, polygons, CODE[surface], width, depth, land_only=True)
         for y, left, right in polygon_spans(polygons, width, depth):
             green[y * width + left:y * width + right] = bytes(right - left)
+            pitch_cells.update((x, y) for x in range(left, right))
     road_cells = bytearray(width * depth)
     paint_roads(terrain, roads, width, depth, mask=road_cells)
     # A county building stands on its 2018 lidar roof. Where the mapped Lake
@@ -1684,9 +1686,13 @@ def build_project(project=PROJECT):
         for p in anchors:
             keep_clear.update((p["x"] + col * size + dx, p["y"] + row * size + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
     occupied = {(p["x"] + col * size, p["y"] + row * size) for col, row in sector_positions for p in props_by_sector.get(sector_id(col, row), [])}
+    # A mapped pitch keeps lidar trunks off it as it keeps the seeded ones: a crown over a
+    # pitch's edge takes the nearest cell beside it.
+    tally = {}
     crowns_record["planted"] = vegetation.plant_crowns(
         crowns, terrain, green, blocked, width, depth, size, CODE, sector_id, props_by_sector, foliage_by_sector, tree_cells, occupied,
-        reserved=vegetation_clearings(approaches), keep_clear=keep_clear)
+        reserved=vegetation_clearings(approaches) | pitch_cells, keep_clear=keep_clear, tally=tally)
+    crowns_record["notPlanted"] = tally
     outputs, sectors = {'authored-buildings.json': encoded(authored)}, []
     config_digest = sha((project / "source" / "authoring-config.json").read_bytes())
     digest = sha(encoded(source_records))
@@ -1762,7 +1768,7 @@ def build_project(project=PROJECT):
                                "vegetation": {"seed": 1947, "brush": "woodland-v1",
                                               "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas, then one tree in each tree crown the 2018 lidar saw that holds no trunk yet. Individual plants are gameplay scenery.",
                                               "lidarCrowns": {**crowns_record,
-                                                              "policy": "Each crown with no trunk within its radius of its centre gets one tree on the clear ground nearest its top (within half its radius, at least 1 m; 2 m from other trunks; never on brush already painted): mature from 12 m tall, a pine where it stands at least twice as tall as it is wide (the game has no palm). A crown moves with the town by the field at its top. Planted after the sentries and validator markers, 1.45 m from every post and patrol route and a cell from every marker, so neither moves; seeded plants are unchanged."}},
+                                                              "policy": "Each crown with no trunk within its radius of its centre gets one tree on the clear ground nearest its top (within half its radius, at least 1 m; 2 m from other trunks; never on brush already painted or on a mapped pitch): mature from 12 m tall, a pine where it stands at least twice as tall as it is wide (the game has no palm). A crown moves with the town by the field at its top. Planted after the sentries and validator markers, 1.45 m from every post and patrol route and a cell from every marker, so neither moves; seeded plants are unchanged."}},
                                "guardPolicy": "Fictional posts on land sectors include street patrols and local circuits. Posts and waypoints use the native editor format.",
                                "sportsSurfaces": "Mapped pitch polygons exclude procedural greenery; tennis/pickleball use a declared existing asphalt proxy unless a supported source surface tag is present. No invented court lines or current inventory claim.",
                                "buildingDefaults": {"stories": 1, "material": "brick", "heightM": 2, "slabM": .12, "pitchM": 2.12,

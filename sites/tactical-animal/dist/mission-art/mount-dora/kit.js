@@ -8,6 +8,16 @@ const tiles=new Map(MATERIALS.map(m=>[m.id,m.tile]));
 const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
 const closed=ring=>ring.length>1&&Math.hypot(...ring[0].map((v,i)=>v-ring.at(-1)[i]))<1e-6?ring.slice(0,-1):ring;
+// The smallest rectangle around an outline, from its edges: the frame roof() builds a
+// pitched roof in (x along c, s; town y runs south).
+function fit(points){let best;
+  const loop=closed(points);for(let i=0;i<loop.length;i++){const a=loop[i],b=loop[(i+1)%loop.length],angle=Math.atan2(b[1]-a[1],b[0]-a[0]),c=Math.cos(angle),s=Math.sin(angle),ps=loop.map(p=>[p[0]*c+p[1]*s,-p[0]*s+p[1]*c]),lo=[Math.min(...ps.map(p=>p[0])),Math.min(...ps.map(p=>p[1]))],hi=[Math.max(...ps.map(p=>p[0])),Math.max(...ps.map(p=>p[1]))],area=(hi[0]-lo[0])*(hi[1]-lo[1]);if(!best||area<best.area)best={angle,c,s,lo,hi,area};}return best;
+}
+// The ridge axis roof() takes for a ridge bearing in the town (degrees clockwise from north,
+// so a bearing points (sin, -cos)): 'x' where the ridge runs along fit()'s x.
+const ridgeAxisIn=(f,bearingDeg)=>{const t=bearingDeg*Math.PI/180;return Math.abs(f.c*Math.sin(t)-f.s*Math.cos(t))>=Math.SQRT1_2?'x':'y';};
+// The ridge roof() builds for an outline and bearing, as a town direction [east, south].
+export function ridgeDirection(points,bearingDeg){const f=fit(points);return ridgeAxisIn(f,bearingDeg)==='x'?[f.c,f.s]:[-f.s,f.c];}
 const TRELLIS_THICKNESS=.4;
 // Open structures: only their roofs fade, while the focus stands under one.
 const OPEN_KINDS=new Set(['pavilion','stage','boathouse']);
@@ -49,16 +59,13 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
  function cylinder(group,at,r,h,id='cream-siding',top=r,sides=12){const g=new T.CylinderGeometry(top,r,h,sides),tile=tiles.get(id)??0,uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,(tile%4+.012+uv.getX(i)*.976)/4,(3-Math.floor(tile/4)+.012+uv.getY(i)*.976)/4);const o=addMesh(group,g,material(id));o.position.fromArray(at);return o;}
  function shape(polygons,height,group,id,role='ground'){for(const polygon of polygons){const rings=polygon.map(closed),s=new T.Shape(rings[0].map(p=>new T.Vector2(p[0],-p[1])));for(const hole of rings.slice(1))s.holes.push(new T.Path(hole.map(p=>new T.Vector2(p[0],-p[1]))));const g=new T.ShapeGeometry(s);g.rotateX(-Math.PI/2);const colors=new Float32Array(g.attributes.position.count*3).fill(1);g.setAttribute('color',new T.BufferAttribute(colors,3));const o=addMesh(group,g,material(id,[1,1,1],true),role);o.position.y=height;}}
  function localPolygons(p){return p.polygons.map(poly=>poly.map(ring=>ring.map(q=>[q[0]-p.anchor[0],q[1]-p.anchor[1]])));}
- function fit(points){let best;
-  const loop=closed(points);for(let i=0;i<loop.length;i++){const a=loop[i],b=loop[(i+1)%loop.length],angle=Math.atan2(b[1]-a[1],b[0]-a[0]),c=Math.cos(angle),s=Math.sin(angle),ps=loop.map(p=>[p[0]*c+p[1]*s,-p[0]*s+p[1]*c]),lo=[Math.min(...ps.map(p=>p[0])),Math.min(...ps.map(p=>p[1]))],hi=[Math.max(...ps.map(p=>p[0])),Math.max(...ps.map(p=>p[1]))],area=(hi[0]-lo[0])*(hi[1]-lo[1]);if(!best||area<best.area)best={angle,c,s,lo,hi,area};}return best;
- }
  // Clip the actual native roof surface against the original footprint triangles.
  // Courtyard holes are triangulated first; no rectangle is drawn across them.
  function roof(group,polygons,treatment,stories,seed){
   for(const [pi,poly]of polygons.entries()){
    const f=fit(poly[0]),w=f.hi[0]-f.lo[0],d=f.hi[1]-f.lo[1];
    if(treatment.roofStyle==='flat'||w>190||d>190||w<.5||d<.5){shape([poly],stories*2.12,group,treatment.roof,'roof');for(const ring of poly){const loop=closed(ring);for(let i=0;i<loop.length;i++){const a=loop[i],b=loop[(i+1)%loop.length],len=Math.hypot(b[0]-a[0],b[1]-a[1]);box(group,[(a[0]+b[0])/2,stories*2.12-.06,(a[1]+b[1])/2],[len,.12,.16],treatment.wall||'cream-siding',-Math.atan2(b[1]-a[1],b[0]-a[0])).userData.occlusionRole='roof';}}continue;}
-   const axis=treatment.roofAxis||(w>=d?'x':'y'),span=axis==='x'?d:w,pitch=Math.max(5,Math.min(treatment.pitch,Math.atan((treatment.roofRiseLimit||4)/(span/2))*180/Math.PI));
+   const axis=Number.isFinite(treatment.ridgeBearingDeg)?ridgeAxisIn(f,treatment.ridgeBearingDeg):treatment.roofAxis||(w>=d?'x':'y'),span=axis==='x'?d:w,pitch=Math.max(5,Math.min(treatment.pitch,Math.atan((treatment.roofRiseLimit||4)/(span/2))*180/Math.PI));
    // roof-core sets eaves on whole storeys, 1 to 5; a measured eave between them (a
    // boathouse's) is built on the nearest one it takes and lifted the difference.
    const layers=Math.min(5,Math.max(1,Math.round(stories))),lift=(stories-layers)*2.12;
@@ -163,7 +170,7 @@ export function createMountDoraArt({THREE:T,atlas=null}={}){
    // A roof the 2018 lidar sees over the lake, on inferred posts; walls unknown, drawn
    // open. Each piece stands at its own measured eave (build-playable.mjs).
    for(const [x,z,top]of p.posts)cylinder(group,[x-p.anchor[0],top/2,z-p.anchor[1]],.15,top,'dark-wood',.15,8);
-   for(const piece of p.pieces){const points=piece.points.map(q=>q.map((v,i)=>v-p.anchor[i]));roof(group,[[points]],{...p.treatment,roofStyle:piece.style,pitch:piece.pitch,...(piece.axis?{roofAxis:piece.axis}:{})},piece.eave/2.12,p.seed);}
+   for(const piece of p.pieces){const points=piece.points.map(q=>q.map((v,i)=>v-p.anchor[i]));roof(group,[[points]],{...p.treatment,roofStyle:piece.style,pitch:piece.pitch,...(Number.isFinite(piece.ridgeBearingDeg)?{ridgeBearingDeg:piece.ridgeBearingDeg}:{})},piece.eave/2.12,p.seed);}
   }else throw Error('Unknown Mount Dora placement '+p.kind);
   batchPlacement(group);group.updateMatrixWorld(true);return group;
   }catch(error){release(group);throw error;}

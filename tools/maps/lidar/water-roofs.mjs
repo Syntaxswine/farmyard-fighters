@@ -23,9 +23,12 @@
 // A piece stands over water where at least pieceLakeMin of it lies in the lake's outline,
 // or where the lidar sees water around it: at least ringReadMin of the cells within ringM
 // of it read as water or ground (no roof over them), and at least ringWaterMin of those
-// read as water (water returns, or no return at all: calm water gave the scanner none).
+// read as water. A cell reads as water where it holds water returns; where it holds no
+// return at all (calm water gave the scanner none); or where, with no ground return, it
+// holds returns within lowM of the lake's level (a dock or reeds standing in the water).
 // Lake Dora's OSM outline runs metres off the lidar's water along parts of the shore. A
-// piece over neither, a shed on the shore joined to a covered slip, is left out.
+// piece over neither, a shed on the shore joined to a covered slip, is left out and listed
+// in `leftOut` with what was measured, so no roof the lidar saw goes unrecorded.
 // Each piece's height and form come from its own returns, by the rules the houses' roofs
 // use (roofs.mjs), measured above the lake's lidar level.
 import {maskOf} from './raster.mjs';
@@ -33,7 +36,7 @@ import {classifyRoof, percentile} from './roofs.mjs';
 import {bounds} from '../house-reference/geometry.mjs';
 
 export const WATER_ROOFS = {cellM: .5, minAreaM2: 6, lakeReachM2: 1, drawnShareMax: .25, drawnMarginM: 1,
-  pieceMinM2: 6, pieceMinWidthM: 1.5, pieceLakeMin: .5, ringM: 3, ringReadMin: .5, ringWaterMin: .75};
+  pieceMinM2: 6, pieceMinWidthM: 1.5, pieceLakeMin: .5, ringM: 3, ringReadMin: .5, ringWaterMin: .75, lowM: 1.5};
 
 const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 // Andrew's monotone chain: the convex hull, counter-clockwise, no repeated points.
@@ -177,9 +180,10 @@ const fromQuad = (q, p) => insideQuad(q, p) ? 0 : Math.min(...q.map((a, k) => {
   return Math.hypot(p[0] - a[0] - d[0] * t, p[1] - a[1] - d[1] * t);
 }));
 
-// The water roofs. `lake` is the lake's MultiPolygon and `drawn` the outlines the game
-// draws, both in the town frame; `reg` is the lidar's registration ({dx, dy}: lidar =
-// town + reg); `level` the lake's lidar elevation; `extent` the box searched.
+// The water roofs: {roofs, leftOut}. `lake` is the lake's MultiPolygon and `drawn` the
+// outlines the game draws, both in the town frame; `reg` is the lidar's registration
+// ({dx, dy}: lidar = town + reg); `level` the lake's lidar elevation; `extent` the box
+// searched. `leftOut` lists the pieces left out, with their reason and measures.
 export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules = WATER_ROOFS) {
   const C = rules.cellM, [x0, y0, x1, y1] = extent, cols = Math.round((x1 - x0) / C), rows = Math.round((y1 - y0) / C), n = cols * rows;
   const cellOf = (x, y) => x < x0 || y < y0 || x >= x1 || y >= y1 ? -1 : Math.floor((y - y0) / C) * cols + Math.floor((x - x0) / C);
@@ -191,13 +195,15 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
     const m = maskOf(mp, x0 + i0 * C, y0 + j0 * C, i1 - i0, j1 - j0, C);
     for (let j = 0; j < j1 - j0; j++) for (let i = 0; i < i1 - i0; i++) if (m[j * (i1 - i0) + i]) inDrawn[(j0 + j) * cols + i0 + i] = 1;
   }
-  // Roof cells, and what every cell returned: ground, water, anything at all.
-  const ground = new Uint16Array(n), water = new Uint16Array(n), any = new Uint16Array(n);
+  // Roof cells, and what every cell returned: ground, water, other returns low over the
+  // lake's level, anything at all.
+  const ground = new Uint16Array(n), water = new Uint16Array(n), low = new Uint16Array(n), any = new Uint16Array(n);
   for (let k = 0; k < index.total; k++) {
     const c = cellOf(index.x[k] - reg.dx, index.y[k] - reg.dy), cls = index.cls[k];
     if (c < 0) continue;
     any[c] = Math.min(65535, any[c] + 1);
     if (cls === 6) roofCell[c] = 1; else if (cls === 2) ground[c] = Math.min(65535, ground[c] + 1); else if (cls === 9) water[c] = Math.min(65535, water[c] + 1);
+    else if (index.z[k] - level <= rules.lowM) low[c] = Math.min(65535, low[c] + 1);
   }
   // Roofs, eight ways, from every roof cell in the lake.
   const roofOf = new Int32Array(n).fill(-1), found = [];
@@ -244,12 +250,13 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
         if (d > R) continue;
         ring++;
         if (roofCell[c]) continue;
-        if (!any[c] || water[c] > ground[c]) wet++; else if (ground[c]) dry++;
+        if (!any[c] || water[c] > ground[c] || (!ground[c] && low[c])) wet++; else if (ground[c]) dry++;
       }
     }
     return {lakeShare: inside ? lake / inside : 0, ringRead: ring ? (wet + dry) / ring : 0, ringWater: wet + dry ? wet / (wet + dry) : 0};
   };
-  const grid = {x0, y0, cols, C}, out = [];
+  const grid = {x0, y0, cols, C}, out = [], leftOut = [];
+  const close = q => [...q, q[0]];
   for (const r of roofs) {
     const pieces = [];
     let covered = 0, total = 0, outlined = 0, returns = 0, landPieces = 0, landM2 = 0;
@@ -259,10 +266,14 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
       for (const piece of o.pieces) {
         // A rectangle closed over cells that returned nothing holds too few returns to fit.
         const mine = pts.filter(p => insideQuad(piece.corners, p));
-        if (mine.length < 3) { covered -= piece.filled; continue; }
+        if (mine.length < 3) { covered -= piece.filled; leftOut.push({outline: close(piece.corners), areaM2: piece.cells * C * C, reason: 'too few returns to fit', returns: mine.length}); continue; }
         const corners = rectangleAround(piece.corners, mine);
         const [a, b, , d] = corners, area = Math.hypot(b[0] - a[0], b[1] - a[1]) * Math.hypot(d[0] - a[0], d[1] - a[1]), wet = overWater(corners);
-        if (wet.lakeShare < rules.pieceLakeMin && (wet.ringRead < rules.ringReadMin || wet.ringWater < rules.ringWaterMin)) { landPieces++; landM2 += area; covered -= piece.filled; continue; }
+        if (wet.lakeShare < rules.pieceLakeMin && (wet.ringRead < rules.ringReadMin || wet.ringWater < rules.ringWaterMin)) {
+          landPieces++; landM2 += area; covered -= piece.filled;
+          leftOut.push({outline: close(corners), areaM2: area, reason: 'not over water', returns: mine.length, lakeShare: wet.lakeShare, ringRead: wet.ringRead, ringWater: wet.ringWater});
+          continue;
+        }
         const outline = [[[...corners, corners[0]]]], own = {x: mine.map(p => p[0]), y: mine.map(p => p[1]), z: mine.map(p => p[2])};
         const roof = classifyRoof(outline, bounds(outline), own, area), heights = Float64Array.from(own.z, z => z - level).sort();
         pieces.push({outline: outline[0][0], areaM2: area, fill: piece.filled / piece.cells, angleDeg: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI,
@@ -277,6 +288,6 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
     out.push({areaM2: r.areaM2, lakeShare: r.lakeShare, drawnShare: r.drawnShare, leftToOutlinesM2: r.leftToOutlinesM2, outlinedM2: outlined * C * C,
       coverage: covered / total, onLand: {pieces: landPieces, areaM2: landM2}, returns, pieces});
   }
-  const key = r => { const b = bounds(r.pieces.map(p => [p.outline])); return [b[1], b[0]]; };
-  return out.sort((a, b) => key(a)[0] - key(b)[0] || key(a)[1] - key(b)[1]);
+  const key = r => { const b = bounds(r.pieces.map(p => [p.outline])); return [b[1], b[0]]; }, at = p => { const b = bounds([[p.outline]]); return [b[1], b[0]]; };
+  return {roofs: out.sort((a, b) => key(a)[0] - key(b)[0] || key(a)[1] - key(b)[1]), leftOut: leftOut.sort((a, b) => at(a)[0] - at(b)[0] || at(a)[1] - at(b)[1])};
 }

@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {findCrowns, CROWNS} from '../../tools/maps/lidar/crowns.mjs';
+import {canopyHeights, findCrowns, CROWNS} from '../../tools/maps/lidar/crowns.mjs';
 import {closeMask, findWaterRoofs, largestRectangle, minAreaRectangle, outlinePart, rectangleAround, WATER_ROOFS} from '../../tools/maps/lidar/water-roofs.mjs';
 import {featuresPin} from '../../tools/maps/house-reference/features-digest.mjs';
 
@@ -68,6 +68,37 @@ test('crowns: never merged past the area cap; wires, scraps and roofs are no tre
   assert.deepEqual(findCrowns(scrap), []);
   // A tree standing on building cells is not one.
   assert.deepEqual(findCrowns(canopy(80, 40, cone(10.25, 10.25, 12, 5), () => true)), []);
+});
+
+test('crowns: foliage lets the scanner through; a crown that stops it is no tree', () => {
+  // The same cone three times: its canopy returns all single, a tenth multiple, none counted.
+  const grid = canopy(80, 40, cone(10.25, 10.25, 12, 5)), n = grid.cols * grid.rows;
+  const returns = Uint16Array.from({length: n}, (_, i) => (grid.heights[i] >= CROWNS.tallM ? 10 : 0));
+  assert.deepEqual(findCrowns({...grid, returns, multi: new Uint16Array(n)}), []);
+  const tenth = findCrowns({...grid, returns, multi: Uint16Array.from(returns, r => r / 10)});
+  assert.equal(tenth.length, 1); assert.equal(tenth[0].multiShare, .1);
+  const below = Uint16Array.from(returns, (r, i) => (r && i % 11 ? 1 : 0));  // under a tenth of the cells' 10 returns
+  assert.ok(below.reduce((a, b) => a + b, 0) < returns.reduce((a, b) => a + b, 0) / 10);
+  assert.deepEqual(findCrowns({...grid, returns, multi: below}), []);
+  assert.equal(findCrowns(grid)[0].multiShare, null, 'no counts, no rule');
+});
+
+test('the canopy model: highest unclassified return, building cells, and multi-return counts', () => {
+  // LAS packs a return's number in bits 0-2 and its pulse's return count in bits 3-5.
+  const pt = (x, y, z, cls, number, count) => ({x, y, z, cls, ret: count << 3 | number});
+  const points = [
+    pt(.2, .2, 9, 1, 1, 3), pt(.3, .1, 6, 1, 2, 3), pt(.4, .4, 2, 1, 3, 3),  // one pulse through a crown: two up high, one under 2.5 m
+    pt(.1, .3, 7, 1, 1, 1),                                                  // a single return: something solid
+    pt(.7, .2, 5, 6, 1, 1),                                                  // a roof
+    pt(.2, .7, 4, 2, 1, 1),                                                  // ground is not canopy
+    pt(1.2, 1.2, 8, 1, 1, 2)];                                               // outside the box
+  const index = {total: points.length, ...Object.fromEntries(['x', 'y', 'z', 'cls', 'ret'].map(k => [k, points.map(p => p[k])]))};
+  const grid = canopyHeights(index, () => 0, [0, 0, 1, 1]);
+  assert.equal(grid.cols, 2); assert.equal(grid.rows, 2);
+  assert.deepEqual([...grid.heights], [9, 0, 0, 0]);
+  assert.deepEqual([...grid.building], [0, 1, 0, 0]);
+  assert.deepEqual([...grid.returns], [3, 0, 0, 0], 'returns 2.5 m or more up');
+  assert.deepEqual([...grid.multi], [2, 0, 0, 0], 'from pulses that returned more than once');
 });
 
 test('crowns: a top on a cell outside the canopy still holds its crown', () => {
@@ -154,13 +185,19 @@ test('a part is one rectangle unless that would roof open water: a comb splits i
 // LEVEL; a roof's `z` is its height above the lake.
 const LEVEL = 18.82;
 const box = (x0, y0, x1, y1, z = 3) => ({has: (x, y) => x >= x0 && x < x1 && y >= y0 && y < y1, z: () => LEVEL + z});
+// Docks east of the outline (x 100-110, y 28-40): unclassified returns 0.7 m over the lake
+// and no ground under them. A grove south of it (x 66-80, y 100-108): a canopy 8 m up that
+// returned no ground, which is no dock.
 function shore(roofs) {
   const x = [], y = [], z = [], cls = [];
   for (let gy = -20; gy < 120; gy += .25) for (let gx = -20; gx < 120; gx += .25) {
     const px = gx + .125, py = gy + .125, roof = roofs.find(r => r.has(px, py));
     const lake = px >= 0 && px < 100 && py >= 0 && py < 100, bay = px >= 100 && px < 118 && py >= 40 && py < 56;
+    const dock = px >= 100 && px < 110 && py >= 28 && py < 40, grove = px >= 66 && px < 80 && py >= 100 && py < 108;
     if (roof) { x.push(px); y.push(py); z.push(roof.z(px, py)); cls.push(6); }
     else if (bay) continue;
+    else if (dock) { x.push(px); y.push(py); z.push(LEVEL + .7); cls.push(1); }
+    else if (grove) { x.push(px); y.push(py); z.push(LEVEL + 8); cls.push(1); }
     else { x.push(px); y.push(py); z.push(lake ? LEVEL : LEVEL + .7); cls.push(lake ? 9 : 2); }
   }
   return {total: x.length, x: Float64Array.from(x), y: Float64Array.from(y), z: Float64Array.from(z), cls: Uint8Array.from(cls)};
@@ -181,11 +218,16 @@ test('water roofs on a made-up shore: what is kept, what is left to an outline o
     box(105, 20, 115, 30),                                                             // a shed on land, off the lake
     box(98, 44, 112, 50),                                                              // a boathouse on the calm bay
     box(60, 70, 64, 74), box(64, 74, 68, 78),                                          // two roofs touching at a corner: one, eight ways
-    box(99.75, 52, 108, 53.5)];                                                        // over the calm bay, touching the lake by 0.75 m2
+    box(99.75, 52, 108, 53.5),                                                         // over the calm bay, touching the lake by 0.75 m2
+    box(99, 32, 106, 36),                                                              // a boathouse among docks, outside the outline
+    box(70, 98, 76, 104)];                                                             // a shed by the grove, two-thirds past the outline
   const drawn = [square(96, 56, 115, 66), square(10, 60, 15, 70)];
-  const found = findWaterRoofs(shore(roofs), {lake, drawn, reg: {dx: 0, dy: 0}, level: LEVEL, extent: [-20, -20, 120, 120]});
+  const {roofs: found, leftOut} = findWaterRoofs(shore(roofs), {lake, drawn, reg: {dx: 0, dy: 0}, level: LEVEL, extent: [-20, -20, 120, 120]});
   const at = b => found.find(r => near(extentOf(r), b, 1.5));
-  assert.equal(found.length, 6, JSON.stringify(found.map(extentOf)));
+  assert.equal(found.length, 7, JSON.stringify(found.map(extentOf)));
+  // Its docks read as water: the boathouse among them stays though six-sevenths lie past the outline.
+  const docked = at([99, 32, 106, 36]);
+  assert.ok(docked.pieces[0].lakeShare < WATER_ROOFS.pieceLakeMin && docked.pieces[0].ringRead >= WATER_ROOFS.ringReadMin && docked.pieces[0].ringWater >= WATER_ROOFS.ringWaterMin);
   assert.equal(at([60, 70, 68, 78]).pieces.length, 2);
   const boathouse = at([20, 20, 30, 26]);
   assert.equal(boathouse.pieces.length, 1);
@@ -203,6 +245,13 @@ test('water roofs on a made-up shore: what is kept, what is left to an outline o
   assert.ok(near(extentOf(slip), [80, 80, 99.5, 90], .2), `${extentOf(slip)}`);
   assert.equal(slip.onLand.pieces, 1);
   assert.ok(slip.pieces[0].lakeShare === 1);
+  // The sheds left out are recorded, with what was measured: the one on land behind the
+  // slip (its ring reads ground), and the one by the grove, whose canopy reads as nothing.
+  assert.equal(leftOut.length, 2);
+  assert.ok(leftOut.every(p => p.reason === 'not over water' && p.lakeShare < WATER_ROOFS.pieceLakeMin));
+  const shed = leftOut.find(p => near(extentOf({pieces: [p]}), [99.5, 70, 112, 100], .3)), byGrove = leftOut.find(p => near(extentOf({pieces: [p]}), [70, 98, 76, 104], .3));
+  assert.ok(shed && shed.ringWater < WATER_ROOFS.ringWaterMin, JSON.stringify(leftOut.map(p => extentOf({pieces: [p]}))));
+  assert.ok(byGrove && byGrove.ringRead < WATER_ROOFS.ringReadMin, `${byGrove && byGrove.ringRead}`);
   // A fifth drawn: the drawn part and a metre past it stay with their outline.
   const partly = at([16, 60, 40, 70]);
   assert.ok(Math.abs(partly.drawnShare - 1 / 6) < .01);
@@ -220,14 +269,18 @@ test('water roofs on a made-up shore: what is kept, what is left to an outline o
 test('crowns.json is current with its inputs and keeps its own rules', () => {
   const doc = json('reference/lidar/crowns.json');
   assert.equal(doc.kind, 'mount-dora-lidar-crowns');
-  assert.equal(doc.inputs.sha256, hash(fs.readFileSync(path.join(town, 'reference/lidar/source.json'))));
+  assert.equal(doc.inputs.lidar.sha256, hash(fs.readFileSync(path.join(town, 'reference/lidar/source.json'))));
+  // The registration that moves the crowns into the town frame comes from features.json's outlines.
+  assert.deepEqual(doc.inputs.features, featuresPin(fs.readFileSync(path.join(town, 'features.json'))));
   assert.deepEqual(doc.method.rules, CROWNS);
-  assert.deepEqual(doc.columns, ['topX', 'topY', 'centreX', 'centreY', 'areaM2', 'heightM', 'widthM']);
+  assert.deepEqual(doc.columns, ['topX', 'topY', 'centreX', 'centreY', 'areaM2', 'heightM', 'widthM', 'multiShare']);
+  assert.ok(doc.metrics.notFoliage > 0);
   assert.equal(doc.crowns.length, doc.metrics.crowns);
   const {widthM, depthM} = json('project.json').extent;
-  for (const [tx, ty, cx, cy, area, height, width] of doc.crowns) {
+  for (const [tx, ty, cx, cy, area, height, width, share] of doc.crowns) {
     for (const [x, y] of [[tx, ty], [cx, cy]]) assert.ok(x > -2 && y > -2 && x < widthM + 2 && y < depthM + 2);
     assert.ok(area >= CROWNS.minAreaM2 && width >= CROWNS.minWidthM && height >= CROWNS.tallM);
+    assert.ok(share >= CROWNS.minMultiShare && share <= 1);
   }
   assert.ok(Math.abs(doc.crowns.reduce((s, c) => s + c[4], 0) / 1e4 - doc.metrics.canopyAreaHa) < .01);
   // The generator's pin of it.
@@ -246,6 +299,13 @@ test('water-roofs.json is current with its inputs and keeps its own rules', () =
   assert.equal(doc.metrics.roofs, doc.roofs.length); assert.equal(doc.metrics.pieces, pieces.length);
   assert.ok(Math.abs(doc.metrics.piecesAreaM2 - pieces.reduce((s, p) => s + p.areaM2, 0)) < .1);
   assert.deepEqual(doc.roofs.map(r => r.id), doc.roofs.map((r, i) => `lidar-water-roof-${i}`));
+  // Every piece left out is listed, failing the water test or too thin in returns.
+  assert.equal(doc.metrics.leftOut, doc.leftOut.length);
+  assert.ok(Math.abs(doc.metrics.leftOutM2 - doc.leftOut.reduce((s, p) => s + p.areaM2, 0)) < .1);
+  for (const p of doc.leftOut) {
+    assert.ok(['not over water', 'too few returns to fit'].includes(p.reason));
+    if (p.reason === 'not over water') assert.ok(p.lakeShare < WATER_ROOFS.pieceLakeMin && (p.ringRead < WATER_ROOFS.ringReadMin || p.ringWater < WATER_ROOFS.ringWaterMin));
+  }
   for (const r of doc.roofs) {
     assert.ok(r.drawnShare <= WATER_ROOFS.drawnShareMax && r.areaM2 >= WATER_ROOFS.minAreaM2, r.id);
     assert.ok(r.pieces.length > 0, r.id);

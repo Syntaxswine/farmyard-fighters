@@ -120,8 +120,11 @@ def build_vegetation(features, terrain, green, blocked, width, depth, size, code
 
 
 def plant_crowns(crowns, terrain, green, blocked, width, depth, size, code, sector_id,
-                 props_by_sector, foliage_by_sector, tree_cells, occupied, *, reserved=(), keep_clear=()):
+                 props_by_sector, foliage_by_sector, tree_cells, occupied, *, reserved=(), keep_clear=(), tally=None):
     """One tree in each lidar crown that holds no trunk yet; returns how many.
+
+    `tally`, a dict when given, counts the crowns that get none: "held" (a trunk already
+    stands within the crown) and "noGround" (no clear cell within reach).
 
     `crowns` are the 2018 lidar's tree crowns in town metres (id, top, centre, areaM2,
     heightM, widthM). A crown holds a trunk when one stands within its radius of its
@@ -131,8 +134,11 @@ def plant_crowns(crowns, terrain, green, blocked, width, depth, size, code, sect
     town refuses brush under a plant). It is mature from CROWN_MATURE_M tall, and a
     pine where the crown stands CROWN_NARROW times as tall as it is wide. In woods and
     wetland the woodland brush paints its understory, as around a seeded trunk. The
-    plants already in props_by_sector are left exactly as they are.
+    plants already in props_by_sector are left exactly as they are. A tree outside every
+    mapped habitat (a lawn, a verge) records its habitat as "unmapped".
     """
+    if tally is not None:
+        tally.update(held=0, noGround=0)
     green_ground = {code["ground-grass"], code["woodland"]}
     protected, keep_clear = set(reserved), set(keep_clear)
 
@@ -150,6 +156,8 @@ def plant_crowns(crowns, terrain, green, blocked, width, depth, size, code, sect
         if any((x, y) in tree_cells and math.hypot(x + .5 - cx, y + .5 - cy) <= radius
                for x in range(math.floor(cx - radius), math.floor(cx + radius) + 1)
                for y in range(math.floor(cy - radius), math.floor(cy + radius) + 1)):
+            if tally is not None:
+                tally["held"] += 1
             continue
         tx, ty = crown["top"]
         reach = max(1.0, radius / 2)
@@ -168,10 +176,13 @@ def plant_crowns(crowns, terrain, green, blocked, width, depth, size, code, sect
             planted.append((x, y))
             props_by_sector[sector_id(x // size, y // size)].append({
                 "x": x % size, "y": y % size, "z": 0, "kind": kind + ("-large" if crown["heightM"] >= CROWN_MATURE_M else ""),
-                "mountDora": {"sourceId": crown["id"], "habitat": HABITATS[green[y * width + x]], "placement": "lidar-crown",
+                "mountDora": {"sourceId": crown["id"], "habitat": HABITATS[green[y * width + x]] or "unmapped", "placement": "lidar-crown",
                               "crown": {"heightM": crown["heightM"], "widthM": crown["widthM"], "top": [_json_number(round(tx, 2)), _json_number(round(ty, 2))]}},
             })
             break
+        else:
+            if tally is not None:
+                tally["noGround"] += 1
     # The understory around the new trunks, as build_vegetation paints it around seeded ones.
     for x, y in planted:
         habitat = green[y * width + x]

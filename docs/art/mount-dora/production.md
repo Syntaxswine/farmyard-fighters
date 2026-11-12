@@ -65,8 +65,8 @@ records, five historical court records, three actual mapped shelter contours,
 the named lighthouse point, two explicitly approximate park structures,
 69 pieces along the two complete source boardwalk polylines, 106 raised deck
 pieces along the 19 mapped piers, 89 railway placements holding 992
-Nautilus track pieces along the railway's track runs, and 12 boathouses
-holding 22 roof pieces over Lake Dora from the 2018 lidar.
+Nautilus track pieces along the railway's track runs, and 13 boathouses
+holding 25 roof pieces over Lake Dora from the 2018 lidar.
 
 The original building renderer receives compiled geographic wall runs without
 half-metre cell snapping, floor cells, rooms, stairs or invented entrances. Its
@@ -204,20 +204,26 @@ Dora where no OSM or county outline exists, one placement per roof in
   lake.
 - **Form.** A piece takes the lidar's form where that is confident (0.7, the
   buildings' rule) and is flat otherwise. Pitch is held to the buildings'
-  12–40°, and the ridge runs along the lidar's.
+  12–40°. The piece carries the lidar's ridge bearing, and the kit turns it into
+  a ridge axis in the frame it fits the outline in (`kit.js ridgeDirection`), so
+  the drawn ridge follows the lidar's whichever corner the outline starts at.
 - **Built on a whole storey.** roof-core sets eaves on whole 2.12 m storeys, so
   the kit builds a pitched piece on the nearest storey and lifts it the
   difference.
 - **Walls and cover.** Walls, roof cover and posts are unknown. The kit draws
   the roof open, under the metal the county records draw (`COVERS.metal`), as
   covered slips commonly are.
-- **Posts.** Posts are inferred: 0.15 m timber at each piece's corners, 0.2 m
-  in, and at most 6 m apart along each side. Posts within a metre of each other
-  are one post. None stands on a pier deck: four are left off, and each
-  placement's provenance says how many.
-- **Solids and fade.** Posts are the only solids, and the water under the roof
-  stays water. Like a pavilion, only the roof fades, while the focus stands
-  under a piece.
+- **Posts.** Posts are inferred: timber 0.3 m thick at each piece's corners,
+  0.2 m in, and at most 6 m apart along each side. Posts within a metre of each
+  other are one post. A post that would stand on a pier deck slides along its
+  side, or a corner post back along the side ending at it, to the nearest place
+  off the deck within 3 m. Of 200 posts, 4 slid and 0 were left off; each placement's
+  provenance says how many.
+- **Solids and fade.** Posts are the only solids. The game's ground under a
+  roof is unchanged: water inside Lake Dora's OSM outline, land where the
+  lidar's water runs past it (6 pieces of 4 roofs). Each piece records its
+  `lakeShare`, and the posts stand at ground level either way. Like a pavilion,
+  only the roof fades, while the focus stands under a piece.
 
 ## Sources and limits
 

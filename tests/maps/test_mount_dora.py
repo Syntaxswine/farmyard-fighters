@@ -627,6 +627,15 @@ class MountDoraGeneration(unittest.TestCase):
                 self.assertEqual(prop["kind"], ("tree-pine" if pine else "tree-broadleaf") + ("-large" if crown["heightM"] >= 12 else ""))
                 lidar.append((x, y)); kinds[prop["kind"]] += 1; sources.add(number)
         self.assertEqual(len(lidar), record["planted"])
+        self.assertEqual(record["planted"] + record["notPlanted"]["held"] + record["notPlanted"]["noGround"], record["crowns"])
+        # A mapped pitch keeps lidar trunks off it too.
+        pitches = set()
+        for feature in self.features.values():
+            if feature["tags"].get("leisure") == "pitch" and feature["geometry"]["type"] == "MultiPolygon":
+                for y, left, right in BUILDER.polygon_spans(feature["geometry"]["coordinates"], self.project["extent"]["widthM"], self.project["extent"]["depthM"]):
+                    pitches.update((x, y) for x in range(left, right))
+        self.assertTrue(pitches)
+        self.assertFalse(pitches & set(lidar))
         self.assertEqual(len(sources), len(lidar), "one tree per crown")
         self.assertGreater(record["planted"], 3000)
         self.assertEqual(set(kinds), {"tree-pine", "tree-pine-large", "tree-broadleaf", "tree-broadleaf-large"})
@@ -1367,6 +1376,33 @@ class LidarCrownUnits(unittest.TestCase):
                                              "crown": {"heightM": 8.0, "widthM": 6.0, "top": [5.2, 5.7]}})
         self.assertEqual(self.tree_cells, {(5, 5)})
         self.assertIn((5, 5), self.occupied)
+
+    def test_crowns_that_get_no_tree_are_counted_by_reason(self):
+        tally = {}
+        crowns = [self.crown([5.5, 5.5], number=0), self.crown([15.5, 15.5], area=4, number=1), self.crown([10.5, 15.5], number=2)]
+        everything = {(x, y) for x in range(13, 19) for y in range(13, 19)}
+        self.assertEqual(self.plant(crowns, tree_cells={(5, 5)}, keep_clear=everything, tally=tally), 1)
+        self.assertEqual(tally, {"held": 1, "noGround": 1})
+
+    def test_a_tree_outside_every_mapped_habitat_says_so(self):
+        self.green[:] = bytearray(400)
+        self.assertEqual(self.plant([self.crown([5.5, 5.5])]), 1)
+        self.assertEqual(next(iter(self.trees().values()))["mountDora"]["habitat"], "unmapped")
+
+    def test_a_crown_moves_with_the_town_by_the_field_at_its_top(self):
+        with tempfile.TemporaryDirectory() as folder:
+            target = Path(folder) / BUILDER.LIDAR_CROWNS
+            target.parent.mkdir(parents=True)
+            target.write_text(json.dumps({"collection": {"acquired": ["2018-12-06", "2018-12-06"]},
+                                          "columns": ["topX", "topY", "centreX", "centreY", "areaM2", "heightM", "widthM", "multiShare"],
+                                          "crowns": [[10, 20, 11, 21, 30, 9, 6, .4], [100, 5, 99, 6, 40, 14, 7, .5]]}), "utf-8")
+            seen = []
+            crowns, record = BUILDER.load_crowns(lambda p: seen.append(list(p)) or [p[0] * .01, -1.0], project=Path(folder))
+        self.assertEqual(seen, [[10, 20], [100, 5]], "the field is read at each crown's top")
+        self.assertEqual([c["top"] for c in crowns], [[10.1, 19.0], [101.0, 4.0]])
+        self.assertEqual([c["centre"] for c in crowns], [[11.1, 20.0], [100.0, 5.0]], "the centre moves by the top's field")
+        self.assertEqual([c["id"] for c in crowns], ["lidar-crown-0", "lidar-crown-1"])
+        self.assertEqual(record["crowns"], 2)
 
     def test_a_whole_metre_top_is_written_as_an_integer(self):
         # house-parts.mjs re-encodes the sectors in JavaScript, which writes 21.0 as 21.

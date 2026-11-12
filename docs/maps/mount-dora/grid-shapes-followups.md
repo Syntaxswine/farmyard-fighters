@@ -69,7 +69,7 @@ seven causes:
   about 800 m² of roof: boathouses and covered slips. It also sees a roofed
   structure at the T-dock's shore end. No OpenStreetMap or county outline
   exists for any of them. *Drawn on the stacked branch
-  `claude/mount-dora-lidar-trees`: 12 roofs map-wide, with the marina's four
+  `claude/mount-dora-lidar-trees`: 13 roofs map-wide, with the marina's four
   slip rows and the T-dock's hip roof among them. About 300 m² of that 800
   turned out to be shore houses' own roofs (below).*
 - **The tree belt.** Between Lake Dora Road and McDonald Street, unclassified
@@ -78,7 +78,7 @@ seven causes:
   Our map has 1 tree and 1 bush there, because greenery is seeded by
   declared density rather than placed from evidence. *Planted on the stacked
   branch `claude/mount-dora-lidar-trees`: a tree in each lidar crown the seeded
-  greenery leaves empty, 191 of them in the box and 3,901 map-wide.*
+  greenery leaves empty, 186 of them in the box and 3,803 map-wide.*
 - **The railway.** The Sorrento Subdivision runs between the road and the
   trees. OpenStreetMap tags it `railway=disused`, but the rails still show.
   As "context" it is never drawn. *Drawn on the stacked branch
