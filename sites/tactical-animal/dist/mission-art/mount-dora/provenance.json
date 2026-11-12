@@ -2,7 +2,7 @@
   "schema": "mount-dora-production-art/1",
   "waterRoofs": {
     "file": "maps/mount-dora/reference/lidar/water-roofs.json",
-    "sha256": "778c46b7d3e32c2f32a9972a64b5ee07596514801392af657627b970943b24c4",
+    "sha256": "8ea57d0347f0d243cb50ed8195d69a1863470d027d9a35127e81c8923c0a077f",
     "roofs": 13
   },
   "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
@@ -10,7 +10,7 @@
   "railwayBranch": "codex/railway-route-tool",
   "farmyardBase": "75a6b61a547a96edebdc456e9a42edb4f28185e4",
   "featuresSHA256": "a291c59e3bbc2a9e5cb66f375d66ce543d6273c0dd1b8f18620167aa1b5cbad5",
-  "artRevision": "8df3f524ea9ea39b3158b238ce74b778b108ddbb110b10d7c2bb53ab74891d9b",
+  "artRevision": "dc725c6caadaf729bb4631840bb0d1be576cc7728ff672483e27a9952a7c3316",
   "files": [
     {
       "path": "source/packages/building-catalog/three.js",

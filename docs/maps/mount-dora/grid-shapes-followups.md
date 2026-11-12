@@ -110,8 +110,9 @@ gaps:
   the drawn houses' roofs, so they stay with them, under "County sketches can
   leave parts out" above.
 - **A long low roof on the marina's east shore** at x 578–590, y 975–1020
-  (12 × 45 m, eave about 3.1 m) joins the slips' walkway but stands on land.
-  No outline draws it.
+  (12 × 45 m, eave about 3.1 m) joins the slips' walkway. It stands on the
+  shore, not over water: what the lidar reads round its main piece is 0.664
+  water, short of the 0.75 a piece over water needs. No outline draws it.
 - **A taller roof at the marina's north-west corner** at x 503–508,
   y 955–962 (eave about 5.1 m) stands on land. No outline draws it.
 - **Roofs over the water the vendor left unclassified** are missing from the
@@ -142,14 +143,15 @@ gaps:
   a share within 0.05 of its bar, counted in grid cells (water-roofs.json
   `nearBar`):
   - the marina's walkway, kept by its outline share of 0.53. It is left out
-    when the registration moves 0.2 m north; the sectors' median disagreement
-    is 0.22 m.
+    when the registration moves 0.2 m north or more: at 0.2 m for three of the
+    five east–west offsets tried, and at 0.3, 0.5 and 0.7 m. The sectors'
+    disagreement is 0.22 m at the median and 0.71 m at worst.
   - roofs 2 and 7, kept by their rings' water (0.788 and 0.787 against 0.75).
-  - roof 8's small gable, kept by its ring read at 0.528.
 
-  A better shoreline for Lake Dora would settle the walkway. Taken from the
-  lidar's water instead of OSM, as the first item in this list proposes, it would
-  give a share the registration does not move.
+  A shoreline taken from the lidar's water instead of OSM, as the first item in
+  this list proposes, would give the walkway a share the registration does not
+  move. It may still sit on the line: about half of what the lidar reads round
+  it is dry.
 - **Two lidar trees may stand on roofs the vendor left unclassified.** The
   roof rule in crowns.json (`roofTops`) takes out only crowns centred inside an
   outline the game draws: Dora Villa's. Two crowns that carry lidar trees read

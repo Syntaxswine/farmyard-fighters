@@ -375,7 +375,7 @@ test('each lidar water roof is one open boathouse with its own pieces, eaves and
   assert.equal(p.pieces.length,roof.pieces.length);
   for(const [i,source]of roof.pieces.entries()){
    const piece=p.pieces[i],confident=['gable','hip','flat'].includes(source.form)&&source.confidence>=.7;
-   assert.deepEqual(piece.points,source.outline);assert.equal(piece.eave,source.eaveM);assert.equal(piece.lakeShare,source.lakeShare);
+   assert.deepEqual(piece.points,source.outline);assert.equal(piece.eave,source.eaveM);assert.equal(piece.lakeShare,source.lakeShare);assert.deepEqual(piece.nearBar,source.nearBar);
    assert.equal(piece.style,confident?source.form:'flat',roof.id);
    if(piece.style==='flat'){assert.equal(piece.pitch,0);assert.equal(piece.ridgeBearingDeg,undefined);}
    else{assert.equal(piece.pitch,Math.max(12,Math.min(40,Math.round(source.pitchDeg))));assert.equal(piece.ridgeBearingDeg,piece.style==='gable'?source.ridgeBearingDeg:undefined);}

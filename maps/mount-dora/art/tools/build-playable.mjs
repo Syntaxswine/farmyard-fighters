@@ -173,7 +173,7 @@ const fromRing=(q,ring)=>Math.min(...ring.slice(1).map((b,i)=>{const a=ring[i],d
 const onAnyDeck=(q,margin)=>output.some(p=>p.kind==='pier-deck'?pointInside(q,p.points)||fromRing(q,p.points)<=margin:p.kind==='pier'&&onPierDeck(q,p,margin));
 for(const roof of waterRoofs.roofs){
  const id='md:water-roof:'+roof.id.replace(/^lidar-water-roof-/,''),points=roof.pieces.flatMap(pc=>pc.outline);
- const pieces=roof.pieces.map(pc=>{const {style,pitch,ridgeBearingDeg}=pieceRoof(pc),out={points:pc.outline.map(q=>q.map(r)),eave:pc.eaveM,style,pitch,form:pc.form,confidence:pc.confidence,lakeShare:pc.lakeShare};if(ridgeBearingDeg!==undefined)out.ridgeBearingDeg=ridgeBearingDeg;return out;});
+ const pieces=roof.pieces.map(pc=>{const {style,pitch,ridgeBearingDeg}=pieceRoof(pc),out={points:pc.outline.map(q=>q.map(r)),eave:pc.eaveM,style,pitch,form:pc.form,confidence:pc.confidence,lakeShare:pc.lakeShare,nearBar:pc.nearBar};if(ridgeBearingDeg!==undefined)out.ridgeBearingDeg=ridgeBearingDeg;return out;});
  const {posts,moved,leftOff}=boathousePosts(roof.pieces,q=>onAnyDeck(q,BOATHOUSE_POSTS.radiusM),BOATHOUSE_POSTS,r);
  output.push({id,kind:'boathouse',sourceIds:[roof.id],anchor:centre(bound(points)),bounds:expand(bound(points),.3),pieces,posts,
   treatment:{...COVERS.metal,wall:'dark-wood'},seed:hash(id),collisionPolicy:'additional-solids',solids:posts.map(([x,y])=>({kind:'circle',centre:[x,y],radius:BOATHOUSE_POSTS.radiusM})),replacesSourceIds:[],

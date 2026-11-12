@@ -371,12 +371,11 @@ function bandsAt(points, bay, extent, first) {
   const tol = first ? .3 : .6, at = b => found.find(r => near(extentOf(r), b, tol)), out = b => leftOut.find(p => near(extentOf({pieces: [p]}), b, tol));
   assert.equal(found.length, 4, JSON.stringify(found.map(extentOf)));
   // Among the docks the shed stands over water, and so does its arm, though wholly past the
-  // outline: it is joined to the shed. (The shed's roof in the arm's ring reads as neither
-  // water nor ground.)
+  // outline: it is joined to the shed. (The shed's roof is no part of the arm's ring.)
   const docks = at([98, 7, 112, 17]);
   assert.ok(docks && docks.pieces.length === 2, JSON.stringify(found.map(extentOf)));
   const arm = docks.pieces.find(p => p.lakeShare === 0);
-  assert.ok(arm && arm.ringRead >= WATER_ROOFS.ringReadMin && arm.ringRead < 1 && arm.ringWater === 1, JSON.stringify(docks.pieces.map(p => [p.lakeShare, p.ringRead, p.ringWater])));
+  assert.ok(arm && arm.ringRead === 1 && arm.ringWater === 1, JSON.stringify(docks.pieces.map(p => [p.lakeShare, p.ringRead, p.ringWater])));
   // The other four sheds are left out. The lot's returns read as water only within
   // dockReachM of water. Ignored ground is ground, and a cell with ground is no dock though
   // low plants stand on it. Returns under the lake are no dock, nor are returns under a
@@ -534,10 +533,16 @@ test('crowns.json is current with its inputs and keeps its own rules', () => {
   assert.equal(record.crowns, doc.crowns.length);
 });
 
-// A measure nearBar lists lies within barBand of its bar (allowing the rounding).
+// nearBar is what nearBar() makes of the written shares, and for a piece left out with its
+// group, the group's share where that decides it. The shares are written to 3 decimals, so
+// a measure may differ only where it sits on the band's edge.
 function nearBarHolds(p) {
-  const bars = {lakeShare: WATER_ROOFS.pieceLakeMin, ringRead: WATER_ROOFS.ringReadMin, ringWater: WATER_ROOFS.ringWaterMin};
-  for (const k of p.nearBar) assert.ok(p[k] !== null && Math.abs(p[k] - bars[k]) <= WATER_ROOFS.barBand + .0005, `${k} ${p[k]}`);
+  const bars = {lakeShare: WATER_ROOFS.pieceLakeMin, ringRead: WATER_ROOFS.ringReadMin, ringWater: WATER_ROOFS.ringWaterMin, groupLakeShare: WATER_ROOFS.pieceLakeMin};
+  const want = [...nearBar(p), ...(p.groupLakeShare !== undefined && Math.abs(p.groupLakeShare - WATER_ROOFS.pieceLakeMin) <= WATER_ROOFS.barBand ? ['groupLakeShare'] : [])];
+  for (const k of new Set([...want, ...p.nearBar])) {
+    if (want.includes(k) === p.nearBar.includes(k)) continue;
+    assert.ok(Math.abs(Math.abs(p[k] - bars[k]) - WATER_ROOFS.barBand) <= .0005, `nearBar ${JSON.stringify(p.nearBar)} against ${JSON.stringify(want)} at ${k} ${p[k]}`);
+  }
 }
 
 test('water roofs: nearBar names the measures near their bar that decide a piece', () => {

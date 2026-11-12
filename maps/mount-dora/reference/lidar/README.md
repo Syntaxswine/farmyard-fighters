@@ -294,17 +294,22 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   Each roof kept holds together by links of 0.54 m or less. The made-up tests
   hold two roofs 0.85 m apart as two, and one roof with a 0.72 m gap as one, at
   ten grid offsets each.
-- **Where the grid and the registration fall.** The town was rebuilt at 100
-  grid phases (0.05 m steps in x and y). It was also rebuilt at 24
-  registration offsets, out to 0.2 m each way; the sectors' median
-  disagreement is 0.22 m. Every run keeps the same 13 roofs. Pieces run
-  23–27 and 3,105–3,158 m², as the grid moves the rectangles' edges. Two
-  pieces change fate:
-  - the marina's walkway (below) is left out at the three offsets 0.2 m north;
-  - a 14.6 m² east-shore piece left out over land falls under the walkway's
-    rectangle at four grid phases.
+- **Where the grid and the registration fall.** The town was rebuilt in
+  scratch runs, outside the build:
+  - at 100 grid phases (0.05 m steps in x and y);
+  - at 24 registration offsets out to 0.2 m each way;
+  - at 0.3, 0.5 and 0.7 m north.
 
-  These are samples, not proof: phases between them can differ.
+  The sectors' registration disagrees by 0.22 m at the median and 0.71 m at
+  worst (above). Every run kept the same 13 roofs, with 23–27 pieces and
+  2,925–3,158 m². These runs are samples, not proof, and only two pieces were
+  followed by name:
+  - The marina's walkway (below) is left out at 0.2 m north for three of the
+    five east–west offsets tried, and at 0.3, 0.5 and 0.7 m north.
+  - The east-shore fragment is kept with the walkway's group at two grid
+    phases.
+  - The fragment is also kept between the sampled phases, at about x
+    0.33–0.34, y 0.43, where the walkway's rectangle reaches it.
 - **Near a bar.** Each decision rests on shares counted in grid cells, and a
   share sitting on its bar can fall either way. For every piece and record,
   water-roofs.json's `nearBar` lists the measures within 0.05 of their bar
@@ -313,9 +318,8 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   - the marina's 206.6 m² walkway, kept by its outline share of 0.53;
   - roofs 2 and 7, kept by the water in their rings, 0.788 and 0.787 against
     0.75;
-  - roof 8's 13 m² gable, kept by its ring read at 0.528;
-  - the east-shore fragment (0.526 and 0.78), which goes with its group either
-    way.
+  - the east-shore fragment (its ring's water 0.78), which goes with its group
+    either way.
 - **Which roofs are kept.** A roof is kept when:
   - at least 1 m² of it lies in Lake Dora's OSM outline;
   - at most 25% of it lies inside an outline the game draws (OSM and county
@@ -335,7 +339,9 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
 - **Over water.** A piece stands over water where half of it lies in the
   lake's outline, or where the lidar sees water around it. To see water, half
   the cells within 3 m of the piece must read as water or ground, and 75% of
-  those must read as water. A cell reads as water when it holds water returns,
+  those must read as water. The cells under the piece's own roof (the rest of
+  its structure) are no part of its ring: they hide nothing it stands over. A
+  cell reads as water when it holds water returns,
   or no return at all, because calm water returned none. A dock or reeds in
   the water read as water too. That is a cell within 3 m of such water, with
   no ground return (classes 2 and 20), and with most of its returns between
@@ -356,11 +362,10 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   These 11 pieces, 383 m², are listed in `leftOut` with their measures and
   reason: the marina's east-shore shed, its north-west tower, and scraps north
   of its walkway. One of them is the shed's 9.5 m² north end, which reads as
-  over water but lies wholly outside the outline. It is left out at every
-  sampled phase. Between them, at about x 0.33–0.34, y 0.43, the walkway's
-  rectangle reaches it, and it is kept with the walkway. A piece left out with
-  its group records the group's share in the outline and how many pieces over
-  land it touched. Parts under 6 m², and roofs left with none, go without a
+  over water but lies wholly outside the outline. It is kept with the walkway
+  at the few phases above. A piece left out with its group records the group's
+  share in the outline, and how many pieces over land it touched. Parts under
+  6 m², a part's cells no piece covers, and roofs left with none go without a
   record. Roofs the vendor left unclassified are not among the building returns
   at all; the roofs over the water in the followups are such.
 - **Outline and heights.** Each piece's outline is the rectangle, in its
