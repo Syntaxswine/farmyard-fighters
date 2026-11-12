@@ -17,7 +17,7 @@ test('a worn rupture uses the actual fitted cylinder midpoint; stowed tanks neve
       const before=JSON.stringify(s);tanks.observe(s,0,s.units);burns.observe(s,0,s.units);await Promise.all([tanks.ready,burns.ready]);assert.equal(burns.equipmentFor(s.units[0]),worn?'flamethrower':'rifle');
       assert.ok(burns.pose(actor,s.units[0],camera));const burst=tanks.bursts.get(1);
       if(worn){assert.ok(burst.originFixed);assert.ok(burst.origin.distanceTo(burns.sessions.get(1).blast.origin)<1e-8);assert.notEqual(burst.origin.y,.8);}else{assert.equal(actor.worker.weapon.id,'rifle');assert.deepEqual(burst.origin.toArray(),[12.17,.8,25.23]);assert.equal(burns.sessions.get(1).blast,undefined);}
-      tanks.draw(camera);await Promise.resolve();tanks.draw(camera);assert.ok(burst.effects);assert.equal(JSON.stringify(s),before);assert.deepEqual(errors,[]);
+      tanks.draw(camera);await Promise.all([burst.ready,tanks.ground?.ready]);tanks.draw(camera);assert.ok(burst.effects);assert.equal(JSON.stringify(s),before);assert.deepEqual(errors,[]);
     }finally{burns.dispose();tanks.dispose();actor.dispose();assert.equal(scene.children.length,0);}
   }
 });
@@ -25,9 +25,9 @@ test('a worn rupture uses the actual fitted cylinder midpoint; stowed tanks neve
 test('saved ground fire rebuilds without a transient blast, clips fog, and releases cells and textures',async()=>{
   const scene=new T.Scene(),s=state(false);delete s.fireAnimations;s.fires.push({x:15,y:25,z:0,turns:3});let textureDisposals=0;
   const layer=new SoloTankEffects(scene,{loadTexture:async()=>{const t=new T.Texture();t.addEventListener('dispose',()=>textureDisposals++);return t;}});
-  layer.observe(s,0,s.units);await layer.ready;layer.draw(camera);await Promise.resolve();layer.draw(camera);assert.equal(layer.bursts.size,0);assert.equal(layer.ground.effects.ground.length,1);
+  layer.observe(s,0,s.units);await layer.ready;layer.draw(camera);await layer.ground.ready;layer.draw(camera);assert.equal(layer.bursts.size,0);assert.equal(layer.ground.effects.ground.length,1);
   const geometry=layer.ground.effects.ground[0].geometry;for(let i=0;i<30;i++){layer.observe(s,i*100,s.units);layer.draw(camera);assert.equal(layer.ground.effects.ground[0].geometry,geometry);}
-  s.visible=new Set();layer.observe(s,4000,[]);layer.draw(camera);assert.equal(layer.ground,null);assert.equal(scene.children.length,0);layer.dispose();layer.dispose();assert.equal(textureDisposals,3);
+  s.visible=new Set();layer.observe(s,4000,[]);layer.draw(camera);assert.equal(layer.ground,null);assert.deepEqual(scene.children,[layer.flashLight]);layer.dispose();layer.dispose();assert.equal(textureDisposals,3);assert.equal(scene.children.length,0);
 });
 
 test('hidden and reduced-motion bursts are skipped; late texture loads retire without resurrecting effects',async()=>{

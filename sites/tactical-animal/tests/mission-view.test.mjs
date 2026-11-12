@@ -26,10 +26,11 @@ test('replacing a field clears pending effects, old actors, gestures, and grenad
   Object.assign(view,{scene,effects:[{line,at:99999,started:false}],lastEffect:{},pointers:new Map([[9,{}]]),container:{hasPointerCapture:()=>true,releasePointerCapture:id=>released=id},gesture:{},pinch:{},grenadeCamera:{baseSpan:31},returnSpan:31,focusedId:2,follow:false,span:31,generation:4,samples:new Map([[0,{}]]),failed:new Set([2]),actors:new Map([[1,{}]]),pending:new Map([[2,4]]),target:new T.Vector3(5,0,24),disposeActor(){actorDisposed=true;},clearEnvironment(){cleared=true;},buildEnvironment(s){built=s;},updateCamera(){},resize(){},route(path){routed=path;}});
   const state=createSoloGame(DEFAULT_BUILD,1947,'short-measure');view.setGame(state);
   assert.equal(view.generation,5);assert.equal(cleared,true);assert.equal(built,state);assert.equal(actorDisposed,true);
-  assert.equal(geometryDisposed,true);assert.equal(materialDisposed,true);assert.equal(scene.children.length,0);assert.deepEqual(view.effects,[]);assert.equal(view.lastEffect,null);
+  assert.equal(geometryDisposed,true);assert.equal(materialDisposed,true);assert.deepEqual(scene.children,[view.tankEffects.flashLight]);assert.equal(view.tankEffects.flashLight.intensity,0);assert.deepEqual(view.effects,[]);assert.equal(view.lastEffect,null);
   assert.equal(released,9);assert.equal(view.pointers.size,0);assert.equal(view.pending.size,0);assert.equal(view.actors.size,0);assert.equal(view.samples.size,0);assert.equal(view.failed.size,0);
   assert.equal(view.grenadeCamera,null);assert.equal(view.returnSpan,null);assert.equal(view.gesture,null);assert.equal(view.pinch,null);assert.equal(view.focusedId,null);assert.equal(view.follow,true);assert.equal(view.span,18.72);
   assert.deepEqual(view.target.toArray(),[4,0,25]);assert.deepEqual(routed,[]);
+  view.clearEffects();assert.equal(scene.children.length,0);
 });
 
 test('inspectable blockout markers and horizontal doors respect map knowledge and saved inspection state',()=>{
@@ -42,4 +43,13 @@ test('inspectable blockout markers and horizontal doors respect map knowledge an
   assert.ok(Math.abs(leaf.scale.x-1.12)<1e-6);assert.equal(leaf.scale.y,2);assert.ok(Math.abs(leaf.scale.z-.16)<1e-6);
   const before=marker.material.color.getHex();state.solo.inspected.push('worker-scale');view.update(state);assert.notEqual(marker.material.color.getHex(),before);
   assert.equal(view.picks.length,2);marker.geometry.dispose();marker.material.dispose();leaf.geometry.dispose();leaf.material.dispose();
+});
+
+test('field loading waits for the GPU warm-up draw and releases its fence on completion or replacement',()=>{
+  const view=Object.create(FieldView.prototype),fence={},deleted=[],loading=[];let status=1;
+  const gl={TIMEOUT_EXPIRED:1,clientWaitSync:value=>{assert.equal(value,fence);return status;},deleteSync:value=>deleted.push(value)};
+  Object.assign(view,{renderer:{getContext:()=>gl},graphicsFence:fence,pending:new Map(),failed:new Set(),effects:[],onLoading:value=>loading.push(value)});
+  view.reportLoading();assert.deepEqual(loading,[true]);assert.equal(view.waitingForGraphics(),true);assert.equal(deleted.length,0);
+  status=2;assert.equal(view.waitingForGraphics(),false);assert.equal(view.graphicsFence,null);assert.deepEqual(deleted,[fence]);assert.equal(loading.at(-1),false);
+  view.graphicsFence=fence;view.clearEffects();assert.equal(view.graphicsFence,null);assert.deepEqual(deleted,[fence,fence]);
 });

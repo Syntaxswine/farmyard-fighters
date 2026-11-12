@@ -7,6 +7,7 @@ import {createWeaponModel} from '../dist/aft/tactics/weapon-models.js';
 import {createWorkerLocomotion} from '../dist/aft/tactics/worker-locomotion.js';
 import {createBattlePosture} from '../dist/aft/tactics/battle-posture.js';
 import {SoloBurnEffects,burnSegments,burnPlayback} from '../dist/burn-effects.js';
+import {dissolveBody} from '../dist/designer/a20b343a0234/tactics/painted-fire-actor.js';
 const camera=new T.PerspectiveCamera();camera.position.set(14,16,34);
 function rig(species='horse'){
   const profile=ANIMAL_MOTION_CATALOG.find(p=>p.id===species),worker=profile.create(JSON.parse(fs.readFileSync(new URL('../dist/aft/tactics/'+profile.file,import.meta.url)))),gun=createWeaponModel('rifle');worker.equipWeapon(gun);
@@ -64,4 +65,18 @@ test('missing burn textures retain a visible corpse and reduced motion never rep
   try{layer.observe(s,0,[u]);await layer.ready;assert.ok(layer.pose(actor,u,camera));assert.ok(actor.worker.parts.some(p=>p.visible));assert.equal(layer.sessions.get(1).value.value,0);}finally{layer.dispose();actor.dispose();}
   const other=rig(),burning=victim({hp:60,burnedRemains:false,burningTurns:2,x:10.17}),event={sequence:1,unitId:1,kind:'panic',weapon:'rifle',route:[{x:9.17,y:24.23},{x:10.17,y:24.23}]},reduced=new SoloBurnEffects(new T.Scene(),{loadTexture:async()=>new T.Texture(),reducedMotion:()=>true});
   try{reduced.observe(state(burning,event),0,[burning]);await reduced.ready;reduced.pose(other,burning,camera);assert.equal(other.pick.position.x,burning.x);assert.equal(reduced.entries.get(1).segments[0].length,0);}finally{reduced.dispose();other.dispose();}
+});
+
+test('prepared burning actors reuse their body shaders and shroud across visibility changes',async()=>{
+  const actor=rig(),scene=new T.Scene(),u=victim({stance:'prone'}),layer=new SoloBurnEffects(scene,{loadTexture:async()=>new T.Texture()});
+  actor.burnDissolve={value:0};const restore=dissolveBody(actor.worker,actor.burnDissolve);
+  const materials=[];actor.worker.root.traverse(o=>{if(o.isMesh)materials.push([o,o.material,o.customDepthMaterial]);});
+  try{
+    await layer.prepareActor(actor);const effects=layer.prepared.get(actor);assert.ok(effects);assert.equal(effects.group.visible,false);
+    layer.observe(state(u),0,[u]);assert.ok(layer.pose(actor,u,camera));assert.equal(layer.sessions.get(u.id).effects,effects);
+    for(const [mesh,material,depth]of materials){assert.equal(mesh.material,material);assert.equal(mesh.customDepthMaterial,depth);}
+    layer.observe(state(u),3000,[]);assert.equal(actor.burnDissolve.value,0);assert.equal(layer.prepared.get(actor),effects);assert.equal(effects.group.visible,false);
+    layer.observe(state(u),4000,[u]);assert.ok(layer.pose(actor,u,camera));assert.equal(layer.sessions.get(u.id).effects,effects);
+    layer.forgetActor(actor);assert.equal(layer.sessions.size,0);assert.equal(layer.prepared.size,0);assert.equal(scene.children.length,0);
+  }finally{layer.dispose();restore();actor.dispose();}
 });

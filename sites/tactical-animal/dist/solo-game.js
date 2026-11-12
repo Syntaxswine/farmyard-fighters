@@ -927,7 +927,14 @@ function guardActive(s,g){
   const town=getTourWorld(s);
   return !town||(distance(g,hero(s))<=72&&town.residentAt(g)&&(!g.lastKnown||town.residentAt(g.lastKnown)));
 }
-const realtimeRules=createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,previewAttack,headingTo,flameAffects,previewFlame,fireFlame:(s,u,heading)=>fireFlame(s,u,heading,{keepMovement:true}),attack:(s,a,...args)=>damageAction(s,a,a.weapon,()=>attackNow(s,a,...args)),completeReload:(s,u)=>reloadNow(s,u,true),travel,movePlayer:realtimePlayerStep,approachPath,navigationPath,guardActive,refresh,log,fireRules});
+const realtimeRules=createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,previewAttack,headingTo,flameAffects,previewFlame,fireFlame:(s,u,heading)=>fireFlame(s,u,heading,{keepMovement:true}),attack:(s,a,...args)=>damageAction(s,a,a.weapon,()=>attackNow(s,a,...args)),completeReload:(s,u)=>reloadNow(s,u,true),travel,movePlayer:realtimePlayerStep,approachPath,navigationPath,guardActive,pointTargetExists:(s,p)=>!!barrelRules.present(s,p.barrelId),refresh,log,fireRules});
+export function targetBarrel(s,u,point){
+  const w=WEAPONS[u.weapon];
+  if(!canControl(s,u)||!barrelRules.present(s,point?.barrelId)||!s.seen.has(key(point.x,point.y))||distance(u,point)>w.range)return false;
+  if(w.incendiary)return fireFlame(s,u,headingTo(u,point));
+  if(!w.mag||w.thrown)return false;
+  stop(s);return s.realtime?realtimeRules.targetPoint(s,u,point):attack(s,u,point,false);
+}
 export const enableRealtime=s=>realtimeRules.enable(s);
 export const configureRealtime=(s,changes)=>realtimeRules.configure(s,changes);
 export const pinRealtimeTarget=(s,id)=>realtimeRules.pin(s,id);
@@ -941,4 +948,4 @@ export function realtimeWeaponAim(s,u){
 }
 const pressRealtimeTrigger=(s,u,target,zone,aim)=>realtimeRules.pressTrigger(s,u,target,zone,aim);
 const releaseRealtimeTrigger=(s,tap)=>realtimeRules.releaseTrigger(s,tap);
-export const Core={enableRealtime,configureRealtime,pinRealtimeTarget,realtimeStatus,realtimeTarget,pressRealtimeTrigger,releaseRealtimeTrigger,tankExplosionChance,ignite,enterFire,WEAPONS,AIM_ZONES,key,alive,movementModeOf,movementRate,movementSpeed,combatCosts,canControl,canSee,sneakStatus,visibleOpponents,refresh,log,stop,travel,navigationPath,move,turnTo,setMovementMode,setStance,grenadeCost,grenadeTrajectory,grenadeAffects,grenadeBlastFootprint,previewGrenade,throwGrenade,previewFlame,fireFlame,previewPointAttack,previewAttack,attack,equip,reload,endTurn,headingTo,interactionObjects,nearbyInteractions,previewInteraction,performInteraction,restoreRuntimeSystems};
+export const Core={enableRealtime,configureRealtime,pinRealtimeTarget,realtimeStatus,realtimeTarget,pressRealtimeTrigger,releaseRealtimeTrigger,targetBarrel,tankExplosionChance,ignite,enterFire,WEAPONS,AIM_ZONES,key,alive,movementModeOf,movementRate,movementSpeed,combatCosts,canControl,canSee,sneakStatus,visibleOpponents,refresh,log,stop,travel,navigationPath,move,turnTo,setMovementMode,setStance,grenadeCost,grenadeTrajectory,grenadeAffects,grenadeBlastFootprint,previewGrenade,throwGrenade,previewFlame,fireFlame,previewPointAttack,previewAttack,attack,equip,reload,endTurn,headingTo,interactionObjects,nearbyInteractions,previewInteraction,performInteraction,restoreRuntimeSystems};

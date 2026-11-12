@@ -28,8 +28,15 @@ export function burnPlayback(entry,now){
 // Absolute world routes are receipts, never requests to move or damage actors.
 export class SoloBurnEffects{
   constructor(scene,{loadTexture=url=>new T.TextureLoader().loadAsync(url),reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false,onError=error=>console.warn('Burn artwork unavailable; keeping selectable remains.',error)}={}){
-    Object.assign(this,{scene,loadTexture,reducedMotion,onError,entries:new Map(),sessions:new Map(),failures:new Set(),sequence:0,disposed:false});
+    Object.assign(this,{scene,loadTexture,reducedMotion,onError,entries:new Map(),sessions:new Map(),prepared:new Map(),failures:new Set(),sequence:0,disposed:false});
   }
+  async prepareActor(actor){
+    this.load();await this.ready;if(this.disposed||actor.graphicsDisposed||!this.textures)return;
+    let effects;try{effects=await createPaintedFireEffects(this.scene,null,actor.worker,{textures:this.textures,world:true});}catch(error){this.onError(error);return;}
+    if(this.disposed||actor.graphicsDisposed){effects.dispose();return;}
+    effects.group.visible=false;this.prepared.set(actor,effects);
+  }
+  forgetActor(actor){actor.graphicsDisposed=true;for(const [id,s]of this.sessions)if(s.actor===actor)this.remove(id);this.prepared.get(actor)?.dispose();this.prepared.delete(actor);}
   load(){
     if(this.ready)return;this.loading=true;this.ready=Promise.allSettled(Object.values(FIRE_ASSETS).map(path=>this.loadTexture(new URL(path,new URL('./aft/tactics/',import.meta.url)).href))).then(results=>{
       this.loading=false;
@@ -62,9 +69,10 @@ export class SoloBurnEffects{
       actor.root.position.set(0,0,0);actor.worker.root.position.set(0,0,0);actor.root.updateMatrixWorld(true);actor.posture?.resetTail();
       if(resumeWalking){actor.locomotion.dispose();actor.locomotion=null;}
     }
-    const value={value:0};let motion,restoreSkin;
-    try{if(animate)motion=createPaintedFireMotion(actor.worker,actor.profile);restoreSkin=dissolveBody(actor.worker,value);}catch(error){motion?.dispose();if(resumeWalking)actor.locomotion=createWorkerLocomotion(actor.worker,actor.profile);throw error;}
-    s={actor,motion,value,restoreSkin,resumeWalking};this.sessions.set(id,s);return s;
+    const value=actor.burnDissolve||{value:0};let motion,restoreSkin;
+    try{if(animate)motion=createPaintedFireMotion(actor.worker,actor.profile);restoreSkin=actor.burnDissolve?()=>{value.value=0;}:dissolveBody(actor.worker,value);}catch(error){motion?.dispose();if(resumeWalking)actor.locomotion=createWorkerLocomotion(actor.worker,actor.profile);throw error;}
+    const effects=this.prepared.get(actor);this.prepared.delete(actor);
+    s={actor,motion,value,restoreSkin,resumeWalking,effects,prepared:!!effects};this.sessions.set(id,s);return s;
   }
   equipmentFor(unit){const event=this.entries.get(unit.id)?.event;return event?.kind==='tank'&&event.worn?'flamethrower':unit.weapon;}
   pose(actor,unit,camera){
@@ -108,11 +116,12 @@ export class SoloBurnEffects{
     }catch(error){this.failures.add(unit.id);this.remove(unit.id);actor.root.position.set(unit.x,0,unit.y);this.onError(error);return false;}
   }
   release(id){
-    const s=this.sessions.get(id);if(!s)return;s.disposed=true;s.restoreSkin();s.effects?.dispose();
+    const s=this.sessions.get(id);if(!s)return;s.disposed=true;s.restoreSkin();
+    if(s.prepared&&s.effects&&!this.disposed&&!s.actor.graphicsDisposed){s.effects.group.visible=false;this.prepared.set(s.actor,s.effects);}else s.effects?.dispose();
     if(s.motion){s.motion.dispose();s.actor.worker.root.position.set(0,0,0);s.actor.worker.root.rotation.set(0,0,0);}
     if(s.resumeWalking)s.actor.locomotion=createWorkerLocomotion(s.actor.worker,s.actor.profile);
     s.actor.signature=null;this.sessions.delete(id);
   }
   remove(id){this.release(id);this.entries.delete(id);}
-  dispose(){if(this.disposed)return;this.disposed=true;for(const id of this.sessions.keys())this.release(id);this.entries.clear();this.textures?.forEach(t=>t.dispose());}
+  dispose(){if(this.disposed)return;this.disposed=true;for(const id of this.sessions.keys())this.release(id);for(const fx of this.prepared.values())fx.dispose();this.prepared.clear();this.entries.clear();this.textures?.forEach(t=>t.dispose());}
 }

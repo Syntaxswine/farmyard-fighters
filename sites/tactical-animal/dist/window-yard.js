@@ -39,7 +39,7 @@ function render(){
 }
 function pick(p){cancelFireHold();if(!Core.canControl(state,hero(state)))return;view.unlockSound();
   if(mode==='grenade'){target=p;Core.stop(state);message(Core.previewGrenade(state,hero(state),p).reason||'Grenade aimed. Throw to confirm.');}
-  else if(p.barrelId){target={...p,name:'Explosive barrel'};Core.stop(state);message('Explosive barrel targeted. Fire to confirm.');}
+  else if(p.barrelId){target=null;Core.stop(state);message(Core.targetBarrel(state,hero(state),p)?'Firing at explosive barrel.':'Cannot fire at that barrel with the current weapon.');}
   else if(p.windowId){target={...p,name:p.paneId?'Glass pane':'Window frame'};Core.stop(state);message(`${target.name}: ${p.windowId}${p.paneId?' / '+p.paneId:''}. Fire to confirm.`);}
   else if(p.wallEdge){target={...p,name:'Wall'};Core.stop(state);message('Wall aimed. Fire to confirm.');}
   else if(p.unitId!==undefined&&p.unitId!==0){target=state.units.find(u=>u.id===p.unitId);Core.stop(state);message('Target: '+target.name);}

@@ -62,9 +62,8 @@ async function exercise(kind,phone,reduced=false){
     const before=await read(page);
     if(kind==='grenade')await tap(page,'#grenade',phone);
     await groundTap(page,kind==='grenade'?{x:27,y:25,h:0}:{x:28,y:25,h:.4},phone);
-    if(kind!=='grenade')assert.match(await page.locator('#message').textContent(),/Explosive barrel targeted/);
-    assert.equal(await page.locator('#fire').isEnabled(),true);
-    await tap(page,'#fire',phone);
+    if(kind!=='grenade')assert.match(await page.locator('#message').textContent(),/Firing at explosive barrel/);
+    else{assert.equal(await page.locator('#fire').isEnabled(),true);await tap(page,'#fire',phone);}
     let state=await until(page,s=>s.props.length===0&&s.fireAnimations.filter(e=>e.kind==='barrel').length===2,'production detonation');
     state=await until(page,s=>reduced?s.fires.length>0:s.blastShake.byKind.barrel===2&&s.blastShake.peak>0,'impact shake');
     assert.equal(state.shaderFailures,0);assert.equal(state.units[0].hp,before.units[0].hp);

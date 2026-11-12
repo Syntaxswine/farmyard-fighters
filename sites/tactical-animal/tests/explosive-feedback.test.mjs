@@ -5,6 +5,7 @@ import {windowReviewSource} from '../dist/window-review-map.js';
 import {FieldView} from '../dist/field-view.js';
 import {ExplosionShake} from '../dist/explosion-shake.js';
 import * as T from '../dist/aft/tactics/vendor/three.module.js';
+import {app} from './app-harness.mjs';
 
 function fixture({seed=1,primary='assault',props=[{kind:'barrel-explosive',x:28,y:25,z:0}],guards=[],edges={}}={}){
   const source=windowReviewSource();source.edges=edges;source.farmyardWindows.instances=[];
@@ -18,6 +19,24 @@ function shoot(s,target,zone='torso'){
   const shot=s.effect?.sequence.find(e=>e.shooter===0);assert.ok(shot,'Production simulation emits the shot');return shot;
 }
 const barrelPoint={x:28,y:25,h:.4,ground:true,barrelId:'barrel:28,25,0'};
+
+test('one barrel tap uses production firing until it is destroyed, with no menu or held pointer',()=>{
+  const a=app({realTime:true,search:'?activity=quiet-shift'}),barrel=a.s.props[0],ammo=a.u.ammo.assault;
+  a.view.options.onPick({...barrel,h:.4,ground:true,barrelId:`barrel:${barrel.x},${barrel.y},0`});
+  assert.equal(a.el('overlay').open,false);assert.equal(Core.realtimeStatus(a.s).triggerHeld,false);assert.equal(a.s.realtime.autoFire,false);
+  for(let i=0;i<100&&a.s.props.length;i++)a.advance();
+  assert.equal(a.s.props.length,0);assert.ok(a.u.ammo.assault<ammo);
+  const after=a.u.ammo.assault;a.advance(20);assert.equal(a.u.ammo.assault,after);
+});
+
+test('barrel firing can wait for reload, cancels on movement, and never resumes an attack from a save',()=>{
+  const s=fixture(),player=hero(s);player.ammo.assault=0;
+  assert.equal(Core.targetBarrel(s,player,barrelPoint),true);
+  const restored=decodeSave(encodeSave(s));for(let i=0;i<70;i++)tick(restored,.05);assert.equal(restored.props.length,1);
+  for(let i=0;i<100&&s.props.length;i++)tick(s,.05);assert.equal(s.props.length,0);
+  const moving=fixture();assert.ok(Core.targetBarrel(moving,hero(moving),barrelPoint));tick(moving,.05,{x:0,y:1});
+  for(let i=0;i<30;i++)tick(moving,.05);assert.equal(hero(moving).ammo.assault,30);assert.equal(moving.props.length,1);
+});
 
 test('Quiet Shift offers a reachable barrel chain from the normal arrival point without harming the player',()=>{
   const s=Core.enableRealtime(createSoloGame({...DEFAULT_BUILD,utility:'grenade'},1,'quiet-shift'));

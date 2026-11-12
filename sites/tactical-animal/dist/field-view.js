@@ -34,12 +34,14 @@ import {actionDuration,createWeaponPose,weaponAction} from './weapon-pose.js';
 import {createGrenadePose,grenadeAction} from './grenade-pose.js';
 import {ExplosionShake} from './explosion-shake.js';
 import {barrelId} from './aft/tactics/explosive-barrels.js';
+import {dissolveBody} from './designer/a20b343a0234/tactics/painted-fire-actor.js';
 
 const V = (x=0,y=0,z=0) => new T.Vector3(x,y,z);
 // Hits pulse at the burst cadence. Misses linger so diverging paths can be read together.
 const BURST_SHOT_INTERVAL=140,BURST_TRACER_DURATION=90,MISS_TRACER_DURATION=340,FLASH_DURATION=72;
 const MUZZLE_SOURCE_TOLERANCE=.04;
 const MAX_PARKED_ACTORS=8;
+const BARREL_CURSOR=`url("${new URL('./assets/ui/barrel-crosshair.svg',import.meta.url).href}") 16 16, crosshair`;
 // Two standard Zoom Out steps from the previous 13 m view.
 const DEFAULT_CAMERA_SPAN=13*1.2**2;
 function disposeEffectMesh(mesh){
@@ -70,7 +72,8 @@ export class FieldView {
     const blast=Core.WEAPONS.grenade.blast;this.blastMarker=new T.Mesh(new T.RingGeometry(blast-.04,blast,64),new T.MeshBasicMaterial({color:0xf4a568,side:T.DoubleSide,transparent:true,opacity:.85,depthWrite:false}));this.blastMarker.rotation.x=-Math.PI/2;this.blastMarker.visible=false;this.scene.add(this.blastMarker);
     this.blastArea=new T.Mesh(new T.BufferGeometry(),new T.MeshBasicMaterial({color:0xf4a568,side:T.DoubleSide,transparent:true,opacity:.17,depthWrite:false}));this.blastArea.visible=false;this.scene.add(this.blastArea);
     this.pathLine=new T.Line(new T.BufferGeometry(),new T.LineBasicMaterial({color:0xe6b464,transparent:true,opacity:.85}));this.scene.add(this.pathLine);
-    this.pointerDown=e=>this.down(e);this.pointerMove=e=>this.drag(e);this.pointerUp=e=>this.up(e);
+    this.pointerDown=e=>this.down(e);this.pointerMove=e=>{this.hoverPoint=e.pointerType==='mouse'?{x:e.clientX,y:e.clientY}:null;this.drag(e);this.updateBarrelHover(performance.now());};this.pointerUp=e=>this.up(e);
+    this.pointerLeave=()=>{this.hoverPoint=null;this.clearBarrelHover();};container.addEventListener('pointerleave',this.pointerLeave);
     container.addEventListener('pointerdown',this.pointerDown);container.addEventListener('pointermove',this.pointerMove);container.addEventListener('pointerup',this.pointerUp);container.addEventListener('pointercancel',this.pointerUp);
     this.wheel=e=>{e.preventDefault();this.zoom(Math.exp(e.deltaY*.001));};container.addEventListener('wheel',this.wheel,{passive:false});
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(container);this.resize();
@@ -95,6 +98,18 @@ export class FieldView {
   center(){if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=null;this.follow=true;if(this.state&&this.contactSpan==null){const u=hero(this.state);this.target.set(u.x,0,u.y);this.updateCamera();}}
   focusOpponent(id){const u=this.state?.units.find(v=>v.id===id&&v.team==='guard'&&Core.alive(v)&&this.state.detected.has(v.id));if(!u)return false;if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=id;this.follow=false;this.contactSpan=null;this.target.set(u.x,0,u.y);this.updateCamera();return true;}
   ground(clientX,clientY){const r=this.container.getBoundingClientRect();this.ray.setFromCamera(new T.Vector2((clientX-r.left)/r.width*2-1,-(clientY-r.top)/r.height*2+1),this.camera);return this.ray.ray.intersectPlane(this.plane,V());}
+  clearBarrelHover(){if(this.hoveringBarrel){this.container.style.cursor='';delete this.container.dataset.barrelTarget;this.hoveringBarrel=false;}}
+  updateBarrelHover(now,force=false){
+    if(!this.hoverPoint||this.pointers.size||this.grenadeCamera||!this.state||!Core.canControl(this.state,hero(this.state))){this.clearBarrelHover();return;}
+    if(!force&&now-(this.lastHoverAt??0)<60)return;this.lastHoverAt=now;
+    this.ground(this.hoverPoint.x,this.hoverPoint.y);
+    const hit=this.art?.pickBarrel?.(this.ray),present=hit&&(this.state.props||[]).some(p=>barrelId(p)===barrelId(hit.prop));
+    const wall=present&&this.art?.pickWall?.(this.ray);
+    const picks=present?[...this.actors.values()].filter(a=>a.root.visible&&a.pick.visible).map(a=>a.pick).concat(this.interactionArt?.picks||[],this.windowArt?.picks||[]):[];
+    const front=present&&this.ray.intersectObjects(picks,false)[0];
+    if(!present||wall&&wall.distance<hit.distance||front&&front.distance<hit.distance){this.clearBarrelHover();return;}
+    this.hoveringBarrel=true;this.container.dataset.barrelTarget='true';this.container.style.cursor=BARREL_CURSOR;
+  }
   interactionAnchor(object){const height=clueAnchorHeight(missionForState(this.state),object,object.kind==='door'?2.15:object.kind==='chest'?1.15:.7),point=V(object.x,height,object.y).project(this.camera);return {x:(point.x+1)*this.container.clientWidth/2,y:(1-point.y)*this.container.clientHeight/2,visible:Math.abs(point.x)<.95&&Math.abs(point.y)<.95&&Math.abs(point.z)<1};}
   down(e){if(e.button!==0||this.grenadeCamera)return;this.unlockSound();this.container.setPointerCapture(e.pointerId);this.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(this.pointers.size===1)this.gesture={x:e.clientX,y:e.clientY,target:this.target.clone(),moved:false,at:performance.now()};if(this.pointers.size===2){const [a,b]=[...this.pointers.values()];this.pinch={distance:Math.hypot(a.x-b.x,a.y-b.y),span:this.span};this.gesture.moved=true;}}
   drag(e){const point=this.pointers.get(e.pointerId);if(!point)return;point.x=e.clientX;point.y=e.clientY;
@@ -132,6 +147,8 @@ export class FieldView {
     this.weaponAudio?.setPaused(paused);
   }
   clearEffects(){
+    if(this.graphicsFence){this.renderer.getContext().deleteSync(this.graphicsFence);this.graphicsFence=null;}
+    for(const mesh of this.warmFeedback||[])disposeEffectMesh(mesh);this.warmFeedback=[];this.effectsBusy=false;
     this.explosionShake?.clear();this.lastShake=null;this.shakePeak=0;this.pendingExplosions=[];
     this.windowEffects?.dispose();this.windowEffects=null;
     this.weaponAudio?.dispose();this.weaponAudio=null;this.lastDischarge=null;this.playerWeaponPose=null;
@@ -147,6 +164,7 @@ export class FieldView {
     this.state=s;this.residentWindow=null;this.lastWindowKey=null;this.prepareGraphics=false;this.samples.clear();this.failed.clear();
     for(const a of [...this.actors.values(),...(this.parkedActors?.values()||[])])this.disposeActor(a);
     this.actors.clear();this.parkedActors?.clear();this.pending.clear();this.clearEnvironment();
+    this.tankEffects=new SoloTankEffects(this.scene);this.burnEffects=new SoloBurnEffects(this.scene);this.effectsBusy=true;
     this.buildEnvironment(s);this.center();this.resize();this.lastRevision=-1;this.lastLightAt=undefined;
     this.lastFrameAt=undefined;this.lastEffect=s.effect||null;this.route([]);
     if(s.realtime&&this.searchHalo&&s.units.length<=MAX_PARKED_ACTORS+1){
@@ -160,11 +178,22 @@ export class FieldView {
     }
   }
   loadingAssets(){
-    return this.artBusy||this.propBusy||this.missionArtBusy||this.missionPaperBusy||this.pending.size>0||this.failed.size>0;
+    return this.artBusy||this.propBusy||this.missionArtBusy||this.missionPaperBusy||this.effectsBusy||!!this.graphicsFence||this.pending.size>0||this.failed.size>0;
   }
   reportLoading(){this.onLoading(this.prepareGraphics||this.loadingAssets());}
+  waitingForGraphics(){
+    if(!this.graphicsFence)return false;
+    const gl=this.renderer.getContext();
+    if(gl.clientWaitSync(this.graphicsFence,0,0)===gl.TIMEOUT_EXPIRED)return true;
+    gl.deleteSync(this.graphicsFence);this.graphicsFence=null;this.reportLoading();return false;
+  }
   warmFieldGraphics(now){
     const {renderer,scene,camera,searchHalo}=this;
+    if(!this.warmFeedback?.length){
+      const u=hero(this.state),start=V(u.x,1.1,u.y),end=V(u.x+.1,1.1,u.y),trace=tracerMesh('assault'),rocket=tracerMesh('rpg');
+      setTracer(trace,start,end,this.state,'assault');setTracer(rocket,start,end,this.state,'rpg');this.warmFeedback=[trace,rocket,muzzleFlash(start,end,'assault'),surfaceImpactFlash(end)];
+      for(const mesh of this.warmFeedback){mesh.visible=false;scene.add(mesh);}
+    }
     const target=renderer.getRenderTarget(),scissor=renderer.getScissor(new T.Vector4());
     const scissorTest=renderer.getScissorTest(),shadows=renderer.shadowMap.autoUpdate;
     const parked=[...this.parkedActors.values()],objects=[];
@@ -206,18 +235,30 @@ export class FieldView {
     this.windowArt=new WindowScenery(s);this.environment.add(this.windowArt.root);this.windowEffects=new WindowEffects(this.scene,s);
     const tour=getTourWorld(s);if(tour){
       const generation=this.generation;this.artBusy=true;this.propBusy=this.missionArtBusy=this.missionPaperBusy=false;this.searchHalo=null;this.objectivePin=this.extractionPin=null;
-      this.art=tour.createEnvironment(this.renderer,s,{onLoading:busy=>{if(generation===this.generation){this.artBusy=busy;this.reportLoading();}},onError:message=>{if(generation===this.generation){this.failed.add('town-art');this.onError(message);}}});this.environment.add(this.art.root);this.buildInteractionScenery(s,generation);this.missionArtReady=Promise.resolve(null);return;
+      this.art=tour.createEnvironment(this.renderer,s,{onLoading:busy=>{if(generation===this.generation){this.artBusy=busy;this.reportLoading();}},onError:message=>{if(generation===this.generation){this.failed.add('town-art');this.onError(message);}}});this.environment.add(this.art.root);this.buildInteractionScenery(s,generation);this.missionArtReady=Promise.resolve(null);this.prepareExplosionGraphics(s,generation);return;
     }
     const generation=this.generation,mission=missionForState(s);this.artBusy=true;this.missionArtBusy=this.missionPaperBusy=false;this.searchHalo=new SearchHalo();
     this.art=new OriginalEnvironment(this.renderer,s,{
       onLoading:busy=>{if(generation===this.generation){this.artBusy=busy;this.reportLoading();}},
       onError:message=>{if(generation===this.generation){this.failed.add('environment');this.onError(message);}},
     });this.environment.add(this.art.root);
+    this.prepareExplosionGraphics(s,generation);
     this.missionArtReady=missionHasArt(mission)?this.loadMissionArt(s,generation):Promise.resolve(null);
     this.buildInteractionScenery(s,generation);
     this.objectivePin=this.makePin(mission.objective,0xe16b3d);this.extractionPin=this.makePin(mission.extraction,0xc4d29a);
     // Rail lines and loading-yard markings are scenery; the engine owns all collision.
     if(!s.groundPalette)for(let x=3;x<37;x+=3){const mark=new T.Mesh(new T.PlaneGeometry(1.2,.06),new T.MeshBasicMaterial({color:0xb0a475,transparent:true,opacity:.16}));mark.rotation.x=-Math.PI/2;mark.position.set(x,.003,26.8);this.environment.add(mark);}
+  }
+  prepareExplosionGraphics(s,generation){
+    if(!this.tankEffects)return;
+    const effects=this.tankEffects,art=this.art;
+    const props=(s.props||[]).filter(p=>p.kind==='barrel-explosive').sort((a,b)=>Math.hypot(a.x-hero(s).x,a.y-hero(s).y)-Math.hypot(b.x-hero(s).x,b.y-hero(s).y));
+    const count=Math.min(8,props.length+s.units.filter(u=>u.weapon==='flamethrower').length);
+    const capacity=2**Math.ceil(Math.log2(Math.max(128,81*count)));
+    this.effectsPreparation=Promise.resolve(art.ready).then(()=>{
+      if(generation!==this.generation)return;
+      return effects.prepare(art.library,props,[...s.visible].map(key=>{const [x,z]=key.split(',').map(Number);return {x,z};}),capacity);
+    }).finally(()=>{if(generation===this.generation){this.effectsBusy=false;this.reportLoading();}});
   }
   buildInteractionScenery(s,generation){
     this.propBusy=true;this.interactionArt=new InteractionScenery(s,{
@@ -304,7 +345,10 @@ export class FieldView {
       const throwPose=u.team==='squad'||u.weapon==='grenade'?createGrenadePose(worker,profile):null;
       const a={worker,paint,profile,locomotion,posture,root,pick,ring,shadow,weapon:u.weapon,equipment:worker.weapon,
         flameOperator:createFlameOperator(worker,profile),weaponPose,throwPose};
+      a.burnDissolve={value:0};a.restoreDissolve=dissolveBody(worker,a.burnDissolve);
       if(u.team==='squad')a.crawl=createCrawlPose(worker,profile,posture,u.weapon);
+      const burns=this.burnEffects;await burns.prepareActor(a);
+      if(generation!==this.generation||this.pending.get(u.id)!==ticket){burns.forgetActor(a);this.disposeActor(a);return;}
       if(preload){root.visible=false;this.parkedActors.set(u.id,a);}
       else{this.actors.set(u.id,a);this.scene.add(root);}
     }catch(error){paint?.dispose();worker?.weapon?.dispose();worker?.dispose();if(generation===this.generation&&this.pending.get(u.id)===ticket){this.failed.add(u.id);console.error('Animal model failed',error);this.onError(error.message||'An animal texture could not load.');}}
@@ -321,7 +365,7 @@ export class FieldView {
     // full of GPU rigs. All simulation units remain untouched in state.units.
     while(this.parkedActors.size>MAX_PARKED_ACTORS){const [id,actor]=this.parkedActors.entries().next().value;this.parkedActors.delete(id);this.samples.delete(id);this.disposeActor(actor);}
   }
-  disposeActor(a){for(const [id,session]of this.burnEffects?.sessions||[])if(session.actor===a)this.burnEffects.remove(id);this.scene.remove(a.root);a.crawl?.dispose();a.throwPose?.dispose();a.flameOperator?.dispose();a.locomotion?.dispose();a.paint.dispose();a.equipment.dispose();a.worker.dispose();for(const o of [a.pick,a.ring,a.shadow]){o.geometry.dispose();o.material.dispose();}}
+  disposeActor(a){this.burnEffects?.forgetActor(a);a.restoreDissolve?.();this.scene.remove(a.root);a.crawl?.dispose();a.throwPose?.dispose();a.flameOperator?.dispose();a.locomotion?.dispose();a.paint.dispose();a.equipment.dispose();a.worker.dispose();for(const o of [a.pick,a.ring,a.shadow]){o.geometry.dispose();o.material.dispose();}}
   queueEffects(effect,now){
     this.effectAt=now;const previousRounds=new Map();
     for(const event of effect.sequence||[effect]){
@@ -582,7 +626,8 @@ export class FieldView {
     }
     return elapsed;
   }
-  sync(s,now){this.frameCount=(this.frameCount||0)+1;this.state=s;const u=hero(s),elapsed=this.updateFollowCamera(s,now),motionBlend=T.MathUtils.damp(0,1,-60*Math.log(.8),elapsed),poseBlend=T.MathUtils.damp(0,1,-60*Math.log(.85),elapsed);
+  sync(s,now){if(this.waitingForGraphics())return;this.frameCount=(this.frameCount||0)+1;this.state=s;const u=hero(s),elapsed=this.updateFollowCamera(s,now),motionBlend=T.MathUtils.damp(0,1,-60*Math.log(.8),elapsed),poseBlend=T.MathUtils.damp(0,1,-60*Math.log(.85),elapsed);
+    this.updateBarrelHover(now);
     const window=this.residentWindow||blockWindow(s,u),visible=s.units.filter(v=>pointInWorldRect(v,window)&&(v.team==='squad'||(v.hp>0?s.detected.has(v.id):s.visible.has(Core.key(v.x,v.y)))));
     this.reconcileActors(visible);
     if(s.effect&&s.effect!==this.lastEffect){this.lastEffect=s.effect;this.queueEffects(s.effect,now);}
@@ -634,7 +679,12 @@ export class FieldView {
       const targets=this.artBusy||this.propBusy?[]:searchHaloCandidates(s,window).map(object=>searchHaloTarget(object,this)).filter(target=>target.root);
       this.renderWithShake(now,()=>this.searchHalo.render(this.renderer,this.scene,this.camera,targets,now));
     }else this.renderWithShake(now,()=>this.renderer.render(this.scene,this.camera));
-    if(graphicsReady)this.reportLoading();
+    if(graphicsReady){
+      // Shader linking and draw submission can finish before the driver has
+      // initialized its pipelines. Keep loading until the real warm-up draw
+      // completes, without blocking JavaScript or queuing more world draws.
+      const gl=this.renderer.getContext();this.graphicsFence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();this.reportLoading();
+    }
   }
   renderWithShake(now,render){
     const offset=this.explosionShake?.sample(now)||{x:0,y:0};this.lastShake={...offset,at:now};
@@ -646,7 +696,13 @@ export class FieldView {
     this.camera.updateMatrixWorld();
     try{render();}finally{this.camera.position.copy(position);this.camera.updateMatrixWorld();}
   }
-  dispose(){this.generation++;this.clearGestures();this.clearEffects();this.pending.clear();this.resizeObserver.disconnect();this.container.removeEventListener('pointerdown',this.pointerDown);this.container.removeEventListener('pointermove',this.pointerMove);this.container.removeEventListener('pointerup',this.pointerUp);this.container.removeEventListener('pointercancel',this.pointerUp);this.container.removeEventListener('wheel',this.wheel);for(const a of [...this.actors.values(),...this.parkedActors.values()])this.disposeActor(a);this.actors.clear();this.parkedActors.clear();this.clearEnvironment();this.daylight.dispose();this.marker.geometry.dispose();this.marker.material.dispose();this.blastMarker.geometry.dispose();this.blastMarker.material.dispose();this.blastArea.geometry.dispose();this.blastArea.material.dispose();this.pathLine.geometry.dispose();this.pathLine.material.dispose();this.renderer.dispose();this.renderer.domElement.remove();}
+  dispose(){
+    this.generation++;this.clearBarrelHover();this.clearGestures();this.clearEffects();this.pending.clear();this.resizeObserver.disconnect();
+    for(const [name,handler] of [['pointerleave',this.pointerLeave],['pointerdown',this.pointerDown],['pointermove',this.pointerMove],['pointerup',this.pointerUp],['pointercancel',this.pointerUp],['wheel',this.wheel]])this.container.removeEventListener(name,handler);
+    for(const a of [...this.actors.values(),...this.parkedActors.values()])this.disposeActor(a);this.actors.clear();this.parkedActors.clear();
+    this.clearEnvironment();this.daylight.dispose();for(const object of [this.marker,this.blastMarker,this.blastArea,this.pathLine]){object.geometry.dispose();object.material.dispose();}
+    this.renderer.dispose();this.renderer.domElement.remove();
+  }
 }
 
 export function drawMinimap(canvas,s,options={}){const tour=getTourWorld(s);if(tour)return tour.drawMinimap(canvas,s,options);const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,bounds=worldBounds(s);ctx.fillStyle='#1b2219';ctx.fillRect(0,0,w,h);const scale=Math.min((w-12)/bounds.w,(h-12)/bounds.h),ox=(w-bounds.w*scale)/2,oy=(h-bounds.h*scale)/2;

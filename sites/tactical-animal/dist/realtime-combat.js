@@ -57,8 +57,8 @@ export function awardRealtimeKill(state,source){
   }
 }
 
-export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,previewAttack,attack,headingTo,flameAffects,previewFlame,fireFlame,completeReload,travel,movePlayer,approachPath,navigationPath,guardActive=()=>true,refresh,log,fireRules}){
-  const heldTriggers=new WeakMap(),patrolDetours=new WeakMap();
+export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,previewAttack,attack,headingTo,flameAffects,previewFlame,fireFlame,completeReload,travel,movePlayer,approachPath,navigationPath,guardActive=()=>true,pointTargetExists=()=>false,refresh,log,fireRules}){
+  const heldTriggers=new WeakMap(),pointOrders=new WeakMap(),patrolDetours=new WeakMap();
   const actor=(s,u)=>s.realtime.actors[u.id]??=(emptyActor(u.weapon));
   function enable(s){
     if(!s.realtime){
@@ -83,12 +83,13 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
     const a=actor(s,u),changed=settings.aim!==undefined&&settings.aim!==r.aim||settings.zone!==undefined&&settings.zone!==r.zone||mode!==undefined&&mode!==savedMode(r);
     Object.assign(r,settings);
     if(mode!==undefined)r.fireMode=mode;
-    if(changed&&!WEAPONS[u.weapon].incendiary){resetAim(a);a.manual=null;heldTriggers.delete(s);}
+    if(changed&&!WEAPONS[u.weapon].incendiary){resetAim(a);a.manual=null;heldTriggers.delete(s);pointOrders.delete(s);}
+    if(settings.autoFire!==undefined)pointOrders.delete(s);
     if(settings.autoFire===false){a.manual=null;r.targetId=null;heldTriggers.delete(s);resetAim(a);}
     s.revision++;return true;
   }
-  function pin(s,id){const u=s.units.find(u=>u.id===id);if(id!==null&&(!u||u.team!=='guard'||!alive(u)||!s.detected.has(id)))return false;s.realtime.pinnedId=id;resetAim(actor(s,hero(s)));s.revision++;return true;}
-  function changedWeapon(s,u){if(u.team==='squad')heldTriggers.delete(s);const a=actor(s,u);a.weapon=u.weapon;a.reload=null;a.manual=null;a.cooldown=Math.max(a.cooldown,.55);resetAim(a);}
+  function pin(s,id){const u=s.units.find(u=>u.id===id);if(id!==null&&(!u||u.team!=='guard'||!alive(u)||!s.detected.has(id)))return false;pointOrders.delete(s);s.realtime.pinnedId=id;resetAim(actor(s,hero(s)));s.revision++;return true;}
+  function changedWeapon(s,u){if(u.team==='squad'){heldTriggers.delete(s);pointOrders.delete(s);}const a=actor(s,u);a.weapon=u.weapon;a.reload=null;a.manual=null;a.cooldown=Math.max(a.cooldown,.55);resetAim(a);}
   function reload(s,u){
     const a=actor(s,u),w=WEAPONS[u.weapon];
     if(!alive(u)||u.burningTurns||a.reload||!w.mag||w.thrown||(u.ammo[u.weapon]||0)>=w.mag||!(u.ammoPouch[u.weapon]>0))return false;
@@ -102,12 +103,20 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
   }
   function requestShot(s,u,target,mode=false,zone='torso',aim='hip'){
     const order=planShot(s,u,target,mode,zone,aim);if(!order)return false;
-    const a=actor(s,u);a.manual=order;resetAim(a);return true;
+    pointOrders.delete(s);const a=actor(s,u);a.manual=order;resetAim(a);return true;
+  }
+  function targetPoint(s,u,point){
+    if(!s.realtime||!alive(u)||u.team!=='squad'||!point?.ground||!pointTargetExists(s,point))return false;
+    const a=actor(s,u),r=s.realtime;
+    heldTriggers.delete(s);a.manual=null;resetAim(a);
+    pointOrders.set(s,{weapon:u.weapon,point:{...point},fireMode:modeFor(u.weapon,savedMode(r)),aim:r.aim,zone:r.zone});
+    return true;
   }
   function pressTrigger(s,u,target,zone='torso',aim='hip'){
     if(heldTriggers.has(s)||modeFor(u.weapon,'auto')!=='auto')return false;
     const order=planShot(s,u,target,'auto',zone,aim);if(!order)return false;
     const a=actor(s,u);a.manual=null;resetAim(a);
+    pointOrders.delete(s);
     heldTriggers.set(s,{order,weapon:u.weapon,fired:false});return true;
   }
   function releaseTrigger(s,tap=false){
@@ -221,13 +230,16 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
     const r=s.realtime,u=hero(s),effects=[];r.time+=dt;s.elapsed+=dt;
     const autoTime=Math.max(0,dt-actor(s,u).cooldown);
     for(const v of s.units){v.isMoving=false;advanceActor(s,v,dt);}
+    if(input&&Math.hypot(input.x,input.y)>.1||s.queue.length)pointOrders.delete(s);
     if(!u.burningTurns)movePlayer(s,dt,input);
     refresh(s);if(!alive(u))return;
     const a=actor(s,u),w=WEAPONS[u.weapon];
     if(!u.burningTurns){
       if(w.mag&&!w.thrown&&!u.ammo[u.weapon]&&u.ammoPouch[u.weapon]>0&&!a.reload)reload(s,u);
       if(!r.suspended){
-        const held=heldTriggers.get(s),manual=held?.order??a.manual;
+        let point=pointOrders.get(s);
+        if(point&&(point.weapon!==u.weapon||!pointTargetExists(s,point.point)||!u.ammo[u.weapon]&&!u.ammoPouch[u.weapon])){pointOrders.delete(s);point=null;resetAim(a);}
+        const held=heldTriggers.get(s),manual=held?.order??a.manual??point;
         const target=manual?(manual.point||s.units.find(v=>v.id===manual.targetId)):r.autoFire?choose(s):null;
         r.targetId=target?.id??null;
         if(target&&(target.ground||alive(target))){
@@ -251,7 +263,7 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
     const r=s.realtime,a=r?.actors[u.id],player=u.team==='squad';
     if(!a?.signature||a.weapon!==u.weapon||a.reload||!alive(u)||u.burningTurns)return null;
     if(player&&r.suspended||!player&&!u.alert)return null;
-    const order=player?(heldTriggers.get(s)?.order??a.manual):null;
+    const order=player?(heldTriggers.get(s)?.order??a.manual??pointOrders.get(s)):null;
     if(player&&!order&&!r.autoFire)return null;
     const target=order?.point??s.units.find(v=>v.id===a.targetId);
     if(!target||!target.ground&&(!alive(target)||player&&!s.detected.has(target.id)))return null;
@@ -259,5 +271,5 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
     const seconds=shotSeconds(u.weapon,aim,player?savedMode(order??r):'single');
     return {target,zone,progress:1-a.aimRemaining/seconds};
   }
-  return {enable,actor,ready,busy,configure,pin,changedWeapon,reload,requestShot,pressTrigger,releaseTrigger,choose,step,status,aimFor};
+  return {enable,actor,ready,busy,configure,pin,changedWeapon,reload,requestShot,targetPoint,pressTrigger,releaseTrigger,choose,step,status,aimFor};
 }
