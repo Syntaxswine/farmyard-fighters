@@ -25,9 +25,11 @@ test('a piece takes the lidar form where it is confident, and is flat otherwise'
   assert.equal(pieceRoof(piece(east, {pitchDeg: null})).pitch, 20);
 });
 
-test('a pitched piece carries the lidar ridge bearing to the kit; a flat one none', () => {
+test('a gable carries the lidar ridge bearing to the kit; a hip or a flat roof none', () => {
   const east = rect(0, 0, 10, 4);
   assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 78.7})).ridgeBearingDeg, 78.7);
+  // A hip's ridge runs along its long side: across the short side roof-core draws a point.
+  assert.equal('ridgeBearingDeg' in pieceRoof(piece(east, {form: 'hip', ridgeBearingDeg: 0})), false);
   assert.equal(pieceRoof(piece(east, {ridgeBearingDeg: 0})).ridgeBearingDeg, 0);
   assert.equal('ridgeBearingDeg' in pieceRoof(piece(east)), false, 'no bearing: the kit runs the ridge along the longer side');
   assert.equal('ridgeBearingDeg' in pieceRoof(piece(east, {form: 'other', ridgeBearingDeg: 90})), false);

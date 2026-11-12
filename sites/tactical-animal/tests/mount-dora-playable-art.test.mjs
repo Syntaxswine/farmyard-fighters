@@ -378,7 +378,7 @@ test('each lidar water roof is one open boathouse with its own pieces, eaves and
    assert.deepEqual(piece.points,source.outline);assert.equal(piece.eave,source.eaveM);assert.equal(piece.lakeShare,source.lakeShare);
    assert.equal(piece.style,confident?source.form:'flat',roof.id);
    if(piece.style==='flat'){assert.equal(piece.pitch,0);assert.equal(piece.ridgeBearingDeg,undefined);}
-   else{assert.equal(piece.pitch,Math.max(12,Math.min(40,Math.round(source.pitchDeg))));assert.equal(piece.ridgeBearingDeg,source.ridgeBearingDeg);}
+   else{assert.equal(piece.pitch,Math.max(12,Math.min(40,Math.round(source.pitchDeg))));assert.equal(piece.ridgeBearingDeg,piece.style==='gable'?source.ridgeBearingDeg:undefined);}
    for(const [x,y]of piece.points)assert.ok(x>=p.bounds[0]&&x<=p.bounds[2]&&y>=p.bounds[1]&&y<=p.bounds[3],roof.id);
   }
   assert.equal(p.collisionPolicy,'additional-solids');assert.deepEqual(p.replacesSourceIds,[]);
@@ -400,19 +400,24 @@ test('the game draws each boathouse piece over the ground its lake share says',(
   land+=q.lakeShare<.5;}
  assert.ok(land>=3,'some pieces stand where the game draws land');
 });
-test('each pitched roof ridge follows the lidar bearing, however its outline starts',()=>{
- const along=(d,b)=>{const t=b*Math.PI/180;return Math.abs(d[0]*Math.sin(t)-d[1]*Math.cos(t));};
+test('each gable ridge follows the lidar bearing and each hip ridge its long side, however the outline starts',()=>{
+ const unit=d=>{const l=Math.hypot(...d);return [d[0]/l,d[1]/l];},dot=(d,e)=>Math.abs(d[0]*e[0]+d[1]*e[1]),bearing=b=>[Math.sin(b*Math.PI/180),-Math.cos(b*Math.PI/180)];
  const pitched=boathouses.flatMap(p=>p.pieces.filter(q=>q.style!=='flat').map(q=>[p,q]));assert.ok(pitched.length>=7);
+ const hips=pitched.filter(([,q])=>q.style==='hip');assert.ok(hips.length>=2&&pitched.length-hips.length>=4);
+ // Where the ridge should run: a gable's along its bearing, a hip's along its rectangle's long side.
+ const want=q=>{if(q.style==='gable')return bearing(q.ridgeBearingDeg);const [a,b,c]=q.points,u=[b[0]-a[0],b[1]-a[1]],v=[c[0]-b[0],c[1]-b[1]];return unit(Math.hypot(...u)>=Math.hypot(...v)?u:v);};
  for(const [p,q]of pitched){const ring=q.points.slice(0,4);
-  for(let k=0;k<4;k++){const r=[...ring.slice(k),...ring.slice(0,k)];assert.ok(along(ridgeDirection([...r,r[0]],q.ridgeBearingDeg),q.ridgeBearingDeg)>.99,`${p.id} start ${k}`);}}
- // And as drawn: the top of each pitched piece's roof surface runs along the bearing.
+  for(let k=0;k<4;k++){const r=[...ring.slice(k),...ring.slice(0,k)];assert.ok(dot(ridgeDirection([...r,r[0]],q.ridgeBearingDeg),want(q))>.99,`${p.id} ${q.style} start ${k}`);}}
+ // And as drawn: the top of each pitched piece's roof surface runs that way. The ridge ends
+ // lie on the outline, so the vertices on it count (within 1 cm).
+ const onOrIn=(v,ring)=>pointIn(v,ring)||ring.slice(1).some((b,i)=>{const a=ring[i],e=[b[0]-a[0],b[1]-a[1]],t=Math.max(0,Math.min(1,((v[0]-a[0])*e[0]+(v[1]-a[1])*e[1])/(e[0]**2+e[1]**2)));return Math.hypot(v[0]-a[0]-e[0]*t,v[1]-a[1]-e[1]*t)<.01;});
  const kit=createMountDoraArt({THREE:T,atlas:new T.Texture()});
  for(const [p,q]of pitched){kit.updateResident(p.bounds);const g=kit.root.getObjectByName(p.id),mesh=g.children.find(m=>m.isMesh&&m.material.name==='md:blue-metal:1,1,1:true:silver'),a=mesh.geometry.attributes.position,pts=[];
-  for(let i=0;i<a.count;i++){const x=a.getX(i)+p.anchor[0],z=a.getZ(i)+p.anchor[1];if(pointIn([x,z],q.points))pts.push([x,a.getY(i),z]);}
+  for(let i=0;i<a.count;i++){const x=a.getX(i)+p.anchor[0],z=a.getZ(i)+p.anchor[1];if(onOrIn([x,z],q.points))pts.push([x,a.getY(i),z]);}
   const top=Math.max(...pts.map(v=>v[1])),ridge=pts.filter(v=>v[1]>top-.02),mx=ridge.reduce((s,v)=>s+v[0],0)/ridge.length,mz=ridge.reduce((s,v)=>s+v[2],0)/ridge.length;
   let xx=0,zz=0,xz=0;for(const v of ridge){xx+=(v[0]-mx)**2;zz+=(v[2]-mz)**2;xz+=(v[0]-mx)*(v[2]-mz);}
   const angle=Math.atan2(2*xz,xx-zz)/2,spread=Math.hypot(xx-zz,2*xz)/(xx+zz||1);
-  assert.ok(spread>.9&&along([Math.cos(angle),Math.sin(angle)],q.ridgeBearingDeg)>.99,`${p.id}: drawn ridge ${(angle*180/Math.PI).toFixed(1)} deg from east, lidar bearing ${q.ridgeBearingDeg}`);}
+  assert.ok(ridge.length>=2&&spread>.9&&dot([Math.cos(angle),Math.sin(angle)],want(q))>.99,`${p.id} ${q.style}: drawn ridge ${(angle*180/Math.PI).toFixed(1)} deg from east over ${ridge.length} vertices`);}
  kit.dispose();
 });
 test('the builder places posts by the deck rule the game walks on',()=>{

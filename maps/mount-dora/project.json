@@ -910,10 +910,10 @@
         "buildingCount": 23,
         "wallRunCount": 237,
         "nativePanelCount": 4061,
-        "propCount": 528,
+        "propCount": 527,
         "foliageCells": 0,
-        "bytes": 1248808,
-        "sha256": "8b6f47658316b16f05a9a139e7811f3997158b14d5384ce156b5b41e39295543"
+        "bytes": 1248597,
+        "sha256": "6e23502c7c14798e91b15272b6ae63d53d8e9c0b1fbc02746ee8b2367b59670d"
       },
       "buildingIds": [
         "county-1082536-1",
@@ -992,7 +992,7 @@
         "propCount": 417,
         "foliageCells": 0,
         "bytes": 1153812,
-        "sha256": "1c637a97b430e2c1586f910831cc8a94da5d87094de0b72ed9fed772ee7a2710"
+        "sha256": "0f5507cdc8e5d75d453237438967371f682baab4c7bcaacf89653b639a19a696"
       },
       "buildingIds": [
         "county-1464765-1",
@@ -1158,7 +1158,7 @@
         "propCount": 207,
         "foliageCells": 0,
         "bytes": 1095212,
-        "sha256": "c5787720bf3ab1ba3e7686176dec24c0ed62f19518dbcbbcb144603dfb8988e5"
+        "sha256": "d1ec324f50afbb9c846b1f0eef18f8e6d165f4ccb315fa9a1d7e757a832ed641"
       },
       "buildingIds": [
         "county-1464943-2",
@@ -1311,7 +1311,7 @@
         "propCount": 181,
         "foliageCells": 0,
         "bytes": 1053145,
-        "sha256": "bcf26ac73f2b30fec18055e043d916cc470ee52ebea69d8b7516f67d276da10e"
+        "sha256": "00ca290131d1b7d6e0839053f81b0049c9f65fab6e6e89155aa58535f972e38d"
       },
       "buildingIds": [
         "county-1472253-1",
@@ -1429,7 +1429,7 @@
         "propCount": 193,
         "foliageCells": 0,
         "bytes": 1251395,
-        "sha256": "2f6082cd7034adeeaa80ce5fd5adb9b6c1a09c612145e3234bb0c3b909b12cd8"
+        "sha256": "17c194541f48c4c27dc958826cf0888e176dfdf256e437b631eae9d5bd63558e"
       },
       "buildingIds": [
         "county-1665132-1",
@@ -1570,7 +1570,7 @@
         "propCount": 354,
         "foliageCells": 0,
         "bytes": 1156052,
-        "sha256": "18f0f3d2813294d5bab5b1b175ff0eee2a175aa4a18644072b2b971c7f4c4b8d"
+        "sha256": "319d9caf7d1cd94f343a6a41b823eb8b21c0f3f97cfd704e4d422bddc56e6663"
       },
       "buildingIds": [
         "osm-relation-7995943",
@@ -1663,7 +1663,7 @@
         "propCount": 94,
         "foliageCells": 0,
         "bytes": 763392,
-        "sha256": "02a3f345074c710871c68069b2dc0898d7b6d4e69a1b7c558d3ceaea4a3aee13"
+        "sha256": "697f78d8bc76e45364b6ad3b8d98e5508aa3f3fb02880e735dd82b8df6ce8848"
       },
       "buildingIds": [
         "county-1236797-1",
@@ -1788,7 +1788,7 @@
         "propCount": 199,
         "foliageCells": 0,
         "bytes": 1290952,
-        "sha256": "d833e47343c4d4ce26791fe8634d02c8b7b34f24ea1229f8ed39e27e8d527f74"
+        "sha256": "1175e25def6379a7773a341204a077dc95fd7685bbdd76ad18b97ce657951ae7"
       },
       "buildingIds": [
         "county-1465214-2",
@@ -1909,7 +1909,7 @@
         "propCount": 239,
         "foliageCells": 0,
         "bytes": 1191963,
-        "sha256": "a15a0b8a34cf9a1f7bc37624172c4705c8564a7770c1ddef09d2468c8e759025"
+        "sha256": "e10789a1c0d42198f5035cb95ad76de919345784f4f2dc09500b01bfacda942a"
       },
       "buildingIds": [
         "county-1476127-2",
@@ -2060,7 +2060,7 @@
         "propCount": 452,
         "foliageCells": 0,
         "bytes": 1075967,
-        "sha256": "02c9948bfaf4fd389548eac3372e5ca535deebcf21d33c478817857f0eb4f82e"
+        "sha256": "fc00dd2f0476cf34b843be93ac33ac85321eb302055924aad4e2a4e74ade5a39"
       },
       "buildingIds": [
         "osm-way-1240419468",
@@ -2183,7 +2183,7 @@
         "propCount": 541,
         "foliageCells": 0,
         "bytes": 1099220,
-        "sha256": "35794e0551255b664e55a553977abba45fb5cde9c28e3c2abb7eb21e72eeb2d9"
+        "sha256": "1ff97dfd023e6f8d7541cabc0132c7d95df2ecf4c05cccd18be84ce5dbdf4fa8"
       },
       "buildingIds": [
         "county-1797454-1",
@@ -2323,7 +2323,7 @@
         "propCount": 610,
         "foliageCells": 0,
         "bytes": 1098567,
-        "sha256": "56eadab265e353e88102c87b05bd9062bcb9035dac0d5ba76018e36891b0a24c"
+        "sha256": "35fc1c47586308e816990428aab5e9e9130d188cc7b4473a739b4b3203da8b05"
       },
       "buildingIds": [
         "county-1467926-1",
@@ -2441,7 +2441,7 @@
         "propCount": 5,
         "foliageCells": 0,
         "bytes": 493055,
-        "sha256": "83a746506a921f86ac9a671eb71b85ffb684fb05bfa876f62e266f391736a917"
+        "sha256": "d49a99a707c97045a089fd70432c2711c454ea3c9b9ac9c5442361d9a072778b"
       },
       "buildingIds": [
         "osm-way-1240419649"
@@ -2552,7 +2552,7 @@
         "propCount": 1278,
         "foliageCells": 8915,
         "bytes": 1460145,
-        "sha256": "ece18da68954dd1ea6296602570cc8d13195245c698994d7892a57b01e7d962d"
+        "sha256": "37dfd3f01526c2e1a42558cc345a094dab1db9eba1cae6f1532d3075c694ceb5"
       },
       "buildingIds": [
         "county-1797101-4",
@@ -2647,7 +2647,7 @@
         "propCount": 420,
         "foliageCells": 0,
         "bytes": 1146078,
-        "sha256": "458666db34c34e2f1964276f758eeffe208bc6b7793d8fa373469d9b3ec7260c"
+        "sha256": "a4502fb25d400df5a2c080778c28961b84c0aa024bd18b34634960dedc737fe8"
       },
       "buildingIds": [
         "county-1465818-2",
@@ -2735,7 +2735,7 @@
         "propCount": 809,
         "foliageCells": 0,
         "bytes": 1171251,
-        "sha256": "a6094890517927551a843b58a398d04f8ed4d468a71cbb41af55585206a0ad23"
+        "sha256": "b31163a492ee85b2df4b7fd5435813affc2acb2f98729cdfd9ad908b1321919c"
       },
       "buildingIds": [
         "county-1667917-1",
@@ -2837,7 +2837,7 @@
         "propCount": 693,
         "foliageCells": 0,
         "bytes": 1077620,
-        "sha256": "4c07a3514d72ef2f3de7289d979efe3bd07a356af304de0e4cc44fa11f26b821"
+        "sha256": "a56647f7ba3fed0c9ed7967d9ae6533b53819fecfbfbbc23394c3eee0286c2e3"
       },
       "buildingIds": [
         "county-1469490-1",
@@ -3030,7 +3030,7 @@
         "propCount": 513,
         "foliageCells": 0,
         "bytes": 1068914,
-        "sha256": "22e1f4edf3fa6c3510443d3d2c7b75a30a551773a261516ad989617bae0563c0"
+        "sha256": "3d32a74c09790a5f7ba6837b7ec85be8c7f56d3149dde53960b0eae97de17762"
       },
       "buildingIds": [
         "county-1473951-1",
@@ -3175,7 +3175,7 @@
         "propCount": 445,
         "foliageCells": 2958,
         "bytes": 688221,
-        "sha256": "99be8e27e0ec60f00f48689e3c1fec797e6ec6fdfea8bb98be6c2de845931d77"
+        "sha256": "0e2a4966f109821fe9be4cc5fa4705591b5a52ca380e8c8a7b54a798f0425e78"
       },
       "buildingIds": [],
       "guards": [
@@ -3283,7 +3283,7 @@
         "propCount": 471,
         "foliageCells": 0,
         "bytes": 859500,
-        "sha256": "9a0621de93d8ca8dbc6670253356093216d49066ba8411077f697d9fc2350b48"
+        "sha256": "a51c6503044db606393439c27fbbc484f7050038470c8288070b987b95c8688a"
       },
       "buildingIds": [
         "county-1465826-2",
@@ -3397,7 +3397,7 @@
         "propCount": 798,
         "foliageCells": 0,
         "bytes": 1126548,
-        "sha256": "a2b4e42a22bbed2626ff065ddabac2992a9b387f9553f0b3d68229476d042fc2"
+        "sha256": "06d2a2658a95932dbfcb3d31e4033eef09424d46fd88a8002f1821c43295964a"
       },
       "buildingIds": [
         "osm-way-1240419560",
@@ -3469,7 +3469,7 @@
         "propCount": 813,
         "foliageCells": 0,
         "bytes": 1119194,
-        "sha256": "fa89907439c8155b42bbc5a10ec2292ef586b35802e1795fa59d8fe106671220"
+        "sha256": "46f0f65a076727d8b5b8c952ce3bd7225c3ae483e3a388bffe810a8b1e7df505"
       },
       "buildingIds": [
         "county-1468426-2",
@@ -3619,7 +3619,7 @@
         "propCount": 450,
         "foliageCells": 0,
         "bytes": 1117470,
-        "sha256": "1b2c45cb463c8c254cb34f2321df010414d68f32d88e0929f8d5c5da0329e9ef"
+        "sha256": "a157c84f8fbec9a22bf60c37ccaae0809dcd0f3983c0d18fd53cd9df7d9ab9f6"
       },
       "buildingIds": [
         "county-1468612-1",
@@ -3765,7 +3765,7 @@
         "propCount": 250,
         "foliageCells": 3715,
         "bytes": 684962,
-        "sha256": "ef0543c696f77bba6f286a2d3f438f3f6a64d6f352ac4c08ebc824bdf5632079"
+        "sha256": "5f8f16d8f99305f3d5d62b4ca8b059b8a98d3f891b1cd9cfcde1eb244ae6c70f"
       },
       "buildingIds": [],
       "guards": [
@@ -3874,7 +3874,7 @@
         "propCount": 618,
         "foliageCells": 4742,
         "bytes": 977077,
-        "sha256": "7e645b91a04dde80b087c65280e7a981ecf41a90a3ef1270b98a14bac7fe3cde"
+        "sha256": "a9496792ed76f00b11f163da9189894e6d3b6c7739ecdf43ec7d2e2cdc2b841d"
       },
       "buildingIds": [
         "county-1709156-1",
@@ -3988,7 +3988,7 @@
         "propCount": 807,
         "foliageCells": 0,
         "bytes": 1123574,
-        "sha256": "ac34e36ea6df30ab398843135ff51e12c085bf5c3fcfe81bcf04d29473a9060f"
+        "sha256": "2557177451efe46f20384c8ad4ab5d4e90b33120c4f15361908b1f46eb01577a"
       },
       "buildingIds": [
         "county-2579871-1",
@@ -4093,7 +4093,7 @@
         "propCount": 598,
         "foliageCells": 0,
         "bytes": 1094337,
-        "sha256": "6b4364a418aefa9771c16f7721aa91c2f11a6ca93fef2885ffaeccc4f08eccfe"
+        "sha256": "b5633a0c81abdf32fff4444cf53ec6e07ca5636c2e030afc8d2d5bad07d044bd"
       },
       "buildingIds": [
         "county-1468710-1",
@@ -4186,7 +4186,7 @@
         "propCount": 432,
         "foliageCells": 0,
         "bytes": 1070888,
-        "sha256": "53a1c9aade8e7acc81194b407e208f4223cc8a2c125539d8b17b1be45a55c0b7"
+        "sha256": "9520480629ab2d3e935dd966c413b67f560b72ba88cde28126747c96e06371a1"
       },
       "buildingIds": [
         "county-1468710-1",
@@ -4343,7 +4343,7 @@
         "propCount": 930,
         "foliageCells": 13666,
         "bytes": 1243250,
-        "sha256": "8e8beba69352c62ac298e0f9766e2e51478d4151c1191ed66162a460dd5c2d9f"
+        "sha256": "2018ac6dd5efbde8a84e380ee7ce4516643c7ef79116ed8b8e93a92480cd5601"
       },
       "buildingIds": [],
       "guards": [
@@ -4450,7 +4450,7 @@
         "propCount": 1114,
         "foliageCells": 13788,
         "bytes": 1463962,
-        "sha256": "5eab2f787e5a1b91079cd091de274d99d1a461bccc9a13a739c1676bb6c3f338"
+        "sha256": "16fb81643d991141c51a6924d35a277ab044734a0a383a61c7f90f968051bc86"
       },
       "buildingIds": [
         "county-1469341-1",
@@ -4574,7 +4574,7 @@
         "propCount": 944,
         "foliageCells": 3911,
         "bytes": 1283376,
-        "sha256": "9e3a9511f1db833e6373e3143bea5e92668e408ba5863ea5781f367ae6ca8f2d"
+        "sha256": "537b748d1787202d09ed73ddf2e02f8a004429fa57f3f8ee0b9bca8c4444178b"
       },
       "buildingIds": [
         "county-1469325-1",
@@ -4688,7 +4688,7 @@
         "propCount": 376,
         "foliageCells": 0,
         "bytes": 995755,
-        "sha256": "d7b53f86ac9929cef0b7a1ee0e22c4db39fd4bdacea1505e7ed7fb6b510f81b7"
+        "sha256": "a5eee147249ae844efb12f5d43f25480b335d12647992f95e7d8f0a25776066b"
       },
       "buildingIds": [
         "county-1666023-1",
@@ -4819,7 +4819,7 @@
         "propCount": 478,
         "foliageCells": 2726,
         "bytes": 1052049,
-        "sha256": "9539c927f6a2082ffa2879ba29d2c7d9667f91e0ec40b1014b13c1df7bf2818c"
+        "sha256": "30770775bbfcb2069a056b1d225d1018157993ed7ec83bfed6bbc360342534df"
       },
       "buildingIds": [
         "county-3747348-1",
@@ -5034,14 +5034,14 @@
       "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas, then one tree in each tree crown the 2018 lidar saw that holds no trunk yet. Individual plants are gameplay scenery.",
       "lidarCrowns": {
         "file": "reference/lidar/crowns.json",
-        "sha256": "2f798916e0cf08f5dd6e5b6db8347f05eecaf8f135ffff0b0b73a5593450d999",
-        "bytes": 371579,
+        "sha256": "170af5a031002b1a74a269efc70bdd70856931f57a4b34fb8644bb0d94d9901f",
+        "bytes": 423464,
         "acquired": [
           "2018-12-06",
           "2018-12-06"
         ],
-        "crowns": 6969,
-        "planted": 3803,
+        "crowns": 6968,
+        "planted": 3802,
         "notPlanted": {
           "held": 2508,
           "noGround": 658
@@ -5135,8 +5135,8 @@
     "roadCount": 350,
     "excludedProposedRoads": 1,
     "wallRuns": 6368,
-    "props": 19290,
-    "trees": 17165,
+    "props": 19289,
+    "trees": 17164,
     "foliageCells": 54421,
     "guards": 42,
     "terrainCounts": {

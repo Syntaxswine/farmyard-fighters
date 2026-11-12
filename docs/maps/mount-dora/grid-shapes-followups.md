@@ -78,7 +78,7 @@ seven causes:
   Our map has 1 tree and 1 bush there, because greenery is seeded by
   declared density rather than placed from evidence. *Planted on the stacked
   branch `claude/mount-dora-lidar-trees`: a tree in each lidar crown the seeded
-  greenery leaves empty, 186 of them in the box and 3,803 map-wide.*
+  greenery leaves empty, 186 of them in the box and 3,802 map-wide.*
 - **The railway.** The Sorrento Subdivision runs between the road and the
   trees. OpenStreetMap tags it `railway=disused`, but the rails still show.
   As "context" it is never drawn. *Drawn on the stacked branch
@@ -92,8 +92,13 @@ Drawing the roofs over the water turned up four more gaps:
 
 - **Lake Dora's OSM outline is off the lidar's water by 5–10 m** along parts
   of the shore.
-  - Two boathouses at x 197–217, y 748–788 stand in lidar water, mostly
-    outside the outline. The game draws land under them.
+  - Three boathouses stand in lidar water, mostly outside the outline, so the
+    game draws land under them: 5 pieces in all (`lakeShare` under 0.5 in
+    water-roofs.json). One is at x 120–129, y 572–577; the other two are at
+    x 197–217, y 748–788.
+  - Three more pieces are part on land, 0.53–0.72 of each in the outline: at
+    x 109–121, y 539–551; the marina's walkway (x 558–581, y 961–970); and the
+    marina's north-west piece (x 496–508, y 961–970).
   - North of them, at x 0–130, y 360–520, the outline reaches inland over the
     shore houses.
   - Fix: take the shoreline from the lidar's water (class 9, and calm water
@@ -108,6 +113,25 @@ Drawing the roofs over the water turned up four more gaps:
   No outline draws it.
 - **A taller roof at the marina's north-west corner** at x 503–508,
   y 955–962 (eave about 5.1 m) stands on land. No outline draws it.
+- **A roof on a dock** at x 61–67, y 631–642 (about 69 m², 3.6 m up) is
+  missing from the water roofs. The aerial view shows a white roof where two
+  docks meet. The vendor left it unclassified, so it has no building returns.
+  It stops the scanner like a solid, so crowns.json lists it among
+  `notFoliage` (multiShare 0.047) and it gets no lidar tree. Drawing it would
+  take a rule for unclassified roofs over water.
+- **Two lidar trees may stand on roofs the vendor left unclassified.** The
+  roof rule in crowns.json (`roofTops`) takes out only crowns centred inside an
+  outline the game draws: Dora Villa's. Two crowns that carry lidar trees read
+  the same way, but neither is centred on a drawn outline:
+  - x 1230, y 1421 (65 m², 8.2 m, in F06). The aerial view shows a house there.
+    Its top is 9.3 m from the nearest drawn outline (osm-way-1240416234).
+  - x 1145, y 704 (10.5 m², 5.6 m, in E03), at the west edge of a building in
+    woods, 4.4 m from osm-way-1240419519.
+
+  Each has a top that stops the scanner (topShare under 0.1), reads under 0.15
+  as a whole, and has under 5% ground among the returns beneath it. A building
+  missing from OSM and the county records, or an outline off its roof, would
+  explain both. Check them against the parcel records.
 
 ## Known shape and placement limits
 

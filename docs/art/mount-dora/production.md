@@ -204,9 +204,11 @@ Dora where no OSM or county outline exists, one placement per roof in
   lake.
 - **Form.** A piece takes the lidar's form where that is confident (0.7, the
   buildings' rule) and is flat otherwise. Pitch is held to the buildings'
-  12–40°. The piece carries the lidar's ridge bearing, and the kit turns it into
-  a ridge axis in the frame it fits the outline in (`kit.js ridgeDirection`), so
-  the drawn ridge follows the lidar's whichever corner the outline starts at.
+  12–40°. A gable carries the lidar's ridge bearing. The kit turns it into a
+  ridge axis in the frame it fits the outline in (`kit.js ridgeDirection`), so
+  the drawn ridge follows the lidar's whichever corner the outline starts at. A
+  hip carries none: its ridge runs along its rectangle's long side, since across
+  the short side roof-core would draw a point.
 - **Built on a whole storey.** roof-core sets eaves on whole 2.12 m storeys, so
   the kit builds a pitched piece on the nearest storey and lifts it the
   difference.
@@ -217,11 +219,11 @@ Dora where no OSM or county outline exists, one placement per roof in
   0.2 m in, and at most 6 m apart along each side. Posts within a metre of each
   other are one post. A post that would stand on a pier deck slides along its
   side, or a corner post back along the side ending at it, to the nearest place
-  off the deck within 3 m. Of 200 posts, 4 slid and 0 were left off; each placement's
+  off the deck within 3 m. Of 196 posts, 4 slid and 0 were left off; each placement's
   provenance says how many.
 - **Solids and fade.** Posts are the only solids. The game's ground under a
   roof is unchanged: water inside Lake Dora's OSM outline, land where the
-  lidar's water runs past it (6 pieces of 4 roofs). Each piece records its
+  lidar's water runs past it (5 pieces of 3 roofs). Each piece records its
   `lakeShare`, and the posts stand at ground level either way. Like a pavilion,
   only the roof fades, while the focus stands under a piece.
 

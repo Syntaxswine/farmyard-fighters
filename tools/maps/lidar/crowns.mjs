@@ -12,12 +12,14 @@
 // CROWNS.minWidthM across (an overhead wire), is dropped. So is one where fewer than
 // CROWNS.minMultiShare of its canopy returns came from pulses that returned more than once:
 // foliage lets a pulse through to return again lower down, while a wire, a pole, a sign or
-// a roof the vendor left unclassified stops it. Across the town 5,686 of the 7,157 crowns
-// the other rules keep are over 0.3, the palms of Palm Island Park have a 10th percentile of
-// 0.38 and the pine-shaped crowns one of 0.18; the 198 under 0.1 are short solid objects,
-// poles and the wire along East 9th Avenue.
-// The thresholds were fixed by the method, not tuned to the town.
-export const CROWNS = {cellM: .5, tallM: 2.5, prominenceM: 2, maxAreaM2: 400, minAreaM2: 4, minWidthM: 1.5, minMultiShare: .1};
+// a roof the vendor left unclassified stops it. Each crown also records that share among
+// the canopy returns within CROWNS.topM of its top (null where none stands there).
+// roofCrowns() finds the crowns that are a drawn building's roof.
+// The thresholds were fixed by the method, not tuned to the town, but for
+// CROWNS.roofShare (see roofCrowns).
+export const CROWNS = {cellM: .5, tallM: 2.5, prominenceM: 2, maxAreaM2: 400, minAreaM2: 4, minWidthM: 1.5, minMultiShare: .1, topM: 2, roofShare: .15};
+
+import {bounds, contains} from '../house-reference/geometry.mjs';
 
 // The canopy height model: the highest unclassified (class 1) return over the ground
 // per cell, and a mask of cells holding building (class 6) returns, over the box
@@ -39,10 +41,10 @@ export function canopyHeights(index, ground, [x0, y0, x1, y1], cellM = CROWNS.ce
   return {heights, building, returns, multi, cols, rows, cellM, origin: [x0, y0]};
 }
 
-// The crowns in a canopy: [{top, centre, areaM2, heightM, widthM, multiShare}], top and
-// centre in the canopy's frame (metres), ordered by position. Deterministic for a given
-// canopy. Without `returns` and `multi` counts the penetration rule is not applied (and
-// multiShare is null).
+// The crowns in a canopy: [{top, centre, areaM2, heightM, widthM, multiShare, topShare}],
+// top and centre in the canopy's frame (metres), ordered by position. Deterministic for a
+// given canopy. Without `returns` and `multi` counts the penetration rules are not applied
+// (and the shares are null).
 export function findCrowns({heights, building, returns = null, multi = null, cols, rows, cellM, origin}, rules = CROWNS) {
   const n = cols * rows, smooth = new Float32Array(n);
   for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
@@ -93,9 +95,12 @@ export function findCrowns({heights, building, returns = null, multi = null, col
   for (let i = 0; i < n; i++) {
     if (owner[i] < 0) continue;
     const r = root(owner[i]), x = origin[0] + (i % cols + .5) * cellM, y = origin[1] + (Math.floor(i / cols) + .5) * cellM;
-    let c = crowns.get(r); if (!c) crowns.set(r, c = {cells: 0, sx: 0, sy: 0, sxx: 0, syy: 0, sxy: 0, heightM: 0, returns: 0, multi: 0});
+    let c = crowns.get(r); if (!c) crowns.set(r, c = {cells: 0, sx: 0, sy: 0, sxx: 0, syy: 0, sxy: 0, heightM: 0, returns: 0, multi: 0, topReturns: 0, topMulti: 0});
     c.cells++; c.sx += x; c.sy += y; c.sxx += x * x; c.syy += y * y; c.sxy += x * y; c.heightM = Math.max(c.heightM, heights[i]);
-    if (returns) { c.returns += returns[i]; c.multi += multi[i]; }
+    if (returns) {
+      c.returns += returns[i]; c.multi += multi[i];
+      if (Math.hypot(i % cols - r % cols, Math.floor(i / cols) - Math.floor(r / cols)) * cellM <= rules.topM) { c.topReturns += returns[i]; c.topMulti += multi[i]; }
+    }
   }
   const out = [];
   for (const [top, c] of crowns) {
@@ -103,9 +108,22 @@ export function findCrowns({heights, building, returns = null, multi = null, col
     const vx = c.sxx / c.cells - mx * mx, vy = c.syy / c.cells - my * my, cxy = c.sxy / c.cells - mx * my;
     // Width across: four standard deviations along the minor axis, a disc's diameter (a strip reads 1.15 times its width).
     const minor = Math.max(0, (vx + vy) / 2 - Math.sqrt(((vx - vy) / 2) ** 2 + cxy * cxy)), widthM = Math.max(cellM, 4 * Math.sqrt(minor + cellM * cellM / 12));
-    const multiShare = returns ? (c.returns ? c.multi / c.returns : 0) : null;
+    const multiShare = returns ? (c.returns ? c.multi / c.returns : 0) : null, topShare = returns && c.topReturns ? c.topMulti / c.topReturns : null;
     if (areaM2 < rules.minAreaM2 || widthM < rules.minWidthM || (returns && multiShare < rules.minMultiShare)) continue;
-    out.push({top: [origin[0] + (top % cols + .5) * cellM, origin[1] + (Math.floor(top / cols) + .5) * cellM], centre: [mx, my], areaM2, heightM: c.heightM, widthM, multiShare});
+    out.push({top: [origin[0] + (top % cols + .5) * cellM, origin[1] + (Math.floor(top / cols) + .5) * cellM], centre: [mx, my], areaM2, heightM: c.heightM, widthM, multiShare, topShare});
   }
   return out.sort((p, q) => p.top[1] - q.top[1] || p.top[0] - q.top[0]);
+}
+
+// The crowns that are a drawn building's roof, one the vendor left unclassified: centred
+// inside an outline the game draws (`outlines`: MultiPolygon coordinates, in the crowns'
+// frame), with a top that stops the scanner (topShare under CROWNS.minMultiShare) and a
+// crown that barely lets it through as a whole (multiShare under CROWNS.roofShare). A tree
+// that overhangs a roof lets the scanner through across its crown. roofShare was set after
+// review found Dora Villa Condominiums' flat roof read as a 25 m crown, its edge foliage
+// lifting it over the line; the aerial view shows the roof.
+export function roofCrowns(crowns, outlines, rules = CROWNS) {
+  const boxes = outlines.map(mp => [mp, bounds(mp)]);
+  return crowns.filter(c => c.topShare !== null && c.topShare < rules.minMultiShare && c.multiShare < rules.roofShare
+    && boxes.some(([mp, b]) => c.centre[0] >= b[0] && c.centre[0] <= b[2] && c.centre[1] >= b[1] && c.centre[1] <= b[3] && contains(mp, c.centre)));
 }

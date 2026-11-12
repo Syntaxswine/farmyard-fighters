@@ -6,8 +6,10 @@
 // A piece takes the lidar's form where that is confident, by the buildings' own rule in
 // build-playable.mjs (0.7), and is flat otherwise; an `other` roof (a shed, or a form the
 // planes do not explain) is drawn flat. A pitched piece's pitch is held to the buildings'
-// 12-40 degrees, and it carries the lidar's ridge bearing: the kit turns that into its
-// ridge axis in the frame it fits the outline in (kit.js ridgeAxis).
+// 12-40 degrees. A gable carries the lidar's ridge bearing, which the kit turns into its
+// ridge axis in the frame it fits the outline in (kit.js ridgeDirection). A hip's ridge runs
+// along its rectangle's long side, its length the difference of the sides: across the short
+// side roof-core would draw a point, so a hip carries no bearing.
 export const BOATHOUSE_ROOF = Object.freeze({forms: Object.freeze(['gable', 'hip', 'flat']), confidence: .7, pitchDeg: Object.freeze([12, 40]), fallbackPitchDeg: 20});
 
 // Posts are inferred: at a piece's corners, insetM in, and at most gapM apart along each
@@ -18,12 +20,12 @@ export const BOATHOUSE_ROOF = Object.freeze({forms: Object.freeze(['gable', 'hip
 export const BOATHOUSE_POSTS = Object.freeze({gapM: 6, radiusM: .15, insetM: .2, mergeM: 1, slideM: 3, stepM: .1});
 
 // The roof the kit draws for one piece: roof-core's `style`, its `pitch`, and the lidar's
-// `ridgeBearingDeg` where the piece is pitched and the lidar found a ridge.
+// `ridgeBearingDeg` where the piece is a gable and the lidar found a ridge.
 export function pieceRoof(piece, rules = BOATHOUSE_ROOF) {
   const style = rules.forms.includes(piece.form) && piece.confidence >= rules.confidence ? piece.form : 'flat';
   if (style === 'flat') return {style, pitch: 0};
   const [lo, hi] = rules.pitchDeg, roof = {style, pitch: Math.max(lo, Math.min(hi, Math.round(piece.pitchDeg ?? rules.fallbackPitchDeg)))};
-  if (Number.isFinite(piece.ridgeBearingDeg)) roof.ridgeBearingDeg = piece.ridgeBearingDeg;
+  if (style === 'gable' && Number.isFinite(piece.ridgeBearingDeg)) roof.ridgeBearingDeg = piece.ridgeBearingDeg;
   return roof;
 }
 

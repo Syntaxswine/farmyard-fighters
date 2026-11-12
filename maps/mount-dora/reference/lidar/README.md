@@ -211,8 +211,8 @@ depend on the zlib build, so checks compare the decoded samples.
 
 ## Tree crowns
 
-[crowns.json](crowns.json) holds 6,969 crowns over the game extent, 86.7 ha
-of canopy. Their heights run 5.92 / 13.17 / 19.4 m (10th, 50th and 90th
+[crowns.json](crowns.json) holds 6,968 crowns over the game extent, 86.7 ha
+of canopy. Their heights run 5.92 / 13.17 / 19.39 m (10th, 50th and 90th
 percentiles) and their widths 2.93 / 7.94 / 18.07 m. `tools/maps/lidar/crowns.mjs`
 finds them:
 
@@ -229,20 +229,31 @@ finds them:
 - So is one where under 10% of its canopy returns came from pulses that
   returned more than once. Foliage lets a pulse through to return again lower
   down, while a wire, a pole, a sign or a roof the vendor left unclassified
-  stops it. This drops 188 crowns, the wire along East 9th Avenue among
-  them. Kept crowns have a 10th percentile of 0.239 and a median of
-  0.427; the palms of Palm Island Park read over 0.3, so the rule spares
-  them.
+  stops it. This drops 188 crowns, listed in `notFoliage`. Among them are
+  the wire along East 9th Avenue, a roof on a dock at x 61–67, y 631–642, and
+  parts of Dora Villa Condominiums' flat roof. Of the six dropped crowns 15 m
+  or taller, five are centred inside its outline and the sixth 0.8 m outside
+  it. Kept crowns have a 10th percentile of 0.239 and a median of 0.427.
+- A crown is also taken out when three things hold. It is centred inside an
+  outline the game draws. Its top stops the scanner: under 10% of the canopy
+  returns within 2 m of the top. And the crown as a whole reads under 15%.
+  Such a crown is that building's roof. A tree overhanging a roof lets the
+  scanner through across its crown. One crown is taken out this way, listed in
+  `roofTops`: the rest of Dora Villa's roof, 197 m² and 25 m up, whose edge
+  foliage lifted it to 0.11. The aerial view shows the flat roof, with trees
+  only along its west side.
 
-The thresholds come from the method; they were not tuned to the town. Rows are
-`[topX, topY, centreX, centreY, areaM2, heightM, widthM, multiShare]` in town
-metres: the lidar position minus the outline registration, which comes from
-features.json's OSM outlines. The file pins both its lidar source and
-features.json.
+The thresholds come from the method; they were not tuned to the town. The one
+exception is the roof rule's 15%, set after review found Dora Villa's roof.
+Rows are `[topX, topY, centreX, centreY, areaM2, heightM, widthM, multiShare,
+topShare]` in town metres: the lidar position minus the outline registration,
+which comes from features.json's OSM outlines. `topShare` is null where no
+canopy return stands within 2 m of the top (9 of the kept crowns). The file pins both its
+lidar source and features.json.
 
 `build-mount-dora.py` moves each crown with the town by the field at its top,
 as it moves the inside of a park. It plants one tree in a crown with no trunk
-within its radius of its centre: 3,803 trees. Of the other crowns,
+within its radius of its centre: 3,802 trees. Of the other crowns,
 2,508 already hold a trunk and 658 have no clear green ground within
 reach. The trunk goes on the clear green ground nearest the top, within half
 the crown's radius (at least 1 m) and 2 m from other trunks. It never stands on
@@ -260,7 +271,7 @@ seeded plants are unchanged. `project.json` pins the file
 [water-roofs.json](water-roofs.json) holds 13 roofs on Lake Dora that no
 OpenStreetMap or county outline draws: boathouses, covered slips, the marina's
 four slip rows and the hip roof at the T-dock's shore end. Between them they
-have 25 pieces and 3,165 m². `tools/maps/lidar/water-roofs.mjs` finds them:
+have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
 
 - **Roofs.** Building returns, in the town frame, bin into 0.5 m cells that
   join eight ways over land and water alike.
@@ -283,14 +294,20 @@ have 25 pieces and 3,165 m². `tools/maps/lidar/water-roofs.mjs` finds them:
 - **Over water.** A piece stands over water where half of it lies in the
   lake's outline, or where the lidar sees water around it. To see water, half
   the cells within 3 m of the piece must read as water or ground, and 75% of
-  those must read as water. A cell reads as water when it holds water returns;
-  when it holds no return at all, because calm water returned none; or when,
-  with no ground return, its returns stand within 1.5 m of the lake's level (a
-  dock or reeds in the water). Lake Dora's OSM outline runs 5–10 m off the
-  lidar's water along parts of the shore. The 10 pieces over neither,
-  376 m², are left out and listed in `leftOut` with their measures: the
-  marina's east-shore shed, its north-west tower and scraps north of its
-  walkway.
+  those must read as water. A cell reads as water when it holds water returns,
+  or no return at all, because calm water returned none. A dock or reeds in
+  the water read as water too. That is a cell within 3 m of such water, with
+  no ground return (classes 2 and 20), and with most of its returns within
+  1.5 m of the lake's level, none over half a metre under it. Lake Dora's OSM
+  outline runs 5–10 m off the lidar's water along parts of the shore.
+- **Left out.** The pieces over neither are left out. So is a piece under
+  half in the lake's outline that touches, within 1 m, only pieces left out:
+  it is part of what stands on land. These 11 pieces, 386 m², are listed in
+  `leftOut` with their measures and reason: the marina's east-shore shed, its
+  north-west tower, and scraps north of its walkway. One of them is the shed's
+  9.5 m² north end, which reads as over water but lies wholly outside the
+  outline. Roofs the vendor left unclassified are not among the building
+  returns at all; the roof on the dock at x 61–67 (above) is one.
 - **Outline and heights.** Each piece's outline is the rectangle, in its
   frame, around its own returns. Its eave, ridge, form, pitch and ridge
   bearing come from those returns, by the roof rules above, in metres above

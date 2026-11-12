@@ -88,8 +88,8 @@ embedded in the game is not evidence that Nautilus wall-run extensions render.
 - AFT trees, shrubs and reeds dress mapped parks, woods, wetlands and open ground
   in residential areas. The native woodland brush paints undergrowth in woods
   and wetlands. Individual placements are seeded scenery. Then each tree crown
-  the 2018 lidar saw with no trunk yet gets one tree near its top: 3,803 of
-  6,969 crowns ([reference/lidar](reference/lidar/README.md#tree-crowns)). It is
+  the 2018 lidar saw with no trunk yet gets one tree near its top: 3,802 of
+  6,968 crowns ([reference/lidar](reference/lidar/README.md#tree-crowns)). It is
   mature from 12 m tall, and a pine where the crown is twice as tall as it is
   wide. They go in after the sentries and markers, so neither moves.
 - Roofs the lidar sees over Lake Dora with no OSM or county outline are drawn by

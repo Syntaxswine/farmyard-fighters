@@ -1,6 +1,6 @@
 {
  "kind": "mount-dora-lidar-water-roofs",
- "version": 3,
+ "version": 4,
  "inputs": {
   "features": {
    "file": "maps/mount-dora/features.json",
@@ -33,23 +33,25 @@
    "ringM": 3,
    "ringReadMin": 0.5,
    "ringWaterMin": 0.75,
-   "lowM": 1.5
+   "lowM": 1.5,
+   "dockReachM": 3,
+   "touchM": 1
   },
   "roofs": "Building (class 6) returns, moved into the town frame by the outline registration (-0.04, 0.84) m and binned in 0.5 m cells; cells holding them join eight ways into roofs, over land and water alike. A roof is kept when at least 1 m² of it lies in Lake Dora's OSM outline, and at most 25% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.",
-  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them) and 75% of those read as water (water returns; no return at all; or, with no ground return, returns within 1.5 m of the lake's level, a dock or reeds). The rest are left out and listed in leftOut with their measures.",
+  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them) and 75% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within 3 m of such water, with no ground return (classes 2 and 20) and most of its returns within 1.5 m of the lake's level, none more than half a metre under it. The rest are left out, and so is a piece under half in the lake's outline that touches (within 1 m) only pieces left out: it is part of what stands on land. Both are listed in leftOut with their measures.",
   "heights": "Per piece, from its own returns, in metres above the lake's lidar level: the eave from the roof planes as in lidar-roofs.json (the 25th percentile where none is found), the ridge at the 98th percentile; form and pitch by the same rules (roofs.mjs)."
  },
  "lakeLevelM": 18.82,
  "metrics": {
   "roofs": 13,
-  "pieces": 25,
-  "piecesAreaM2": 3164.6,
+  "pieces": 24,
+  "piecesAreaM2": 3155.1,
   "roofsAreaM2": 4167.3,
   "leftToOutlinesM2": 429.3,
-  "leftOut": 10,
-  "leftOutM2": 376.2,
+  "leftOut": 11,
+  "leftOutM2": 385.7,
   "forms": {
-   "flat": 12,
+   "flat": 11,
    "gable": 6,
    "hip": 3,
    "other": 4
@@ -104,7 +106,7 @@
      "ridgeBearingDeg": null,
      "returns": 743,
      "lakeShare": 1,
-     "ringRead": 0.833,
+     "ringRead": 0.815,
      "ringWater": 1
     }
    ]
@@ -157,8 +159,8 @@
      "ridgeBearingDeg": null,
      "returns": 1579,
      "lakeShare": 0.709,
-     "ringRead": 0.977,
-     "ringWater": 0.811
+     "ringRead": 0.973,
+     "ringWater": 0.739
     }
    ]
   },
@@ -210,8 +212,8 @@
      "ridgeBearingDeg": 90.6,
      "returns": 709,
      "lakeShare": 0.35,
-     "ringRead": 0.921,
-     "ringWater": 0.84
+     "ringRead": 0.873,
+     "ringWater": 0.788
     }
    ]
   },
@@ -263,7 +265,7 @@
      "ridgeBearingDeg": 179.5,
      "returns": 699,
      "lakeShare": 1,
-     "ringRead": 0.859,
+     "ringRead": 0.832,
      "ringWater": 1
     }
    ]
@@ -316,7 +318,7 @@
      "ridgeBearingDeg": null,
      "returns": 491,
      "lakeShare": 1,
-     "ringRead": 0.906,
+     "ringRead": 0.867,
      "ringWater": 1
     }
    ]
@@ -369,7 +371,7 @@
      "ridgeBearingDeg": null,
      "returns": 1163,
      "lakeShare": 1,
-     "ringRead": 0.988,
+     "ringRead": 0.974,
      "ringWater": 1
     }
    ]
@@ -475,8 +477,8 @@
      "ridgeBearingDeg": 78.7,
      "returns": 1144,
      "lakeShare": 0.119,
-     "ringRead": 0.948,
-     "ringWater": 0.846
+     "ringRead": 0.914,
+     "ringWater": 0.787
     }
    ]
   },
@@ -602,7 +604,7 @@
      "ridgeBearingDeg": 71.7,
      "returns": 213,
      "lakeShare": 0,
-     "ringRead": 0.537,
+     "ringRead": 0.528,
      "ringWater": 1
     }
    ]
@@ -614,10 +616,10 @@
    "drawnShare": 0.147,
    "leftToOutlinesM2": 429.25,
    "outlinedM2": 1956.75,
-   "coverage": 0.773,
+   "coverage": 0.768,
    "onLand": {
-    "pieces": 9,
-    "areaM2": 342.3
+    "pieces": 10,
+    "areaM2": 351.81
    },
    "returns": 30873,
    "pieces": [
@@ -655,45 +657,8 @@
      "ridgeBearingDeg": null,
      "returns": 2896,
      "lakeShare": 0.53,
-     "ringRead": 0.653,
-     "ringWater": 0.496
-    },
-    {
-     "outline": [
-      [
-       581.53,
-       970.63
-      ],
-      [
-       583.99,
-       970.63
-      ],
-      [
-       583.99,
-       974.49
-      ],
-      [
-       581.53,
-       974.49
-      ],
-      [
-       581.53,
-       970.63
-      ]
-     ],
-     "areaM2": 9.5,
-     "fill": 0.975,
-     "angleDeg": 0,
-     "eaveM": 2.73,
-     "ridgeM": 2.89,
-     "form": "flat",
-     "confidence": 1,
-     "pitchDeg": null,
-     "ridgeBearingDeg": null,
-     "returns": 112,
-     "lakeShare": 0,
-     "ringRead": 0.549,
-     "ringWater": 0.85
+     "ringRead": 0.647,
+     "ringWater": 0.48
     },
     {
      "outline": [
@@ -803,7 +768,7 @@
      "ridgeBearingDeg": null,
      "returns": 228,
      "lakeShare": 1,
-     "ringRead": 0.424,
+     "ringRead": 0.405,
      "ringWater": 1
     },
     {
@@ -840,7 +805,7 @@
      "ridgeBearingDeg": 0.1,
      "returns": 10703,
      "lakeShare": 1,
-     "ringRead": 0.879,
+     "ringRead": 0.862,
      "ringWater": 1
     },
     {
@@ -877,7 +842,7 @@
      "ridgeBearingDeg": 179.7,
      "returns": 4392,
      "lakeShare": 1,
-     "ringRead": 0.934,
+     "ringRead": 0.929,
      "ringWater": 1
     },
     {
@@ -914,7 +879,7 @@
      "ridgeBearingDeg": 179.7,
      "returns": 6498,
      "lakeShare": 1,
-     "ringRead": 0.87,
+     "ringRead": 0.858,
      "ringWater": 1
     }
    ]
@@ -967,8 +932,8 @@
      "ridgeBearingDeg": null,
      "returns": 2136,
      "lakeShare": 0.718,
-     "ringRead": 0.735,
-     "ringWater": 0.593
+     "ringRead": 0.712,
+     "ringWater": 0.531
     },
     {
      "outline": [
@@ -1004,8 +969,8 @@
      "ridgeBearingDeg": null,
      "returns": 187,
      "lakeShare": 1,
-     "ringRead": 0.566,
-     "ringWater": 0.458
+     "ringRead": 0.539,
+     "ringWater": 0.388
     },
     {
      "outline": [
@@ -1041,8 +1006,8 @@
      "ridgeBearingDeg": 179,
      "returns": 5881,
      "lakeShare": 1,
-     "ringRead": 0.927,
-     "ringWater": 0.766
+     "ringRead": 0.899,
+     "ringWater": 0.725
     }
    ]
   },
@@ -1094,7 +1059,7 @@
      "ridgeBearingDeg": null,
      "returns": 167,
      "lakeShare": 1,
-     "ringRead": 0.608,
+     "ringRead": 0.55,
      "ringWater": 1
     }
    ]
@@ -1147,7 +1112,7 @@
      "ridgeBearingDeg": null,
      "returns": 7129,
      "lakeShare": 1,
-     "ringRead": 0.844,
+     "ringRead": 0.841,
      "ringWater": 1
     },
     {
@@ -1218,8 +1183,8 @@
    "reason": "not over water",
    "returns": 635,
    "lakeShare": 0,
-   "ringRead": 0.538,
-   "ringWater": 0.27
+   "ringRead": 0.508,
+   "ringWater": 0.181
   },
   {
    "outline": [
@@ -1248,8 +1213,8 @@
    "reason": "not over water",
    "returns": 132,
    "lakeShare": 0,
-   "ringRead": 0.493,
-   "ringWater": 0.199
+   "ringRead": 0.395,
+   "ringWater": 0
   },
   {
    "outline": [
@@ -1278,8 +1243,8 @@
    "reason": "not over water",
    "returns": 44,
    "lakeShare": 0,
-   "ringRead": 0.289,
-   "ringWater": 0.216
+   "ringRead": 0.246,
+   "ringWater": 0.079
   },
   {
    "outline": [
@@ -1308,8 +1273,38 @@
    "reason": "not over water",
    "returns": 121,
    "lakeShare": 0,
-   "ringRead": 0.341,
-   "ringWater": 0.698
+   "ringRead": 0.321,
+   "ringWater": 0.624
+  },
+  {
+   "outline": [
+    [
+     581.53,
+     970.63
+    ],
+    [
+     583.99,
+     970.63
+    ],
+    [
+     583.99,
+     974.49
+    ],
+    [
+     581.53,
+     974.49
+    ],
+    [
+     581.53,
+     970.63
+    ]
+   ],
+   "areaM2": 9.5,
+   "reason": "joined only to pieces left out",
+   "returns": 112,
+   "lakeShare": 0,
+   "ringRead": 0.526,
+   "ringWater": 0.78
   },
   {
    "outline": [
@@ -1338,8 +1333,8 @@
    "reason": "not over water",
    "returns": 94,
    "lakeShare": 0,
-   "ringRead": 0.55,
-   "ringWater": 0.341
+   "ringRead": 0.53,
+   "ringWater": 0.286
   },
   {
    "outline": [
@@ -1368,8 +1363,8 @@
    "reason": "not over water",
    "returns": 2284,
    "lakeShare": 0.011,
-   "ringRead": 0.629,
-   "ringWater": 0.716
+   "ringRead": 0.588,
+   "ringWater": 0.664
   },
   {
    "outline": [
@@ -1398,8 +1393,8 @@
    "reason": "not over water",
    "returns": 52,
    "lakeShare": 0,
-   "ringRead": 0.316,
-   "ringWater": 0.325
+   "ringRead": 0.234,
+   "ringWater": 0.018
   },
   {
    "outline": [
@@ -1488,8 +1483,8 @@
    "reason": "not over water",
    "returns": 1294,
    "lakeShare": 0,
-   "ringRead": 0.688,
-   "ringWater": 0.494
+   "ringRead": 0.643,
+   "ringWater": 0.445
   }
  ]
 }
