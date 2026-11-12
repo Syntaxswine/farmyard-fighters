@@ -14,6 +14,8 @@ import {fuzzRun} from './neutral-fuzz.mjs';
 // command 188, so that run is 200 long. The global movement revision re-records
 // the same six seeds and full-state hashes for 2x base pace and stamina off.
 // No command, collision preview, resource field or scenery check is omitted.
+// Targetable explosive barrels intentionally revise Road Checkpoint's two rows:
+// native drum height, physical ray contacts and AFT-style fuel detonations.
 test('seeded play on Night Ledger and Road Checkpoint matches the recorded baseline after every command',()=>{
   const baseline=JSON.parse(fs.readFileSync(new URL('./scenery-neutrality-baseline.json',import.meta.url),'utf8'));
   assert.equal(baseline.rows.length,6);

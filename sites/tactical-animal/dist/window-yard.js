@@ -39,6 +39,7 @@ function render(){
 }
 function pick(p){cancelFireHold();if(!Core.canControl(state,hero(state)))return;view.unlockSound();
   if(mode==='grenade'){target=p;Core.stop(state);message(Core.previewGrenade(state,hero(state),p).reason||'Grenade aimed. Throw to confirm.');}
+  else if(p.barrelId){target={...p,name:'Explosive barrel'};Core.stop(state);message('Explosive barrel targeted. Fire to confirm.');}
   else if(p.windowId){target={...p,name:p.paneId?'Glass pane':'Window frame'};Core.stop(state);message(`${target.name}: ${p.windowId}${p.paneId?' / '+p.paneId:''}. Fire to confirm.`);}
   else if(p.wallEdge){target={...p,name:'Wall'};Core.stop(state);message('Wall aimed. Fire to confirm.');}
   else if(p.unitId!==undefined&&p.unitId!==0){target=state.units.find(u=>u.id===p.unitId);Core.stop(state);message('Target: '+target.name);}
@@ -81,3 +82,6 @@ window.addEventListener('pagehide',()=>{cancelFireHold();closed=true;cancelAnima
 // no state, camera, combat or editor mutation is exposed through this API.
 export function inspectWindowYard(){if(!state||!view)return null;return structuredClone({phase:state.phase,elapsed:state.elapsed,units:state.units,windows:state.windows,breaks:state.windowBreaks||{},sequence:state.windowSequence||0,events:state.windowEvents||[],effect:state.effect,assets:[...view.windowArt.assets].map(([id,asset])=>({id,panes:[...asset.panes].map(([id,pane])=>({id,visible:pane.root.visible})),solids:asset.solidParts().length})),resident:view.residentWindow,effects:view.windowEffects.stats(),render:{calls:view.renderer.info.render.calls,triangles:view.renderer.info.render.triangles,programs:view.renderer.info.programs.length}});}
 export function projectWindowYard(point){if(!view)return null;const p=view.camera.position.clone().set(point.x,point.h??0,point.y).project(view.camera),rect=$('viewport').getBoundingClientRect();return {x:rect.left+(p.x+1)*rect.width/2,y:rect.top+(1-p.y)*rect.height/2,visible:Math.abs(p.x)<.98&&Math.abs(p.y)<.98&&Math.abs(p.z)<1};}
+export function inspectExplosionFeedback(){if(!view||!state)return null;return structuredClone({props:state.props||[],fireAnimations:state.fireAnimations||[],fires:state.fires||[],lastDischarge:view.lastDischarge,
+  blastShake:{count:view.explosionShake.count,byKind:view.explosionShake.counts,peak:view.shakePeak||0,pixels:view.lastShake,last:view.explosionShake.last},
+  camera:{position:view.camera.position.toArray(),target:view.target.toArray()},shaderFailures:view.renderer.info.programs.filter(p=>p.diagnostics?.runnable===false).length});}

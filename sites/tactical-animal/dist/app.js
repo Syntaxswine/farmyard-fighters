@@ -288,7 +288,7 @@ function reloadFromTrigger({targeting=false}={}){
   renderBattle();storage.write();return true;
 }
 function pick(p){if(!state||paused||aiming()||state.phase==='enemy'||state.solo.status!=='active')return;resetStick();if(pointTargeting){pointTargeting=false;if(p.interactionId){const object=Core.interactionObjects(state).find(o=>o.id===p.interactionId);if(object)shootPoint({...object,ground:true,h:1,targetName:object.name});return;}if(p.unitId===undefined){shootPoint({...p,ground:true,h:p.h??1.1});return;}}if(p.interactionId){focusInteraction(p.interactionId);return;}if(p.unitId!==undefined){if(p.unitId===0){operationMenu();return;}const target=state.units.find(u=>u.id===p.unitId);if(target?.hp<=0){focusInteraction('body:'+target.id);return;}if(!state.detected.has(target?.id))return;if(hero(state).weapon==='flamethrower'){armFlame(Core.headingTo(hero(state),target));return;}Core.stop(state);Core.turnTo(state,hero(state),Core.headingTo(hero(state),target));if(state.realtime)Core.pinRealtimeTarget(state,target.id);selected={targetId:target.id};burst=false;aim=availableAim(Core.WEAPONS[hero(state).weapon],hero(state).ap);zone='torso';}
-  else if(p.windowId){shootPoint(p);return;}
+  else if(p.windowId||p.barrelId){shootPoint(p);return;}
   else{const path=Core.navigationPath(state,hero(state),p.x,p.y);if(!path){toast('No clear route to that point.');return;}view.route([hero(state),...path]);if(state.phase==='player')selected={point:p,path};else{Core.move(state,hero(state),p.x,p.y);selected=null;view.center();}}
   contextKey='';renderBattle();if(selected)selected.targetId!==undefined?shootingMenu():operationMenu();
 }
@@ -923,6 +923,7 @@ export function inspectRealtime(){
   if(!state?.realtime)return {active:false};
   return {active,paused:paused&&!manualTrigger,ready:!!view&&!view.pending?.size&&!view.failed?.size&&$('loading').hidden,missionId:state.solo.missionId,phase:state.phase,status:state.solo.status,elapsed:state.elapsed,queueLength:state.queue.length,...Core.realtimeStatus(state),
     lastDischarge:view?.lastDischarge??null,weaponPose:view?.playerWeaponPose??null,guardSight:[...(view?.guardSight?.outlines.keys()??[])],
+    blastShake:{count:view?.explosionShake?.count??0,byKind:{...view?.explosionShake?.counts},peak:view?.shakePeak??0,pixels:view?.lastShake,last:view?.explosionShake?.last},
     player:{x:hero(state).x,y:hero(state).y,hp:hero(state).hp,stance:hero(state).stance,sneaking:hero(state).sneaking,distance:state.solo.distance,ammo:{...hero(state).ammo},stats:{...hero(state).stats}},
     contacts:Core.visibleOpponents(state).map(v=>({id:v.id,name:v.name,hp:v.hp,x:v.x,y:v.y})),
     guards:state.units.filter(v=>v.team==='guard').map(v=>({id:v.id,x:v.x,y:v.y,hp:v.hp,maxHp:v.maxHp,weapon:v.weapon,firearms:v.stats.firearms,alert:v.alert,

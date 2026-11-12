@@ -9,6 +9,7 @@ import {blockForPoint,blockWindow,worldBounds} from './world-grid.js';
 import {windowChanges} from './render-residency.js';
 import {legacyWallSpan} from './window-system.js';
 import {wallGaps,wallMaterial} from './wall-damage.js';
+import {barrelId,isExplosiveBarrel} from './aft/tactics/explosive-barrels.js';
 export {weaponArtwork} from './weapon-artwork.js';
 
 const origin=new URL('./aft/tactics/',import.meta.url);
@@ -178,6 +179,11 @@ export class OriginalEnvironment {
     }
     return ray.intersectObjects(meshes,false)[0];
   }
+  pickBarrel(ray){
+    const meshes=[...this.chunks.values()].flatMap(chunk=>chunk.cargo.map(({mesh})=>mesh)).filter(mesh=>mesh.count);
+    const hit=ray.intersectObjects(meshes,false)[0],prop=hit?.object.userData.placements?.[hit.instanceId];
+    return isExplosiveBarrel(prop)?{prop,distance:hit.distance}:null;
+  }
   update(state,unit,window=blockWindow(state,unit||{x:0,y:0})){
     if(this.disposed)return;this.state=state;this.unit=unit;
     if(!this.gaps||this.lastBreaches!==state.wallBreaches){
@@ -190,6 +196,7 @@ export class OriginalEnvironment {
       for(const rect of delta.created)this.chunks.set(rect.id,this.buildChunk(rect));
       this.window=window;
     }
+    const barrels=new Set([...(state.props||[]),...(this.pendingBarrels||[])].filter(isExplosiveBarrel).map(barrelId));
     const color=new T.Color(),matrix=new T.Matrix4(),position=new T.Vector3(),scale=new T.Vector3(),rotation=new T.Quaternion();
     for(const chunk of this.chunks.values()){
       for(const {mesh,records}of chunk.grounds){
@@ -215,8 +222,8 @@ export class OriginalEnvironment {
         mesh.count=count;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();
       }
       for(const {mesh,records}of chunk.cargo){
-        let count=0;
-        for(const {p,matrix}of records){if(!state.seen.has(key(p.x,p.y))||this.replaced.has(key(p.x,p.y)))continue;mesh.setMatrixAt(count,matrix);mesh.setColorAt(count++,color.setScalar(state.groundPalette!=='aft-sector'||state.visible.has(key(p.x,p.y))?1:.38));}
+        let count=0;mesh.userData.placements=[];
+        for(const {p,matrix}of records){if(!state.seen.has(key(p.x,p.y))||this.replaced.has(key(p.x,p.y))||isExplosiveBarrel(p)&&!barrels.has(barrelId(p)))continue;mesh.setMatrixAt(count,matrix);mesh.userData.placements.push(p);mesh.setColorAt(count++,color.setScalar(state.groundPalette!=='aft-sector'||state.visible.has(key(p.x,p.y))?1:.38));}
         mesh.count=count;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();
       }
       for(const {sprite,p}of chunk.sandbags){sprite.visible=state.seen.has(key(p.x,p.y));sprite.material.color.setScalar(state.visible.has(key(p.x,p.y))?1:.38);}

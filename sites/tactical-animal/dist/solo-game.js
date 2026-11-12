@@ -22,6 +22,8 @@ import {createInteractionSystem,missionInteractables,interactionFootprint} from 
 import {recordFlame} from './flame-event.js';
 import {createFireRules,firePending,recordBurn} from './solo-fire.js';
 import {createFuelRules,tankExplosionChance} from './solo-fuel.js';
+import {createBarrelRules} from './solo-barrels.js';
+import {barrelId,isExplosiveBarrel,barrelRayHit} from './aft/tactics/explosive-barrels.js';
 export {tankExplosionChance} from './solo-fuel.js';
 import {gridDimensions,worldBounds} from './world-grid.js';
 import {DEFAULT_MISSION_ID,getMission,missionForState,missionMap,objectiveSecured} from './missions.js';
@@ -127,7 +129,7 @@ export function geometry(s){
 // Each question gets its own broad phase, and the layer IS the kind filter:
 // walking never sifts a prop's parts, standing sight looks only at walls, and
 // anything in flight skips reservations. A caller must name its question.
-const GEOMETRY_LAYERS={walk:box=>blocksWalking(box),air:box=>occupiesAir(box),wall:box=>box.kind==='wall',flame:box=>box.kind==='wall'||box.kind==='glass'};
+const GEOMETRY_LAYERS={walk:box=>blocksWalking(box),air:box=>box.sourceKind!=='barrel-explosive'&&occupiesAir(box),wall:box=>box.kind==='wall',flame:box=>box.kind==='wall'||box.kind==='glass'};
 // Broad phase shared by movement, sight, silhouettes and area weapons. The
 // interaction system invalidates this cache immediately after a door changes.
 export function geometryNear(s,a,b,padding,layer){
@@ -456,6 +458,7 @@ function throwGrenadeNow(s,u,point){
   let hits=0;for(const target of s.units.filter(alive))if(alive(target)&&grenadeAffects(s,point,target)){
     if(!detonateImpact(s,u,target,'torso',WEAPONS.grenade,impactEvent))hurt(s,target,Math.round(WEAPONS.grenade.damage*Math.max(.2,1-distance(target,point)/(p.blast+1))));hits++;
   }
+  barrelRules.detonate(s,(s.props||[]).filter(p=>isExplosiveBarrel(p)&&grenadeAffects(s,point,p)),impactEvent);
   windowBlast(s,point,p.blast);
   commitWallDamage(s,walls,impactEvent);
   log(s,`${u.name} threw a grenade (${p.cost} AP).`);
@@ -509,6 +512,7 @@ function resolveFlame(s,a,event={explosions:[]}){
     if(!detonateImpact(s,a,u,'torso',WEAPONS.flamethrower,event)){kill(s,u);recordBurn(s,u,'ash');}
     impacts.push({id:u.id,x:u.x,y:u.y,before,after:u.hp,dead:!alive(u),visible});
   }
+  barrelRules.detonate(s,(s.props||[]).filter(p=>isExplosiveBarrel(p)&&distance(a,p)<=WEAPONS.flamethrower.range&&Math.abs(((headingTo(a,p)-a.heading+540)%360)-180)<24&&lineClear(s,a,p)),event);
   return impacts;
 }
 export function previewFlame(s,a,heading){
@@ -560,6 +564,7 @@ export function previewPointAttack(s,a,point,burst=false,aimLevel='hip'){
   if(!canControl(s,a))reason='Wait for your turn';
   else if(s.realtime&&realtimeRules.busy(s,a))reason=realtimeRules.busy(s,a);
   else if(!point?.ground||point.windowId!==undefined&&!placed||![point.x,point.y,point.h].every(Number.isFinite)||point.h<0||point.h>ceiling||!insideWorld(s,point)||!s.seen.has(key(point.x,point.y))&&!knownWallPoint(s,point))reason='Choose an explored point';
+  else if(point.barrelId!==undefined&&!barrelRules.present(s,point.barrelId))reason='Barrel already destroyed';
   else if(!w||w.incendiary||a.weapon==='grenade')reason='Use the area weapon controls';
   else if(d>w.range+EPS)reason='Out of range';
   else if(w.mag&&(a.ammo[a.weapon]??0)<rounds)reason='Reload first';
@@ -609,6 +614,12 @@ function firstShotObstacle(s,a,b,source,end){
     const t=span[0];
     obstacle={box,t,point:{x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,h:source+(end-source)*t}};
   }
+  const length=Math.hypot(b.x-a.x,b.y-a.y,end-source);
+  if(length>EPS){
+    const direction={x:(b.x-a.x)/length,y:(b.y-a.y)/length,h:(end-source)/length};
+    const hit=barrelRayHit(s.props,{x:a.x,y:a.y,h:source},direction,length*(obstacle?.t??1));
+    if(hit){const t=hit.distance/length;obstacle={t,box:{kind:'barrel',barrelId:barrelId(hit.prop)},point:{x:a.x+direction.x*hit.distance,y:a.y+direction.y*hit.distance,h:source+direction.h*hit.distance}};}
+  }
   return obstacle;
 }
 
@@ -626,7 +637,8 @@ function missedTrace(s,a,b,event,chance){
   if(!s.realtime){
     const side=(event.shot%2?.36:-.36)/(d||1);
     const end={x:b.x-dy*side,y:b.y+dx*side,h:event.bh+.16};
-    return {feedback:{traceEnd:firstShotObstacle(s,a,end,event.ah,end.h)?.point??end}};
+    const obstacle=firstShotObstacle(s,a,end,event.ah,end.h);
+    return {...(obstacle?.box.barrelId?{impact:obstacle}:{}),feedback:{traceEnd:obstacle?.point??end}};
   }
   const origin={x:a.x,y:a.y,h:event.ah};
   if(Math.hypot(d,event.bh-event.ah)<1e-6)return {feedback:{traceEnd:origin}};
@@ -654,7 +666,7 @@ function missedTrace(s,a,b,event,chance){
       point:{x:origin.x+x*contact.distance,y:origin.y+y*contact.distance,h:origin.h+h*contact.distance}};
   }
   if(impact)return {impact,feedback:{traceEnd:impact.point}};
-  return {feedback:{traceEnd:obstacle?.point??end,missImpact:!!obstacle||travel===ground,...(obstacle?.box.wallEdge?{wallEdge:obstacle.box.wallEdge}:{})}};
+  return {...(obstacle?.box.barrelId?{impact:obstacle}:{}),feedback:{traceEnd:obstacle?.point??end,missImpact:!!obstacle||travel===ground,...(obstacle?.box.wallEdge?{wallEdge:obstacle.box.wallEdge}:{})}};
 }
 
 export function confirmedImpact(s,a,b,zone='torso'){
@@ -680,9 +692,10 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
     if(w.incendiary){event.flame=recordFlame(a,w.range,geometryNear(s,a,a,w.range,'flame'),s.visible);event.impacts=resolveFlame(s,a,event);event.hit=event.impacts.length>0;}
     else if(w.blast){
       const impact=confirmedImpact(s,a,b,zone),box=impact?.box;
-      const origin=box?.windowPart||box?.trunk||s.realtime&&box?.wallEdge?impact.point:b;event.bx=origin.x;event.by=origin.y;event.bh=origin.h??event.bh;
+      const origin=box?.windowPart||box?.trunk||box?.barrelId||s.realtime&&box?.wallEdge?impact.point:b;event.bx=origin.x;event.by=origin.y;event.bh=origin.h??event.bh;
       const walls=planWallBlast(s,{...origin,h:event.bh},w.blast,d=>w.damage*(1-d/w.blast));
       for(const victim of s.units.filter(alive))if(alive(victim)&&distance(victim,origin)<=w.blast&&lineClear(s,origin,victim)){if(!detonateImpact(s,a,victim,'torso',w,event))hurt(s,victim,Math.round(w.damage*Math.max(.2,1-distance(victim,origin)/(w.blast+1))));event.hit=true;}
+      barrelRules.detonate(s,(s.props||[]).filter(p=>isExplosiveBarrel(p)&&distance(p,origin)<=w.blast&&lineClear(s,origin,p)),event);
       windowBlast(s,origin,w.blast);
       commitWallDamage(s,walls,event);
     }else{
@@ -694,6 +707,7 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
         Object.assign(event,miss.feedback);impact=miss.impact;
       }
       if(impact?.box){event.bx=impact.point.x;event.by=impact.point.y;event.bh=impact.point.h;
+        if(impact.box.barrelId)barrelRules.detonate(s,[impact.box.barrelId],event);
         if(impact.box.kind==='glass'){const record=windowSystem.compile(s).find(r=>r.placement.id===impact.box.windowId),local=windowToLocal(record.placement,{...a,h:eyeHeight(a)});
           const broken=windowSystem.breakPane(s,impact.box.windowId,impact.box.paneId,impact.point,{cause:w.mag?'bullet':'melee',direction:local[2]<0?1:-1});if(broken){geometryCache.delete(s);event.glass=true;}
         }
@@ -740,6 +754,10 @@ export function tick(s,dt=1/60,input=null){
 function tickStep(s,dt,input){if(s.realtime)return realtimeRules.step(s,dt,input);s.elapsed+=dt;for(const u of s.units)u.isMoving=false;if(s.phase==='enemy'){enemyStep(s,dt);return true;}const u=hero(s);if(u.burningTurns){refresh(s);if(s.phase==='player'){s.panicDelay=Math.max(0,(s.panicDelay??3)-dt);if(!s.panicDelay)endTurn(s);}return true;}if(input&&Math.hypot(input.x,input.y)>.1){s.queue=[];const n=Math.max(1,Math.hypot(input.x,input.y));travel(s,u,input.x/n*movementSpeed(u)*dt,input.y/n*movementSpeed(u)*dt);}else if(s.queue.length){const p=s.queue[0],d=distance(u,p);if(d<.025)s.queue.shift();else{const step=Math.min(d,movementSpeed(u)*dt),moved=travel(s,u,(p.x-u.x)/d*step,(p.y-u.y)/d*step);if(!moved||s.phase==='player'&&u.ap<EPS)s.queue=[];}}else if(s.phase==='explore'||s.phase==='won')u.stamina=Math.min(u.maxStamina,u.stamina+dt*2);return true;}
 const fireRules=createFireRules({kill,walkSegment,random,key,log,onIgnite:(s,u)=>markDamageCredit(s,u)});
 const fuelRules=createFuelRules({kill,ignite:fireRules.ignite,recordBurn,inside:insideWorld,log,windowBlast});
+const barrelRules=createBarrelRules({log,clearGeometry:s=>{geometryCache.delete(s);delete s.fogAt;},explode:(s,prop)=>{
+  const walls=planWallBlast(s,{...prop,h:.4},5,d=>180*(1-d/5)),receipt=fuelRules.barrel(s,prop);
+  commitWallDamage(s,walls,receipt);return receipt;
+}});
 export const ignite=(s,u)=>{const result=fireRules.ignite(s,u);if(result)refresh(s);return result;};
 export const enterFire=(s,u)=>{const result=fireRules.enterFire(s,u);if(result)refresh(s);return result;};
 const interactionRules=createInteractionSystem({hero,canControl,combatCosts,distance,geometry,blocksWalking,pointBoxDistance,refresh,stop,log,clearGeometry:s=>geometryCache.delete(s),weapons:WEAPONS,radius:RADIUS});
@@ -769,7 +787,7 @@ export function decodeSave(text){
   if(Array.isArray(s.interactables)&&s.interactables.some(object=>object?.kind!=='body'&&(!object||!insideWorld(canonical,object))))throw Error('Unsupported object save.');
   // Saved terrain/door state remains played state. Imported immutable scenery
   // is always rebuilt from the mission, never trusted from a save or a window.
-  mapMetadata(s,map);windowSystem.restore(s);restoreWallDamage(s,map);
+  mapMetadata(s,map);barrelRules.restore(s);windowSystem.restore(s);restoreWallDamage(s,map);
   if(s.solo.objectives===undefined)s.solo.objectives={};
   if(!s.solo.objectives||typeof s.solo.objectives!=='object'||Array.isArray(s.solo.objectives)||Object.entries(s.solo.objectives).some(([id,value])=>id!==mission.objective.id||typeof value!=='boolean'))throw Error('Unsupported objective save.');
   if(mission.id===DEFAULT_MISSION_ID&&s.solo.ledger)s.solo.objectives.ledger=true;

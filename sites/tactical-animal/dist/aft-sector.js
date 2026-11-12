@@ -5,7 +5,7 @@ import {windowSystem} from './window-catalogue.js';
 export {CHECKPOINT_PROVENANCE};
 const terrainKinds=new Set(['yard','floor','ground-asphalt','ground-grass','ground-gravel','ground-concrete','crate']);
 const edgeKinds=new Set(['wall','wall-brick','wall-concrete','wall-corrugated','window-brick','window-concrete','door-wood-closed','door-steel-closed','doorway-concrete-open']);
-const propHeights={sandbags:.92,'barrel-explosive':1.05,'barrel-single':1.05,'crate-wood':.92};
+const propHeights={sandbags:.92,'barrel-explosive':.8,'barrel-single':1.05,'crate-wood':.92};
 
 export function unpackSector(data){
   const {terrainRLE,...source}=structuredClone(data),size=source.width*source.height,cells=[];

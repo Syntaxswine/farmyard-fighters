@@ -1,5 +1,5 @@
 {
-  "source": "Global movement revision: base pace2x, stamina off, elapsed catch-up and continuous movement controls; same seeds and full-state per-command hashes.",
+  "source": "Global movement revision: base pace2x, stamina off, elapsed catch-up and continuous movement controls; same seeds and full-state per-command hashes. Explosive-barrel revision: the Road Checkpoint drum now uses AFT's physical 0.8 m height, cylinder ray contacts and fuel detonations. Re-recorded only its two rows; Night Ledger and every command/preview/resource check are unchanged.",
   "rows": [
     {
       "missionId": "night-ledger",
@@ -29,13 +29,13 @@
       "missionId": "road-checkpoint",
       "seed": 1,
       "steps": 40,
-      "hash": "cc1d4eff5999710619c8c65a0fb9da4712cfa2e828c89616babffad3aef88144"
+      "hash": "957b52e73c3b40a75da092de096a17a78e072e4a6cefa103ee7414d6d9fef7e0"
     },
     {
       "missionId": "road-checkpoint",
       "seed": 2,
       "steps": 40,
-      "hash": "ce36da07c88dd26603ee26cce8a09f1732a837608b39c3535cec325c713cc433"
+      "hash": "aa807642fa49cc9f08fc611de3d3665af8566dfdfa0f7628be5bbcb7302c5e44"
     }
   ],
   "movementPolicy": {
