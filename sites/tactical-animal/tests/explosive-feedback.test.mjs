@@ -19,6 +19,17 @@ function shoot(s,target,zone='torso'){
 }
 const barrelPoint={x:28,y:25,h:.4,ground:true,barrelId:'barrel:28,25,0'};
 
+test('Quiet Shift offers a reachable barrel chain from the normal arrival point without harming the player',()=>{
+  const s=Core.enableRealtime(createSoloGame({...DEFAULT_BUILD,utility:'grenade'},1,'quiet-shift'));
+  const barrels=s.props.filter(p=>p.kind==='barrel-explosive');assert.equal(barrels.length,2);
+  const player=hero(s),hp=player.hp,point=barrels[0];
+  assert.ok(Math.hypot(point.x-player.x,point.y-player.y)>5);
+  const shot=shoot(s,{...point,h:.4,ground:true,barrelId:`barrel:${point.x},${point.y},0`});
+  assert.equal(shot.explosions.filter(e=>e.kind==='barrel').length,2);assert.equal(s.props.length,0);
+  assert.equal(player.hp,hp);assert.equal(s.units.filter(u=>u.team==='guard'&&u.hp>0).length,2);
+  const restored=decodeSave(encodeSave(s));assert.equal(restored.props.length,0);
+});
+
 test('shooting a barrel commits one chain reaction, removes collision and retains the destroyed state on resume',()=>{
   const props=[{kind:'barrel-explosive',x:28,y:25,z:0},{kind:'barrel-explosive',x:31,y:25,z:0}];
   const guards=[{name:'Nearby guard',species:'pig-foreman',weapon:'pistol',x:29,y:25,heading:0}];

@@ -6,6 +6,10 @@ export {CHECKPOINT_PROVENANCE};
 const terrainKinds=new Set(['yard','floor','ground-asphalt','ground-grass','ground-gravel','ground-concrete','crate']);
 const edgeKinds=new Set(['wall','wall-brick','wall-concrete','wall-corrugated','window-brick','window-concrete','door-wood-closed','door-steel-closed','doorway-concrete-open']);
 const propHeights={sandbags:.92,'barrel-explosive':.8,'barrel-single':1.05,'crate-wood':.92};
+export function aftPropObstacle(prop){
+  const height=propHeights[prop.kind];if(!height)throw Error('Unsupported AFT prop: '+prop.kind);
+  return {x0:prop.x-.48,x1:prop.x+.48,y0:prop.y-.48,y1:prop.y+.48,height,kind:'crate',sourceKind:prop.kind};
+}
 
 export function unpackSector(data){
   const {terrainRLE,...source}=structuredClone(data),size=source.width*source.height,cells=[];
@@ -41,7 +45,7 @@ export function adaptAftSector(source,{provenance=null}={}){
   for(const prop of props){
     const height=propHeights[prop.kind];
     if(!height||!Number.isInteger(prop.x)||!Number.isInteger(prop.y)||prop.x<0||prop.y<0||prop.x>=WORLD_SECTOR_SIZE||prop.y>=WORLD_SECTOR_SIZE||(prop.z??0)!==0)throw Error('Unsupported AFT prop: '+prop.kind);
-    obstacles.push({x0:prop.x-.48,x1:prop.x+.48,y0:prop.y-.48,y1:prop.y+.48,height,kind:'crate',sourceKind:prop.kind});
+    obstacles.push(aftPropObstacle(prop));
   }
   for(const position of [...source.starts??[],...source.guards??[],...source.exits??[]])if((position.z??0)!==0)throw Error('This sector requires an upper-floor actor.');
   let windows;

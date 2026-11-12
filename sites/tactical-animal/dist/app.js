@@ -924,6 +924,7 @@ export function inspectRealtime(){
   return {active,paused:paused&&!manualTrigger,ready:!!view&&!view.pending?.size&&!view.failed?.size&&$('loading').hidden,missionId:state.solo.missionId,phase:state.phase,status:state.solo.status,elapsed:state.elapsed,queueLength:state.queue.length,...Core.realtimeStatus(state),
     lastDischarge:view?.lastDischarge??null,weaponPose:view?.playerWeaponPose??null,guardSight:[...(view?.guardSight?.outlines.keys()??[])],
     blastShake:{count:view?.explosionShake?.count??0,byKind:{...view?.explosionShake?.counts},peak:view?.shakePeak??0,pixels:view?.lastShake,last:view?.explosionShake?.last},
+    barrels:(state.props||[]).filter(p=>p.kind==='barrel-explosive').map(p=>({...p})),
     player:{x:hero(state).x,y:hero(state).y,hp:hero(state).hp,stance:hero(state).stance,sneaking:hero(state).sneaking,distance:state.solo.distance,ammo:{...hero(state).ammo},stats:{...hero(state).stats}},
     contacts:Core.visibleOpponents(state).map(v=>({id:v.id,name:v.name,hp:v.hp,x:v.x,y:v.y})),
     guards:state.units.filter(v=>v.team==='guard').map(v=>({id:v.id,x:v.x,y:v.y,hp:v.hp,maxHp:v.maxHp,weapon:v.weapon,firearms:v.stats.firearms,alert:v.alert,

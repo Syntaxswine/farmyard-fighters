@@ -3,7 +3,7 @@
 import {checkpointSource,checkpointMap} from './aft-sector.js';
 import {checkpointApproachMap} from './checkpoint-approaches.js';
 import {WINDOW_REVIEW_ID,WINDOW_REVIEW_MISSION,windowReviewSource} from './window-review-map.js';
-import {adaptAftSector} from './aft-sector.js';
+import {adaptAftSector,aftPropObstacle} from './aft-sector.js';
 import {TOUR_ID,TOUR_ACTIVITY} from './mount-dora-activity.js';
 export const DEFAULT_MISSION_ID='night-ledger';
 const checkpoint=checkpointSource(),checkpointDoors=checkpointMap().doors;
@@ -144,6 +144,7 @@ export const FIRST_REALTIME_MISSION=freeze({
   briefing:'The loading yard is quiet. Two guards remain between you and the shift orders. Approach through the warehouse or around its eastern wall. Fire at Will begins off: find your position, choose your aim, and decide when to commit. Reload behind cover, take the orders, then return to the arrival point.',
   objective:{...structuredClone(MISSIONS[0].objective),id:'shift-orders',kind:'objective',name:'Shift orders',instruction:'Scout the loading yard and recover the shift orders in the records office.',after:'Return to the arrival point with the orders.',collected:'The night shift has been diverted to Reserve 7. Bring these orders home.'},
   guards:[guard('Loading-bay sentry','pistol',16,12,0),guard('Records keeper','rifle',30,5,270)],
+  props:[{kind:'barrel-explosive',x:11,y:27,z:0},{kind:'barrel-explosive',x:13,y:27,z:0}],
   steps:['Scout with Hold Fire. Choose a clear shot and enable Fire at Will.','Use cover and movement while your weapon reloads. Recover the shift orders.','Return to the arrival point; clearing both guards is optional.'],
   result:{title:'The shift orders are out.',summary:'returned with the shift orders.',epilogue:'Your animal keeps the skills earned during this operation. The other operations and Mount Dora remain available.'},
 });
@@ -173,6 +174,7 @@ export function missionMap(id=DEFAULT_MISSION_ID,layoutVersion){
   }
   if(mission.divider){for(let y=5;y<=20;y++)map.edges[`e:20:${y}`]='wall';delete map.edges['e:20:13'];delete map.edges['e:20:14'];}
   for(const {rect:[x,y,w,h]}of mission.cover)for(let cy=y;cy<y+h;cy++)for(let cx=x;cx<x+w;cx++)map.terrain[cy][cx]='crate';
+  if(mission.props){map.props=structuredClone(mission.props);map.obstacles=map.props.map(aftPropObstacle);}
   if(map.doors)map.doors=structuredClone(mission.rooms.flatMap(room=>room.doors));
   return map;
 }
