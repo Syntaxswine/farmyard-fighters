@@ -1,4 +1,4 @@
-# Mount Dora lidar: roofs and bare earth
+# Mount Dora lidar: roofs, bare earth, trees and roofs over the water
 
 Roof form, eave and ridge heights and ground elevation for each of the 950
 game buildings, and a 1 m bare-earth grid of the whole map, measured from USGS
@@ -6,8 +6,12 @@ game buildings, and a 1 m bare-earth grid of the whole map, measured from USGS
 give storeys and materials but never the roof shape; this fills that gap and
 puts a measured height on every building.
 
-Nothing here changes the generator, the sectors, `features.json` or the art kit.
-The Pages build does not publish `maps/mount-dora/reference/`.
+It also finds the tree crowns and the roofs over the lake. The generator plants
+a tree in each crown its seeded greenery leaves empty
+([crowns.json](crowns.json)), and the art kit draws each roof over the water as
+an open roof on posts ([water-roofs.json](water-roofs.json)). Nothing else here
+changes the generator, the sectors, `features.json` or the art kit. The Pages
+build does not publish `maps/mount-dora/reference/`.
 
 ## Source
 
@@ -205,6 +209,184 @@ The ground runs from 18.53 m at the shore to 54.72 m on the downtown ridge, a
 holds the grid definition and the SHA-256 of both sample arrays. A PNG's bytes
 depend on the zlib build, so checks compare the decoded samples.
 
+## Tree crowns
+
+[crowns.json](crowns.json) holds 6,968 crowns over the game extent, 86.7 ha
+of canopy. Their heights run 5.92 / 13.17 / 19.39 m (10th, 50th and 90th
+percentiles) and their widths 2.93 / 7.94 / 18.07 m. `tools/maps/lidar/crowns.mjs`
+finds them:
+
+- This vendor classes no vegetation, so trees are among the unclassified
+  returns. The canopy is the highest one over the bare earth in each 0.5 m
+  cell, where it stands 2.5 m or more up and the cell holds no building return.
+- Each canopy cell climbs a 3 × 3 mean of the canopy to the top it reaches.
+- Neighbouring tops are one crown unless the lower stands 2 m above the saddle
+  between them. Crowns merge highest saddle first, so one bumpy crown is one
+  tree, and never into a crown over 400 m², which is about the town's big live
+  oaks. A closed woodland canopy is many trees.
+- A crown under 4 m² is dropped. So is one under 1.5 m across, four standard
+  deviations along its minor axis, which is overhead wire.
+- So is one where under 10% of its canopy returns came from pulses that
+  returned more than once. Foliage lets a pulse through to return again lower
+  down, while a wire, a pole, a sign or a roof the vendor left unclassified
+  stops it. This drops 188 crowns, listed in `notFoliage`. Among them are
+  the wire along East 9th Avenue, a roof on a dock at x 61–67, y 631–642, and
+  parts of Dora Villa Condominiums' flat roof. Of the six dropped crowns 15 m
+  or taller, five are centred inside its outline and the sixth 0.8 m outside
+  it. Kept crowns have a 10th percentile of 0.239 and a median of 0.427.
+- A crown is also taken out when three things hold. It is centred inside an
+  outline the game draws. Its top stops the scanner: under 10% of the canopy
+  returns within 2 m of the top. And the crown as a whole reads under 15%.
+  Such a crown is that building's roof. A tree overhanging a roof lets the
+  scanner through across its crown. One crown is taken out this way, listed in
+  `roofTops`: the rest of Dora Villa's roof, 197 m² and 25 m up, whose edge
+  foliage lifted it to 0.11. The aerial view shows the flat roof, with trees
+  only along its west side.
+
+The thresholds come from the method; they were not tuned to the town. The one
+exception is the roof rule's 15%, set after review found Dora Villa's roof.
+Rows are `[topX, topY, centreX, centreY, areaM2, heightM, widthM, multiShare,
+topShare]` in town metres: the lidar position minus the outline registration,
+which comes from features.json's OSM outlines. `topShare` is null where no
+canopy return stands within 2 m of the top (9 of the kept crowns). The file pins both its
+lidar source and features.json.
+
+`build-mount-dora.py` moves each crown with the town by the field at its top,
+as it moves the inside of a park. It plants one tree in a crown with no trunk
+within its radius of its centre: 3,802 trees. Of the other crowns,
+2,508 already hold a trunk and 658 have no clear green ground within
+reach. The trunk goes on the clear green ground nearest the top, within half
+the crown's radius (at least 1 m) and 2 m from other trunks. It never stands on
+brush already painted (the town refuses brush under a plant) or on a mapped
+sports pitch. A tree outside every mapped habitat (a lawn, a verge) records its
+habitat as `unmapped`. The tree is mature from 12 m tall. It is a pine where the
+crown stands at least twice as tall as it is wide; the game has no palm.
+Planting comes after the sentries and validator markers, 1.45 m from every
+post and patrol route and a cell from every marker, so neither moves. The
+seeded plants are unchanged. `project.json` pins the file
+(`generation.vegetation.lidarCrowns`).
+
+## Roofs over the water
+
+[water-roofs.json](water-roofs.json) holds 13 roofs on Lake Dora that no
+OpenStreetMap or county outline draws: boathouses, covered slips, the marina's
+four slip rows and the hip roof at the T-dock's shore end. Between them they
+have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
+
+- **Roofs.** Building returns, in the town frame, bin into 0.5 m cells. Two
+  cells join into one roof, over land and water alike, where some return of
+  one lies within 0.74 m of some return of the other.
+  - Cells up to two apart are compared, so a roof is its returns' own cluster
+    at that distance, wherever the grid falls. That holds from a cell's
+    diagonal up (0.707 m): two returns in one cell always join. The code
+    refuses a shorter join.
+  - Cells alone would join two roofs under a metre apart at some grid offsets
+    and not at others: a 3 cm shift of the grid joined the marina to the drawn
+    boathouse north of it, and the whole marina went as that building's own.
+- **The join distance is set from this town.** It sits midway in the window,
+  0.68–0.81 m (measured in 0.01 m steps), where the town's water roofs do not
+  change:
+  - below 0.674 m, the corner of a drawn house at x 73, y 459 splits off as a
+    14th roof;
+  - from 0.811 m, the small roof at x 522, y 1006 joins the marina;
+  - from about 0.86 m, the marina joins the drawn boathouse and goes.
+
+  Each roof kept holds together by links of 0.54 m or less. The made-up tests
+  hold two roofs 0.85 m apart as two, and one roof with a 0.72 m gap as one, at
+  ten grid offsets each.
+- **Where the grid and the registration fall.**
+  `tools/maps/lidar/sweep-water-roofs.mjs`, a review tool outside the build,
+  rebuilds the town:
+  - at 100 grid phases (0.05 m steps in x and y);
+  - at 24 registration offsets out to 0.2 m each way;
+  - at 0.3, 0.5 and 0.7 m north.
+
+  The sectors' registration disagrees by 0.22 m at the median and 0.71 m at
+  worst (above). Every run kept the same 13 roofs, with 23–27 pieces and
+  2,925–3,158 m². These runs are samples, not proof, and only two pieces were
+  followed by name:
+  - The marina's walkway (below) is left out when the registration moves
+    0.2 m or more north. Here that holds at 0.2 m north with x −0.2, −0.1
+    or 0, and due north at 0.3, 0.5 and 0.7 m. Round 8's review found it due
+    north at every distance tried up to 1.0 m, and with x ±0.2 at 0.5 and
+    0.7 m north. It stays at a few offsets that also move it east or shift the
+    grid: 0.2 m north with x +0.1 or +0.2, and 0.3 m north with x +0.2 or at
+    grid phase (0.4, 0.15).
+  - The east-shore fragment is kept with the walkway's group at two grid
+    phases.
+  - The fragment is also kept between the sampled phases, at about x
+    0.33–0.34, y 0.43, where the walkway's rectangle reaches it.
+- **Near a bar.** Each decision rests on shares counted in grid cells, and a
+  share sitting on its bar can fall either way. For every piece and record,
+  water-roofs.json's `nearBar` lists the measures within 0.05 of their bar
+  that decide it: moved across the bar alone, they would keep the piece, leave
+  it out, or change why. On the town:
+  - the marina's 206.6 m² walkway, kept by its outline share of 0.53;
+  - roofs 2 and 7, kept by the water in their rings, 0.788 and 0.787 against
+    0.75;
+  - the east-shore fragment (its ring's water 0.78), which goes with its group
+    either way.
+- **Which roofs are kept.** A roof is kept when:
+  - at least 1 m² of it lies in Lake Dora's OSM outline;
+  - at most 25% of it lies inside an outline the game draws (OSM and county
+    buildings, the generator's structures).
+
+  A roof joined to a drawn one beyond that share belongs to that building: a
+  wing, a porch, or an attached boathouse its county sketch leaves out.
+- **Left to the outlines.** Cells within 1 m of a drawn outline are left to it:
+  429 m² of the marina's walkway, which a county sketch covers.
+- **Parts and pieces.** The rest of a roof splits into parts. Each part is the
+  smallest rectangle around it, unless that would roof over open water of a
+  piece's size: a 6 m² rectangle, 1.5 m wide, that its cells do not fill.
+  Otherwise the part becomes the largest rectangles its cells fill, one after
+  another, in the frame where the largest is biggest. That frame is the main
+  body's, not one a stray corner turned. A turned roof's staircase on the grid
+  is not open water.
+- **Over water.** A piece stands over water where half of it lies in the
+  lake's outline, or where the lidar sees water around it. To see water, half
+  the cells within 3 m of the piece must read as water or ground, and 75% of
+  those must read as water. The cells under the piece's own roof (the rest of
+  its structure) are no part of its ring: they hide nothing it stands over.
+  They include the structure's cells left to a drawn outline: 109 of the 254
+  the walkway's ring leaves out. Counted as unread instead, no decision changed
+  in round 8's 154 rebuilds. Each roof records its pieces left out over land
+  (`onLand`) apart from those whose ring is too little read (`unread`). A
+  cell reads as water when it holds water returns,
+  or no return at all, because calm water returned none. A dock or reeds in
+  the water read as water too. That is a cell within 3 m of such water, with
+  no ground return (classes 2 and 20), and with most of its returns between
+  half a metre under the lake's level and 1.5 m over it. Lake Dora's OSM
+  outline runs 5–10 m off the lidar's water along parts of the shore.
+- **Left out.** The pieces over neither are left out. A piece is 'not over
+  water' where what the lidar reads of its ring is under 75% water. It is 'too
+  little read around it' where what it reads is water but under half the ring
+  is read, or nothing at all is read; that is no evidence of land.
+  - The pieces kept form groups, joined where their returns lie within 0.74 m
+    of one another, as cells join.
+  - A group under half in the lake's outline, by area, that touches a piece
+    left out as not over water is part of what stands on land. It is left out
+    with that piece ('joined only to pieces left out').
+  - A slip split into a body and a stub is so judged whole, even where the stub
+    reaches into the outline.
+
+  These 11 pieces, 383 m², are listed in `leftOut` with their measures and
+  reason: the marina's east-shore shed, its north-west tower, and scraps north
+  of its walkway. One of them is the shed's 9.5 m² north end, which reads as
+  over water but lies wholly outside the outline. It is kept with the walkway
+  at the few phases above. A piece left out with its group records the group's
+  share in the outline, and how many pieces over land it touched. A group that
+  touches such a piece and stays records its share on each of its pieces too.
+  Parts under 6 m², a part's cells no piece covers, and roofs left with none
+  go without a record. Roofs the vendor left unclassified are not among the
+  building returns at all; the roofs over the water in the followups are such.
+- **Outline and heights.** Each piece's outline is the rectangle, in its
+  frame, around its own returns. Its eave, ridge, form, pitch and ridge
+  bearing come from those returns, by the roof rules above, in metres above
+  the lake's lidar level (18.82 m).
+
+The art kit draws each roof as a `boathouse` placement
+([production.md](../../../../docs/art/mount-dora/production.md)).
+
 ## Files
 
 | File | Written by | Contents |
@@ -214,6 +396,8 @@ depend on the zlib build, so checks compare the decoded samples.
 | `bare-earth.png` | `build-lidar.mjs` | 1 m terrain, centimetres above NAVD88 |
 | `bare-earth-source.png` | `build-lidar.mjs` | Per cell: measured, filled or water |
 | `bare-earth.json` | `build-lidar.mjs` | Grid definition, encoding, statistics |
+| `crowns.json` | `build-lidar.mjs` | Tree crowns: top, centre, area, height and width |
+| `water-roofs.json` | `build-lidar.mjs` | Roofs over the lake no outline draws, as rectangle pieces |
 
 ## Running it
 
@@ -221,10 +405,13 @@ From the repository root, with Node 22 or later and no dependencies:
 
 ```powershell
 node tools/maps/lidar/fetch-lidar.mjs          # 448 MB of Entwine nodes into artifacts/lidar/, a few minutes
-node tools/maps/lidar/build-lidar.mjs          # ~45 s on 12 worker threads
+node --max-old-space-size=12288 tools/maps/lidar/build-lidar.mjs   # about 1-2 minutes
 node tools/maps/lidar/build-lidar.mjs --check  # needs the cache; re-derives everything
-node --test tests/maps/lidar.test.mjs          # no cache needed
+node --test tests/maps/lidar.test.mjs tests/maps/lidar-crowns-roofs.test.mjs  # no cache needed
 ```
+
+`lidar-crowns-roofs.test.mjs` checks the crown and water-roof rules on made-up
+canopies and a made-up shore, and both files against their inputs and rules.
 
 The test decodes one committed node
 (`tests/maps/fixtures/lidar-ept-11-1070-1042-1017.laz`, 63 KB). It checks the
@@ -242,6 +429,11 @@ decoder, roof rules, raster helpers and statistics.
   read high. Prefer the county's storeys where a record exists.
 - OSM outlines merge porches with houses. `eaveM` is the eave over most of the
   outline; `planes` and `upperEaveM` show the parts.
+- A tree leaning over a roof loses the cells that hold building returns. A
+  dense crown that stopped nine pulses in ten would be read as no tree.
+- A roof over the water shows its top only: its walls, cover and posts are
+  unknown, and the art kit draws them open, metal and inferred. A roof whose
+  ridge the planes do not explain (`other`) is drawn flat.
 
 ## Proposed use in the generator (not applied)
 

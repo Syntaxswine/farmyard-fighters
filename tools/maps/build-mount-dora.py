@@ -963,6 +963,25 @@ SURVEY_WALLS = {"wood-siding": "wood", "other-siding": "wood", "brick": "brick",
 SURVEY_STORIES = {"1": (1, False), "1.5": (1, True), "2": (2, False), "2.5": (2, True), "3": (3, False), "4": (4, False)}
 
 
+LIDAR_CROWNS = "reference/lidar/crowns.json"
+
+
+def load_crowns(follow, project=PROJECT):
+    """The 2018 lidar's tree crowns (reference/lidar/crowns.json, written by
+    tools/maps/lidar/build-lidar.mjs), each moved with the town by the field at its
+    top, as the inside of a park is, and the file's pin for project.json."""
+    raw = (project / LIDAR_CROWNS).read_bytes()
+    doc = json.loads(raw)
+    crowns = []
+    for i, row in enumerate(doc["crowns"]):
+        crown = dict(zip(doc["columns"], row))
+        dx, dy = follow([crown["topX"], crown["topY"]])
+        crowns.append({"id": "lidar-crown-%d" % i, "top": [crown["topX"] + dx, crown["topY"] + dy],
+                       "centre": [crown["centreX"] + dx, crown["centreY"] + dy],
+                       "areaM2": crown["areaM2"], "heightM": crown["heightM"], "widthM": crown["widthM"]})
+    return crowns, {"file": LIDAR_CROWNS, "sha256": sha(raw), "bytes": len(raw), "acquired": doc["collection"]["acquired"], "crowns": len(crowns)}
+
+
 def load_evidence(project=PROJECT):
     """Per-building county, lidar and survey facts from maps/mount-dora/reference.
 
@@ -1499,6 +1518,7 @@ def build_project(project=PROJECT):
     # A pitch can be nested in a park polygon. It must not inherit the park's
     # procedural trees, and hard courts need a visible existing ground proxy.
     # Keep overlapping/historical source polygons; do not invent court markings.
+    pitch_cells = set()
     for feature in features:
         if feature["tags"].get("leisure") != "pitch" or feature["geometry"]["type"] != "MultiPolygon":
             continue
@@ -1516,6 +1536,7 @@ def build_project(project=PROJECT):
             paint_polygon(terrain, polygons, CODE[surface], width, depth, land_only=True)
         for y, left, right in polygon_spans(polygons, width, depth):
             green[y * width + left:y * width + right] = bytes(right - left)
+            pitch_cells.update((x, y) for x in range(left, right))
     road_cells = bytearray(width * depth)
     paint_roads(terrain, roads, width, depth, mask=road_cells)
     # A county building stands on its 2018 lidar roof. Where the mapped Lake
@@ -1648,6 +1669,30 @@ def build_project(project=PROJECT):
         anchors_by_sector[col, row] = anchors_with_sentries(
             terrain, blocked, props_by_sector.get(sector_id(col, row), []), (col * size, row * size), size, width,
             anchors_by_sector[col, row], guards_by_sector.get((col, row), []))
+    # The 2018 lidar's tree crowns that the seeded greenery leaves empty get a tree each,
+    # after the sentries and markers, so neither moves: a trunk keeps 1.45 m from every
+    # post and patrol route cell (the sentries' own clearance from trees) and a cell from
+    # every marker.
+    crowns, crowns_record = load_crowns(follow)
+    keep_clear = set()
+    for (col, row), guards in guards_by_sector.items():
+        for guard in guards:
+            points = [(guard["x"] + col * size, guard["y"] + row * size)] + [(p["x"] + col * size, p["y"] + row * size) for p in guard.get("patrol", [])]
+            route = points[1:] or points
+            cells = {points[0]}.union(*(set(patrols._line_cells(a, b)) for a, b in zip(route, route[1:] + route[:1])))
+            for gx, gy in cells:
+                keep_clear.update((x, y) for x in range(gx - 1, gx + 2) for y in range(gy - 1, gy + 2) if math.hypot(x - gx, y - gy) <= 1.45)
+    for (col, row), anchors in anchors_by_sector.items():
+        for p in anchors:
+            keep_clear.update((p["x"] + col * size + dx, p["y"] + row * size + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+    occupied = {(p["x"] + col * size, p["y"] + row * size) for col, row in sector_positions for p in props_by_sector.get(sector_id(col, row), [])}
+    # A mapped pitch keeps lidar trunks off it as it keeps the seeded ones: a crown over a
+    # pitch's edge takes the nearest cell beside it.
+    tally = {}
+    crowns_record["planted"] = vegetation.plant_crowns(
+        crowns, terrain, green, blocked, width, depth, size, CODE, sector_id, props_by_sector, foliage_by_sector, tree_cells, occupied,
+        reserved=vegetation_clearings(approaches) | pitch_cells, keep_clear=keep_clear, tally=tally)
+    crowns_record["notPlanted"] = tally
     outputs, sectors = {'authored-buildings.json': encoded(authored)}, []
     config_digest = sha((project / "source" / "authoring-config.json").read_bytes())
     digest = sha(encoded(source_records))
@@ -1721,7 +1766,9 @@ def build_project(project=PROJECT):
                                             "policy": "Railways whose rails remain move with the town and lie as a gravel bed on open ground. The 3D track covers only runs clear of roads, buildings, decks and water, so it stops short of level crossings and of road bridges over the line; a siding stops where its bed would meet its main line's."},
                                "waterPolicy": "Fill complete source polygons first; land cover never creates land in water. Only mapped building footprints, bridges or wooden-surface paths can provide source-backed support over water; a county building on its lidar roof is such a footprint, and its one-metre fit may take the mapped water within three cells of it.",
                                "vegetation": {"seed": 1947, "brush": "woodland-v1",
-                                              "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas. Individual plants are gameplay scenery."},
+                                              "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas, then one tree in each tree crown the 2018 lidar saw that holds no trunk yet. Individual plants are gameplay scenery.",
+                                              "lidarCrowns": {**crowns_record,
+                                                              "policy": "Each crown with no trunk within its radius of its centre gets one tree on the clear ground nearest its top (within half its radius, at least 1 m; 2 m from other trunks; never on brush already painted or on a mapped pitch): mature from 12 m tall, a pine where it stands at least twice as tall as it is wide (the game has no palm). A crown moves with the town by the field at its top. Planted after the sentries and validator markers, 1.45 m from every post and patrol route and a cell from every marker, so neither moves; seeded plants are unchanged."}},
                                "guardPolicy": "Fictional posts on land sectors include street patrols and local circuits. Posts and waypoints use the native editor format.",
                                "sportsSurfaces": "Mapped pitch polygons exclude procedural greenery; tennis/pickleball use a declared existing asphalt proxy unless a supported source surface tag is present. No invented court lines or current inventory claim.",
                                "buildingDefaults": {"stories": 1, "material": "brick", "heightM": 2, "slabM": .12, "pitchM": 2.12,

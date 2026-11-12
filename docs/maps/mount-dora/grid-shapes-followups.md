@@ -68,12 +68,17 @@ seven causes:
 - **Roofs over the water.** Where our map has open water, the lidar sees
   about 800 m² of roof: boathouses and covered slips. It also sees a roofed
   structure at the T-dock's shore end. No OpenStreetMap or county outline
-  exists for any of them.
+  exists for any of them. *Drawn on the stacked branch
+  `claude/mount-dora-lidar-trees`: 13 roofs map-wide, with the marina's four
+  slip rows and the T-dock's hip roof among them. About 300 m² of that 800
+  turned out to be shore houses' own roofs (below).*
 - **The tree belt.** Between Lake Dora Road and McDonald Street, unclassified
   returns 2.5 m or more above the ground cover 2,936 of 5,423 m² (54%). This
   vendor has no vegetation class, and a little of that area is overhead wire.
   Our map has 1 tree and 1 bush there, because greenery is seeded by
-  declared density rather than placed from evidence.
+  declared density rather than placed from evidence. *Planted on the stacked
+  branch `claude/mount-dora-lidar-trees`: a tree in each lidar crown the seeded
+  greenery leaves empty, 186 of them in the box and 3,802 map-wide.*
 - **The railway.** The Sorrento Subdivision runs between the road and the
   trees. OpenStreetMap tags it `railway=disused`, but the rails still show.
   As "context" it is never drawn. *Drawn on the stacked branch
@@ -82,6 +87,86 @@ seven causes:
   but terrain is one material per 1 m tile, so its edges step every metre.
   Walls can turn; ground cannot. A smooth road surface would have to be drawn
   over the tiles.
+
+Drawing the roofs over the water and planting the crowns turned up seven more
+gaps:
+
+- **Lake Dora's OSM outline is off the lidar's water by 5–10 m** along parts
+  of the shore.
+  - Three boathouses stand in lidar water, mostly outside the outline, so the
+    game draws land under them: 5 pieces in all (`lakeShare` under 0.5 in
+    water-roofs.json). One is at x 120–129, y 572–577; the other two are at
+    x 197–217, y 748–788.
+  - Three more pieces are part on land, 0.53–0.72 of each in the outline: at
+    x 109–121, y 539–551; the marina's walkway (x 558–581, y 961–970); and the
+    marina's north-west piece (x 496–508, y 961–970).
+  - North of them, at x 0–130, y 360–520, the outline reaches inland over the
+    shore houses.
+  - Fix: take the shoreline from the lidar's water (class 9, and calm water
+    with no returns).
+- **Shore houses' roofs run past their county sketches toward the water.**
+  These are wings, porches, and perhaps attached boathouses. The largest is
+  about 300 m² at x 30–65, y 405–440, behind four county sketches. They join
+  the drawn houses' roofs, so they stay with them, under "County sketches can
+  leave parts out" above.
+- **A long low roof on the marina's east shore** at x 578–590, y 975–1020
+  (12 × 45 m, eave about 3.1 m) joins the slips' walkway. It stands on the
+  shore, not over water: what the lidar reads round its main piece is 0.664
+  water, short of the 0.75 a piece over water needs. No outline draws it.
+- **A taller roof at the marina's north-west corner** at x 503–508,
+  y 955–962 (eave about 5.1 m) stands on land. No outline draws it.
+- **Roofs over the water the vendor left unclassified** are missing from the
+  water roofs: they have no building returns.
+  - At x 61–67, y 631–642 (about 69 m², 3.6 m up), the aerial view shows a
+    white roof where two docks meet. It stops the scanner like a solid, so
+    crowns.json lists it among `notFoliage` (multiShare 0.047).
+  - Centred at x 61, y 464 (35 m², 4.25 m up), the aerial view shows a white
+    roof at the end of a dock. Its crown reads 0.118 as a whole, just over the
+    0.1 line, so crowns.json keeps it as a crown. Over the water it gets no
+    tree.
+  - A shelter on the Palm Island boardwalk, white-roofed in the aerial view,
+    has its crown's top at x 323, y 1450 (145 m²; 0.19 as a whole, its top
+    0). No OSM, county or authored outline draws it.
+  - Of the 124 crowns centred inside the lake's outline, 5 have a top that
+    stops the scanner. At least three of the five are roofs:
+    - the roof at x 61, y 464;
+    - the Palm Island shelter;
+    - the edge of the drawn Palm Island Parkway Pavilion, whose crown's top is
+      at x 569, y 1390 (0.153) and its centre is over the lake.
+  - A marsh thicket at x 576, y 1639 reads 0.103, lower than all three roofs
+    (0.118–0.19). No whole-crown bar separates them, so the roof rule
+    (`roofTops`) is not extended to the lake. None of these crowns carries a
+    tree.
+
+  Drawing them would take a rule for unclassified roofs over water.
+- **Water-roof pieces sitting on a bar.** A few pieces are kept or left out by
+  a share within 0.05 of its bar, counted in grid cells (water-roofs.json
+  `nearBar`):
+  - the marina's walkway, kept by its outline share of 0.53. It is left out
+    when the registration moves 0.2 m or more north: due north at every
+    distance tried up to 1.0 m, and at 0.2 m north with x −0.1 or −0.2.
+    It stays at a few offsets that also move it east: 0.2 m north with
+    x +0.1 or +0.2, and 0.3 m north with x +0.2. The sectors' disagreement is
+    0.22 m at the median and 0.71 m at worst.
+  - roofs 2 and 7, kept by their rings' water (0.788 and 0.787 against 0.75).
+
+  A shoreline taken from the lidar's water instead of OSM, as the first item in
+  this list proposes, would give the walkway a share the registration does not
+  move. It may still sit on the line: about half of what the lidar reads round
+  it is dry.
+- **Two lidar trees may stand on roofs the vendor left unclassified.** The
+  roof rule in crowns.json (`roofTops`) takes out only crowns centred inside an
+  outline the game draws: Dora Villa's. Two crowns that carry lidar trees read
+  the same way, but neither is centred on a drawn outline:
+  - x 1230, y 1421 (65 m², 8.2 m, in F06). The aerial view shows a house there.
+    Its top is 9.3 m from the nearest drawn outline (osm-way-1240416234).
+  - x 1145, y 704 (10.5 m², 5.6 m, in E03), at the west edge of a building in
+    woods, 4.4 m from osm-way-1240419519.
+
+  Each has a top that stops the scanner (topShare under 0.1), reads under 0.15
+  as a whole, and has under 5% ground among the returns beneath it. A building
+  missing from OSM and the county records, or an outline off its roof, would
+  explain both. Check them against the parcel records.
 
 ## Known shape and placement limits
 

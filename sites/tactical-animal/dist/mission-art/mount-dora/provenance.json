@@ -1,11 +1,16 @@
 {
   "schema": "mount-dora-production-art/1",
+  "waterRoofs": {
+    "file": "maps/mount-dora/reference/lidar/water-roofs.json",
+    "sha256": "4dc2dcbd4962655bd62517fc0312277d61e3adb3a9162124058dfb3de170e98c",
+    "roofs": 13
+  },
   "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
   "railwayRevision": "ed951ba4723ce4cdb87db25d226ad1ceaead7f46",
   "railwayBranch": "codex/railway-route-tool",
   "farmyardBase": "75a6b61a547a96edebdc456e9a42edb4f28185e4",
   "featuresSHA256": "a291c59e3bbc2a9e5cb66f375d66ce543d6273c0dd1b8f18620167aa1b5cbad5",
-  "artRevision": "b00761cc336bd95b3af5f82751468d273b8cbb21295ae2720b54ccf8eb787434",
+  "artRevision": "dc725c6caadaf729bb4631840bb0d1be576cc7728ff672483e27a9952a7c3316",
   "files": [
     {
       "path": "source/packages/building-catalog/three.js",
@@ -54,7 +59,7 @@
     }
   ],
   "atlasSHA256": "bbe33709a63362a13e509131c11f358d286b3d55ffcb86ca0ca1def4934ccdb2",
-  "placements": 1351,
+  "placements": 1364,
   "buildingCount": 950,
   "coordinates": "town east/south metres; no half-cell transform",
   "sourceNotice": "Geometry and painted materials copied unchanged from the retained fixed source; map data Ã‚Â© OpenStreetMap contributors, ODbL 1.0. Details and heights are explicit approximations."
