@@ -224,7 +224,10 @@ Dora where no OSM or county outline exists, one placement per roof in
 - **Solids and fade.** Posts are the only solids. The game's ground under a
   roof is unchanged: water inside Lake Dora's OSM outline, land where the
   lidar's water runs past it (5 pieces of 3 roofs). Each piece records its
-  `lakeShare`, and the posts stand at ground level either way. Like a pavilion,
+  `lakeShare`, and the posts stand at ground level either way. Each piece also
+  carries water-roofs.json's `nearBar`: the measures within 0.05 of their bar
+  that decide whether it is drawn. The marina's walkway carries its outline
+  share, and roofs 2 and 7 their rings' water. Like a pavilion,
   only the roof fades, while the focus stands under a piece.
 
 ## Sources and limits

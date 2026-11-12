@@ -328,24 +328,29 @@ test('water roofs on a made-up shore: what is kept, what is left to an outline o
 // it is read. From y 320 calm water runs 8 m past the
 // outline to land: a shed on the land (x 109-117, y 324-336) stands in a thicket (x 108-118,
 // y 321-339) with ground read east of it, and hangs a slip over the water (x 99-109,
-// y 328-332): little of the shed's ring is read, and what is read is mostly dry.
+// y 328-332): little of the shed's ring is read, and what is read is mostly dry. From y 350 calm water
+// runs 16 m past the outline: a slip (x 98-111, y 356-362) joins a shed south of it
+// (x 104-108, y 362-370) that a separate roof hems in a metre off (x 101-103 and 109-111,
+// y 363-373; x 101-111, y 371-373), never joined to it: that roof is no part of the shed's
+// own, so it hides the shed's ring.
 function bands() {
   const x = [], y = [], z = [], cls = [], at = (px, py, h, c) => { x.push(px); y.push(py); z.push(LEVEL + h); cls.push(c); };
   const box = (px, py, x0, y0, x1, y1) => px >= x0 && px < x1 && py >= y0 && py < y1;
-  for (let k = 0; k < 1440; k++) for (let m = 0; m < 200; m++) {
+  for (let k = 0; k < 1560; k++) for (let m = 0; m < 200; m++) {
     const px = 80.125 + m * .25, py = -9.875 + k * .25, band = Math.floor(py / 20), local = py - band * 20, even = m % 2 === 0, oddRow = k % 2 === 1;
     const shed = band >= 0 && band < 5 && px >= 98 && px < 112 && local >= 7 && local < 13, arm = band === 0 && px >= 106 && px < 112 && local >= 13 && local < 17;
     const roofed = shed || arm || [[98, 120, 103, 126], [103, 114, 115, 132], [90, 140, 98, 152], [98, 152, 103, 160], [103, 158, 115, 176],
       [106, 186, 118, 204], [101, 190, 106, 196], [99.5, 191, 101, 195],
       [90, 220, 99.5, 232], [99.5, 219, 120, 220], [119, 219, 120, 240], [100.5, 230, 107.5, 242], [107.5, 240, 119.5, 258],
       [112, 268, 124, 286], [101, 266, 112, 272], [98.5, 267.5, 101, 270.5],
-      [98, 296, 111, 302], [104, 302, 108, 310], [105, 290, 107, 296], [109, 324, 117, 336], [99, 328, 109, 332]].some(b => box(px, py, ...b));
+      [98, 296, 111, 302], [104, 302, 108, 310], [105, 290, 107, 296], [109, 324, 117, 336], [99, 328, 109, 332],
+      [98, 356, 111, 362], [104, 362, 108, 370], [101, 363, 103, 373], [109, 363, 111, 373], [101, 371, 111, 373]].some(b => box(px, py, ...b));
     const thicket = box(px, py, 101, 302, 111, 311) || box(px, py, 101, 287, 111, 296) || box(px, py, 108, 321, 118, 339);
     const channel = (px - 100) % 5 >= 4;
     if (roofed) at(px, py, 3, 6);
     else if (thicket) at(px, py, 8, 1);
     else if (px < 100) at(px, py, 0, 9);
-    else if (py >= 110) { if (px >= (py >= 320 ? 108 : py >= 290 ? 116 : py >= 212 ? 112 : 105)) at(px, py, .7, 2); }
+    else if (py >= 110) { if (px >= (py >= 350 ? 116 : py >= 320 ? 108 : py >= 290 ? 116 : py >= 212 ? 112 : 105)) at(px, py, .7, 2); }
     else if (band < 0 || band > 4) at(px, py, .7, 2);
     else if (band === 0) { if ((px - 100) % 6 < 2) at(px, py, .7, 1); }
     else if (band === 1) at(px, py, .7, 1);
@@ -362,14 +367,14 @@ test('water roofs: a dock is low, has no ground and stands by water; a slip join
   // A piece's rectangle is built on the grid's cells, so at other phases its edges may move a
   // cell and a scrap may come or go: those phases are compared to 0.6 m, and the count of
   // pieces left out is checked on the first.
-  const bay = [[[[60, -10], [100, -10], [100, 350], [60, 350], [60, -10]]]], points = bands();
-  for (const [ox, oy] of [[0, 0], [.2, 0], [.25, 0], [.3, 0], [0, .25]]) bandsAt(points, bay, [80 + ox, -10 + oy, 130 + ox, 350 + oy], !ox && !oy);
+  const bay = [[[[60, -10], [100, -10], [100, 380], [60, 380], [60, -10]]]], points = bands();
+  for (const [ox, oy] of [[0, 0], [.2, 0], [.25, 0], [.3, 0], [0, .25]]) bandsAt(points, bay, [80 + ox, -10 + oy, 130 + ox, 380 + oy], !ox && !oy);
 });
 
 function bandsAt(points, bay, extent, first) {
   const {roofs: found, leftOut} = findWaterRoofs(points, {lake: bay, drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent});
   const tol = first ? .3 : .6, at = b => found.find(r => near(extentOf(r), b, tol)), out = b => leftOut.find(p => near(extentOf({pieces: [p]}), b, tol));
-  assert.equal(found.length, 4, JSON.stringify(found.map(extentOf)));
+  assert.equal(found.length, 5, JSON.stringify(found.map(extentOf)));
   // Among the docks the shed stands over water, and so does its arm, though wholly past the
   // outline: it is joined to the shed. (The shed's roof is no part of the arm's ring.)
   const docks = at([98, 7, 112, 17]);
@@ -429,12 +434,18 @@ function bandsAt(points, bay, extent, first) {
   // Nor is a piece round which nothing is read: it has no share of water at all.
   const hidden = out([105, 290, 107, 296]);
   assert.ok(hidden && hidden.reason === 'too little read around it' && hidden.ringRead === 0 && hidden.ringWater === null, JSON.stringify(hidden));
+  // Pieces left out unread are no land: the roof counts them apart.
+  if (first) assert.deepEqual([moored2.onLand.pieces, moored2.unread.pieces], [0, 2]);
   // A shed whose ring is under half read is still land where what is read is not water: the
   // slip it hangs goes with it.
   const thinlyRead = out([109, 324, 117, 336]), hungG = out([99, 328, 109, 332]);
   assert.ok(thinlyRead && thinlyRead.reason === 'not over water' && thinlyRead.ringRead < WATER_ROOFS.ringReadMin, JSON.stringify(thinlyRead));
   assert.ok(hungG && hungG.reason === 'joined only to pieces left out', JSON.stringify(hungG));
-  if (first) assert.equal(leftOut.length, 19);
+  // Another roof in a piece's ring hides it; only the piece's own roof is no part of it.
+  const hemmed = out([104, 362, 108, 370]);
+  assert.ok(hemmed && hemmed.reason === 'too little read around it' && hemmed.ringRead < WATER_ROOFS.ringReadMin && hemmed.ringWater === 1, JSON.stringify(hemmed));
+  assert.ok(at([98, 356, 111, 362]), JSON.stringify(found.map(extentOf)));
+  if (first) assert.equal(leftOut.length, 20);
 }
 
 // Two roofs over the lake 0.85 m apart at their nearest returns: a boathouse the game draws
@@ -544,6 +555,30 @@ function nearBarHolds(p) {
     assert.ok(Math.abs(Math.abs(p[k] - bars[k]) - WATER_ROOFS.barBand) <= .0005, `nearBar ${JSON.stringify(p.nearBar)} against ${JSON.stringify(want)} at ${k} ${p[k]}`);
   }
 }
+
+// A shed on land (x 103.25-115, y 14-32) hanging a slip over the water (x 97.5-103.25,
+// y 20-26) that has 5 of its 11 cell columns in the lake's outline (x < 100); calm water
+// runs 5 m past the outline to the land.
+function nearShare() {
+  const x = [], y = [], z = [], cls = [];
+  for (let gy = -10; gy < 70; gy += .25) for (let gx = 80; gx < 130; gx += .25) {
+    const px = gx + .125, py = gy + .125, roof = px >= 97.5 && px < 103.25 && py >= 20 && py < 26 || px >= 103.25 && px < 115 && py >= 14 && py < 32;
+    if (roof) { x.push(px); y.push(py); z.push(LEVEL + 3); cls.push(6); } else if (px < 100) { x.push(px); y.push(py); z.push(LEVEL); cls.push(9); } else if (px >= 105) { x.push(px); y.push(py); z.push(LEVEL + .7); cls.push(2); }
+  }
+  return {total: x.length, x: Float64Array.from(x), y: Float64Array.from(y), z: Float64Array.from(z), cls: Uint8Array.from(cls)};
+}
+
+test('water roofs: the share of a group near its bar is named in nearBar', () => {
+  const {leftOut} = findWaterRoofs(nearShare(), {lake: [[[[60, -10], [100, -10], [100, 70], [60, 70], [60, -10]]]], drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent: [80, -10, 130, 70]});
+  const slip = leftOut.find(p => near(extentOf({pieces: [p]}), [97.5, 20, 103, 26], .3));
+  assert.ok(slip && slip.reason === 'joined only to pieces left out' && Math.abs(slip.groupLakeShare - 5 / 11) < 1e-9 && slip.landTouched === 1, JSON.stringify(leftOut));
+  assert.deepEqual(slip.nearBar, ['groupLakeShare']);
+  // With the outline half a metre further east, 6 of the 11 columns are in it and the slip
+  // stays. Its group still touches the shed on land, so it records the share that keeps it.
+  const {roofs} = findWaterRoofs(nearShare(), {lake: [[[[60, -10], [100.5, -10], [100.5, 70], [60, 70], [60, -10]]]], drawn: [], reg: {dx: 0, dy: 0}, level: LEVEL, extent: [80, -10, 130, 70]});
+  const stays = roofs.flatMap(r => r.pieces).find(p => near(extentOf({pieces: [p]}), [97.5, 20, 103, 26], .3));
+  assert.ok(stays && Math.abs(stays.groupLakeShare - 6 / 11) < 1e-9 && stays.nearBar.includes('groupLakeShare'), JSON.stringify(roofs.map(r => r.pieces)));
+});
 
 test('water roofs: nearBar names the measures near their bar that decide a piece', () => {
   // Kept by the outline alone: its outline share decides, its ring does not.

@@ -143,9 +143,11 @@ gaps:
   a share within 0.05 of its bar, counted in grid cells (water-roofs.json
   `nearBar`):
   - the marina's walkway, kept by its outline share of 0.53. It is left out
-    when the registration moves 0.2 m north or more: at 0.2 m for three of the
-    five east–west offsets tried, and at 0.3, 0.5 and 0.7 m. The sectors'
-    disagreement is 0.22 m at the median and 0.71 m at worst.
+    when the registration moves 0.2 m or more north: due north at every
+    distance tried up to 1.0 m, and at 0.2 m north with x −0.1 or −0.2.
+    It stays at a few offsets that also move it east: 0.2 m north with
+    x +0.1 or +0.2, and 0.3 m north with x +0.2. The sectors' disagreement is
+    0.22 m at the median and 0.71 m at worst.
   - roofs 2 and 7, kept by their rings' water (0.788 and 0.787 against 0.75).
 
   A shoreline taken from the lidar's water instead of OSM, as the first item in

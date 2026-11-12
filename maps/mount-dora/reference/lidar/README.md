@@ -294,8 +294,9 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   Each roof kept holds together by links of 0.54 m or less. The made-up tests
   hold two roofs 0.85 m apart as two, and one roof with a 0.72 m gap as one, at
   ten grid offsets each.
-- **Where the grid and the registration fall.** The town was rebuilt in
-  scratch runs, outside the build:
+- **Where the grid and the registration fall.**
+  `tools/maps/lidar/sweep-water-roofs.mjs`, a review tool outside the build,
+  rebuilds the town:
   - at 100 grid phases (0.05 m steps in x and y);
   - at 24 registration offsets out to 0.2 m each way;
   - at 0.3, 0.5 and 0.7 m north.
@@ -304,8 +305,13 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   worst (above). Every run kept the same 13 roofs, with 23–27 pieces and
   2,925–3,158 m². These runs are samples, not proof, and only two pieces were
   followed by name:
-  - The marina's walkway (below) is left out at 0.2 m north for three of the
-    five east–west offsets tried, and at 0.3, 0.5 and 0.7 m north.
+  - The marina's walkway (below) is left out when the registration moves
+    0.2 m or more north. Here that holds at 0.2 m north with x −0.2, −0.1
+    or 0, and due north at 0.3, 0.5 and 0.7 m. Round 8's review found it due
+    north at every distance tried up to 1.0 m, and with x ±0.2 at 0.5 and
+    0.7 m north. It stays at a few offsets that also move it east or shift the
+    grid: 0.2 m north with x +0.1 or +0.2, and 0.3 m north with x +0.2 or at
+    grid phase (0.4, 0.15).
   - The east-shore fragment is kept with the walkway's group at two grid
     phases.
   - The fragment is also kept between the sampled phases, at about x
@@ -340,7 +346,11 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   lake's outline, or where the lidar sees water around it. To see water, half
   the cells within 3 m of the piece must read as water or ground, and 75% of
   those must read as water. The cells under the piece's own roof (the rest of
-  its structure) are no part of its ring: they hide nothing it stands over. A
+  its structure) are no part of its ring: they hide nothing it stands over.
+  They include the structure's cells left to a drawn outline: 109 of the 254
+  the walkway's ring leaves out. Counted as unread instead, no decision changed
+  in round 8's 154 rebuilds. Each roof records its pieces left out over land
+  (`onLand`) apart from those whose ring is too little read (`unread`). A
   cell reads as water when it holds water returns,
   or no return at all, because calm water returned none. A dock or reeds in
   the water read as water too. That is a cell within 3 m of such water, with
@@ -364,10 +374,11 @@ have 24 pieces and 3,155 m². `tools/maps/lidar/water-roofs.mjs` finds them:
   of its walkway. One of them is the shed's 9.5 m² north end, which reads as
   over water but lies wholly outside the outline. It is kept with the walkway
   at the few phases above. A piece left out with its group records the group's
-  share in the outline, and how many pieces over land it touched. Parts under
-  6 m², a part's cells no piece covers, and roofs left with none go without a
-  record. Roofs the vendor left unclassified are not among the building returns
-  at all; the roofs over the water in the followups are such.
+  share in the outline, and how many pieces over land it touched. A group that
+  touches such a piece and stays records its share on each of its pieces too.
+  Parts under 6 m², a part's cells no piece covers, and roofs left with none
+  go without a record. Roofs the vendor left unclassified are not among the
+  building returns at all; the roofs over the water in the followups are such.
 - **Outline and heights.** Each piece's outline is the rectangle, in its
   frame, around its own returns. Its eave, ridge, form, pitch and ridge
   bearing come from those returns, by the roof rules above, in metres above

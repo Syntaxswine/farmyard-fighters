@@ -322,7 +322,7 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
   const close = q => [...q, q[0]];
   for (const r of roofs) {
     const pieces = [];
-    let covered = 0, total = 0, outlined = 0, returns = 0, landPieces = 0, landM2 = 0;
+    let covered = 0, total = 0, outlined = 0, returns = 0, landPieces = 0, landM2 = 0, unreadPieces = 0, unreadM2 = 0;
     const kept = [], dropped = [];
     for (const part of r.parts) {
       const o = outlinePart(part, grid, rules), pts = part.flatMap(c => returnsOf.get(c));
@@ -334,8 +334,9 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
         const corners = rectangleAround(piece.corners, mine);
         const [a, b, , d] = corners, area = Math.hypot(b[0] - a[0], b[1] - a[1]) * Math.hypot(d[0] - a[0], d[1] - a[1]), wet = overWater(corners, r.id);
         if (wet.lakeShare < rules.pieceLakeMin && (wet.ringRead < rules.ringReadMin || wet.ringWater < rules.ringWaterMin)) {
-          landPieces++; landM2 += area; covered -= piece.filled;
+          covered -= piece.filled;
           const land = wet.ringWater !== null && wet.ringWater < rules.ringWaterMin;
+          if (land) { landPieces++; landM2 += area; } else { unreadPieces++; unreadM2 += area; }
           dropped.push({pts: mine, land, record: {outline: close(corners), areaM2: area, reason: land ? 'not over water' : 'too little read around it', returns: mine.length, lakeShare: wet.lakeShare, ringRead: wet.ringRead, ringWater: wet.ringWater, nearBar: nearBar(wet, rules)}});
           continue;
         }
@@ -368,7 +369,13 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
     const outSet = new Set(dropped.filter(d => d.land));
     for (const members of groups.values()) {
       const area = members.reduce((s, k) => s + k.area, 0), inOutline = members.reduce((s, k) => s + k.lakeShare * k.area, 0);
-      if (inOutline >= rules.pieceLakeMin * area || !members.some(k => [...touches.get(k)].some(q => outSet.has(q)))) continue;
+      const touchesLand = members.some(k => [...touches.get(k)].some(q => outSet.has(q))), share = inOutline / area;
+      // A group that touches land and stays records the share that keeps it.
+      if (touchesLand && share >= rules.pieceLakeMin) for (const k of members) {
+        k.piece.groupLakeShare = share;
+        if (share - rules.pieceLakeMin <= rules.barBand) k.piece.nearBar = [...k.piece.nearBar, 'groupLakeShare'];
+      }
+      if (share >= rules.pieceLakeMin || !touchesLand) continue;
       const landTouched = new Set(members.flatMap(k => [...touches.get(k)].filter(q => outSet.has(q)))).size;
       for (const k of members) {
         kept.splice(kept.indexOf(k), 1); landPieces++; landM2 += k.area; covered -= k.filled;
@@ -381,7 +388,7 @@ export function findWaterRoofs(index, {lake, drawn, reg, level, extent}, rules =
     const key = p => { const b = bounds([[p.outline]]); return [b[1], b[0]]; };
     pieces.sort((p, q) => key(p)[0] - key(q)[0] || key(p)[1] - key(q)[1]);
     out.push({areaM2: r.areaM2, lakeShare: r.lakeShare, drawnShare: r.drawnShare, leftToOutlinesM2: r.leftToOutlinesM2, outlinedM2: outlined * C * C,
-      coverage: covered / total, onLand: {pieces: landPieces, areaM2: landM2}, returns, pieces});
+      coverage: covered / total, onLand: {pieces: landPieces, areaM2: landM2}, unread: {pieces: unreadPieces, areaM2: unreadM2}, returns, pieces});
   }
   const key = r => { const b = bounds(r.pieces.map(p => [p.outline])); return [b[1], b[0]]; }, at = p => { const b = bounds([[p.outline]]); return [b[1], b[0]]; };
   return {roofs: out.sort((a, b) => key(a)[0] - key(b)[0] || key(a)[1] - key(b)[1]), leftOut: leftOut.sort((a, b) => at(a)[0] - at(b)[0] || at(a)[1] - at(b)[1])};

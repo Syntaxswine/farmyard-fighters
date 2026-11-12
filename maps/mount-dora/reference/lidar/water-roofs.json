@@ -39,7 +39,7 @@
    "barBand": 0.05
   },
   "roofs": "Building (class 6) returns, moved into the town frame by the outline registration (-0.04, 0.84) m and binned in 0.5 m cells; two cells join into one roof, over land and water alike, where some return of one lies within 0.74 m of some return of the other (cells up to two apart are compared, so a roof is its returns' own cluster at that distance, wherever the grid falls). A roof is kept when at least 1 m² of it lies in Lake Dora's OSM outline, and at most 25% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.",
-  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them; the cells under the piece's own roof are no part of its ring) and 75% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within 3 m of such water, with no ground return (classes 2 and 20) and most of its returns between half a metre under the lake's level and 1.5 m over it. The rest are left out: 'not over water' where what is read of the ring is not water, 'too little read around it' where it is water but under 50% of the ring is read. The pieces kept form groups, joined where their returns lie within 0.74 m of one another; a group under half in the lake's outline by area that touches a piece left out as not over water is part of what stands on land, and is left out with it, recording the group's share (groupLakeShare) and how many such pieces it touched (landTouched). All are listed in leftOut with their measures. Parts under 6 m², a part's cells no piece covers, and roofs left with none, go without a record. nearBar lists, for each piece and record, the measures within 0.05 of their bar that decide it (moved across the bar alone, they would keep it, leave it out, or change why): shares counted in grid cells, which may fall either way as the grid or the registration moves.",
+  "outline": "Cells within 1 m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of 6 m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of 6 m², 1.5 m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where 50% of it lies in the lake's outline, or where the lidar sees water around it: 50% of the cells within 3 m read as water or ground (no roof over them; the cells under the piece's own roof are no part of its ring) and 75% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within 3 m of such water, with no ground return (classes 2 and 20) and most of its returns between half a metre under the lake's level and 1.5 m over it. The rest are left out: 'not over water' where what is read of the ring is not water, 'too little read around it' where it is water but under 50% of the ring is read, or nothing is read. The pieces kept form groups, joined where their returns lie within 0.74 m of one another; a group under half in the lake's outline by area that touches a piece left out as not over water is part of what stands on land, and is left out with it, recording the group's share (groupLakeShare) and how many such pieces it touched (landTouched); a group that touches one and stays records its share on each of its pieces. Each roof counts the pieces it leaves out on land (onLand: not over water, or with such a group) apart from those too little read (unread). All are listed in leftOut with their measures. Parts under 6 m², a part's cells no piece covers, and roofs left with none, go without a record. nearBar lists, for each piece and record, the measures within 0.05 of their bar that decide it (moved across the bar alone, they would keep it, leave it out, or change why): shares counted in grid cells, which may fall either way as the grid or the registration moves.",
   "heights": "Per piece, from its own returns, in metres above the lake's lidar level: the eave from the roof planes as in lidar-roofs.json (the 25th percentile where none is found), the ridge at the 98th percentile; form and pitch by the same rules (roofs.mjs)."
  },
  "lakeLevelM": 18.82,
@@ -68,6 +68,10 @@
    "outlinedM2": 56.5,
    "coverage": 1,
    "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "unread": {
     "pieces": 0,
     "areaM2": 0
    },
@@ -125,6 +129,10 @@
     "pieces": 0,
     "areaM2": 0
    },
+   "unread": {
+    "pieces": 0,
+    "areaM2": 0
+   },
    "returns": 1579,
    "pieces": [
     {
@@ -176,6 +184,10 @@
    "outlinedM2": 49,
    "coverage": 1,
    "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "unread": {
     "pieces": 0,
     "areaM2": 0
    },
@@ -235,6 +247,10 @@
     "pieces": 0,
     "areaM2": 0
    },
+   "unread": {
+    "pieces": 0,
+    "areaM2": 0
+   },
    "returns": 699,
    "pieces": [
     {
@@ -286,6 +302,10 @@
    "outlinedM2": 35.25,
    "coverage": 1,
    "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "unread": {
     "pieces": 0,
     "areaM2": 0
    },
@@ -343,6 +363,10 @@
     "pieces": 0,
     "areaM2": 0
    },
+   "unread": {
+    "pieces": 0,
+    "areaM2": 0
+   },
    "returns": 1163,
    "pieces": [
     {
@@ -394,6 +418,10 @@
    "outlinedM2": 276.5,
    "coverage": 0.939,
    "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "unread": {
     "pieces": 0,
     "areaM2": 0
    },
@@ -451,6 +479,10 @@
     "pieces": 0,
     "areaM2": 0
    },
+   "unread": {
+    "pieces": 0,
+    "areaM2": 0
+   },
    "returns": 1144,
    "pieces": [
     {
@@ -504,6 +536,10 @@
    "outlinedM2": 213.75,
    "coverage": 0.887,
    "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "unread": {
     "pieces": 0,
     "areaM2": 0
    },
@@ -634,8 +670,12 @@
    "outlinedM2": 1952,
    "coverage": 0.769,
    "onLand": {
-    "pieces": 10,
-    "areaM2": 348.86
+    "pieces": 9,
+    "areaM2": 342.33
+   },
+   "unread": {
+    "pieces": 1,
+    "areaM2": 6.53
    },
    "returns": 30826,
    "pieces": [
@@ -677,7 +717,8 @@
      "ringWater": 0.48,
      "nearBar": [
       "lakeShare"
-     ]
+     ],
+     "groupLakeShare": 0.853
     },
     {
      "outline": [
@@ -715,7 +756,8 @@
      "lakeShare": 1,
      "ringRead": 1,
      "ringWater": 1,
-     "nearBar": []
+     "nearBar": [],
+     "groupLakeShare": 0.853
     },
     {
      "outline": [
@@ -905,7 +947,8 @@
      "lakeShare": 1,
      "ringRead": 0.961,
      "ringWater": 1,
-     "nearBar": []
+     "nearBar": [],
+     "groupLakeShare": 0.853
     }
    ]
   },
@@ -920,6 +963,10 @@
    "onLand": {
     "pieces": 1,
     "areaM2": 33.87
+   },
+   "unread": {
+    "pieces": 0,
+    "areaM2": 0
    },
    "returns": 9036,
    "pieces": [
@@ -959,7 +1006,8 @@
      "lakeShare": 0.718,
      "ringRead": 0.929,
      "ringWater": 0.531,
-     "nearBar": []
+     "nearBar": [],
+     "groupLakeShare": 0.926
     },
     {
      "outline": [
@@ -997,7 +1045,8 @@
      "lakeShare": 1,
      "ringRead": 0.941,
      "ringWater": 0.388,
-     "nearBar": []
+     "nearBar": [],
+     "groupLakeShare": 0.926
     },
     {
      "outline": [
@@ -1035,7 +1084,8 @@
      "lakeShare": 1,
      "ringRead": 0.947,
      "ringWater": 0.725,
-     "nearBar": []
+     "nearBar": [],
+     "groupLakeShare": 0.926
     }
    ]
   },
@@ -1048,6 +1098,10 @@
    "outlinedM2": 13.25,
    "coverage": 1,
    "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "unread": {
     "pieces": 0,
     "areaM2": 0
    },
@@ -1102,6 +1156,10 @@
    "outlinedM2": 399.25,
    "coverage": 0.968,
    "onLand": {
+    "pieces": 0,
+    "areaM2": 0
+   },
+   "unread": {
     "pieces": 0,
     "areaM2": 0
    },
