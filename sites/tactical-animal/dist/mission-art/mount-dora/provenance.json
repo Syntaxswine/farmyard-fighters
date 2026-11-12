@@ -2,7 +2,7 @@
   "schema": "mount-dora-production-art/1",
   "waterRoofs": {
     "file": "maps/mount-dora/reference/lidar/water-roofs.json",
-    "sha256": "51219e618c2d1f80c6a76b5d9a374ee78b517cd5e57a7a73eacf7e729cee9d54",
+    "sha256": "121435a55abc53626859d5b9657d65ce3860f12a41fcfbe47a860374260aa508",
     "roofs": 13
   },
   "engineRevision": "2502646482218524fd5129641da769bb82462e4d",
