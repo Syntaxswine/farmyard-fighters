@@ -8,12 +8,19 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {installNativeProbe,inspectWebGL} from '../sites/tactical-animal/browser-tests/native-probe.mjs';
 import {assertMapLocation} from '../sites/tactical-animal/browser-tests/map-location.mjs';
+import {OPERATION_SAVE} from '../sites/tactical-animal/dist/operation-storage.js';
+import {TOUR_SAVE} from '../sites/tactical-animal/dist/mount-dora-progress.js';
+const operationKey='farmyard-fighters:'+OPERATION_SAVE,tourKey='farmyard-fighters:'+TOUR_SAVE;
 const shelterReview=process.argv.includes('--shelter-review');
 // The two-core software-rendering runner uses a normal 800x600 desktop window.
 // Keep the complete route/assertions and 390x844 touch coverage; video is opt-in.
 const desktopViewport=process.env.CI?{width:800,height:600}:{width:1440,height:1000},recordVideo=process.env.WALKTHROUGH_VIDEO==='1';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),site=path.join(root,'dist'),out=path.join(root,'artifacts/mount-dora-walkthrough',shelterReview?'native-shelter':'native');
 fs.mkdirSync(out,{recursive:true});
+// The tour's visit points in game coordinates, as the game holds them: they keep
+// their places beside their landmarks when the grid streets are straightened.
+const visits=Object.fromEntries([...fs.readFileSync(path.join(root,'sites/tactical-animal/dist/mount-dora-entry.js'),'utf8')
+  .matchAll(/\{id:'([a-z-]+)',name:'[^']*',town:\[([-\d.]+),([-\d.]+)\]\}/g)].map(m=>[m[1],[+m[2]-.5,+m[3]-.5]]));
 const {chromium}=await import(pathToFileURL(path.join(root,'sites/tactical-animal/browser-tests/node_modules/playwright/index.mjs')).href);
 const hash=data=>createHash('sha256').update(data).digest('hex');
 const project=JSON.parse(fs.readFileSync(path.join(site,'maps/mount-dora/project.json'))),features=JSON.parse(fs.readFileSync(path.join(site,'maps/mount-dora/features.json'))).features;
@@ -59,7 +66,8 @@ async function panTo(page,town){
   const box=await page.locator('#viewport').boundingBox();
   for(let n=0;n<10;n++){
     const p=await projectPoint(page,town),cx=box.x+box.width*.5,cy=box.y+box.height*.48;
-    if(p.visible&&p.x>box.x+90&&p.x<box.x+box.width-90&&p.y>box.y+130&&p.y<box.y+box.height-200)return p;
+    if(p.visible&&p.x>box.x+90&&p.x<box.x+box.width-90&&p.y>box.y+130&&p.y<box.y+box.height-200&&
+      await page.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('#viewport'),p))return p;
     const dx=Math.max(-box.width*.32,Math.min(box.width*.32,cx-p.x)),dy=Math.max(-box.height*.30,Math.min(box.height*.30,cy-p.y));
     await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+dx,cy+dy,{steps:7});await page.mouse.up();await page.waitForTimeout(120);
   }throw Error('Could not bring actual ground point into the viewport: '+town);
@@ -81,7 +89,7 @@ async function walkTo(page,town,{timeout=process.env.CI?180000:60000,tolerance=.
   return waitInfo(page,s=>Math.hypot(s.player.x+.5-town[0],s.player.y+.5-town[1])<tolerance,'Walk did not arrive at '+town,timeout,s=>s.distance);
 }
 async function ready(page){return waitInfo(page,s=>s.active&&s.touring&&s.ready&&!s.paused,'Production tour did not become ready',90000);}
-async function keyboardWalk(page,before){await page.keyboard.down('d');try{await waitInfo(page,s=>s.distance>before.distance+.45,'Actual keyboard movement was not observed',20000);}finally{await page.keyboard.up('d');}return snapshot(page);}
+async function keyboardWalk(page,before,key='d'){await page.keyboard.down(key);try{await waitInfo(page,s=>s.distance>before.distance+.45,'Actual keyboard movement was not observed',20000);}finally{await page.keyboard.up(key);}return snapshot(page);}
 async function assertGL(page){
   const gl=await page.evaluate(inspectWebGL,'#viewport canvas');assert(gl.available&&!gl.contextLost);
   const probe=await page.evaluate(()=>window.__nativeProbe||null);return {gl,probe};
@@ -112,7 +120,7 @@ try{
   await page.waitForFunction(()=>!document.getElementById('battle').hidden||document.getElementById('toast').textContent.includes('Cannot start'));if(await page.locator('#battle').isHidden())throw Error(await page.locator('#toast').textContent());
   await page.locator('#loading').waitFor({state:'hidden',timeout:90000});
   await menu(page,'Choose operation, animal & loadout');
-  const operationBefore=await page.evaluate(()=>localStorage.getItem('tactical-animal-operation-v2'));assert(operationBefore);
+  const operationBefore=await page.evaluate(key=>localStorage.getItem(key),operationKey);assert(operationBefore);
   mark('existing mission deploys through the production title/game route');
   await page.locator('#operation-select').selectOption('mount-dora');await page.locator('#animals button').filter({hasText:'goat'}).first().click();await page.getByRole('button',{name:'Mosin-Nagant',exact:true}).click();await page.getByRole('button',{name:/Frag grenades/}).click();await page.locator('#deploy').click();
   let info=await ready(page);assert.equal(info.player.species,'goat');assert.equal(info.player.weapon,'rifle');assert.equal(info.phase,'explore');assert(info.actor.visible&&info.actor.meshes>0&&info.actor.vertices>0);assert.equal(info.render.blocks,9);assert(info.memory.programs>0);assert.equal(info.memory.shaderFailures,0);
@@ -120,13 +128,15 @@ try{
   await shot(page,'desktop-donnelly');mark('regular animal/loadout starts a free, physically clear Donnelly tour',{snapshot:info});
   const moved=await keyboardWalk(page,info);assert(moved.distance>info.distance+.2);
   assert(await page.locator('#grenade').isEnabled());
-  await menu(page,'Aim firearm at a point');const aimPoint=await projectPoint(page,[moved.player.x+.5-5,moved.player.y+.5]);await page.mouse.click(aimPoint.x,aimPoint.y);await page.getByRole('button',{name:/^Fire ·/}).click();
-  const fired=await waitInfo(page,s=>s.phase==='player'&&s.player.ammo.rifle===moved.player.ammo.rifle-1,'Production firearm did not fire');
-  await page.locator('#end-turn').click();await waitInfo(page,s=>s.phase==='explore','Production turn did not return to exploration');
+  await menu(page,'Aim firearm at a point');const aimPoint=await projectPoint(page,[moved.player.x+.5-5,moved.player.y+.5]);await page.mouse.click(aimPoint.x,aimPoint.y);
+  await page.locator('[data-control="fire"]').click();
+  const fired=await waitInfo(page,s=>s.player.ammo.rifle===moved.player.ammo.rifle-1,'Production firearm did not fire');
+  const exitAim=page.locator('[data-control="exit"]');
+  if(await exitAim.isVisible())await exitAim.click();
   await page.keyboard.press('g');await page.locator('#grenade-aim').waitFor({state:'visible'});await page.keyboard.down('a');await page.waitForTimeout(1000);await page.keyboard.up('a');
   await page.waitForFunction(()=>document.getElementById('grenade').dataset.ready==='true');await page.locator('#grenade').click();
-  const thrown=await waitInfo(page,s=>s.phase==='player'&&s.player.ammo.grenade===fired.player.ammo.grenade-1,'Production grenade did not throw');assert(thrown.player.hp>0);
-  await page.locator('#end-turn').click();await waitInfo(page,s=>s.phase==='explore','Grenade turn did not return to exploration');mark('real firearm, grenade, ammunition and End Turn controls operate through production gameplay');
+  const thrown=await waitInfo(page,s=>s.player.ammo.grenade===fired.player.ammo.grenade-1,'Production grenade did not throw');assert(thrown.player.hp>0);
+  mark('real-time firearm and grenade consume the production loadout ammunition');
   for(let i=0;i<4;i++)await page.locator('#zoom-out').click();
   await walkTo(page,[478.5,478.5]);
   const cornerBefore=await snapshot(page);for(const p of [[481.5,478.5],[481.5,481.5],[478.5,481.5],[478.5,478.5]])await walkTo(page,p,{timeout:process.env.CI?60000:15000});
@@ -137,32 +147,33 @@ try{
   const beforeFailure=await snapshot(page);await visit(page,'Grantham Point lighthouse');
   await page.waitForFunction(()=>document.getElementById('toast').textContent.includes('Could not load that landmark approach'),null,{timeout:30000});
   const afterFailure=await snapshot(page);assert(Math.hypot(afterFailure.player.x-beforeFailure.player.x,afterFailure.player.y-beforeFailure.player.y)<1e-6);
-  await visit(page,'Grantham Point lighthouse');info=await waitInfo(page,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-504,s.player.y-1168)<.1&&s.render?.landmarks?.residentIds.includes('md:lighthouse'),'Retry did not safely visit lighthouse');
+  await visit(page,'Grantham Point lighthouse');info=await waitInfo(page,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-visits['grantham-lighthouse'][0],s.player.y-visits['grantham-lighthouse'][1])<.1&&s.render?.landmarks?.residentIds.includes('md:lighthouse'),'Retry did not safely visit lighthouse');
   await shot(page,'desktop-lighthouse');assert(info.render.landmarks.residentIds.includes('md:lighthouse'));mark('failed source leaves position unchanged; explicit retry loads a real landmark',{snapshot:info});
   await page.unroute('**/maps/mount-dora/sectors/C05.map.json*');
-  await visit(page,'Palm Island entrance');await waitInfo(page,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-665.469,s.player.y-1296.0786)<.15,'Boardwalk entrance not ready');
+  await visit(page,'Palm Island entrance');await waitInfo(page,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-visits['palm-entrance'][0],s.player.y-visits['palm-entrance'][1])<.15,'Boardwalk entrance not ready');
   const entrance=features.find(f=>f.id==='osm-way-548471563').geometry.coordinates,bridge=features.find(f=>f.id==='osm-way-688219167').geometry.coordinates;
   const points=[...routeTo(entrance,Infinity),...routeTo(bridge,120).slice(1)],boardwalkBefore=await snapshot(page);
   for(let i=1;i<points.length;i++){await walkTo(page,points[i],{timeout:process.env.CI?60000:25000,tolerance:.16});if(i%8===0)console.log('Walking actual boardwalk '+i+'/'+points.length);}
   const overWater=await snapshot(page);assert.equal(overWater.player.ground,'bridge');await shot(page,'desktop-palm-boardwalk');
   for(let i=points.length-2;i>=0;i--){await walkTo(page,points[i],{timeout:process.env.CI?60000:25000,tolerance:.16});if(i%8===0)console.log('Returning actual boardwalk '+i+'/'+points.length);}
   const returned=await snapshot(page);assert(returned.distance>boardwalkBefore.distance+300);mark('actual entrance, mapped join, supported over-water walk and continuous return',{snapshot:returned});
-  await page.waitForTimeout(2700);const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('farmyard-mount-dora-tour-v1')));assert(saved);assert(!Object.hasOwn(saved,'map'));assert(JSON.stringify(saved).length<600000);
-  assert.equal(await page.evaluate(()=>localStorage.getItem('tactical-animal-operation-v2')),operationBefore);
+  await page.waitForTimeout(2700);const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),tourKey);assert(saved);assert(!Object.hasOwn(saved,'map'));assert(JSON.stringify(saved).length<600000);
+  assert.equal(await page.evaluate(key=>localStorage.getItem(key),operationKey),operationBefore);
   await page.reload();await page.locator('#resume').click();info=await ready(page);
   assert(Math.hypot(info.player.x-saved.player.x,info.player.y-saved.player.y)<1e-6);assert.deepEqual(info.player.ammo,saved.player.ammo);assert.equal(info.player.species,saved.player.species);report.restoredHudLocation=await assertMapLocation(page,info.player);mark('tour reload restores global position/resources and preserves the operation save',{snapshot:info,saveBytes:JSON.stringify(saved).length});
   assert(info.source.stats.peakDecoded<=9&&info.source.stats.peakFetches<=2&&info.render.blocks<=9);
-  report.desktopWebGL=await assertGL(page);await menu(page,'Choose animal or operation');info=await snapshot(page);assert.equal(info.source.decoded,0);assert.equal(info.source.inFlight,0);assert.equal(info.source.queued,0);mark('tour exit releases decoded sources and renderer residency');
+  report.desktopWebGL=await assertGL(page);await menu(page,'Choose operation, animal & loadout');info=await snapshot(page);assert.equal(info.source.decoded,0);assert.equal(info.source.inFlight,0);assert.equal(info.source.queued,0);mark('tour exit releases decoded sources and renderer residency');
   }
   // A new, actual touch context uses its own regular preparation and production route.
   phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,...(recordVideo?{recordVideo:{dir:path.join(out,'video')}}:{})});
   await phone.addInitScript(installNativeProbe);const mobile=await phone.newPage(),mobileLog=capture(mobile,'phone');
-  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.equal(await mobile.evaluate(()=>localStorage.getItem('tactical-animal-operation-v2')),null);await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
+  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.equal(await mobile.evaluate(key=>localStorage.getItem(key),operationKey),null);await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
   const stick=await mobile.locator('#joystick').boundingBox(),cdp=await phone.newCDPSession(mobile),x=stick.x+stick.width/2,y=stick.y+stick.height/2;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:x+stick.width*.24,y:y+stick.height*.12}]});try{await waitInfo(mobile,s=>s.distance>mobileBefore.distance+.45,'Actual touch joystick movement was not observed',20000);}finally{await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
-  const mobileMoved=await snapshot(mobile);assert(mobileMoved.distance>mobileBefore.distance+.2);assert(mobileMoved.actor.visible);const mobileKeyboard=await keyboardWalk(mobile,mobileMoved);assert(mobileKeyboard.distance>mobileMoved.distance+.2);await shot(mobile,'phone-donnelly');
-  await visit(mobile,'Grantham Point lighthouse');await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-504,s.player.y-1168)<.1&&s.render?.landmarks?.residentIds.includes('md:lighthouse'),'Phone landmark visit failed');report.phoneHudLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player);await mobile.locator('#minimap-button').click();report.phoneExpandedLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player,{expanded:true});await shot(mobile,'phone-town-map');await mobile.getByRole('button',{name:'Continue walking',exact:true}).click();await shot(mobile,'phone-lighthouse');
-  await visit(mobile,'Gilbert Park');const shelter=await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x+.5-737.2963,s.player.y+.5-1181.367)<.1&&s.render?.landmarks?.fadedPlacements.includes('md:shelter:557154684'),'Open-shelter visit did not expose actor and roof focus');assert(shelter.actor.visible&&shelter.actor.meshes>0);assert(shelter.render.landmarks.occlusionMaterials>0);assert(shelter.source.stats.peakDecoded<=9&&shelter.source.stats.peakFetches<=2);await shot(mobile,'phone-gilbert-open-shelter');mark('open-shelter visit immediately shows the actor with roof focus',{snapshot:shelter});
+  const mobileMoved=await snapshot(mobile);assert(mobileMoved.distance>mobileBefore.distance+.2);assert(mobileMoved.actor.visible);
+  const mobileKeyboard=await keyboardWalk(mobile,mobileMoved,'a');assert(mobileKeyboard.distance>mobileMoved.distance+.2);await shot(mobile,'phone-donnelly');
+  await visit(mobile,'Grantham Point lighthouse');await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-visits['grantham-lighthouse'][0],s.player.y-visits['grantham-lighthouse'][1])<.1&&s.render?.landmarks?.residentIds.includes('md:lighthouse'),'Phone landmark visit failed');report.phoneHudLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player);await mobile.locator('#minimap-button').click();report.phoneExpandedLocation=await assertMapLocation(mobile,(await snapshot(mobile)).player,{expanded:true});await shot(mobile,'phone-town-map');await mobile.getByRole('button',{name:'Continue walking',exact:true}).click();await shot(mobile,'phone-lighthouse');
+  await visit(mobile,'Gilbert Park');const shelter=await waitInfo(mobile,s=>s.ready&&!s.paused&&Math.hypot(s.player.x-visits['gilbert-park'][0],s.player.y-visits['gilbert-park'][1])<.1&&s.render?.landmarks?.fadedPlacements.includes('md:shelter:557154684'),'Open-shelter visit did not expose actor and roof focus');assert(shelter.actor.visible&&shelter.actor.meshes>0);assert(shelter.render.landmarks.occlusionMaterials>0);assert(shelter.source.stats.peakDecoded<=9&&shelter.source.stats.peakFetches<=2);await shot(mobile,'phone-gilbert-open-shelter');mark('open-shelter visit immediately shows the actor with roof focus',{snapshot:shelter});
   assert(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));report.phoneWebGL=await assertGL(mobile);mark('390x844 production touch joystick, character, landmark and layout');
   for(const l of report.pages){assert.deepEqual(l.errors,[],'Page errors in '+l.name);const unexpected=l.requests.filter(r=>!l.expectedFailures.some(e=>e.url===r.url&&e.status===r.status));assert.deepEqual(unexpected,[],'Unexpected failed assets in '+l.name);const severe=l.console.filter(x=>x.type==='error'&&!/503/.test(x.text));assert.deepEqual(severe,[],'Console errors in '+l.name);}
   report.passed=true;

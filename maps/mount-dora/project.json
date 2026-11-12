@@ -70,20 +70,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 39557,
-          "ground-asphalt": 6475,
-          "ground-concrete": 4131,
-          "floor": 7437
+          "ground-grass": 39485,
+          "ground-asphalt": 6492,
+          "ground-concrete": 4143,
+          "floor": 7480
         },
-        "terrainSHA256": "0b48de1d2db2f298356368dd41cf18956f7c33eef38462845ab32846da802611",
+        "terrainSHA256": "39cd69e85c1fff33023126b7cd76eb98351567ac463db627fa00f9c43493358c",
         "sourceWaterCells": 0,
         "buildingCount": 31,
-        "wallRunCount": 188,
-        "nativePanelCount": 2518,
+        "wallRunCount": 183,
+        "nativePanelCount": 2526,
         "propCount": 647,
         "foliageCells": 0,
-        "bytes": 1144933,
-        "sha256": "02fc55a826648123b4badb79126c66aaf860347c86d4f007389f4707f0f25790"
+        "bytes": 1145800,
+        "sha256": "90095c1e992e11a30db5b23f2d9e3716216cbf20a3b580fd5328bfa88e57f5f1"
       },
       "buildingIds": [
         "county-1464170-1",
@@ -207,20 +207,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 36413,
-          "ground-asphalt": 7599,
-          "ground-concrete": 4387,
-          "floor": 9201
+          "ground-grass": 36376,
+          "ground-asphalt": 7603,
+          "ground-concrete": 4388,
+          "floor": 9233
         },
-        "terrainSHA256": "b84a070a2951abbacbaa79cad0fc6cc011b745cca2ab35a7b34196baafa8af25",
+        "terrainSHA256": "ef794d0943c9c5e1fb1070f2b46dfa28171ad16c89c9bf40a1cfbc8a6d3ed3f4",
         "sourceWaterCells": 0,
         "buildingCount": 50,
-        "wallRunCount": 267,
+        "wallRunCount": 255,
         "nativePanelCount": 3377,
-        "propCount": 447,
+        "propCount": 461,
         "foliageCells": 0,
-        "bytes": 1134177,
-        "sha256": "570c7b0b689917b199938b3652f47e81bda957a4b89d757a5babee116f6aa979"
+        "bytes": 1134357,
+        "sha256": "9b5940de37b61a3f31cb748c015dc860a447f2ad2c3662ae5008a6314411ca21"
       },
       "buildingIds": [
         "county-1464251-1",
@@ -277,7 +277,7 @@
       "guards": [
         {
           "id": 2,
-          "x": 109,
+          "x": 111,
           "y": 126,
           "z": 0,
           "species": "pig-foreman",
@@ -285,13 +285,13 @@
           "heading": 0,
           "patrol": [
             {
-              "x": 109,
+              "x": 111,
               "y": 126,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 129,
+              "x": 131,
               "y": 126,
               "z": 0,
               "waitSeconds": 0
@@ -328,20 +328,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 37024,
-          "ground-asphalt": 6846,
-          "ground-concrete": 4537,
-          "floor": 9193
+          "ground-grass": 37188,
+          "ground-asphalt": 6817,
+          "ground-concrete": 4464,
+          "floor": 9131
         },
-        "terrainSHA256": "759986065cadc06f99778b0730e305c4c9dc9978a9082168a2353bf940c2d20e",
+        "terrainSHA256": "a910348ef1d0074642ca93f231f203bf9ff858fcff133ad29b363c7392f1fe4b",
         "sourceWaterCells": 0,
         "buildingCount": 57,
         "wallRunCount": 267,
-        "nativePanelCount": 3220,
-        "propCount": 9,
+        "nativePanelCount": 3232,
+        "propCount": 8,
         "foliageCells": 0,
-        "bytes": 1062506,
-        "sha256": "120202cfb9fac42cff691a98d87ed62d7afa61dd5bb0528ccf85751d8a2f85f4"
+        "bytes": 1061864,
+        "sha256": "ae6e8ab7dbf4b2d25709e8ebe39c94307268aa2ed9ce53bde95d2c254dfc538a"
       },
       "buildingIds": [
         "osm-way-1240419747",
@@ -491,20 +491,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 40604,
-          "ground-asphalt": 5419,
+          "ground-grass": 40354,
+          "ground-asphalt": 5432,
           "ground-concrete": 3266,
-          "floor": 8311
+          "floor": 8548
         },
-        "terrainSHA256": "9020bad40e0d89daf62e8b0e11e6b468b75135c99a3fade78c18b4951991a798",
+        "terrainSHA256": "0570ab036d46a5177f301fb49838db4ec84654728ba50526ccb1ac7ebe797d7d",
         "sourceWaterCells": 0,
         "buildingCount": 59,
-        "wallRunCount": 290,
-        "nativePanelCount": 3016,
+        "wallRunCount": 292,
+        "nativePanelCount": 3052,
         "propCount": 0,
         "foliageCells": 0,
-        "bytes": 1034936,
-        "sha256": "fdb376df839f6ccc6cb8a05e5d946c050a31021dee710266e1340499bc3c62fd"
+        "bytes": 1037248,
+        "sha256": "fa3294e18eac0f97afc50e92f1d566108f933fb389474dd72057e64b1450560f"
       },
       "buildingIds": [
         "county-3480651-1",
@@ -570,7 +570,7 @@
       "guards": [
         {
           "id": 4,
-          "x": 117,
+          "x": 119,
           "y": 103,
           "z": 0,
           "species": "pig-foreman",
@@ -578,13 +578,13 @@
           "heading": 90,
           "patrol": [
             {
-              "x": 117,
+              "x": 119,
               "y": 103,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 117,
+              "x": 119,
               "y": 123,
               "z": 0,
               "waitSeconds": 0
@@ -621,20 +621,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 42723,
+          "ground-grass": 42620,
           "ground-asphalt": 4625,
-          "ground-concrete": 2960,
-          "floor": 7292
+          "ground-concrete": 2964,
+          "floor": 7391
         },
-        "terrainSHA256": "931f959200f9dd571624a31901b6cf5f8d61efda21355825d72b0ca2658e22b4",
+        "terrainSHA256": "f25efd5bef3fbed16ea57b0bed1d17502b5df525f27c788351880890e3a5df08",
         "sourceWaterCells": 0,
-        "buildingCount": 54,
-        "wallRunCount": 276,
-        "nativePanelCount": 2575,
+        "buildingCount": 55,
+        "wallRunCount": 263,
+        "nativePanelCount": 2595,
         "propCount": 0,
         "foliageCells": 0,
-        "bytes": 1015180,
-        "sha256": "80cdb5a58c4415d6d9ce4e6e0858ccdf602c647e681f037eecc4f3da6ce1bea3"
+        "bytes": 1013954,
+        "sha256": "36735b70c76bbfc188b47619dca9e6cc7d69e21e773d4b264b80fa04f05e3f1a"
       },
       "buildingIds": [
         "county-1471621-1",
@@ -690,7 +690,8 @@
         "osm-way-1240419816",
         "osm-way-1241962502",
         "osm-way-1241962512",
-        "osm-way-1241962513"
+        "osm-way-1241962513",
+        "osm-way-1241962514"
       ],
       "guards": [
         {
@@ -781,20 +782,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 40849,
-          "ground-asphalt": 6329,
-          "ground-concrete": 3635,
-          "floor": 6787
+          "ground-grass": 41260,
+          "ground-asphalt": 6067,
+          "ground-concrete": 3637,
+          "floor": 6636
         },
-        "terrainSHA256": "1f2d10a382b7e2bec49276d7f9025a90be3c5cb91ed211518fc279393b187f91",
+        "terrainSHA256": "6ddd7f101fb4d14d8b4dc59ea29eaa91800eb6836076a98b55a50115df2c7b5c",
         "sourceWaterCells": 0,
         "buildingCount": 45,
-        "wallRunCount": 227,
-        "nativePanelCount": 2219,
+        "wallRunCount": 222,
+        "nativePanelCount": 2169,
         "propCount": 0,
         "foliageCells": 0,
-        "bytes": 1002299,
-        "sha256": "61adf0a3e75d72d259759a19fd79f87342c23443385411296ed099d6e3060e9e"
+        "bytes": 999629,
+        "sha256": "4af913cc191509ac2b5e3b66ef621c3f772b73570ffe4786fa5f6212f7cc2ca4"
       },
       "buildingIds": [
         "county-1476275-1",
@@ -846,7 +847,7 @@
       "guards": [
         {
           "id": 6,
-          "x": 123,
+          "x": 122,
           "y": 126,
           "z": 0,
           "species": "pig-foreman",
@@ -854,13 +855,13 @@
           "heading": 180,
           "patrol": [
             {
-              "x": 123,
+              "x": 122,
               "y": 126,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 103,
+              "x": 102,
               "y": 126,
               "z": 0,
               "waitSeconds": 0
@@ -897,21 +898,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 31965,
-          "water": 5397,
-          "ground-asphalt": 7196,
+          "ground-grass": 32001,
+          "water": 5403,
+          "ground-asphalt": 7219,
           "ground-concrete": 4304,
-          "floor": 8738
+          "floor": 8673
         },
-        "terrainSHA256": "9e721eca4a916a20453ed00d18fea750662c8902462693958aa9f9bc360f8834",
+        "terrainSHA256": "ed6f6f52ca760d7fce7ea2cd10787d1b134a659dc8cea7c6386a271ceb3c0ee5",
         "sourceWaterCells": 6034,
         "buildingCount": 23,
-        "wallRunCount": 333,
-        "nativePanelCount": 4146,
-        "propCount": 455,
+        "wallRunCount": 237,
+        "nativePanelCount": 4061,
+        "propCount": 463,
         "foliageCells": 0,
-        "bytes": 1253722,
-        "sha256": "b37cfcc8b806c4b84ea682d9af425913b2da7b425a33e85f6fc7bc3b12b26f3a"
+        "bytes": 1234273,
+        "sha256": "ef5bb1f045981c89d3786251cc8540c9f61582d05b5e881f1080cd48c446d57d"
       },
       "buildingIds": [
         "county-1082536-1",
@@ -941,7 +942,7 @@
       "guards": [
         {
           "id": 7,
-          "x": 122,
+          "x": 123,
           "y": 119,
           "z": 0,
           "species": "pig-foreman",
@@ -977,20 +978,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 35033,
-          "ground-asphalt": 7569,
-          "ground-concrete": 3878,
-          "floor": 11120
+          "ground-grass": 34978,
+          "ground-asphalt": 7529,
+          "ground-concrete": 3880,
+          "floor": 11213
         },
-        "terrainSHA256": "56cf8e705ad99a4851b06ec119c1cc3118fab9a1ca63e16acf2c0dc778a9bdff",
+        "terrainSHA256": "3c4fed3f9de45c5a30e3954f89de773201975232bb30116d101191183f91a741",
         "sourceWaterCells": 0,
         "buildingCount": 36,
-        "wallRunCount": 275,
-        "nativePanelCount": 3016,
-        "propCount": 276,
+        "wallRunCount": 233,
+        "nativePanelCount": 3000,
+        "propCount": 290,
         "foliageCells": 0,
-        "bytes": 1133197,
-        "sha256": "2e724192003ec2bd318bccac139b3d93ae57ceaf3e780fe046e07edb6643b4f6"
+        "bytes": 1128300,
+        "sha256": "7bef467eed100494d32f96cf239615310a338a1f512855ca1956f5ca1668ceaa"
       },
       "buildingIds": [
         "county-1464765-1",
@@ -1033,7 +1034,7 @@
       "guards": [
         {
           "id": 8,
-          "x": 126,
+          "x": 127,
           "y": 97,
           "z": 0,
           "species": "pig-foreman",
@@ -1041,13 +1042,13 @@
           "heading": 180,
           "patrol": [
             {
-              "x": 126,
+              "x": 127,
               "y": 97,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 106,
+              "x": 107,
               "y": 97,
               "z": 0,
               "waitSeconds": 0
@@ -1143,20 +1144,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 38477,
-          "ground-asphalt": 6965,
-          "ground-concrete": 3602,
-          "floor": 8556
+          "ground-grass": 38222,
+          "ground-asphalt": 7084,
+          "ground-concrete": 3722,
+          "floor": 8572
         },
-        "terrainSHA256": "203c813515f702cbe8358eb953c1e4d9b1b791ce005cd9f1c127a464e08730d6",
+        "terrainSHA256": "993266106620ce916ce782182ad204002b9b0df91f91efe34b48fa687fe8a4a4",
         "sourceWaterCells": 0,
         "buildingCount": 46,
-        "wallRunCount": 269,
-        "nativePanelCount": 2999,
-        "propCount": 26,
+        "wallRunCount": 263,
+        "nativePanelCount": 3001,
+        "propCount": 22,
         "foliageCells": 0,
-        "bytes": 1058404,
-        "sha256": "fb3d423e60fdc007e21dd22bbbfc2cb948d8097c9714098ae628b0a00a4bb8df"
+        "bytes": 1057801,
+        "sha256": "c1224d067c8568504526f44febb30b7b080bbafaa123f9b359983d3a62cab782"
       },
       "buildingIds": [
         "county-1464943-2",
@@ -1295,21 +1296,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 43727,
-          "ground-gravel": 235,
-          "ground-asphalt": 3733,
-          "ground-concrete": 2417,
-          "floor": 7488
+          "ground-grass": 43771,
+          "ground-gravel": 245,
+          "ground-asphalt": 3747,
+          "ground-concrete": 2415,
+          "floor": 7422
         },
-        "terrainSHA256": "3f2d3c2bc437b379186ebbd7f3377dc86534a8c63ad1b5486688ae7606863201",
+        "terrainSHA256": "3de868614d8cf84bb2598694d9bd4676b307c33da423f5357648dbe1b7dacaa2",
         "sourceWaterCells": 0,
         "buildingCount": 46,
-        "wallRunCount": 283,
-        "nativePanelCount": 2728,
+        "wallRunCount": 262,
+        "nativePanelCount": 2691,
         "propCount": 0,
         "foliageCells": 0,
-        "bytes": 1021186,
-        "sha256": "f3725b958d7851f14f9a40efe826dcc4380f0d668859ba2e40b16494a81eb814"
+        "bytes": 1016485,
+        "sha256": "3ce8da6e257a84836d5afa09adefdbd3d175492e94a7b62a73cea580988d33c8"
       },
       "buildingIds": [
         "county-1472253-1",
@@ -1362,7 +1363,7 @@
       "guards": [
         {
           "id": 10,
-          "x": 117,
+          "x": 119,
           "y": 107,
           "z": 0,
           "species": "pig-foreman",
@@ -1370,13 +1371,13 @@
           "heading": 90,
           "patrol": [
             {
-              "x": 117,
+              "x": 119,
               "y": 107,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 117,
+              "x": 119,
               "y": 127,
               "z": 0,
               "waitSeconds": 0
@@ -1413,24 +1414,25 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 37037,
-          "ground-gravel": 6,
-          "ground-asphalt": 4480,
-          "ground-concrete": 1696,
-          "floor": 14381
+          "ground-grass": 37052,
+          "ground-gravel": 11,
+          "ground-asphalt": 4451,
+          "ground-concrete": 1701,
+          "floor": 14385
         },
-        "terrainSHA256": "362411d7c9f93253ddf930cfb9cd0046fb6820cf181edae92a3090ec43c6f893",
+        "terrainSHA256": "5cc9149fe509ba74f0074ba0588dd234009ae599bf7f726ed47a30bc37134ccd",
         "sourceWaterCells": 0,
-        "buildingCount": 33,
-        "wallRunCount": 170,
-        "nativePanelCount": 3437,
+        "buildingCount": 34,
+        "wallRunCount": 171,
+        "nativePanelCount": 3457,
         "propCount": 87,
         "foliageCells": 0,
-        "bytes": 1228821,
-        "sha256": "69d759324fd8987fdb509efdb299649a494d5d1968132b72fae3f79dae86b5dc"
+        "bytes": 1229933,
+        "sha256": "b524e7c7842b4f439b99aebadd7618fc98738f0ce9b7d12c081b819e0ae62b76"
       },
       "buildingIds": [
         "county-1665132-1",
+        "county-3844420-1",
         "osm-way-1240417435",
         "osm-way-1240417436",
         "osm-way-1240417437",
@@ -1467,58 +1469,58 @@
       "guards": [
         {
           "id": 11,
-          "x": 125,
+          "x": 126,
           "y": 115,
           "z": 0,
           "species": "pig-foreman",
           "weapon": "shotgun",
-          "heading": 117,
+          "heading": 112,
           "patrol": [
             {
-              "x": 125,
+              "x": 126,
               "y": 115,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 123,
-              "y": 119,
+              "x": 124,
+              "y": 120,
               "z": 0,
               "waitSeconds": 0
             },
             {
               "x": 119,
-              "y": 121,
+              "y": 122,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 115,
-              "y": 119,
+              "x": 114,
+              "y": 120,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 113,
+              "x": 112,
               "y": 115,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 115,
-              "y": 111,
+              "x": 114,
+              "y": 110,
               "z": 0,
               "waitSeconds": 0
             },
             {
               "x": 119,
-              "y": 109,
+              "y": 108,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 123,
-              "y": 111,
+              "x": 124,
+              "y": 110,
               "z": 0,
               "waitSeconds": 0
             }
@@ -1553,21 +1555,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 38600,
-          "ground-asphalt": 9375,
-          "ground-concrete": 2543,
-          "bridge": 90,
-          "floor": 6992
+          "ground-grass": 38269,
+          "ground-asphalt": 9679,
+          "ground-concrete": 2552,
+          "bridge": 91,
+          "floor": 7009
         },
-        "terrainSHA256": "30e286deff07d82e83db41c17f232e0feb499787bb9a6f6c5c22c8954b48bbe7",
+        "terrainSHA256": "3b5ef57cce2910f34860f84aa2b63eeb3f78010321440680b7e66d9458a2ce5d",
         "sourceWaterCells": 0,
         "buildingCount": 17,
-        "wallRunCount": 98,
-        "nativePanelCount": 2208,
-        "propCount": 305,
+        "wallRunCount": 86,
+        "nativePanelCount": 2178,
+        "propCount": 296,
         "foliageCells": 0,
-        "bytes": 1146731,
-        "sha256": "b0cdb92ac0f5144f420ab2c614b31cfec252177ce013cf95a5c4ad07a258eaf1"
+        "bytes": 1144371,
+        "sha256": "7b4a6d8426c55745d3c43ad1420e554b448558c391861f6dff54be288c35247c"
       },
       "buildingIds": [
         "osm-relation-7995943",
@@ -1591,7 +1593,7 @@
       "guards": [
         {
           "id": 12,
-          "x": 42,
+          "x": 37,
           "y": 132,
           "z": 0,
           "species": "pig-foreman",
@@ -1599,13 +1601,13 @@
           "heading": 270,
           "patrol": [
             {
-              "x": 42,
+              "x": 37,
               "y": 132,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 42,
+              "x": 37,
               "y": 117,
               "z": 0,
               "waitSeconds": 0
@@ -1642,23 +1644,23 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 14075,
-          "water": 32969,
-          "ground-dirt": 123,
-          "ground-gravel": 27,
-          "ground-asphalt": 4163,
-          "ground-concrete": 2574,
-          "floor": 3669
+          "ground-grass": 14029,
+          "water": 32983,
+          "ground-dirt": 122,
+          "ground-gravel": 21,
+          "ground-asphalt": 4183,
+          "ground-concrete": 2588,
+          "floor": 3674
         },
-        "terrainSHA256": "3d7fb06a190c1d40dec881b2ed6ee40f9bae09639c79e5c507bcdcb221236dc3",
+        "terrainSHA256": "e17e70d3cde381552aeb54e11d25c9c49b22ae001e9deb0e53377a60cf1b1def",
         "sourceWaterCells": 33328,
-        "buildingCount": 15,
-        "wallRunCount": 140,
-        "nativePanelCount": 1610,
-        "propCount": 25,
+        "buildingCount": 16,
+        "wallRunCount": 104,
+        "nativePanelCount": 1622,
+        "propCount": 26,
         "foliageCells": 0,
-        "bytes": 754852,
-        "sha256": "ef364d0c02faaebd89a0cdca1f75013a2be33cf175ff9f455c67df870d600d30"
+        "bytes": 748743,
+        "sha256": "669f5cd8ffece91adfe39b8e3da5c2a434fa27a7eebaaaa493338982ca4dcf0d"
       },
       "buildingIds": [
         "county-1236797-1",
@@ -1675,7 +1677,8 @@
         "osm-way-1240419647",
         "osm-way-1240419648",
         "osm-way-1240419649",
-        "osm-way-556100367"
+        "osm-way-556100367",
+        "osm-way-556562407"
       ],
       "guards": [
         {
@@ -1766,23 +1769,23 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 26722,
-          "ground-dirt": 201,
-          "ground-gravel": 304,
-          "ground-asphalt": 9613,
-          "ground-concrete": 3931,
+          "ground-grass": 26420,
+          "ground-dirt": 163,
+          "ground-gravel": 297,
+          "ground-asphalt": 9822,
+          "ground-concrete": 3926,
           "ground-wood-planks": 40,
-          "floor": 16789
+          "floor": 16932
         },
-        "terrainSHA256": "5d3bdfddace2c6a66801a58a1e2237f00c7ad440618089d938e7364d9f2dcc43",
+        "terrainSHA256": "bbac74b64f2507c9c164d8e537431d621cd2776056121e739ca8c5398e40e6e6",
         "sourceWaterCells": 0,
         "buildingCount": 64,
-        "wallRunCount": 340,
-        "nativePanelCount": 5518,
-        "propCount": 43,
+        "wallRunCount": 315,
+        "nativePanelCount": 5528,
+        "propCount": 39,
         "foliageCells": 0,
-        "bytes": 1260275,
-        "sha256": "220d46e0f32d09a624a36ecdca65c88205dbbb05165ffa489796127090a7961d"
+        "bytes": 1258760,
+        "sha256": "2811b94bdf24b20a0b55742d17bd17b8a97841a607d3fd76037fc3db4a9ba52c"
       },
       "buildingIds": [
         "county-1465214-2",
@@ -1889,21 +1892,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 32586,
-          "ground-asphalt": 10025,
-          "ground-concrete": 3545,
+          "ground-grass": 32415,
+          "ground-asphalt": 10117,
+          "ground-concrete": 3573,
           "ground-wood-planks": 25,
-          "floor": 11419
+          "floor": 11470
         },
-        "terrainSHA256": "e8fc441a4abae632a28c85fa5d4f8770da880783deca487f0c2f56a5813a9336",
+        "terrainSHA256": "545961662516f411325cfb8746087319a4f072edbe99884a02967cbb371a429b",
         "sourceWaterCells": 0,
-        "buildingCount": 45,
-        "wallRunCount": 251,
-        "nativePanelCount": 3804,
-        "propCount": 99,
+        "buildingCount": 44,
+        "wallRunCount": 224,
+        "nativePanelCount": 3764,
+        "propCount": 92,
         "foliageCells": 0,
-        "bytes": 1167845,
-        "sha256": "221e2d8c507bf01e8356606fa875f551c5e4c62b7bdec7dece89301ba67e6f48"
+        "bytes": 1162367,
+        "sha256": "f9ae578413c0e9cb91991dbf198f70ed102be05ab633b9b4376ce6178aec6f66"
       },
       "buildingIds": [
         "county-1476127-2",
@@ -1943,7 +1946,6 @@
         "osm-way-556809470",
         "osm-way-556839865",
         "osm-way-557051202",
-        "osm-way-558337892",
         "osm-way-558533868",
         "osm-way-558533869",
         "osm-way-558533870",
@@ -2041,21 +2043,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 37956,
-          "ground-gravel": 157,
-          "ground-asphalt": 9567,
-          "ground-concrete": 2094,
-          "floor": 7826
+          "ground-grass": 37807,
+          "ground-gravel": 155,
+          "ground-asphalt": 9625,
+          "ground-concrete": 2116,
+          "floor": 7897
         },
-        "terrainSHA256": "86716811c50fcd6a84097b600e2d9aaf1be4169b3797d92982f7c3806d2971b6",
+        "terrainSHA256": "c37844831175868db34b01437d90fb075c5413f86ef2415f5272a9c220b3394a",
         "sourceWaterCells": 0,
         "buildingCount": 28,
-        "wallRunCount": 189,
-        "nativePanelCount": 2004,
-        "propCount": 333,
+        "wallRunCount": 172,
+        "nativePanelCount": 2009,
+        "propCount": 339,
         "foliageCells": 0,
-        "bytes": 1054823,
-        "sha256": "579bc31f806c8054d202d1d4cb205a09496160ad2eabee4c9aeb61843555dadb"
+        "bytes": 1053196,
+        "sha256": "74ccd3c42fd5be269f65216f6d635f0a0c80e15194bd54e9019ada4bb669d9ee"
       },
       "buildingIds": [
         "osm-way-1240419468",
@@ -2090,7 +2092,7 @@
       "guards": [
         {
           "id": 16,
-          "x": 109,
+          "x": 111,
           "y": 114,
           "z": 0,
           "species": "pig-foreman",
@@ -2098,13 +2100,13 @@
           "heading": 90,
           "patrol": [
             {
-              "x": 109,
+              "x": 111,
               "y": 114,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 109,
+              "x": 111,
               "y": 134,
               "z": 0,
               "waitSeconds": 0
@@ -2114,22 +2116,22 @@
         },
         {
           "id": 44,
-          "x": 162,
-          "y": 54,
+          "x": 164,
+          "y": 56,
           "z": 0,
           "species": "pig-foreman",
           "weapon": "pistol",
           "heading": 0,
           "patrol": [
             {
-              "x": 162,
-              "y": 54,
+              "x": 164,
+              "y": 56,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 182,
-              "y": 54,
+              "x": 184,
+              "y": 56,
               "z": 0,
               "waitSeconds": 0
             }
@@ -2165,20 +2167,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 41676,
-          "ground-asphalt": 4928,
-          "ground-concrete": 2189,
-          "floor": 8807
+          "ground-grass": 41543,
+          "ground-asphalt": 4985,
+          "ground-concrete": 2179,
+          "floor": 8893
         },
-        "terrainSHA256": "cff3edb8df4eb9c7611157bcc591d9c7398974314baf23e381911362ad2e461b",
+        "terrainSHA256": "84a1bcf164257696ec2a64df21a44bf985179bec4c4bd61bc4ffeb14f2f31a8a",
         "sourceWaterCells": 0,
-        "buildingCount": 35,
+        "buildingCount": 34,
         "wallRunCount": 173,
-        "nativePanelCount": 2286,
-        "propCount": 432,
+        "nativePanelCount": 2285,
+        "propCount": 421,
         "foliageCells": 0,
-        "bytes": 1075386,
-        "sha256": "dfe5503a59bca891fd1d647255677e0cfa7af5225ebe085fd92538aa76a97e65"
+        "bytes": 1074867,
+        "sha256": "e5dd52da4e5607de58b13c41fd56ac7604172485185d2715bc17968b98dbcf6c"
       },
       "buildingIds": [
         "county-1797454-1",
@@ -2208,7 +2210,6 @@
         "osm-way-1240419517",
         "osm-way-1240419518",
         "osm-way-1240419519",
-        "osm-way-1240419520",
         "osm-way-1240419709",
         "osm-way-1240419710",
         "osm-way-546915176",
@@ -2306,20 +2307,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 40389,
-          "ground-asphalt": 6513,
-          "ground-concrete": 3682,
-          "floor": 7016
+          "ground-grass": 40375,
+          "ground-asphalt": 6503,
+          "ground-concrete": 3712,
+          "floor": 7010
         },
-        "terrainSHA256": "b60b6dd2c2b0047b497aa498bd6c3918bf69bafbe2585f492e515b5ca5a83dc0",
+        "terrainSHA256": "907de27bb20dfefd4fc70432557d74ed9988432e2b586d5486048d76949759b8",
         "sourceWaterCells": 0,
         "buildingCount": 43,
-        "wallRunCount": 229,
-        "nativePanelCount": 2346,
-        "propCount": 517,
+        "wallRunCount": 209,
+        "nativePanelCount": 2349,
+        "propCount": 526,
         "foliageCells": 0,
-        "bytes": 1083806,
-        "sha256": "70ecc63feb3d7e8a48e125bcf4afd84b78ece02116cd2de3ee82fb49ddf9125c"
+        "bytes": 1081469,
+        "sha256": "213351f5c067b1192a574dfd36ed7f1b65d62bcffa3b3eedc7c57f98413f7db2"
       },
       "buildingIds": [
         "county-1467926-1",
@@ -2420,22 +2421,22 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 3149,
+          "ground-grass": 3181,
           "water": 54000,
           "ground-dirt": 101,
-          "ground-asphalt": 22,
-          "ground-concrete": 208,
+          "ground-asphalt": 24,
+          "ground-concrete": 174,
           "floor": 120
         },
-        "terrainSHA256": "a7c1facbadc6d90da1718311c7f2ac8c521c689bc3bf6a7d954dca10bf10c355",
+        "terrainSHA256": "238ec4a1e2c84fc122d1803fea1a3e1c20348d888bd948e9939d536e79fdb6d0",
         "sourceWaterCells": 54000,
         "buildingCount": 1,
         "wallRunCount": 3,
         "nativePanelCount": 62,
         "propCount": 0,
         "foliageCells": 0,
-        "bytes": 491944,
-        "sha256": "6879231e12abb2b4f2166fd4fa06661a8f6b33659d1beae9daa8b173f3929ccb"
+        "bytes": 491846,
+        "sha256": "fc50ec97b312029221ec5f8e117408d69cd8e43de69eef792123c8120d835467"
       },
       "buildingIds": [
         "osm-way-1240419649"
@@ -2529,23 +2530,23 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 26175,
+          "ground-grass": 26282,
           "water": 4168,
-          "woodland": 10244,
-          "ground-dirt": 381,
-          "ground-asphalt": 7149,
-          "ground-concrete": 4160,
-          "floor": 5323
+          "woodland": 10242,
+          "ground-dirt": 380,
+          "ground-asphalt": 7184,
+          "ground-concrete": 4143,
+          "floor": 5201
         },
-        "terrainSHA256": "901f9c4a03c7702ed7b5760c8ae8db0a150eadd68a6fbb0456511b38c482bb66",
+        "terrainSHA256": "f81af3332629987f28270d04e893090a697f1d1f249c2dba925f674d33066488",
         "sourceWaterCells": 4168,
-        "buildingCount": 24,
-        "wallRunCount": 190,
-        "nativePanelCount": 2113,
-        "propCount": 1165,
+        "buildingCount": 23,
+        "wallRunCount": 149,
+        "nativePanelCount": 2025,
+        "propCount": 1166,
         "foliageCells": 8915,
-        "bytes": 1447781,
-        "sha256": "f1371fd36c4d6a708781b119a7594ce8733dea088070446e40de855f00230b52"
+        "bytes": 1437487,
+        "sha256": "b55c7fe4a5900f9e0a8a23094d94f261baed4de9b217feb3f174aeaf6de8469b"
       },
       "buildingIds": [
         "county-1797101-4",
@@ -2570,28 +2571,27 @@
         "osm-way-560095897",
         "osm-way-560095898",
         "osm-way-560095899",
-        "osm-way-560095903",
-        "osm-way-560095904"
+        "osm-way-560095903"
       ],
       "guards": [
         {
           "id": 20,
-          "x": 97,
-          "y": 124,
+          "x": 94,
+          "y": 123,
           "z": 0,
           "species": "pig-foreman",
           "weapon": "smg",
           "heading": 90,
           "patrol": [
             {
-              "x": 97,
-              "y": 124,
+              "x": 94,
+              "y": 123,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 97,
-              "y": 144,
+              "x": 94,
+              "y": 143,
               "z": 0,
               "waitSeconds": 0
             }
@@ -2627,20 +2627,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 39927,
-          "ground-asphalt": 8065,
-          "ground-concrete": 3145,
-          "floor": 6463
+          "ground-grass": 40070,
+          "ground-asphalt": 8011,
+          "ground-concrete": 3105,
+          "floor": 6414
         },
-        "terrainSHA256": "03fe945c982ec600031d47cd7c9427a7166da0a101f3e24c3129596b4488be12",
+        "terrainSHA256": "2b4e6486c632ce3ef490fcadb4e0421b8e44859a2dc325b79867f00fe891dd66",
         "sourceWaterCells": 0,
         "buildingCount": 31,
-        "wallRunCount": 231,
-        "nativePanelCount": 3111,
-        "propCount": 295,
+        "wallRunCount": 175,
+        "nativePanelCount": 3074,
+        "propCount": 302,
         "foliageCells": 0,
-        "bytes": 1131890,
-        "sha256": "6128215b7610b815eefb02d6c899a7ea3a7899a482b5dcea96d111d313d53c0c"
+        "bytes": 1121165,
+        "sha256": "e5f8d9da3168b6ce454e7f62f1a6ccb2678c90b3ec3700393b9ed9a4308d0280"
       },
       "buildingIds": [
         "county-1465818-2",
@@ -2714,26 +2714,25 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 42373,
-          "ground-asphalt": 5367,
+          "ground-grass": 42409,
+          "ground-asphalt": 5302,
           "ground-concrete": 2367,
-          "floor": 7493
+          "floor": 7522
         },
-        "terrainSHA256": "9b816ac6cced5b0b9159aec6d18f26884149393f6a0f1f3dda90600b24d15150",
+        "terrainSHA256": "9c5c02de557e68f71d25848dde072a0608a73a04946211e3e5def82a6645dd7d",
         "sourceWaterCells": 0,
-        "buildingCount": 32,
-        "wallRunCount": 204,
-        "nativePanelCount": 2934,
-        "propCount": 723,
+        "buildingCount": 31,
+        "wallRunCount": 194,
+        "nativePanelCount": 2916,
+        "propCount": 739,
         "foliageCells": 0,
-        "bytes": 1155895,
-        "sha256": "3daac05e2d843d1900f1016114667870c97b9fadd1f284dbcd10c7bbe8cc2b90"
+        "bytes": 1156903,
+        "sha256": "5e5fcd87892153e0e6313875d73de107ceb24f28874a64bd5def76cbea918c35"
       },
       "buildingIds": [
         "county-1667917-1",
         "county-1667933-1",
         "county-1667976-1",
-        "county-2528397-1",
         "county-3828963-2",
         "osm-way-1240419526",
         "osm-way-1240419529",
@@ -2766,7 +2765,7 @@
       "guards": [
         {
           "id": 22,
-          "x": 117,
+          "x": 119,
           "y": 100,
           "z": 0,
           "species": "pig-foreman",
@@ -2774,13 +2773,13 @@
           "heading": 90,
           "patrol": [
             {
-              "x": 117,
+              "x": 119,
               "y": 100,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 117,
+              "x": 119,
               "y": 120,
               "z": 0,
               "waitSeconds": 0
@@ -2817,25 +2816,24 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 44827,
-          "ground-asphalt": 4374,
-          "ground-concrete": 2713,
-          "floor": 5686
+          "ground-grass": 44922,
+          "ground-asphalt": 4362,
+          "ground-concrete": 2721,
+          "floor": 5595
         },
-        "terrainSHA256": "9617eee10263e9a289004742e9a105d73aba3855f34359a9046649cd88675175",
+        "terrainSHA256": "ba07998b1866d793c0198227a3af8b876b64cc9a78696f73c7da9cdb603ed91f",
         "sourceWaterCells": 0,
-        "buildingCount": 31,
-        "wallRunCount": 160,
-        "nativePanelCount": 1806,
-        "propCount": 585,
+        "buildingCount": 28,
+        "wallRunCount": 150,
+        "nativePanelCount": 1764,
+        "propCount": 606,
         "foliageCells": 0,
-        "bytes": 1060009,
-        "sha256": "e1f4af8395cd42e8c783a38ff9236e2ddf77057301b72411daae4f007e42bc35"
+        "bytes": 1059935,
+        "sha256": "cb1b0707539f2c4b0724cc4cba13290d4a52eaf5932c027b0a621ea9c04335a6"
       },
       "buildingIds": [
         "county-1469490-1",
         "county-1469511-1",
-        "osm-way-1240419520",
         "osm-way-1240419521",
         "osm-way-1240419522",
         "osm-way-1240419523",
@@ -2852,8 +2850,6 @@
         "osm-way-1240419567",
         "osm-way-1240419568",
         "osm-way-1240419569",
-        "osm-way-1240419576",
-        "osm-way-1240419577",
         "osm-way-1240419584",
         "osm-way-1240419585",
         "osm-way-1240419590",
@@ -3013,20 +3009,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 39003,
-          "ground-asphalt": 8626,
-          "ground-concrete": 4035,
-          "floor": 5936
+          "ground-grass": 38898,
+          "ground-asphalt": 8771,
+          "ground-concrete": 4013,
+          "floor": 5918
         },
-        "terrainSHA256": "a104ab36dac7da565013471166348ee6ac5a645663e96e4602c56350bf33908b",
+        "terrainSHA256": "0a239660bc818471b715b0a7bbe485652e74222673de563e72599627720079b8",
         "sourceWaterCells": 0,
         "buildingCount": 28,
-        "wallRunCount": 150,
-        "nativePanelCount": 1750,
-        "propCount": 405,
+        "wallRunCount": 147,
+        "nativePanelCount": 1754,
+        "propCount": 409,
         "foliageCells": 0,
-        "bytes": 1047871,
-        "sha256": "e5037746031c3ab26d7bddb10e24e08be4be8a7599a57115c3a0f3ae85227f00"
+        "bytes": 1047864,
+        "sha256": "4149c0091aba75d194c008ebad0869a44faa3c932c4a76efdfbedddf9e582e3a"
       },
       "buildingIds": [
         "county-1473951-1",
@@ -3124,7 +3120,7 @@
         "propCount": 0,
         "foliageCells": 0,
         "bytes": 462029,
-        "sha256": "9d41f155fd77f38ed4989a5f6630a3af9b4f752268fea4c38773031ba49901e7"
+        "sha256": "387a06dffb9b0bbd5c0e3bab86622b125915f9e97d13fdde99c5a99a3c78411d"
       },
       "buildingIds": [],
       "guards": []
@@ -3156,22 +3152,22 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 6012,
+          "ground-grass": 6015,
           "water": 47981,
-          "woodland": 2574,
-          "ground-asphalt": 458,
-          "ground-concrete": 527,
+          "woodland": 2570,
+          "ground-asphalt": 455,
+          "ground-concrete": 531,
           "ground-wood-planks": 48
         },
-        "terrainSHA256": "798ed07701e83d2d2f9a1e74d2afce030fd41b90024ecb65d8e9bb039b644aae",
+        "terrainSHA256": "b3d85f3301c66d1b583ad59a3b3e8ca6d493be941c195c3ba8442f82ed1aaa12",
         "sourceWaterCells": 47981,
         "buildingCount": 0,
         "wallRunCount": 0,
         "nativePanelCount": 0,
-        "propCount": 441,
-        "foliageCells": 2970,
-        "bytes": 687738,
-        "sha256": "a091a0553eba76e5235d829a235f838e7d61d1fced452c7976bc7616c102f40b"
+        "propCount": 440,
+        "foliageCells": 2958,
+        "bytes": 687202,
+        "sha256": "4b8a38fae91083745538175d9e0cb542a91c294a1ba5fc3b1d9db41c283f2afa"
       },
       "buildingIds": [],
       "guards": [
@@ -3263,21 +3259,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 24619,
+          "ground-grass": 24639,
           "water": 22799,
-          "ground-asphalt": 2721,
-          "ground-concrete": 3082,
-          "floor": 4379
+          "ground-asphalt": 2693,
+          "ground-concrete": 3057,
+          "floor": 4412
         },
-        "terrainSHA256": "7a414f4be9aec063aa259f0a230d4ebca5033fbf2d0f8b99ac0498f96ab9437b",
+        "terrainSHA256": "6762066c3b731c817167b4e5ab7fdab21e9d61d33a873a052bf7dc5835e8f088",
         "sourceWaterCells": 23054,
         "buildingCount": 6,
         "wallRunCount": 32,
-        "nativePanelCount": 983,
-        "propCount": 428,
+        "nativePanelCount": 987,
+        "propCount": 424,
         "foliageCells": 0,
-        "bytes": 849938,
-        "sha256": "fd80bdf9c95d8349224374c111634962cb78c008f4a2b7f2c734c591fbb636ad"
+        "bytes": 849724,
+        "sha256": "d0d6546775af58b3ff36d0f416972fab82ea476de45383318bd5af0dfc1be028"
       },
       "buildingIds": [
         "county-1465826-2",
@@ -3376,21 +3372,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 41948,
-          "ground-asphalt": 4338,
-          "ground-concrete": 2941,
-          "ground-wood-planks": 250,
-          "floor": 8123
+          "ground-grass": 41937,
+          "ground-asphalt": 4352,
+          "ground-concrete": 2954,
+          "ground-wood-planks": 274,
+          "floor": 8083
         },
-        "terrainSHA256": "11a0dded3f094a4117a501d3af9b44bd7eff3e3cef1b7587294ee6f4c75b2a67",
+        "terrainSHA256": "a2812f7cbea9d193f3b25dff0df98d713bab96529594e57426743ae0cc1f8b34",
         "sourceWaterCells": 0,
         "buildingCount": 16,
         "wallRunCount": 101,
         "nativePanelCount": 1610,
-        "propCount": 776,
+        "propCount": 779,
         "foliageCells": 0,
-        "bytes": 1120229,
-        "sha256": "fbd34dbf952dc2977eededd09bd2b4b25c4e278e4d9c75ce93601420b47da773"
+        "bytes": 1120375,
+        "sha256": "867066335eb1bcd557f7744eddd7eb62dcc044b7147dc964d6eff92977b11093"
       },
       "buildingIds": [
         "osm-way-1240419560",
@@ -3449,20 +3445,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 44107,
-          "ground-asphalt": 3924,
-          "ground-concrete": 2294,
-          "floor": 7275
+          "ground-grass": 44033,
+          "ground-asphalt": 3930,
+          "ground-concrete": 2301,
+          "floor": 7336
         },
-        "terrainSHA256": "e1b5727a5bde675725f0b79236b977ec5e1338db758ef609a7b8358cd3d783e7",
+        "terrainSHA256": "c6db554f6f059d9036ecc547c7815285eb7a06b851d624fdbe3c7a855affa752",
         "sourceWaterCells": 0,
         "buildingCount": 44,
-        "wallRunCount": 226,
-        "nativePanelCount": 2340,
-        "propCount": 729,
+        "wallRunCount": 224,
+        "nativePanelCount": 2370,
+        "propCount": 737,
         "foliageCells": 0,
-        "bytes": 1102443,
-        "sha256": "5ba4ec133ac0ad965aba4c766ac794209b55e0fe8ba0e738e7e64f77df412b30"
+        "bytes": 1103673,
+        "sha256": "997e46d0e05aa341f97a32775f8a2119c9456676a46839589cdfb670c7fbf37c"
       },
       "buildingIds": [
         "county-1468426-2",
@@ -3599,20 +3595,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 37012,
-          "ground-asphalt": 7234,
-          "ground-concrete": 1491,
-          "floor": 11863
+          "ground-grass": 37010,
+          "ground-asphalt": 7267,
+          "ground-concrete": 1505,
+          "floor": 11818
         },
-        "terrainSHA256": "b53387a60fc6c77473aa727b3c4a924d0a2d1485e6e35f0cc0b7d50b2cca40f3",
+        "terrainSHA256": "4e2d832a9cf196adc6104a76dbf0c959d16c82af8f10788f370dff29483bf26e",
         "sourceWaterCells": 0,
         "buildingCount": 31,
-        "wallRunCount": 218,
-        "nativePanelCount": 2435,
-        "propCount": 340,
+        "wallRunCount": 191,
+        "nativePanelCount": 2394,
+        "propCount": 366,
         "foliageCells": 0,
-        "bytes": 1102378,
-        "sha256": "ef2efd5510670ba5e037bb813499350ef970bf5a4ccd2bb31b0ee0e395c891dd"
+        "bytes": 1100384,
+        "sha256": "1be58159006bbb926191865b14b3493cf54bd9ea2c75c8892c4209cb122f1386"
       },
       "buildingIds": [
         "county-1468612-1",
@@ -3650,7 +3646,7 @@
       "guards": [
         {
           "id": 30,
-          "x": 59,
+          "x": 64,
           "y": 115,
           "z": 0,
           "species": "pig-foreman",
@@ -3658,13 +3654,13 @@
           "heading": 270,
           "patrol": [
             {
-              "x": 59,
+              "x": 64,
               "y": 115,
               "z": 0,
               "waitSeconds": 0
             },
             {
-              "x": 59,
+              "x": 64,
               "y": 95,
               "z": 0,
               "waitSeconds": 0
@@ -3713,7 +3709,7 @@
         "propCount": 0,
         "foliageCells": 0,
         "bytes": 462030,
-        "sha256": "41131890774b749c4cb5b39141da780a1144edab3a748ac99425b1a3ebe73ff9"
+        "sha256": "d0d8c485fbb96f01f5663b354543212fd15d9ecb6360d32a90d756409a2c2b64"
       },
       "buildingIds": [],
       "guards": []
@@ -3758,7 +3754,7 @@
         "propCount": 240,
         "foliageCells": 3583,
         "bytes": 678039,
-        "sha256": "e0006efcc1c925e1d01fcd5fd8324019c1dbc7b96c500e7a5c527a267248c23f"
+        "sha256": "7e1be2e56d33c60101fa867fc41a082c7b353179a6d910ac31cd57f04cda7682"
       },
       "buildingIds": [],
       "guards": [
@@ -3850,24 +3846,24 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 23302,
+          "ground-grass": 23309,
           "water": 26084,
           "ground-dirt": 369,
-          "ground-asphalt": 3519,
-          "ground-concrete": 2703,
+          "ground-asphalt": 3523,
+          "ground-concrete": 2694,
           "ground-wood-planks": 108,
           "bridge": 399,
-          "floor": 1116
+          "floor": 1114
         },
-        "terrainSHA256": "659269e0d69bdea17e6863b7a1c4c97b4429a47fe7bdee3e5c4f150fb6abc875",
+        "terrainSHA256": "05caf185556f3f26c5f5be6fdc3d4ac5406001cc280dfa1704b4cc86a9518177",
         "sourceWaterCells": 26392,
         "buildingCount": 6,
-        "wallRunCount": 51,
-        "nativePanelCount": 348,
-        "propCount": 575,
-        "foliageCells": 4606,
-        "bytes": 965300,
-        "sha256": "04e88f2ccb16307b9ac1ab6d56e7e78fef4653af28e7d3533d6b1fc7ab2b0070"
+        "wallRunCount": 43,
+        "nativePanelCount": 344,
+        "propCount": 581,
+        "foliageCells": 4605,
+        "bytes": 964452,
+        "sha256": "e43fb3d80b4a50f697cf433621189acc6463c5afca4dc8d65426b617aec7fc83"
       },
       "buildingIds": [
         "county-1709156-1",
@@ -3966,21 +3962,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 41058,
-          "ground-asphalt": 6143,
-          "ground-concrete": 3269,
-          "ground-wood-planks": 60,
-          "floor": 7070
+          "ground-grass": 41099,
+          "ground-asphalt": 6112,
+          "ground-concrete": 3260,
+          "ground-wood-planks": 36,
+          "floor": 7093
         },
-        "terrainSHA256": "d2f5e614cac77782c9230755446ff33ae48fab8a5366854eb586b432595ff9fd",
+        "terrainSHA256": "6eb0b2fef3a28aa88e8a811d59724f9044c1b4f4b65a85834e425e5fb2e57f37",
         "sourceWaterCells": 0,
         "buildingCount": 33,
-        "wallRunCount": 193,
-        "nativePanelCount": 2272,
-        "propCount": 730,
+        "wallRunCount": 174,
+        "nativePanelCount": 2228,
+        "propCount": 731,
         "foliageCells": 0,
-        "bytes": 1111549,
-        "sha256": "253aace9674926f1553bb9c06fe1a83d7a097f5314fd36dff9ec637b99bcc72e"
+        "bytes": 1108134,
+        "sha256": "f4de9d91e6febfb1cfd46f6c0995164a72bd1dd09f4f820eed37afa381cd803d"
       },
       "buildingIds": [
         "county-2579871-1",
@@ -4021,7 +4017,7 @@
         {
           "id": 34,
           "x": 142,
-          "y": 108,
+          "y": 107,
           "z": 0,
           "species": "pig-foreman",
           "weapon": "smg",
@@ -4029,13 +4025,13 @@
           "patrol": [
             {
               "x": 142,
-              "y": 108,
+              "y": 107,
               "z": 0,
               "waitSeconds": 0
             },
             {
               "x": 142,
-              "y": 128,
+              "y": 127,
               "z": 0,
               "waitSeconds": 0
             }
@@ -4071,20 +4067,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 43322,
-          "ground-asphalt": 5369,
-          "ground-concrete": 2379,
-          "floor": 6530
+          "ground-grass": 43293,
+          "ground-asphalt": 5339,
+          "ground-concrete": 2377,
+          "floor": 6591
         },
-        "terrainSHA256": "11fe0ea4de18bc8a63b34cb6797c97b8a29006c6cdd8f2fb39c41fc5165b2244",
+        "terrainSHA256": "9fe9f45731049a872de46be801219d83593d371c792c15084733ea7596a2fc41",
         "sourceWaterCells": 0,
-        "buildingCount": 36,
-        "wallRunCount": 170,
-        "nativePanelCount": 2305,
-        "propCount": 514,
+        "buildingCount": 37,
+        "wallRunCount": 167,
+        "nativePanelCount": 2325,
+        "propCount": 511,
         "foliageCells": 0,
-        "bytes": 1075676,
-        "sha256": "3221ef50223ed20f62deed64768f5ea3555a5951926320f01d677fd9bf0ec732"
+        "bytes": 1075319,
+        "sha256": "5788a970d5b96127e96c7ff639baf130accdb3d84fdb6ae1eb93801f9856dd87"
       },
       "buildingIds": [
         "county-1468710-1",
@@ -4122,13 +4118,14 @@
         "osm-way-1240419629",
         "osm-way-1240419630",
         "osm-way-1240419632",
+        "osm-way-1241962369",
         "osm-way-1241962378"
       ],
       "guards": [
         {
           "id": 35,
-          "x": 119,
-          "y": 122,
+          "x": 116,
+          "y": 119,
           "z": 0,
           "species": "pig-foreman",
           "weapon": "pistol",
@@ -4163,20 +4160,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 41784,
-          "ground-asphalt": 5855,
-          "ground-concrete": 2974,
-          "floor": 6987
+          "ground-grass": 41863,
+          "ground-asphalt": 5726,
+          "ground-concrete": 2954,
+          "floor": 7057
         },
-        "terrainSHA256": "9caa0a44f3bad4eefa8644022c9a068b17b4439438f0536647a7de7e31eaa5ed",
+        "terrainSHA256": "4cc093e9d9c50982bc779431db416fcd59b13b3662e7307a1ab0083ee703a54d",
         "sourceWaterCells": 0,
-        "buildingCount": 41,
-        "wallRunCount": 228,
-        "nativePanelCount": 2278,
-        "propCount": 324,
+        "buildingCount": 42,
+        "wallRunCount": 226,
+        "nativePanelCount": 2297,
+        "propCount": 320,
         "foliageCells": 0,
-        "bytes": 1048623,
-        "sha256": "ccfaf09fc09de74ae816c1e51dbe0e218686274a09e1e6dced2852813882e6dd"
+        "bytes": 1048175,
+        "sha256": "aab56c29b09958f620aceadc5c7c49662db469574cd8316f0a3093b8304dc0c2"
       },
       "buildingIds": [
         "county-1468710-1",
@@ -4190,6 +4187,7 @@
         "county-1766486-1",
         "county-1766486-1-part2",
         "county-3596234-1",
+        "osm-way-1240415886",
         "osm-way-1240415887",
         "osm-way-1240416190",
         "osm-way-1240416191",
@@ -4225,7 +4223,7 @@
         {
           "id": 36,
           "x": 162,
-          "y": 112,
+          "y": 109,
           "z": 0,
           "species": "pig-foreman",
           "weapon": "smg",
@@ -4233,13 +4231,13 @@
           "patrol": [
             {
               "x": 162,
-              "y": 112,
+              "y": 109,
               "z": 0,
               "waitSeconds": 0
             },
             {
               "x": 162,
-              "y": 132,
+              "y": 129,
               "z": 0,
               "waitSeconds": 0
             }
@@ -4287,7 +4285,7 @@
         "propCount": 0,
         "foliageCells": 0,
         "bytes": 462030,
-        "sha256": "94c92ed46e2b13ff3c433906435eb5e2475f4eed054e16ce71a41b9d995eb1ac"
+        "sha256": "cf3b5801324abc5394bee2874f223054127d95535bdcfa487541a43520c794d1"
       },
       "buildingIds": [],
       "guards": []
@@ -4332,7 +4330,7 @@
         "propCount": 918,
         "foliageCells": 13573,
         "bytes": 1237469,
-        "sha256": "982973a5c6481a14d51cfeeac907efddae7ad3eb1f778257ff4647becad04c3d"
+        "sha256": "7187d0f220c4ad44806a5f75d5f474962698c5406bfb2a1e90005dcddab0ac86"
       },
       "buildingIds": [],
       "guards": [
@@ -4424,22 +4422,22 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 32672,
+          "ground-grass": 32694,
           "water": 18060,
-          "ground-asphalt": 1318,
-          "ground-concrete": 857,
+          "ground-asphalt": 1317,
+          "ground-concrete": 859,
           "bridge": 278,
-          "floor": 4415
+          "floor": 4392
         },
-        "terrainSHA256": "6be804c3904434da581cc0e9162107256a0490ed89d016c3d6976f0c1efdac79",
+        "terrainSHA256": "9ac9c2b227fdcad2fe2b69dda4d7c74b346500e4ad150a42518c0fff8a76c490",
         "sourceWaterCells": 18118,
         "buildingCount": 17,
-        "wallRunCount": 117,
-        "nativePanelCount": 1229,
+        "wallRunCount": 115,
+        "nativePanelCount": 1225,
         "propCount": 1088,
         "foliageCells": 13686,
-        "bytes": 1455513,
-        "sha256": "300cd19fffbd8dc8c4e4808d81fdb9bd26c105b03b11a6ca190c05bb9eeb27c7"
+        "bytes": 1454897,
+        "sha256": "b11980ca687318019860b13c53b8f2d6cf2af3f6311feb00444c102b08217499"
       },
       "buildingIds": [
         "county-1469341-1",
@@ -4549,21 +4547,21 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 42857,
+          "ground-grass": 42810,
           "water": 428,
-          "ground-asphalt": 3231,
-          "ground-concrete": 2142,
-          "floor": 8942
+          "ground-asphalt": 3233,
+          "ground-concrete": 2140,
+          "floor": 8989
         },
-        "terrainSHA256": "a2d04f1694d3d29573ee70753a7b882bbb8334fce1972ef187e485bcec5e024e",
+        "terrainSHA256": "5c21e6330743c1191f84dc7c1d2ea064d07ac9f86f8bb086151dfa94d236333b",
         "sourceWaterCells": 428,
         "buildingCount": 42,
-        "wallRunCount": 235,
-        "nativePanelCount": 2481,
-        "propCount": 888,
+        "wallRunCount": 229,
+        "nativePanelCount": 2485,
+        "propCount": 890,
         "foliageCells": 3893,
-        "bytes": 1272204,
-        "sha256": "8f2a0f463fa9c4845b1bca69635f51d93ba2e71bc18ffbef9dcc14ea4806c8c8"
+        "bytes": 1271701,
+        "sha256": "5fcf2da17421e9f3d555af9b0a54730ed5d603ec6d561d3270c030df1c37cf4e"
       },
       "buildingIds": [
         "county-1469325-1",
@@ -4663,20 +4661,20 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 46789,
-          "ground-asphalt": 4422,
-          "ground-concrete": 2497,
-          "floor": 3892
+          "ground-grass": 46902,
+          "ground-asphalt": 4367,
+          "ground-concrete": 2466,
+          "floor": 3865
         },
-        "terrainSHA256": "bde2b6dbd743bda9ef406655c65975c8ea047c65e24541297b231be69784ceac",
+        "terrainSHA256": "51e548ed32d54df5aa82fa1c1d20651999dd4999afac0ff4338bde30ed955cec",
         "sourceWaterCells": 0,
         "buildingCount": 22,
-        "wallRunCount": 96,
-        "nativePanelCount": 1121,
-        "propCount": 277,
+        "wallRunCount": 92,
+        "nativePanelCount": 1113,
+        "propCount": 274,
         "foliageCells": 0,
-        "bytes": 976324,
-        "sha256": "d1431534a7b325cc27262c0a8dcad2c466129a1994622011e2b540a9ae6c681c"
+        "bytes": 974703,
+        "sha256": "4c77e6c54968cc32b9a264d1e81f8afdd57b6f5df2b1e698c16f0b390c0c1acf"
       },
       "buildingIds": [
         "county-1666023-1",
@@ -4791,22 +4789,22 @@
       "metrics": {
         "terrainCells": 57600,
         "terrainCounts": {
-          "ground-grass": 48446,
+          "ground-grass": 48465,
           "woodland": 3701,
-          "ground-asphalt": 2790,
-          "ground-concrete": 1437,
+          "ground-asphalt": 2770,
+          "ground-concrete": 1435,
           "bridge": 332,
-          "floor": 894
+          "floor": 897
         },
-        "terrainSHA256": "9bd356a0dff2b10711f49daa9b3cc2881666624dcbf16bc2296a2166ba53bb02",
+        "terrainSHA256": "666bbe2efd1b0f5c4e25c501c16654fc5592fadbb6a1d65f46617679128a9ac6",
         "sourceWaterCells": 0,
         "buildingCount": 5,
-        "wallRunCount": 27,
+        "wallRunCount": 25,
         "nativePanelCount": 307,
         "propCount": 395,
         "foliageCells": 3176,
-        "bytes": 1044934,
-        "sha256": "4f1c9631e6a2046c1971795634d59d83508a90ffa717dba0ef31211fd812def6"
+        "bytes": 1044538,
+        "sha256": "b95e3de7d7a418df61525ced5ea44720cc9139b6be7719081fdbc424059e937b"
       },
       "buildingIds": [
         "county-3747348-1",
@@ -4853,22 +4851,22 @@
     "version": 7,
     "configFile": "source/authoring-config.json",
     "configSHA256": "d03961b0094b6cfb2fb9e5e386e50df62ef810fdc5506f0fb66432bebf4c9f35",
-    "authoredLayoutSHA256": "d9500a93ec931f36667a2fd5c37e726b5a9393f1827d101c7b351c6c6f9eb0ba",
+    "authoredLayoutSHA256": "5e5199791b69c256cdc29f8c5d1dacd8d70eefe2039e427c36f63242e51a0d96",
     "evidenceInputs": [
       {
         "file": "reference/house-reference.json",
         "kind": "county",
         "source": "Lake County Property Appraiser tax roll and building sketches",
-        "sha256": "ca81b523df895b40c8c6ed557c3fd9bffe70d655bb00e68dd246fd71e413594f",
-        "bytes": 2719565,
+        "sha256": "76fb0d34de78d088de13d8ddc370cf7836708192fc3ddeb43740faa320e926a0",
+        "bytes": 2719569,
         "release": "100626"
       },
       {
         "file": "reference/lidar-roofs.json",
         "kind": "lidar",
         "source": "USGS 3DEP lidar FL_Peninsular_Lake_2018",
-        "sha256": "3d65d09c21215361459a84dc81a6d1d5171f3eb27b1e304678a5de73d506c9fc",
-        "bytes": 1100154,
+        "sha256": "fbc3c178c13ac7f3d6defd89be03a3b703d89d6a7c78bca5199396d1521fc310",
+        "bytes": 1100180,
         "acquired": [
           "2018-12-06"
         ]
@@ -4877,8 +4875,8 @@
         "file": "reference/county-buildings.json",
         "kind": "countyBuildings",
         "source": "County building sketches OpenStreetMap lacks, placed on the 2018 lidar roofs",
-        "sha256": "dee87a696de6028c1afd31bca4b9fc6a1fec01eeca397d3a075e32c7d54ca4aa",
-        "bytes": 614255,
+        "sha256": "3919a1ccb0c9c6d9e2a0377a70d4235b26e13040e50c37aaf66ae12aface4037",
+        "bytes": 614281,
         "buildings": 126
       }
     ],
@@ -4895,7 +4893,7 @@
       "bridge",
       "floor"
     ],
-    "globalTerrainSHA256": "1497cb6c00c3a578265fdd62784f1fb4596d0c2c220af6bab5461a60a1464107",
+    "globalTerrainSHA256": "901e07c8aa6721c0b30f371f36b9700f0ed5aa471b71218848912d56e8b53674",
     "sampleRule": "Global cell centre (column*240+x+0.5, row*240+y+0.5); one global raster sliced without seam repaint.",
     "nativeCoordinates": "Wall metre endpoints = global east/south - sectorOrigin - 0.5; tile indices remain integer cells.",
     "streets": {
@@ -4906,11 +4904,77 @@
         "tertiary",
         "unclassified"
       ],
+      "snapClasses": [
+        "living_street",
+        "pedestrian",
+        "residential",
+        "secondary",
+        "tertiary",
+        "unclassified"
+      ],
       "widthM": 6,
       "sidewalkWidthM": 2,
       "buildingClearanceTiles": 1,
-      "snapLimitMPerAxis": 4,
+      "snapLimitMPerAxis": 5,
       "policy": "Near-cardinal street runs align to a common metre line. Connected source nodes stay joined. Bridge and boardwalk points stay fixed."
+    },
+    "approachMovesM": {
+      "launch": [
+        0,
+        0
+      ],
+      "donnelly-park": [
+        0,
+        -1
+      ],
+      "lakeside-inn": [
+        -2,
+        -2
+      ],
+      "elizabeth-evans": [
+        0,
+        0
+      ],
+      "evans-route": [
+        0,
+        0
+      ],
+      "grantham-lighthouse": [
+        0,
+        0
+      ],
+      "gilbert-park": [
+        0,
+        -1
+      ],
+      "gilbert-route": [
+        0,
+        -2
+      ],
+      "palm-island": [
+        0,
+        0
+      ],
+      "palm-entrance": [
+        0,
+        0
+      ],
+      "historic-shopfronts": [
+        1,
+        1
+      ],
+      "donnelly-house": [
+        0,
+        -1
+      ],
+      "history-museum": [
+        -1,
+        0
+      ],
+      "former-depot": [
+        -2,
+        -2
+      ]
     },
     "defaultRoadWidthsM": {
       "secondary": 8,
@@ -5015,22 +5079,22 @@
     "crossSectorBuildings": 93,
     "roadCount": 350,
     "excludedProposedRoads": 1,
-    "wallRuns": 6897,
-    "props": 15537,
-    "trees": 13443,
-    "foliageCells": 54402,
+    "wallRuns": 6368,
+    "props": 15633,
+    "trees": 13504,
+    "foliageCells": 54389,
     "guards": 42,
     "terrainCounts": {
-      "ground-grass": 1353710,
-      "water": 470058,
-      "woodland": 16519,
-      "ground-dirt": 1552,
+      "ground-grass": 1352911,
+      "water": 470078,
+      "woodland": 16513,
+      "ground-dirt": 1512,
       "ground-gravel": 729,
-      "ground-asphalt": 206345,
-      "ground-concrete": 104592,
+      "ground-asphalt": 206718,
+      "ground-concrete": 104586,
       "ground-wood-planks": 531,
-      "bridge": 1635,
-      "floor": 263529
+      "bridge": 1636,
+      "floor": 263986
     },
     "unrepresentedWallSlivers": 0
   },
@@ -5039,7 +5103,7 @@
     "Flat terrain. Storeys and wall materials follow recorded evidence (nativeProxy sources) as whole native-kit storeys, not measured wall heights; no interiors or entrances are inferred.",
     "Buildings use cardinal integer tile edges and clear the full sidewalk ribbon with a tile of facade clearance. The authored fit records any setbacks or frontage adjustments; source outlines remain in geographicGeometry and raw snapshots.",
     "County buildings come from appraiser sketches placed on December 2018 lidar roofs; a few stand where the lidar saw no building class, and the mapped Lake Dora shoreline runs through six lakeside ones.",
-    "The former depot is relocated approximately6.2m to preserve its proportions while clearing the original streets; other fitting changes are recorded in authored-buildings.json.",
+    "The former depot's reviewed plan stands 6.8 m from its geographic centre: relocated to keep its proportions while clearing the original streets, and since moved with its street, so it needs re-review; other fitting changes are recorded in authored-buildings.json.",
     "Native wall butt joints and per-run texture phases retain the workshop's existing limits; curved decorative parts and the lighthouse remain curved.",
     "Water-only sectors remain complete in the atlas/source but the existing four-start/one-exit native validator refuses them.",
     "Street widths, sidewalk widths, bridge/steps heights and seeded vegetation are declared authoring approximations.",

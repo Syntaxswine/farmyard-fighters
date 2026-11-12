@@ -4,12 +4,12 @@
  "inputs": {
   "features": {
    "file": "maps/mount-dora/features.json",
-   "sha256OfFieldsRead": "33afcbbc035ba90bffe8c46d9840095709d5f041b6c2a16ec95e838decfadf6f",
-   "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geometry"
+   "sha256OfFieldsRead": "226db50496ee3e88da88c1722812a03a134b961d3bb806fa7b38cd922413aa0d",
+   "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geographicGeometry (else geometry)"
   },
   "houseReference": {
    "file": "maps/mount-dora/reference/house-reference.json",
-   "sha256": "ca81b523df895b40c8c6ed557c3fd9bffe70d655bb00e68dd246fd71e413594f",
+   "sha256": "76fb0d34de78d088de13d8ddc370cf7836708192fc3ddeb43740faa320e926a0",
    "usedFor": "countyOnly sketches and the records game buildings hold"
   },
   "lidar": {
