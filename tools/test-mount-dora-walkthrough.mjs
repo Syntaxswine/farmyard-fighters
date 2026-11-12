@@ -98,7 +98,9 @@ async function walkTo(page,town,{timeout=process.env.CI?180000:60000,tolerance=.
 // bindPressHold (mobile-controls.js) turns a press held for 450 ms into a hold that
 // opens fire settings or a picker. A Playwright click sends its up only after the
 // down is acknowledged, so one slow SwiftShader frame can make it a hold; send both
-// at once, as the touch taps do, then check that no hold dialog opened.
+// at once, as the touch taps do, then check that no hold dialog opened. Sent together,
+// even a 0 ms threshold never fires, so the threshold itself is pinned by
+// tests/mobile-controls.test.mjs (npm run check, same workflow).
 async function tapButton(page,selector){
   await page.waitForFunction(selector=>{const b=document.querySelector(selector);return !!b&&!b.disabled&&b.getClientRects().length>0;},selector,{timeout:30000}).catch(error=>{throw Error(selector+' never became tappable: '+error.message);});
   const box=await page.locator(selector).boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
@@ -132,7 +134,7 @@ try{
   const origin='http://127.0.0.1:'+port;
   fs.writeFileSync(path.join(out,'server-url.json'),JSON.stringify({origin,expiresAt:record.expiresAt,owner:record.owner,route:'/game.html?activity=mount-dora'})+'\n');
   console.log('NATIVE_REVIEW_URL '+origin+'/game.html?activity=mount-dora');
-  let commandoSeeds={};
+  let commandoSeeds={},freshStart=null;
   if(!shelterReview){
   context=await browser.newContext({viewport:desktopViewport,acceptDownloads:true,...(recordVideo?{recordVideo:{dir:path.join(out,'video')}}:{})});
   await context.addInitScript(installNativeProbe);
@@ -146,7 +148,7 @@ try{
   await page.locator('#operation-select').selectOption('mount-dora');await page.locator('#animals button').filter({hasText:'goat'}).first().click();await page.getByRole('button',{name:'Mosin-Nagant',exact:true}).click();await page.getByRole('button',{name:/Frag grenades/}).click();await page.locator('#deploy').click();
   let info=await ready(page);assert.equal(info.player.species,'goat');assert.equal(info.player.weapon,'rifle');assert.equal(info.phase,'explore');assert(info.actor.visible&&info.actor.meshes>0&&info.actor.vertices>0);assert.equal(info.render.blocks,9);assert(info.memory.programs>0);assert.equal(info.memory.shaderFailures,0);
   report.desktopHudLocation=await assertMapLocation(page,info.player);await page.locator('#minimap-button').click();report.desktopExpandedLocation=await assertMapLocation(page,info.player,{expanded:true});await shot(page,'desktop-town-map');await page.getByRole('button',{name:'Continue walking',exact:true}).click();
-  await shot(page,'desktop-donnelly');mark('regular animal/loadout starts a free, physically clear Donnelly tour',{snapshot:info});
+  await shot(page,'desktop-donnelly');mark('regular animal/loadout starts a free, physically clear Donnelly tour',{snapshot:info});freshStart={x:info.player.x,y:info.player.y};
   const moved=await keyboardWalk(page,info);assert(moved.distance>info.distance+.2);
   assert(await page.locator('#grenade').isEnabled());
   // Fighters fights in real time: the point panel's timed FIRE trigger queues one
@@ -205,7 +207,8 @@ try{
   const returned=await snapshot(page);assert(returned.distance>boardwalkBefore.distance+300);mark('actual entrance, mapped join, supported over-water walk and continuous return',{snapshot:returned});
   await page.waitForTimeout(2700);const savedText=(await readSaves(page,[TOUR_SAVE]))[0],saved=JSON.parse(savedText);assert(saved);assert(!Object.hasOwn(saved,'map'));assert(JSON.stringify(saved).length<600000);
   // Declared fixture for the phone: these real saves, planted under Commando's bare keys
-  // (the Pages origin is shared), must never be read, offered or rewritten by Fighters.
+  // (the Pages origin is shared), must not be offered as Resume, loaded by Deploy or
+  // rewritten by Fighters.
   commandoSeeds={'tactical-animal-operation-v2':operationBefore,'farmyard-mount-dora-tour-v1':savedText};
   assert.equal((await readSaves(page,[OPERATION_SAVE]))[0],operationBefore);assert.deepEqual(await foreignKeys(page),[],'Fighters wrote storage outside its namespace');
   await page.reload();await page.locator('#resume').click();info=await ready(page);
@@ -217,7 +220,12 @@ try{
   phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1,...(recordVideo?{recordVideo:{dir:path.join(out,'video')}}:{})});
   await phone.addInitScript(installNativeProbe);await phone.addInitScript(seeds=>{for(const [key,value] of Object.entries(seeds))if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},commandoSeeds);const mobile=await phone.newPage(),mobileLog=capture(mobile,'phone');
   const seedKeys=Object.keys(commandoSeeds).sort(),seedsUntouched=async()=>{assert.deepEqual(await readSaves(mobile,seedKeys),seedKeys.map(key=>commandoSeeds[key]),'Fighters rewrote a Commando save');assert.deepEqual(await foreignKeys(mobile),seedKeys,'Fighters wrote storage outside its namespace');};
-  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.deepEqual(await readSaves(mobile,[OPERATION_SAVE]),[null]);assert(await mobile.locator('#resume').isHidden(),'Resume was offered without a Fighters tour save');await seedsUntouched();await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
+  await mobile.goto(origin+'/game.html?activity=mount-dora');await mobile.waitForFunction(()=>typeof document.getElementById('deploy')?.onclick==='function');assert.equal(await mobile.locator('#operation-select').inputValue(),'mount-dora');assert(await mobile.locator('#prep').isVisible());assert(await mobile.locator('#battle').isHidden());assert.deepEqual(await readSaves(mobile,[OPERATION_SAVE]),[null]);assert(await mobile.locator('#resume').isHidden(),'Resume was offered without a Fighters tour save');
+  // The planted Commando operation must not be offered either: choose its mission, then return to the tour.
+  if(commandoSeeds['tactical-animal-operation-v2']){const operationId=JSON.parse(commandoSeeds['tactical-animal-operation-v2']).solo.missionId;await mobile.locator('#operation-select').selectOption(operationId);assert.equal(await mobile.locator('#operation-select').inputValue(),operationId);assert(await mobile.locator('#resume').isHidden(),'Resume was offered for a Commando operation save');await mobile.locator('#operation-select').selectOption('mount-dora');assert(await mobile.locator('#resume').isHidden());}
+  await seedsUntouched();await mobile.locator('#deploy').click();const mobileBefore=await ready(mobile);
+  // Deploy starts a new tour: nothing walked, at the same spawn as the desktop's new tour (not the planted Commando tour).
+  assert.equal(mobileBefore.distance,0,'Phone tour did not start fresh');if(freshStart)assert(Math.hypot(mobileBefore.player.x-freshStart.x,mobileBefore.player.y-freshStart.y)<1e-6,'Phone tour did not start at the tour spawn');
   const stick=await mobile.locator('#joystick').boundingBox(),cdp=await phone.newCDPSession(mobile),x=stick.x+stick.width/2,y=stick.y+stick.height/2;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:x+stick.width*.24,y:y+stick.height*.12}]});try{await waitInfo(mobile,s=>s.distance>mobileBefore.distance+.45,'Actual touch joystick movement was not observed',20000);}finally{await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
   const mobileMoved=await snapshot(mobile);assert(mobileMoved.distance>mobileBefore.distance+.2);assert(mobileMoved.actor.visible);const mobileKeyboard=await keyboardWalk(mobile,mobileMoved);assert(mobileKeyboard.distance>mobileMoved.distance+.2);await shot(mobile,'phone-donnelly');
@@ -226,5 +234,5 @@ try{
   assert(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await seedsUntouched();report.phoneWebGL=await assertGL(mobile);mark('390x844 production touch joystick, character, landmark and layout');
   for(const l of report.pages){assert.deepEqual(l.errors,[],'Page errors in '+l.name);const unexpected=l.requests.filter(r=>!l.expectedFailures.some(e=>e.url===r.url&&e.status===r.status));assert.deepEqual(unexpected,[],'Unexpected failed assets in '+l.name);const severe=l.console.filter(x=>x.type==='error'&&!/503/.test(x.text));assert.deepEqual(severe,[],'Console errors in '+l.name);}
   report.passed=true;
-}catch(error){report.passed=false;report.failure=error.stack;for(const [i,c]of (browser?.contexts()||[]).entries())for(const [j,p]of c.pages().entries())try{await p.screenshot({path:path.join(out,'failure-'+i+'-'+j+'.png')});report.failureUI=await p.evaluate(()=>({toast:document.getElementById('toast')?.textContent,loading:document.getElementById('loading')?.textContent,status:document.getElementById('tour-launch-status')?.textContent}));}catch{}write();throw error;}
+}catch(error){report.passed=false;report.failure=error.stack+(error.cause?.stack?' | caused by: '+error.cause.stack:'');for(const [i,c]of (browser?.contexts()||[]).entries())for(const [j,p]of c.pages().entries())try{await p.screenshot({path:path.join(out,'failure-'+i+'-'+j+'.png')});report.failureUI=await p.evaluate(()=>({toast:document.getElementById('toast')?.textContent,loading:document.getElementById('loading')?.textContent,status:document.getElementById('tour-launch-status')?.textContent}));}catch{}write();throw error;}
 finally{await close();if(!report.cleanup.httpReleased||!report.cleanup.wsReleased||!report.cleanup.browserProcessExited||report.cleanup.errors.length)process.exitCode=1;}
