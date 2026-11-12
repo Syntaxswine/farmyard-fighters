@@ -137,7 +137,8 @@ export class TownEnvironment{
       const near=unit.x>=rect.x-14&&unit.x<rect.x+rect.w+14&&unit.y>=rect.y-14&&unit.y<rect.y+rect.h+14;
       for(const {mesh,low} of plantMeshes||[]){
         mesh.visible=!low||ppu>=9;
-        mesh.castShadow=!low&&near&&ppu>=12;
+        // DaylightRig re-derives castShadow from userData.noShadow whenever it runs; keep the two in step.
+        mesh.castShadow=!low&&near&&ppu>=12;mesh.userData.noShadow=!mesh.castShadow;
       }
     }
   }
