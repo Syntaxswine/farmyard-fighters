@@ -5,6 +5,12 @@ import {createBarrelBlastMotion} from './designer/a20b343a0234/tactics/barrel-bl
 import {barrelId} from './aft/tactics/explosive-barrels.js';
 import {PreparedGroundFire} from './prepared-ground-fire.js';
 const base=new URL('./designer/a20b343a0234/tactics/',import.meta.url),V=(x=0,y=0,z=0)=>new T.Vector3(x,y,z),key=p=>`${Math.round(p.x)},${Math.round(p.y)}`;
+// The cargo library's labels opt out with castShadow=false alone, and the borrowed motion keeps
+// that. The field's daylight pass reads userData.noShadow, so mark them to keep the labels shadowless.
+function barrelMotion(library,p){
+  const motion=createBarrelBlastMotion(library,{skin:'explosiveRed',label:'flammable',position:[p.x,0,p.y],yaw:p.rotated?-Math.PI/2:0});
+  motion.root.traverse(o=>{if(o.isMesh&&!o.castShadow)o.userData.noShadow=true;});return motion;
+}
 export class SoloTankEffects{
   constructor(scene,{loadTexture=url=>new T.TextureLoader().loadAsync(url),reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false,onError=error=>console.warn('Fuel artwork unavailable; simulation continues.',error)}={}){
     Object.assign(this,{scene,loadTexture,reducedMotion,onError,bursts:new Map(),sequence:0,disposed:false});
@@ -28,7 +34,7 @@ export class SoloTankEffects{
         if(this.disposed)break;
         const origin=V(p.x,.4,p.y),effects=await this.buildEffects(origin,{fragmentCount:0});
         if(this.disposed){effects.dispose();break;}
-        const motion=library?createBarrelBlastMotion(library,{skin:'explosiveRed',label:'flammable',position:[p.x,0,p.y],yaw:p.rotated?-Math.PI/2:0}):null;
+        const motion=library?barrelMotion(library,p):null;
         if(motion){motion.root.visible=false;this.scene.add(motion.root);}
         effects.setVisibility(visible);effects.update(0,{camera:new T.PerspectiveCamera(),contract:{origin:{x:0,y:0},fires:[]},visible:false,groundOpacity:0});
         this.preparedBarrels.set(barrelId(p),{origin,effects,motion});
@@ -65,7 +71,7 @@ export class SoloTankEffects{
     for(const b of this.bursts.values()){
       if(b.waiting||this.now<b.start||b.worn&&!b.originFixed)continue;
       if(b.event.kind==='barrel'&&library){
-        if(!b.motion){const p=b.event.prop;b.motion=createBarrelBlastMotion(library,{skin:'explosiveRed',label:'flammable',position:[p.x,0,p.y],yaw:p.rotated?-Math.PI/2:0});this.scene.add(b.motion.root);}
+        if(!b.motion){b.motion=barrelMotion(library,b.event.prop);this.scene.add(b.motion.root);}
         b.motion.root.visible=true;b.motion.apply((this.now-b.start)/1000);
       }
       this.make(b);if(b.effects){b.effects.setVisibility(visible);b.effects.update((this.now-b.start)/1000,{camera,contract:{origin:{x:0,y:0},fires:[]},groundOpacity:0});
