@@ -40,7 +40,7 @@ test('the visible aim follows an accepted order before discharge without spendin
 });
 
 test('full inherited operations coexist with an initially unengaged real-time encounter',()=>{
- assert.equal(MISSIONS.length,3);
+ assert.deepEqual(MISSIONS.map(m=>m.id),['night-ledger','short-measure','road-checkpoint','pinewire-prison']);
  const s=Core.enableRealtime(createSoloGame(DEFAULT_BUILD,1,FIRST_REALTIME_MISSION.id));
  assert.equal(s.phase,'explore');assert.equal(s.realtime.autoFire,false);assert.equal(Core.realtimeStatus(s).fireMode,'auto');assert.equal(s.units.filter(v=>v.team==='guard'&&v.hp>0).length,2);
  assert(s.interactables.some(o=>o.kind==='door'));assert(s.interactables.some(o=>o.kind==='chest'));assert(s.units.filter(v=>v.team==='guard'&&v.hp>0).every(v=>!v.alert));

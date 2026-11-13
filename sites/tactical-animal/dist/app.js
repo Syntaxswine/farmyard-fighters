@@ -97,8 +97,9 @@ const operationStorage=createOperationStorage({getItem:key=>window.localStorage.
 const careers=createRealtimeCareers({getItem:key=>window.localStorage.getItem(key),setItem:(key,value)=>window.localStorage.setItem(key,value)},ANIMALS);
 const preparationBuilds=Object.fromEntries(ACTIVITIES.map(mission=>[mission.id,{...DEFAULT_BUILD}]));
 try{const preferences=operationStorage.preferences();selectedMissionId=preferences.selectedMissionId;Object.assign(preparationBuilds,preferences.builds);build=normalizeBuild(preparationBuilds[selectedMissionId]);}catch(error){toast('Could not read preparation. You can still choose an operation and play in this tab.');}
-// An explicit tour link selects preparation only; it never deploys/resumes or writes operation state.
-if(new URLSearchParams(location.search).get('activity')===TOUR_ID){selectedMissionId=TOUR_ID;build=normalizeBuild(preparationBuilds[TOUR_ID]);}
+// Activity links select preparation; they never deploy, resume or write a save.
+const linkedActivity=ACTIVITIES.find(activity=>activity.id===new URLSearchParams(location.search).get('activity'));
+if(linkedActivity){selectedMissionId=linkedActivity.id;build=normalizeBuild(preparationBuilds[linkedActivity.id]);}
 function storageWriteFailure(subject,error){const reason=error?.name==='QuotaExceededError'?'Device storage is full.':error?.name==='SecurityError'?'Browser storage is blocked.':'Browser storage could not be written.';toast(`${reason} Could not save ${subject}. Keep this tab open to retain your changes.`);}
 const storage={read(){return selectedMissionId===TOUR_ID?tourMemorySave||window.localStorage.getItem(tourSaveKey):operationStorage.read(selectedMissionId);},write(){if(!state)return;if(state.realtime){try{careers.sync(state);}catch(error){storageWriteFailure('character progression',error);}}try{if(isTour(state)){tourMemorySave=encodeSave(state);window.localStorage.setItem(tourSaveKey,tourMemorySave);}else operationStorage.write(state);}catch(error){storageWriteFailure(isTour(state)?'tour progress':'operation progress',error);}}};
 const speciesLabel=s=>s.replaceAll('-',' '),short=k=>Core.WEAPONS[k].short;

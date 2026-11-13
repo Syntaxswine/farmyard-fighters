@@ -164,13 +164,13 @@ try{
  for(const phone of [false,true]){
   const name=phone?'phone':'desktop',context=await browser.newContext({viewport:phone?{width:390,height:844}:{width:800,height:600},isMobile:phone,hasTouch:phone,deviceScaleFactor:1});
   await context.addInitScript(installNativeProbe);const page=await context.newPage(),log=capture(page,name);activePage=page;
-  await page.goto(`http://127.0.0.1:${port}/game.html`);assert.equal(await page.locator('#operation-select').inputValue(),'quiet-shift');assert.equal(await page.locator('#operation-select option').count(),5);
+  await page.goto(`http://127.0.0.1:${port}/game.html`);assert.equal(await page.locator('#operation-select').inputValue(),'quiet-shift');assert.equal(await page.locator('#operation-select option').count(),6);
   const loadoutMode=page.locator('#loadout-fire-mode');assert.equal(await loadoutMode.inputValue(),'auto');
   if(phone)await loadoutMode.selectOption('single');
   await page.locator('#animals button').filter({hasText:'Yakov'}).click();await page.locator('#utility button').filter({hasText:'Frag grenades'}).click();await page.locator('#deploy').click();
   let s=await wait(page,s=>s.ready,'initial renderer');
   assert.equal(s.fireMode,phone?'single':'auto');assert.equal(s.autoFire,false);assert.equal(s.phase,'explore');assert.equal(s.shaderFailures,0);await screenshot(page,name+'-start');
-  const gl=await page.evaluate(inspectWebGL,'#viewport canvas');assert(gl.available&&!gl.contextLost);mark(name+' full production bootstrap',{gl,operations:5,guards:s.guards.filter(g=>g.hp>0).length});
+  const gl=await page.evaluate(inspectWebGL,'#viewport canvas');assert(gl.available&&!gl.contextLost);mark(name+' full production bootstrap',{gl,operations:6,guards:s.guards.filter(g=>g.hp>0).length});
   await tap(page,'#realtime-aim',phone);assert.equal((await snapshot(page)).aim,'aimed');await tap(page,'#realtime-aim',phone);assert.equal((await snapshot(page)).aim,'full');await tap(page,'#realtime-aim',phone);
   await tap(page,'#end-turn',phone);assert((await snapshot(page)).autoFire);await tap(page,'#end-turn',phone);assert(!(await snapshot(page)).autoFire);mark(name+' persistent aim and fire-at-will controls');
   await tap(page,'#menu',phone);const paused=await snapshot(page);await page.waitForTimeout(250);assert.equal((await snapshot(page)).elapsed,paused.elapsed);await page.getByRole('button',{name:'Continue operation',exact:true}).click();mark(name+' inventory/options pause the actual simulation');

@@ -4,6 +4,8 @@ import {doorFootprint} from './interactions.js';
 import {missionForState} from './missions.js';
 import {clueAnchorHeight} from './mission-scenery.js';
 import {blockWindow,pointInWorldRect} from './world-grid.js';
+import {barrierGeometry,barrierPanel} from './barrier-art.js';
+import {WALL_DIMENSIONS} from './world-dimensions.js';
 
 // Reuse the parent game's chest paintings and timber surface. The simulation
 // supplies the authoritative positions, open state, and physical footprints.
@@ -21,6 +23,8 @@ export class InteractionScenery {
     this.chestPaint={closed:painted('supply-chest-closed'),open:painted('supply-chest-open')};
     const wood=loader.load(new URL('hybrid-surfaces/wood-factory-v2.png',origin).href);wood.colorSpace=T.SRGBColorSpace;this.resources.push(wood);
     this.assets={wood,cube:new T.BoxGeometry(1,1,1),clue:new T.OctahedronGeometry(.18)};this.resources.push(this.assets.cube,this.assets.clue);
+    if(state.interactables.some(o=>o.barrier)){this.assets.barriers=barrierGeometry();this.assets.iron=new T.MeshStandardMaterial({color:0x858b7c,roughness:.82});this.resources.push(...Object.values(this.assets.barriers),this.assets.iron);}
+    if(state.interactables.some(o=>o.finish==='steel')){this.assets.steel=loader.load(new URL('wall-corrugated.png',origin).href);this.assets.steel.colorSpace=T.SRGBColorSpace;this.resources.push(this.assets.steel);}
     this.update(state);
   }
   create(object){
@@ -28,7 +32,8 @@ export class InteractionScenery {
         const material=new T.SpriteMaterial({map:this.chestPaint.closed,alphaTest:.05,depthWrite:false}),sprite=new T.Sprite(material);
         sprite.center.set(.5,0);sprite.userData.interactionId=object.id;this.root.add(sprite);this.records.set(object.id,{sprite});
       }else if(object.kind==='door'){
-        const material=new T.MeshStandardMaterial({map:this.assets.wood,color:0xb5ad86,roughness:.9}),leaf=new T.Mesh(this.assets.cube,material);
+        const material=object.barrier?new T.MeshBasicMaterial({visible:false}):new T.MeshStandardMaterial({map:object.finish==='steel'?this.assets.steel:this.assets.wood,color:object.finish==='steel'?0xb5b9ad:0xb5ad86,roughness:.9}),leaf=new T.Mesh(this.assets.cube,material);
+        if(object.barrier){const panel=barrierPanel(object.barrier,this.assets.barriers,this.assets.iron);panel.scale.set(1,.5,1/WALL_DIMENSIONS.thickness);leaf.add(panel);}
         leaf.userData.interactionId=object.id;leaf.castShadow=leaf.receiveShadow=true;this.root.add(leaf);this.records.set(object.id,{leaf});
       }else if(object.kind==='clue'){
         const material=new T.MeshStandardMaterial({color:0xe0c17b,roughness:.85}),marker=new T.Mesh(this.assets.clue,material);
@@ -53,6 +58,7 @@ export class InteractionScenery {
         record.sprite.material.map=object.open?this.chestPaint.open:this.chestPaint.closed;record.sprite.material.color.setScalar(visible?1:.38);
       }else if(record.leaf){
         const box=doorFootprint(object);record.leaf.visible=known;record.leaf.position.set((box.x0+box.x1)/2,box.height/2,(box.y0+box.y1)/2);record.leaf.scale.set(box.x1-box.x0,box.height,box.y1-box.y0);
+        if(object.barrier){const x=box.x1-box.x0,y=box.y1-box.y0;record.leaf.rotation.y=x>y?0:Math.PI/2;record.leaf.scale.set(Math.max(x,y),box.height,Math.min(x,y));}
       }else{
         record.marker.visible=known;record.marker.position.set(object.x,clueAnchorHeight(missionForState(state),object,.8),object.y);record.marker.material.color.setHex(state.solo.inspected?.includes(object.id)?0xaab68a:0xe0c17b);record.marker.material.color.multiplyScalar(visible?1:.38);
       }

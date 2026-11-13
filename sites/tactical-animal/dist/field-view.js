@@ -35,6 +35,8 @@ import {createGrenadePose,grenadeAction} from './grenade-pose.js';
 import {ExplosionShake} from './explosion-shake.js';
 import {barrelId} from './aft/tactics/explosive-barrels.js';
 import {dissolveBody} from './designer/a20b343a0234/tactics/painted-fire-actor.js';
+import {PRISON_ID,PRISON_BARRIERS} from './prison-map.js';
+import {PrisonScenery} from './prison-view.js';
 
 const V = (x=0,y=0,z=0) => new T.Vector3(x,y,z);
 // Hits pulse at the burst cadence. Misses linger so diverging paths can be read together.
@@ -180,7 +182,7 @@ export class FieldView {
     }
   }
   loadingAssets(){
-    return this.artBusy||this.propBusy||this.missionArtBusy||this.missionPaperBusy||this.effectsBusy||!!this.graphicsFence||this.pending.size>0||this.failed.size>0;
+    return this.artBusy||this.propBusy||this.missionArtBusy||this.missionPaperBusy||this.prisonArtBusy||this.effectsBusy||!!this.graphicsFence||this.pending.size>0||this.failed.size>0;
   }
   reportLoading(){this.onLoading(this.prepareGraphics||this.loadingAssets());}
   waitingForGraphics(){
@@ -231,7 +233,7 @@ export class FieldView {
     }
   }
   // Mission art owns its geometry; detach it before the generic traversal below.
-  clearEnvironment(){this.guardSight?.dispose();this.guardSight=null;this.windowArt?.dispose();this.windowArt=null;this.windowEffects?.dispose();this.windowEffects=null;this.searchHalo?.dispose();this.searchHalo=null;this.missionArt?.dispose();this.missionArt=null;this.missionArtBusy=this.missionPaperBusy=false;this.interactionArt?.dispose();this.interactionArt=null;this.art?.dispose();this.art=null;this.environment.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});this.environment.clear();for(const t of this.disposables)t.dispose();this.disposables=[];}
+  clearEnvironment(){this.prisonArt?.dispose();this.prisonArt=null;this.prisonArtBusy=false;this.guardSight?.dispose();this.guardSight=null;this.windowArt?.dispose();this.windowArt=null;this.windowEffects?.dispose();this.windowEffects=null;this.searchHalo?.dispose();this.searchHalo=null;this.missionArt?.dispose();this.missionArt=null;this.missionArtBusy=this.missionPaperBusy=false;this.interactionArt?.dispose();this.interactionArt=null;this.art?.dispose();this.art=null;this.environment.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});this.environment.clear();for(const t of this.disposables)t.dispose();this.disposables=[];}
   buildEnvironment(s){
     if(s.realtime){this.guardSight=new GuardSightView(this.environment);this.bodyImpacts=new BodyImpactEffects(this.scene);}
     this.windowArt=new WindowScenery(s);this.environment.add(this.windowArt.root);this.windowEffects=new WindowEffects(this.scene,s);
@@ -244,6 +246,9 @@ export class FieldView {
       onLoading:busy=>{if(generation===this.generation){this.artBusy=busy;this.reportLoading();}},
       onError:message=>{if(generation===this.generation){this.failed.add('environment');this.onError(message);}},
     });this.environment.add(this.art.root);
+    if(mission.id===PRISON_ID){
+      this.prisonArt=new PrisonScenery(s,{onLoading:busy=>{if(generation===this.generation){this.prisonArtBusy=busy;this.reportLoading();}},onError:message=>{if(generation===this.generation){this.failed.add('prison-art');this.onError(message);}}});this.environment.add(this.prisonArt.root);
+    }
     this.prepareExplosionGraphics(s,generation);
     this.missionArtReady=missionHasArt(mission)?this.loadMissionArt(s,generation):Promise.resolve(null);
     this.buildInteractionScenery(s,generation);
@@ -661,10 +666,10 @@ export class FieldView {
     }
     const pendingBarrels=this.tankEffects?.pendingProps()||[],barrelPhase=pendingBarrels.map(barrelId).join('|');
     this.art.pendingBarrels=pendingBarrels;
-    if(s.revision!==this.lastRevision||window.key!==this.lastWindowKey||barrelPhase!==this.lastBarrelPhase){this.lastRevision=s.revision;this.lastWindowKey=window.key;this.lastBarrelPhase=barrelPhase;this.art.update(s,u,window);this.interactionArt?.update(s,window);this.missionArt?.update(s,window);
+    if(s.revision!==this.lastRevision||window.key!==this.lastWindowKey||barrelPhase!==this.lastBarrelPhase){this.lastRevision=s.revision;this.lastWindowKey=window.key;this.lastBarrelPhase=barrelPhase;this.art.update(s,u,window);this.interactionArt?.update(s,window);this.missionArt?.update(s,window);this.prisonArt?.update(s,window);
       const mission=missionForState(s);if(this.objectivePin)this.objectivePin.visible=!objectiveSecured(s)&&pointInWorldRect(mission.objective,window);if(this.extractionPin)this.extractionPin.visible=pointInWorldRect(mission.extraction,window);
     }
-    this.art?.setFocus?.(u,this.camera);
+    this.art?.setFocus?.(u,this.camera);this.prisonArt?.setFocus(s,this.camera,now);
     this.guardSight?.update(s,u,s.solo.status==='active'?visible:[],window,now);
     this.drawShotTraces(s,now);
     this.bodyImpacts?.draw(s,this.camera,now);
@@ -711,8 +716,8 @@ export class FieldView {
 }
 
 export function drawMinimap(canvas,s,options={}){const tour=getTourWorld(s);if(tour)return tour.drawMinimap(canvas,s,options);const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,bounds=worldBounds(s);ctx.fillStyle='#1b2219';ctx.fillRect(0,0,w,h);const scale=Math.min((w-12)/bounds.w,(h-12)/bounds.h),ox=(w-bounds.w*scale)/2,oy=(h-bounds.h*scale)/2;
-  for(const cell of s.seen){const [x,y]=cell.split(',').map(Number);if(x<bounds.x||x>=bounds.x+bounds.w||y<bounds.y||y>=bounds.y+bounds.h)continue;const tile=s.map[y]?.[x];if(!tile)continue;ctx.fillStyle=tile==='crate'?'#746b4e':tile==='floor'||tile==='ground-concrete'?'#686d51':tile==='ground-asphalt'?'#575954':'#3e4b31';ctx.fillRect(ox+(x-bounds.x)*scale,oy+(y-bounds.y)*scale,scale+.2,scale+.2);}
-  ctx.strokeStyle='#acaa88';ctx.lineWidth=Math.max(1,scale*.14);ctx.beginPath();for(const [edge,kind] of Object.entries(s.edges)){if(kind==='door')continue;const [axis,xs,ys]=edge.split(':'),x=+xs,y=+ys;if(!s.seen.has(Core.key(x,y)))continue;if(axis==='e'){ctx.moveTo(ox+(x-bounds.x+.5)*scale,oy+(y-bounds.y-.5)*scale);ctx.lineTo(ox+(x-bounds.x+.5)*scale,oy+(y-bounds.y+.5)*scale);}else{ctx.moveTo(ox+(x-bounds.x-.5)*scale,oy+(y-bounds.y+.5)*scale);ctx.lineTo(ox+(x-bounds.x+.5)*scale,oy+(y-bounds.y+.5)*scale);}}ctx.stroke();
+  for(const cell of s.seen){const [x,y]=cell.split(',').map(Number);if(x<bounds.x||x>=bounds.x+bounds.w||y<bounds.y||y>=bounds.y+bounds.h)continue;const tile=s.map[y]?.[x];if(!tile)continue;ctx.fillStyle=tile==='woodland'?'#29452d':tile==='crate'?'#746b4e':tile==='floor'||tile==='ground-concrete'?'#686d51':tile==='ground-asphalt'?'#575954':'#3e4b31';ctx.fillRect(ox+(x-bounds.x)*scale,oy+(y-bounds.y)*scale,scale+.2,scale+.2);}
+  ctx.strokeStyle='#acaa88';ctx.lineWidth=Math.max(1,scale*.14);ctx.beginPath();for(const [edge,kind] of [...Object.entries(s.edges),...(s.solo.missionId===PRISON_ID?PRISON_BARRIERS.map(p=>[p.edge,p.kind]):[])]){if(kind==='door')continue;const [axis,xs,ys]=edge.split(':'),x=+xs,y=+ys;if(!s.seen.has(Core.key(x,y)))continue;if(axis==='e'){ctx.moveTo(ox+(x-bounds.x+.5)*scale,oy+(y-bounds.y-.5)*scale);ctx.lineTo(ox+(x-bounds.x+.5)*scale,oy+(y-bounds.y+.5)*scale);}else{ctx.moveTo(ox+(x-bounds.x-.5)*scale,oy+(y-bounds.y+.5)*scale);ctx.lineTo(ox+(x-bounds.x+.5)*scale,oy+(y-bounds.y+.5)*scale);}}ctx.stroke();
   const dot=(p,color,r)=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(ox+(p.x-bounds.x)*scale,oy+(p.y-bounds.y)*scale,r,0,Math.PI*2);ctx.fill();};
   const mission=missionForState(s);if(!objectiveSecured(s))dot(mission.objective,'#df613f',Math.max(2,scale*.45));dot(mission.extraction,'#c4d29a',Math.max(2,scale*.45));for(const id of s.detected){const g=s.units.find(u=>u.id===id);if(g?.hp>0)dot(g,'#e16a47',Math.max(2,scale*.32));}
   const u=hero(s);drawPlayerMapMarker(canvas,ctx,{x:ox+(u.x-bounds.x)*scale,y:oy+(u.y-bounds.y)*scale,heading:u.heading},options);

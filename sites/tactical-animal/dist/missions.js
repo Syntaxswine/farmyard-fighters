@@ -5,6 +5,7 @@ import {checkpointApproachMap} from './checkpoint-approaches.js';
 import {WINDOW_REVIEW_ID,WINDOW_REVIEW_MISSION,windowReviewSource} from './window-review-map.js';
 import {adaptAftSector,aftPropObstacle} from './aft-sector.js';
 import {TOUR_ID,TOUR_ACTIVITY} from './mount-dora-activity.js';
+import {PRISON_ID,PRISON_MISSION,prisonMap} from './prison-map.js';
 export const DEFAULT_MISSION_ID='night-ledger';
 const checkpoint=checkpointSource(),checkpointDoors=checkpointMap().doors;
 const bounds={x:1,y:1,w:38,h:28};
@@ -111,6 +112,7 @@ const definitions=[
     ],
     result:{title:'The orders are out.',summary:'carried the travel orders beyond the checkpoint.',epilogue:'The convoy route crosses open country. Now you know where the wagons are going.'},
   },
+  PRISON_MISSION,
 ];
 
 function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
@@ -162,6 +164,7 @@ export function missionMap(id=DEFAULT_MISSION_ID,layoutVersion){
   const mission=getMission(id,layoutVersion);
   if(mission.exploration)throw Error('Load town sources before starting the walking tour.');
   if(mission.id===WINDOW_REVIEW_ID)return adaptAftSector(windowReviewSource());
+  if(mission.id===PRISON_ID)return prisonMap();
   if(mission.sector==='aft-road-checkpoint')return checkpointMap();
   const map=mission.sector==='aft-road-checkpoint-approaches'?checkpointApproachMap():{name:mission.name,terrain:Array.from({length:30},()=>Array(40).fill('void')),edges:{}};
   if(!map.worldBounds)for(let y=1;y<=28;y++)for(let x=1;x<=38;x++)map.terrain[y][x]='yard';

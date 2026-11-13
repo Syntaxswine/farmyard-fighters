@@ -26,6 +26,7 @@ import {createBarrelRules} from './solo-barrels.js';
 import {barrelId,isExplosiveBarrel,barrelRayHit} from './aft/tactics/explosive-barrels.js';
 export {tankExplosionChance} from './solo-fuel.js';
 import {gridDimensions,worldBounds} from './world-grid.js';
+import {woodlandDepth} from './designer/a20b343a0234/tactics/core/woodland.js';
 import {DEFAULT_MISSION_ID,getMission,missionForState,missionMap,objectiveSecured} from './missions.js';
 export {MISSIONS,FIRST_REALTIME_MISSION,DEFAULT_MISSION_ID,getMission,missionForState,missionMap,objectiveSecured,missionDestination} from './missions.js';
 
@@ -59,13 +60,13 @@ export function log(s,message){s.log.unshift(message);s.log=s.log.slice(0,35);s.
 function makeUnit(id,team,name,species,weapon,x,y,heading,stats){const u={id,team,name,species,weapon,x,y,z:0,heading,stance:'standing',running:false,sneaking:false,travelled:0,isMoving:false,alert:false,lastKnown:null,alertAge:0,slots:[weapon],pack:[],ammo:{[weapon]:WEAPONS[weapon].mag},ammoPouch:{[weapon]:WEAPONS[weapon].mag*3}};initializeStats(u,stats);return u;}
 function makeGuard(post,id,stats,townPlayer){
   const guard=makeUnit(id,'guard',post.name||post.character?.displayName||'Guard '+id,post.species,post.weapon,post.x,post.y,post.heading??0,stats);
+  if(post.patrol?.length)guard.patrol=structuredClone(post.patrol);
   if(townPlayer){
     // The usual 50-point base pools would leave a half-strength guard
     // with most of the player's health and stamina.
     guard.hp=guard.maxHp=Math.round(townPlayer.maxHp/2);
     guard.stamina=guard.maxStamina=Math.round(townPlayer.maxStamina/2);
     guard.ap=guard.maxAp=Math.round(townPlayer.maxAp/2);
-    if(post.patrol?.length)guard.patrol=post.patrol;
   }
   return guard;
 }
@@ -103,8 +104,8 @@ export function geometry(s){
   for(const [k,kind] of Object.entries(s.edges)){
     const span=legacyWallSpan(k,gaps,WALL_DIMENSIONS.length);if(kind==='door'||!span)continue;const [axis,xs,ys]=k.split(':'),x=+xs+(axis==='e'?.5:0),y=+ys+(axis==='s'?.5:0);
     const hx=(axis==='e'?WALL_DIMENSIONS.thickness:WALL_DIMENSIONS.length)/2,hy=(axis==='s'?WALL_DIMENSIONS.thickness:WALL_DIMENSIONS.length)/2;
-    const interactionId=s.interactables?.find(object=>object.kind==='door'&&object.edge===k)?.id;
-    boxes.push({x0:axis==='s'?span.min:x-hx,x1:axis==='s'?span.max:x+hx,y0:axis==='e'?span.min:y-hy,y1:axis==='e'?span.max:y+hy,height:WALL_DIMENSIONS.height,kind:'wall',...(interactionId?{interactionId}:kind==='wall'?{wallEdge:k}:{})});
+    const door=s.interactables?.find(object=>object.kind==='door'&&object.edge===k),interactionId=door?.id;
+    boxes.push({x0:axis==='s'?span.min:x-hx,x1:axis==='s'?span.max:x+hx,y0:axis==='e'?span.min:y-hy,y1:axis==='e'?span.max:y+hy,height:WALL_DIMENSIONS.height,kind:door?.seeThrough?'prop':'wall',...(interactionId?{interactionId}:kind==='wall'?{wallEdge:k}:{})});
   }
   const cargo=missionForState(s).cover.filter(p=>s.interactables?.some(object=>object.kind==='clue'&&object.id===p.id));
   const {width,height}=gridDimensions(s);
@@ -116,7 +117,7 @@ export function geometry(s){
   for(const box of s.obstacles||[])boxes.push({...box});
   boxes.push(...windowSystem.boxes(s));
   for(const box of missionScenery(missionForState(s),s.map))boxes.push({...box});
-  for(const object of s.interactables||[])if(object.kind==='chest'||object.kind==='door'&&object.open)boxes.push({...interactionFootprint(object),kind:object.kind==='door'?'wall':'crate',interactionId:object.id});
+  for(const object of s.interactables||[])if(object.kind==='chest'||object.kind==='door'&&object.open)boxes.push({...interactionFootprint(object),kind:object.kind==='door'?object.seeThrough?'prop':'wall':'crate',interactionId:object.id});
   const layers={};
   for(const [name,keep] of Object.entries(GEOMETRY_LAYERS)){
     const buckets=new Map();layers[name]=buckets;
@@ -229,7 +230,7 @@ function sightResult(s,a,b){
   const d=distance(a,b),range=sightRange(a,b);
   if(!alive(a)||d>range)return 'blocked';
   const cost=BRUSH_SIGHT_COST[b.stance],town=getTourWorld(s);
-  if(town&&cost&&a.team==='guard'&&b.team==='squad'&&d>3&&d+cost*town.brushDepth(a,b)>range)return 'brush';
+  if(cost&&a.team==='guard'&&b.team==='squad'&&d>3&&(town||missionForState(s).woodland)&&d+cost*(town?town.brushDepth(a,b):woodlandDepth(s,a,b))>range)return 'brush';
   return lineClear(s,a,b)?'spotted':'blocked';
 }
 export function canSee(s,a,b){return sightResult(s,a,b)==='spotted';}
