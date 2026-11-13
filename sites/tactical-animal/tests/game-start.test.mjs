@@ -4,22 +4,29 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {app} from './app-harness.mjs';
 
-function startup(){
+function startup(href='https://example.test/game.html?activity=pinewire-prison&rules=turn-based#briefing'){
   const elements=new Map(),events=new Map(),timers=new Map();
   const element=id=>{if(!elements.has(id))elements.set(id,{id,dataset:{}});return elements.get(id);};
+  let nextTimer=0;
+  const location={href,replace:url=>{location.replaced=url;}};
   const document={body:{dataset:{}},getElementById:element},window={addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name)};
   vm.runInNewContext(fs.readFileSync(new URL('../dist/game-start.js',import.meta.url),'utf8'),{
-    document,window,location:{href:'https://example.test/game.html?activity=pinewire-prison&rules=turn-based#briefing'},URL,Date,
-    setTimeout:fn=>{timers.set(1,fn);return 1;},clearTimeout:id=>timers.delete(id),
+    document,window,location,URL,Date,
+    setTimeout:fn=>{const id=++nextTimer;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
   });
-  return {element,document,window,timers,events,fire:(name,target)=>events.get(name)?.({target})};
+  return {element,document,window,location,timers,events,fire:(name,target)=>events.get(name)?.({target})};
 }
 
-test('a failed application import offers a fresh-page retry that retains the selected operation and rules',()=>{
+test('a failed application import retries once, retaining the selected operation and rules without a reload loop',()=>{
   const s=startup(),retry=new URL(s.element('startup-retry').href);
   assert.equal(retry.searchParams.get('activity'),'pinewire-prison');assert.equal(retry.searchParams.get('rules'),'turn-based');assert.equal(retry.hash,'#briefing');assert.ok(retry.searchParams.get('reload'));
   s.fire('error',{id:'game-entry'});
-  assert.equal(s.element('game-startup').dataset.state,'failed');assert.match(s.element('startup-heading').textContent,/could not load/);assert.equal(s.timers.size,0);assert.equal(s.events.size,0);
+  assert.equal(s.element('game-startup').dataset.state,'retrying');assert.equal(s.events.size,0);assert.equal(s.timers.size,1);
+  [...s.timers.values()][0]();const next=new URL(s.location.replaced);
+  assert.equal(next.searchParams.get('activity'),'pinewire-prison');assert.equal(next.searchParams.get('rules'),'turn-based');assert.equal(next.hash,'#briefing');assert.equal(next.searchParams.get('startupRetry'),'1');
+  const again=startup(next.href);again.fire('error',{id:'game-entry'});
+  assert.equal(again.element('game-startup').dataset.state,'failed');assert.match(again.element('startup-heading').textContent,/could not load/);assert.equal(again.timers.size,0);assert.equal(again.events.size,0);
+  const manual=new URL(again.element('startup-retry').href);assert.equal(manual.searchParams.get('activity'),'pinewire-prison');assert.equal(manual.searchParams.has('startupRetry'),false);
 });
 
 test('a slow import stays recoverable, and an optional image error does not fail startup',()=>{
