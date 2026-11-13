@@ -14,9 +14,17 @@
   <link rel="stylesheet" href="industrial-switches.css">
   <link rel="stylesheet" href="field-hardware.css">
   <link rel="stylesheet" href="realtime.css">
+  <link rel="stylesheet" href="game-start.css">
 </head>
 <body data-realtime="true">
-  <main id="prep">
+  <section id="game-startup" class="game-startup" role="status" aria-live="polite">
+    <p class="eyebrow">FARMYARD FIGHTERS</p>
+    <h1 id="startup-heading">Preparing your operation…</h1>
+    <p id="startup-copy">Loading the game and your loadout choices.</p>
+    <a id="startup-retry" href="">Retry loading</a>
+    <noscript><p>Enable JavaScript in your browser to play Farmyard Fighters.</p></noscript>
+  </section>
+  <main id="prep" inert aria-busy="true">
     <header class="masthead"><a class="brand" href="./" aria-label="Farmyard Fighters home"><span class="brand-mark" aria-hidden="true">★</span><span>FARMYARD<br><b>FIGHTERS</b></span></a><span class="edition"><i></i> REAL-TIME OPERATIONS</span></header>
     <section class="intro"><div><p class="eyebrow">ONE SOLDIER. ONE WAY OUT.</p><h1>FARMYARD<br><span>FIGHTERS.</span></h1></div><p class="intro-copy">Choose your animal.<br>Make the loadout yours.<br>Bring something back.</p></section>
     <label class="operation-picker" for="operation-select">OPERATION<select id="operation-select"><option value="night-ledger">The Night Ledger</option><option value="short-measure">Short Measure</option><option value="road-checkpoint">Road Checkpoint</option></select></label>
@@ -34,7 +42,7 @@
       <section class="briefing-panel" aria-labelledby="mission-heading"><div class="section-label"><span>03 / THE ASSIGNMENT</span><span id="operation-number">OP. 001</span></div><div class="mission-map"><canvas id="mission-preview" width="380" height="280" role="img" aria-label="Operation layout"></canvas></div><p class="eyebrow" id="mission-location">MILL 04 / RECORDS OFFICE</p><h2 id="mission-heading">The Night Ledger</h2><p class="brief-copy" id="briefing-text"></p><ol class="mission-steps" id="mission-steps"></ol><div class="rhythm"><span class="rhythm-dot"></span><p>Explore in real time.<br><b>Choose when to open fire.</b></p></div><button id="resume" class="resume" hidden>Resume your operation ↗</button></section>
     </div>
     <p id="tour-launch-status" class="tour-launch-status" role="status" hidden></p>
-    <footer class="deploy-bar"><div><span class="eyebrow">DEPLOYMENT READY</span><p id="build-summary"></p></div><button id="deploy" class="deploy">DEPLOY SOLO <span>↗</span></button></footer>
+    <footer class="deploy-bar"><div><span class="eyebrow">DEPLOYMENT READY</span><p id="build-summary"></p></div><button id="deploy" class="deploy" disabled>DEPLOY SOLO <span>↗</span></button></footer>
     <p class="source-note">Farmyard Fighters · Built on Farmyard Commando Real Time.</p>
   </main>
   <section id="battle" hidden aria-label="Solo operation">
@@ -83,6 +91,7 @@
   <dialog id="overlay"><div id="overlay-content"></div><div class="context-panel" id="context" hidden></div><div id="overlay-actions" class="dialog-actions"></div></dialog>
   <div class="toast" id="toast" role="status" hidden></div>
   <script type="importmap">{"imports":{"./designer/a20b343a0234/tactics/vendor/":"./aft/tactics/vendor/"}}</script>
-  <script type="module" src="app.js"></script>
+  <script src="game-start.js"></script>
+  <script id="game-entry" type="module" src="app.js"></script>
 </body>
 </html>

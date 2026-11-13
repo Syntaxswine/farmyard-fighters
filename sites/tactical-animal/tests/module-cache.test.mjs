@@ -12,7 +12,8 @@ test('a nested mission-art change versions its kit, manifest and game together w
   const read=name=>fs.readFileSync(path.join(out,name),'utf8');
   const build=()=>{execFileSync(process.execPath,[path.resolve('sites/tactical-animal/tools/build.mjs')],{cwd:fixture});return /src="app.js\?v=([a-f0-9]+)"/.exec(read('game.html'))[1];};
   try{
-    write('game.html','<script type="module" src="app.js"></script>');
+    write('game.html','<link rel="stylesheet" href="game-start.css"><script src="game-start.js"></script><script type="module" src="app.js"></script>');
+    write('game-start.js','// independent startup controller');
     write('app.js',"import {art} from './mission-art/test/kit.js'; import './aft/pinned.js';");
     write('mission-art/test/kit.js',"import {version} from './manifest.js'; import '../../app.js'; export const art=version;");
     write('mission-art/test/manifest.js',"export const version=1;");
@@ -21,8 +22,10 @@ test('a nested mission-art change versions its kit, manifest and game together w
     write('window-yard.js',"import {paneVersion} from './art/windows/catalog.js';");
     write('window-yard.html','<script type="module" src="window-yard.js"></script>');
     write('aft/pinned.js',"export const pinned=true;");
-    for(const asset of ['style.css','touch-controls.css','original-art.css','title-screen.css','map-frame.css','industrial-switches.css','field-hardware.css','realtime.css','icon.svg'])write(asset,'fixture');
+    for(const asset of ['style.css','touch-controls.css','original-art.css','title-screen.css','map-frame.css','industrial-switches.css','field-hardware.css','realtime.css','game-start.css','icon.svg'])write(asset,'fixture');
     const before=build();
+    assert.ok(read('game.html').includes(`src="game-start.js?v=${before}"`));
+    assert.match(read('game.html'),/href="game-start.css\?v=[a-f0-9]+"/);
     assert.ok(read('app.js').includes(`'./mission-art/test/kit.js?v=${before}'`));
     assert.ok(read('mission-art/test/kit.js').includes(`'./manifest.js?v=${before}'`));
     assert.ok(read('mission-art/test/kit.js').includes(`'../../app.js?v=${before}'`),'nested import resolves to the shared application instance');

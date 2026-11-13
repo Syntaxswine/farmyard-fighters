@@ -780,7 +780,11 @@ function frame(now){
   }
   view.sync(state,now);positionInteractionHand();if(now-lastUI>100){renderBattle();lastUI=now;}
 }
-renderPrep();requestAnimationFrame(frame);
+renderPrep();
+// Only reveal preparation after its choices and handlers are ready. The small
+// independent startup controller remains usable if any application import fails.
+document.body.dataset.gameReady='true';$('prep').inert=false;$('prep').setAttribute('aria-busy','false');$('game-startup').hidden=true;$('deploy').disabled=false;
+requestAnimationFrame(frame);
 
 // Read-only production diagnostics used by native acceptance; no state mutation or test teleports.
 export function inspectMountDora(){
