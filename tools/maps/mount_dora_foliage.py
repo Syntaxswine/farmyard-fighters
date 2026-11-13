@@ -14,6 +14,17 @@ TREE_PROFILES = {
     4: (5, 43, 10),
 }
 BRUSH_DENSITY = {2: 57, 3: 45}
+# A lidar crown's tree is mature from this height. It is a pine where the crown stands at
+# least twice as tall as it is wide: Florida's pines and palms run 2.5 to 4 times, its
+# laurel oaks and magnolias 1.3 to 1.8, its live oaks under 1. The game has no palm.
+CROWN_MATURE_M = 12
+CROWN_NARROW = 2
+
+
+def _json_number(value):
+    """A float as JSON readers in either language write it back: a whole number as an
+    int (house-parts.mjs re-encodes the sectors in JavaScript, which reads 21.0 as 21)."""
+    return int(value) if float(value).is_integer() else value
 
 
 def scatter_hash(x, y, salt=0):
@@ -35,7 +46,7 @@ def scatter(width, depth, spacing, salt):
                 yield x, y, seed
 
 
-def build_vegetation(features, terrain, green, blocked, width, depth, size, code, sector_id, *, reserved=()):
+def build_vegetation(features, terrain, green, blocked, width, depth, size, code, sector_id, *, reserved=(), retained=()):
     """Return native props, native AFT brush cells and the global trunk cells."""
     props_by_sector = defaultdict(list)
     foliage_by_sector = defaultdict(dict)
@@ -46,15 +57,18 @@ def build_vegetation(features, terrain, green, blocked, width, depth, size, code
         return (0 <= x < width and 0 <= y < depth and (x, y) not in protected
                 and terrain[y * width + x] in green_ground and not blocked[y * width + x])
 
-    def put(x, y, kind, habitat, source_id=None):
+    def put(x, y, kind, habitat, source_id=None, mature_variant=None):
         occupied.add((x, y))
         if kind.startswith("tree-"):
             tree_cells.add((x, y))
         sid = sector_id(x // size, y // size)
+        metadata = {"sourceId": source_id, "habitat": HABITATS[habitat],
+                    "placement": "mapped-tree-cell-proxy" if source_id else "declared-seeded-greenery"}
+        if mature_variant is not None:
+            metadata["matureVariant"] = mature_variant
         props_by_sector[sid].append({
             "x": x % size, "y": y % size, "z": 0, "kind": kind,
-            "mountDora": {"sourceId": source_id, "habitat": HABITATS[habitat],
-                          "placement": "mapped-tree-cell-proxy" if source_id else "declared-seeded-greenery"},
+            "mountDora": metadata,
         })
 
     for feature in features:
@@ -64,6 +78,15 @@ def build_vegetation(features, terrain, green, blocked, width, depth, size, code
         if clear(x, y) and (x, y) not in occupied:
             kind = "tree-pine" if feature["tags"].get("leaf_type") == "needleleaved" else "tree-broadleaf"
             put(x, y, kind, green[y * width + x], feature["id"])
+
+    for tree in retained:
+        x, y, kind, variant, habitat = (tree[key] for key in ("x", "y", "kind", "variant", "habitat"))
+        variants = {"tree-pine": 3, "tree-pine-large": 3, "tree-broadleaf-large": 4}
+        if (type(x) is not int or type(y) is not int or type(variant) is not int
+                or not 0 <= variant < variants.get(kind, 0) or habitat not in ("park", "wood")
+                or not clear(x, y) or (x, y) in occupied):
+            raise ValueError(f"Retained mature tree needs a clear, unique site at {x},{y}.")
+        put(x, y, kind, HABITATS.index(habitat), mature_variant=variant)
 
     for habitat, (spacing, chance, mature_chance) in TREE_PROFILES.items():
         for x, y, seed in scatter(width, depth, spacing, habitat):
@@ -106,3 +129,82 @@ def build_vegetation(features, terrain, green, blocked, width, depth, size, code
                 foliage_by_sector[sid][cell] = [BRUSH_DENSITY[habitat], False, "woodland-v1"]
 
     return props_by_sector, foliage_by_sector, tree_cells
+
+
+def plant_crowns(crowns, terrain, green, blocked, width, depth, size, code, sector_id,
+                 props_by_sector, foliage_by_sector, tree_cells, occupied, *, reserved=(), keep_clear=(), tally=None):
+    """One tree in each lidar crown that holds no trunk yet; returns how many.
+
+    `tally`, a dict when given, counts the crowns that get none: "held" (a trunk already
+    stands within the crown) and "noGround" (no clear cell within reach).
+
+    `crowns` are the 2018 lidar's tree crowns in town metres (id, top, centre, areaM2,
+    heightM, widthM). A crown holds a trunk when one stands within its radius of its
+    centre. Its tree's trunk goes on the clear ground nearest the crown's top within half
+    the crown's radius (at least a metre), two metres from any other trunk, off the
+    cells in `occupied` and `keep_clear` and off the woodland brush already painted (the
+    town refuses brush under a plant). It is mature from CROWN_MATURE_M tall, and a
+    pine where the crown stands CROWN_NARROW times as tall as it is wide. In woods and
+    wetland the woodland brush paints its understory, as around a seeded trunk. The
+    plants already in props_by_sector are left exactly as they are. A tree outside every
+    mapped habitat (a lawn, a verge) records its habitat as "unmapped".
+    """
+    if tally is not None:
+        tally.update(held=0, noGround=0)
+    green_ground = {code["ground-grass"], code["woodland"]}
+    protected, keep_clear = set(reserved), set(keep_clear)
+
+    def clear(x, y):
+        return (0 <= x < width and 0 <= y < depth and (x, y) not in protected
+                and terrain[y * width + x] in green_ground and not blocked[y * width + x])
+
+    def brushed(x, y):
+        return f"{x % size},{y % size},0" in foliage_by_sector.get(sector_id(x // size, y // size), {})
+
+    planted = []
+    for crown in crowns:
+        cx, cy = crown["centre"]
+        radius = math.sqrt(crown["areaM2"] / math.pi)
+        if any((x, y) in tree_cells and math.hypot(x + .5 - cx, y + .5 - cy) <= radius
+               for x in range(math.floor(cx - radius), math.floor(cx + radius) + 1)
+               for y in range(math.floor(cy - radius), math.floor(cy + radius) + 1)):
+            if tally is not None:
+                tally["held"] += 1
+            continue
+        tx, ty = crown["top"]
+        reach = max(1.0, radius / 2)
+        cells = sorted((math.hypot(x + .5 - tx, y + .5 - ty), y, x)
+                       for x in range(math.floor(tx - reach), math.floor(tx + reach) + 1)
+                       for y in range(math.floor(ty - reach), math.floor(ty + reach) + 1)
+                       if math.hypot(x + .5 - tx, y + .5 - ty) <= reach)
+        for _, y, x in cells:
+            if not clear(x, y) or (x, y) in occupied or (x, y) in keep_clear or brushed(x, y):
+                continue
+            if any((x + dx, y + dy) in tree_cells for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
+                continue
+            kind = "tree-pine" if crown["heightM"] >= CROWN_NARROW * crown["widthM"] else "tree-broadleaf"
+            occupied.add((x, y))
+            tree_cells.add((x, y))
+            planted.append((x, y))
+            props_by_sector[sector_id(x // size, y // size)].append({
+                "x": x % size, "y": y % size, "z": 0, "kind": kind + ("-large" if crown["heightM"] >= CROWN_MATURE_M else ""),
+                "mountDora": {"sourceId": crown["id"], "habitat": HABITATS[green[y * width + x]] or "unmapped", "placement": "lidar-crown",
+                              "crown": {"heightM": crown["heightM"], "widthM": crown["widthM"], "top": [_json_number(round(tx, 2)), _json_number(round(ty, 2))]}},
+            })
+            break
+        else:
+            if tally is not None:
+                tally["noGround"] += 1
+    # The understory around the new trunks, as build_vegetation paints it around seeded ones.
+    for x, y in planted:
+        habitat = green[y * width + x]
+        if habitat not in BRUSH_DENSITY:
+            continue
+        for brush_y in range(y - 2, y + 3):
+            for brush_x in range(x - 2, x + 3):
+                if not clear(brush_x, brush_y) or (brush_x, brush_y) in occupied:
+                    continue
+                if green[brush_y * width + brush_x] != habitat:
+                    continue
+                foliage_by_sector[sector_id(brush_x // size, brush_y // size)][f"{brush_x % size},{brush_y % size},0"] = [BRUSH_DENSITY[habitat], False, "woodland-v1"]
+    return len(planted)

@@ -4,8 +4,31 @@ The regular game can load the full 1440 × 1680 metre town as a free walking tou
 Open `game.html?activity=mount-dora`, choose an animal and equipment, then deploy.
 The link selects preparation only. Walking, joystick, keyboard, stance and camera
 controls and gameplay use the existing game. Firearms, grenades, flamethrowers,
-AP turns, injuries and fire are enabled. The activity has no objective or guards
-unless supplied by authored data; this does not disable the production actions.
+AP turns, injuries and fire are enabled. The town has 42 fictional guards with
+authored posts and patrols. It has no extraction objective.
+
+## Reviewed Mount Dora import
+
+The town map and artwork come from Farmyard Commando Real Time commit
+`8395204ce6b60aa20cc8936fc89fe4a40192920c`. The source pin, reviewed content
+hashes and Fighters adaptations are recorded in `mount-dora-import.json`.
+This import includes the revised street/building fit, depot treatment, railway,
+19 raised piers, 13 LiDAR-derived boathouse roofs and 17,171 trees. All 106
+retained mature specimens keep the positions and variants in
+`maps/mount-dora/source/retained-mature-trees.json`; historical moves in that
+file are provenance and must not be applied again.
+
+Town actors stand on the drawn 0.4 m pier decks. The same height is applied to
+Fighters' animated grenade release origin, and roof focus uses the raised eye
+height. The shared simulation body radius remains 0.23 m. Mature broadleaf
+models and stable plant-shadow flags are town-specific additions. The pine
+model shared with Pinewire Prison is byte-identical to the previous release.
+
+Fighters keeps its enemy-contact camera framing, object height/cover collision
+properties, combat rules, controls, startup recovery and prison content. Tour
+and operation storage continue to use the `farmyard-fighters:` namespace; the
+walking acceptance seeds both Commando releases' foreign keys to verify that
+they are neither offered for Resume nor changed.
 
 ## Coordinate and source contract
 
@@ -118,9 +141,10 @@ helpers have a fifteen-minute hard deadline and close in `finally`, recording
 process identities and released ports. Evidence is written to ignored
 `artifacts/mount-dora-walkthrough/` and retained by the dedicated CI workflow.
 
-Branch `codex/mount-dora-walkthrough` starts from published release `75a6b61` and
-includes reviewed combined map/art base `5218ffc`. The Architect owns combined
-release integration and promotion; this branch does not publish main or Pages.
+Farmyard Fighters publishes from `main` in `Syntaxswine/farmyard-fighters`.
+The Architect reviews map updates on task branches through this production
+game before promotion. Farmyard Commando Real Time is the pinned map source;
+it is not the destination for Fighters application or gameplay changes.
 
 Global pace, disabled stamina, elapsed stepping and visual cadence are described
 in [movement-runtime.md](movement-runtime.md).

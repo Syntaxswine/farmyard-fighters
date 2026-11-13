@@ -230,8 +230,10 @@ export const localAxisDeg = (bearingDeg, rotationDeg) => { const v = round((((be
 
 const SHIFT_COORDINATES = new Set(['frontGables']);
 const TREATMENT_KEYS = new Set(['type', 'wall', 'trim', 'roof', 'roofStyle', 'tint', 'stories', 'pitch', 'windowSpacing', 'veranda', 'roofFinish', 'roofAxis',
-  'roofRiseLimit', 'crossGable', 'ornate', 'frontGables', 'turret', 'baseWall', 'archedLowerWindows', 'cornice', 'annex']);
+  'roofRiseLimit', 'crossGable', 'ornate', 'frontGables', 'turret', 'baseWall', 'archedLowerWindows', 'cornice', 'annex', 'wallFinish', 'depot']);
 const TURRET_KEYS = new Set(['centre', 'radius', 'stories', 'capRiseFactor', 'placement']);
+// The depot records distances and normalized wall fractions, independent of town position.
+const DEPOT_KEYS = new Set(['eaveOverhang', 'chimney', 'eastSashes', 'southSashes', 'eastTrim']);
 
 // The art kit's treatment, moved by `shift` metres. Its town coordinates are
 // listed field by field; an unknown field refuses, so a new coordinate can
@@ -244,6 +246,9 @@ export function shiftTreatment(treatment, [sx, sy]) {
     else if (key === 'turret') {
       for (const k of Object.keys(value)) if (!TURRET_KEYS.has(k)) throw Error('Unknown turret field ' + k);
       out[key] = {...value, centre: [round(value.centre[0] + sx, 6), round(value.centre[1] + sy, 6)]};
+    } else if (key === 'depot') {
+      for (const k of Object.keys(value)) if (!DEPOT_KEYS.has(k)) throw Error('Unknown depot field ' + k);
+      out[key] = structuredClone(value);
     } else out[key] = value;
   }
   return out;

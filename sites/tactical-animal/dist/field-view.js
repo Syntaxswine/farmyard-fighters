@@ -568,7 +568,7 @@ export class FieldView {
         if(sample.pose.prone||sample.pose.kneel||sample.pose.down)a.posture.ground();
         if(throwAction){
           result=a.throwPose?.apply(sample,throwAction);
-          if(throwing&&result&&!throwing.flightStarted)throwing.releaseOrigin=result.origin.clone().add(V(sample.x,0,sample.y));
+          if(throwing&&result&&!throwing.flightStarted)throwing.releaseOrigin=result.origin.clone().add(V(sample.x,this.art?.surfaceHeight?.(sample.x,sample.y)??0,sample.y));
         }else{
           a.throwPose?.clear();
           if(!fire&&!flameReady&&alive)result=a.weaponPose?.apply(sample,action);
@@ -577,7 +577,7 @@ export class FieldView {
       a.crawlResult=crawling?result:undefined;
     }
     a.action=action;a.posing=posing;a.hadFlame=flaming;
-    a.root.position.set(sample.x,0,sample.y);a.root.updateMatrixWorld(true);a.worker.skeleton.update();
+    a.root.position.set(sample.x,this.art?.surfaceHeight?.(sample.x,sample.y)??0,sample.y);a.root.updateMatrixWorld(true);a.worker.skeleton.update();
     if(displayedWeapon==='rpg')for(const part of a.equipment.parts)
       if(['shaped RPG warhead','warhead shoulder seam','nose fuse'].includes(part.name))part.visible=(v.ammo.rpg||0)>0;
     if(fire||flameReady){

@@ -6,11 +6,13 @@ from math import atan2, ceil, degrees, dist, floor, sqrt
 
 WEAPON_MIX = ("pistol", "smg", "pistol", "rifle", "shotgun", "pistol", "smg")
 EXTRA_POSTS = ((1, 1), (3, 2), (4, 3))
-# Game coordinates of Donnelly deployment and the direct landmark arrivals.
-ARRIVALS = ((459, 500, 44), (477.5, 484.25, 32), (336, 810, 32),
-            (469.5, 1004.5, 32), (504, 1168, 32), (736.7963, 1180.867, 32),
-            (529, 1402, 32), (665.469, 1296.0786, 32), (433, 635, 32),
-            (414, 480, 32), (481, 598, 32), (328, 687, 32))
+# Game coordinates of Donnelly deployment and the direct landmark arrivals,
+# before each moves with the town at its place (the generator's approach_moves).
+ARRIVALS = {"launch": (459, 500, 44), "donnelly-park": (477.5, 484.25, 32), "lakeside-inn": (336, 810, 32),
+            "elizabeth-evans": (469.5, 1004.5, 32), "grantham-lighthouse": (504, 1168, 32),
+            "gilbert-park": (736.7963, 1180.867, 32), "palm-island": (529, 1402, 32),
+            "palm-entrance": (665.469, 1296.0786, 32), "historic-shopfronts": (433, 635, 32),
+            "donnelly-house": (414, 480, 32), "history-museum": (481, 598, 32), "former-depot": (328, 687, 32)}
 
 
 def _line_cells(a, b, step=.3):
@@ -76,13 +78,14 @@ def _record(guard_id, start, route, source, origin):
     return guard
 
 
-def author_guards(terrain, blocked, plants, roads, eligible_sectors, *, width, depth, size, code, anchors_by_sector=None):
+def author_guards(terrain, blocked, plants, roads, eligible_sectors, *, width, depth, size, code, anchors_by_sector=None, moves=None):
     forbidden = {code[key] for key in ("water", "floor", "bridge", "ground-wood-planks")}
     allowed = bytearray(value not in forbidden and not blocked[i] for i, value in enumerate(terrain))
     for x, y in plants:
         _reserve_disc(allowed, (x, y), 1.45, width, depth)
-    for x, y, radius in ARRIVALS:
-        _reserve_disc(allowed, (x, y), radius, width, depth)
+    for name, (x, y, radius) in ARRIVALS.items():
+        dx, dy = (moves or {}).get(name, (0, 0))
+        _reserve_disc(allowed, (x + dx, y + dy), radius, width, depth)
     for feature in roads:
         if not feature["nativeRoad"]["woodSurface"] or feature["geometry"]["type"] != "LineString":
             continue

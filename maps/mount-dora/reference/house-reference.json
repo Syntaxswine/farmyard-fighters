@@ -4,8 +4,8 @@
  "inputs": {
   "features": {
    "file": "maps/mount-dora/features.json",
-   "sha256OfFieldsRead": "33afcbbc035ba90bffe8c46d9840095709d5f041b6c2a16ec95e838decfadf6f",
-   "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geometry"
+   "sha256OfFieldsRead": "facf21e6262a1f37be37b79c2b2818919c7937783d488db7e106de16732a5215",
+   "fields": "OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geographicGeometry (else geometry)"
   },
   "county": {
    "file": "maps/mount-dora/reference/county/source.json",
@@ -3052,7 +3052,8 @@
   {
    "id": "osm-way-1240415886",
    "sectors": [
-    "F05"
+    "F05",
+    "F06"
    ],
    "centroid": [
     1238.56,
@@ -19696,8 +19697,6 @@
   {
    "id": "osm-way-1240419520",
    "sectors": [
-    "E03",
-    "E04",
     "F03",
     "F04"
    ],
@@ -25334,7 +25333,6 @@
   {
    "id": "osm-way-1240419576",
    "sectors": [
-    "E04",
     "E05"
    ],
    "centroid": [
@@ -25435,7 +25433,6 @@
   {
    "id": "osm-way-1240419577",
    "sectors": [
-    "E04",
     "E05"
    ],
    "centroid": [
@@ -73644,7 +73641,8 @@
   {
    "id": "osm-way-1241962369",
    "sectors": [
-    "D06"
+    "D06",
+    "E06"
    ],
    "centroid": [
     951.07,
@@ -78684,6 +78682,7 @@
   {
    "id": "osm-way-1241962514",
    "sectors": [
+    "E01",
     "F01"
    ],
    "centroid": [
@@ -83250,6 +83249,7 @@
   {
    "id": "osm-way-556562407",
    "sectors": [
+    "A03",
     "B03"
    ],
    "centroid": [
@@ -89729,8 +89729,7 @@
   {
    "id": "osm-way-558337892",
    "sectors": [
-    "B03",
-    "C03"
+    "B03"
    ],
    "centroid": [
     461.54,
@@ -97532,8 +97531,7 @@
   {
    "id": "osm-way-560095904",
    "sectors": [
-    "B03",
-    "B04"
+    "B03"
    ],
    "centroid": [
     287.92,

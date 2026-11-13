@@ -237,6 +237,10 @@ test('the art kit placement rebuilds exactly from each part', () => {
   const donnelly = byId.get('osm-way-547799531');
   assert.deepEqual(donnelly.appearance.treatment.turret.centre, [19, 14]);
   assert.throws(() => shiftTreatment({type: 'vernacular', porchCorner: [1, 2]}, [0, 0]), /Unknown art treatment field porchCorner/);
+  const depot = town.art.PLACEMENTS.find(p => p.id === 'osm-way-557494933').treatment;
+  assert.equal(depot.wallFinish, 'painted-white');
+  assert.deepEqual(shiftTreatment(depot, [50, -20]), depot, 'Moving a depot preserves its relative sash, chimney and eave measurements');
+  assert.throws(() => shiftTreatment({...depot, depot: {...depot.depot, absoluteCorner: [5, 8]}}, [50, -20]), /Unknown depot field absoluteCorner/);
 });
 
 test('a part on its own draws every facade; the town\'s neighbours are kept apart', () => {

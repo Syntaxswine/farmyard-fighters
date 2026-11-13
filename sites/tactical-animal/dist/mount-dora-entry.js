@@ -6,26 +6,28 @@ import {TownExplored} from './mount-dora-progress.js';
 import {TownEnvironment,drawTownMinimap} from './mount-dora-view.js';
 // Source-reviewed approaches in canonical town metres; open-shelter visits use
 // Architect-verified centres so the artwork and roof focus are immediately visible.
+// Each keeps its place beside its landmark as reviewed on main when the grid
+// streets were straightened (project.json generation.approachMovesM).
 export const TOUR_VISITS=Object.freeze([
-  {id:'donnelly-park',name:'Donnelly Park',town:[478,484.75]},
-  {id:'lakeside-inn',name:'Lakeside Inn',town:[336.5,810.5]},
+  {id:'donnelly-park',name:'Donnelly Park',town:[478,483.75]},
+  {id:'lakeside-inn',name:'Lakeside Inn',town:[334.5,808.5]},
   {id:'elizabeth-evans',name:'Elizabeth Evans Park',town:[470,1005]},
   {id:'grantham-lighthouse',name:'Grantham Point lighthouse',town:[504.5,1168.5]},
-  {id:'gilbert-park',name:'Gilbert Park',town:[737.2963,1181.367]},
+  {id:'gilbert-park',name:'Gilbert Park',town:[737.2963,1180.367]},
   {id:'palm-island',name:'Palm Island boardwalk',town:[529.5,1402.5]},
   {id:'palm-entrance',name:'Palm Island entrance',town:[665.969,1296.5786]},
-  {id:'historic-shopfronts',name:'Donnelly / Fourth shopfronts',town:[433.5,635.5]},
-  {id:'donnelly-house',name:'Donnelly House',town:[414.5,480.5]},
-  {id:'history-museum',name:'History Museum',town:[481.5,598.5]},
-  {id:'former-depot',name:'Former depot',town:[328.5,687.5]}
+  {id:'historic-shopfronts',name:'Donnelly / Fourth shopfronts',town:[434.5,636.5]},
+  {id:'donnelly-house',name:'Donnelly House',town:[414.5,479.5]},
+  {id:'history-museum',name:'History Museum',town:[480.5,598.5]},
+  {id:'former-depot',name:'Former depot',town:[326.5,685.5]}
 ]);
 async function readBytes(fetcher,url,signal,limit){
   const response=await fetcher(url,{signal,cache:'no-cache'});if(!response.ok)throw Error('Could not load town data (HTTP '+response.status+').');
   const bytes=await response.arrayBuffer();if(bytes.byteLength>limit)throw Error('Town document exceeds its supported size.');return bytes;
 }
-function restoreGuard(state,guard,saved,rosterChanged){
+function restoreGuard(state,guard,saved,rosterChanged,layoutChanged){
   const {name,patrol}=guard;
-  if(!rosterChanged){
+  if(!rosterChanged&&!layoutChanged){
     if(saved.patrolIndex!==undefined&&saved.patrolIndex>=(patrol?.length??0))throw Error('Unsupported saved patrol waypoint.');
     Object.assign(guard,structuredClone(saved),{name,patrol,isMoving:false});
     return;
@@ -34,7 +36,7 @@ function restoreGuard(state,guard,saved,rosterChanged){
   // proportional injuries while placing the revised roster at its new posts.
   const fresh={...guard};
   const previous=structuredClone(saved);
-  if(saved.hp>0){
+  if(saved.hp>0&&rosterChanged){
     Object.assign(guard,previous,fresh,{hp:Math.max(1,Math.round(fresh.maxHp*saved.hp/saved.maxHp))});
     if(guard.burningTurns)guard.ap=0;
   }else{
@@ -87,7 +89,8 @@ export async function loadTownTour({build,progress=null,signal,fetcher=globalThi
         for(const saved of r.guards||[]){
           const guard=state.units.find(u=>u.id===saved.id&&u.team==='guard');
           if(!guard||saved.species!==guard.species||!Core.WEAPONS[saved.weapon]||saved.slots.some(kind=>!Core.WEAPONS[kind]))throw Error('Unsupported saved town guard.');
-          restoreGuard(state,guard,saved,!!world.guardRosterVersion&&r.guardRosterVersion!==world.guardRosterVersion);
+          const rosterChanged=!!world.guardRosterVersion&&r.guardRosterVersion!==world.guardRosterVersion;
+          restoreGuard(state,guard,saved,rosterChanged,progress.sourceRevision!==world.sourceRevision);
         }
       }
       // Restore casualties through the normal body system before applying

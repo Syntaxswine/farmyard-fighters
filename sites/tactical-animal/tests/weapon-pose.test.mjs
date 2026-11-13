@@ -8,6 +8,7 @@ import {createWorkerLocomotion} from '../dist/aft/tactics/worker-locomotion.js';
 import {createBattlePosture} from '../dist/aft/tactics/battle-posture.js';
 import {createCrawlPose} from '../dist/crawl-pose.js';
 import {createWeaponPose} from '../dist/weapon-pose.js';
+import {createGrenadePose} from '../dist/grenade-pose.js';
 import {V,Q,weaponGrip} from '../dist/weapon-pose-rig.js';
 import {FieldView} from '../dist/field-view.js';
 import {Core,DEFAULT_BUILD,createSoloGame,geometry,hero,lineClear,tick} from '../dist/solo-game.js';
@@ -88,6 +89,23 @@ function wallYard(){
   map.guards=[{x:28,y:25,heading:0,species:'pig-foreman',weapon:'pistol'}];
   return Core.enableRealtime(createSoloGame(DEFAULT_BUILD,42,WINDOW_REVIEW_ID,{authoredMap:map}));
 }
+
+test('a raised town deck lifts the actor and the animated grenade release together',()=>{
+  const state=wallYard(),unit=hero(state),rig=sheepRig('assault'),root=new Group();
+  root.add(rig.worker.root);
+  const throwPose=createGrenadePose(rig.worker,rig.profile);
+  const actor={root,worker:rig.worker,locomotion:rig.locomotion,posture:rig.posture,weapon:'assault',equipment:rig.gun,weaponPose:rig.action,throwPose};
+  const shot={at:1000,event:{weapon:'grenade',ax:unit.x,ay:unit.y,bx:unit.x+6,by:unit.y}};
+  const view=Object.assign(Object.create(FieldView.prototype),{state,discharges:new Map([[unit.id,shot]])});
+  const draw=()=>view.poseActor(actor,state,unit,{...unit,distance:0,blend:0,pose:{prone:0,kneel:0,down:0,dead:0}},1000,1/60,unit.weapon,unit);
+  try{
+    draw();const flat=shot.releaseOrigin.clone();assert.equal(root.position.y,0);
+    view.art={surfaceHeight:()=>.4};draw();
+    assert.equal(root.position.y,.4);assert.ok(Math.abs(shot.releaseOrigin.y-flat.y-.4)<1e-8);
+    assert.ok(Math.hypot(shot.releaseOrigin.x-flat.x,shot.releaseOrigin.z-flat.z)<1e-8);
+    delete view.art;draw();assert.equal(root.position.y,0);assert.ok(shot.releaseOrigin.distanceTo(flat)<1e-8);
+  }finally{throwPose.dispose();rig.dispose();}
+});
 
 test('a delayed burst round keeps its committed tracer after the shooter moves behind a wall',()=>{
   const state=wallYard();

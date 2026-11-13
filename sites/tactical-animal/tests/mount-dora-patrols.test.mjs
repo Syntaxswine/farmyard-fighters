@@ -90,3 +90,22 @@ test('a pre-patrol checkpoint gets the new roster without reviving a fallen sent
     assert(guards(restored).some(g=>g.hp>0&&g.patrol?.length===2));
   }finally{for(const s of [restored,original])getTourWorld(s)?.dispose();}
 });
+
+test('a moved street restarts the saved guard on the current patrol with its health and ammunition',async()=>{
+  const original=Core.enableRealtime(await load());
+  let restored;
+  try{
+    const saved=JSON.parse(encodeSave(original));
+    saved.sourceRevision='0'.repeat(64);
+    const guard=saved.runtime.guards.find(g=>g.id===2),post=guards(original).find(g=>g.id===guard.id);
+    Object.assign(guard,{x:post.x-4,patrolIndex:1,hp:post.hp-5});
+    guard.ammo[guard.weapon]=1;
+    restored=Core.enableRealtime(await load(readTourProgress(JSON.stringify(saved))));
+    const current=guards(restored).find(g=>g.id===guard.id);
+    assert.deepEqual([current.x,current.y],[post.x,post.y]);
+    assert.equal(current.hp,guard.hp);
+    assert.equal(current.ammo[current.weapon],1);
+    assert.deepEqual(current.patrol,post.patrol);
+    assert.equal(current.patrolIndex,undefined);
+  }finally{for(const s of [restored,original])getTourWorld(s)?.dispose();}
+});

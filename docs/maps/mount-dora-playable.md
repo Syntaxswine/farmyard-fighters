@@ -1,8 +1,5 @@
 # Mount Dora walking tour
 
-These notes record the original tour. See the [Farmyard Fighters project](../../README.md)
-for the later real-time version with sentries.
-
 The playable integration starts from released Farmyard `75a6b61` and the
 reviewed Nautilus `2502646482218524fd5129641da769bb82462e4d`. The runtime and
 production artwork are implemented on separate branches and reviewed together.
@@ -31,8 +28,31 @@ Buildings now follow **one-metre tile edges**. Shared building groups are fitted
 together, retaining both courtyard holes and all 30 shared-owner relationships.
 `authored-buildings.json` supplies the native walls, floor/upper masks, artwork
 and collision. Each building retains its original `geographicGeometry` alongside
-its authored geometry in `features.json`. The depot has a recorded 6.2 m
-relocation to keep its proportions while clearing the unchanged streets.
+its authored geometry in `features.json`. Straight downtown streets and their
+frontages now share whole-metre lines. Curved roads retain their authored bends.
+The depot moved with its street and is 6.75 m from its geographic centre.
+The relocated façade was reviewed against May 2025 Street View on November 10,
+2026. The east eave projects 0.4 m and leaves 4.6 m to the painted Alexander
+Street sidewalk. The south and west eaves finish at the wall face beside the
+service lane. The reviewed trim, roof and windows are documented in the
+[art sources](../art/mount-dora/production-sources.json).
+
+The lakefront adds 19 source-mapped piers raised 0.4 m on AFT timber trellises,
+including the reviewed Rusty Anchor T junction. The disused railway uses the
+pinned Nautilus visual kit. These additions use the same streamed tour terrain
+and collision checks as the rest of town.
+
+The retention plan in `maps/mount-dora/source/retained-mature-trees.json` records
+all 52 mature pines and 54 mature broadleaves from the prior release. Three
+trunks moved to clear nearby sites by at most five metres. The other 103 use
+their original coordinates, and each keeps its original model variant.
+
+The November 12 integration adds 3,802 trees in canopy gaps identified in the
+December 2018 LiDAR, with the existing mature specimens retained. Thirteen
+roofs over the lake use the measured roof pieces and eave heights. Their
+supports are inferred, with posts placed clear of mapped pier decks. The
+revised pier corners and body-based walking height are checked through the
+production tour, including the roof fade under the Rusty Anchor covered pier.
 
 Five open stage/shelter decks also use integer-edge plans. The mapped Palm
 Island pavilion has bridge support under its deck and a clear connection to the

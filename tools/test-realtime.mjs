@@ -159,6 +159,37 @@ try{
   assert.equal(resumed.kills,1);assert.equal(resumed.guards.find(g=>g.id===sentry.id).hp,0);
   assert(resumed.objects.some(o=>o.id==='body:'+sentry.id));assert.equal(resumed.ammo,won.ammo);
   mark('Mount Dora uses production return fire, Fire at Will, body registration and casualty persistence');
+
+  // Resume at a surveyed dock cell, then walk both legs of the authored T.
+  if(resumed.autoFire)await page.locator('#end-turn').click();
+  await resumeTownAt(page,{x:146,y:641});
+  const dock=await wait(page,t=>t.ready&&t.actor.standY===.4&&t.render?.landmarks?.residentIds.includes('md:pier:556100376:10:0'),
+    'Rusty Anchor raised pier',90000,townSnapshot);
+  assert.equal(dock.player.ground,'bridge');
+  await moveTo(page,{x:136,y:641});
+  const covered=await wait(page,t=>t.ready&&t.actor.visible&&t.actor.standY===.4&&
+    t.render?.landmarks?.fadedPlacements.includes('md:water-roof:3'),
+    'Rusty Anchor covered pier exposes the animal',25000,townSnapshot);
+  assert.equal(covered.player.ground,'bridge');
+  await screenshot(page,'mount-dora-covered-pier');
+  mark('Mount Dora uses the LiDAR boathouse roof and fades it while the animal walks underneath');
+  await moveTo(page,{x:136,y:646});
+  const branch=await wait(page,t=>!t.queueLength&&t.player.ground==='bridge','Rusty Anchor T branch',25000,townSnapshot);
+  assert.equal(branch.actor.standY,.4);
+  await screenshot(page,'mount-dora-rusty-anchor');
+  await pointClick(page,{x:139,y:645,h:0});
+  await page.waitForTimeout(450);
+  const water=await townSnapshot(page);
+  assert(Math.hypot(water.player.x-branch.player.x,water.player.y-branch.player.y)<.08);
+  mark('Mount Dora walks the raised Rusty Anchor T while unsupported water blocks movement');
+
+  await resumeTownAt(page,{x:319,y:716});
+  await wait(page,t=>t.ready&&t.render?.landmarks?.residentIds.includes('md:railway:146637676:2:0'),'Sorrento railway artwork',90000,townSnapshot);
+  await moveTo(page,{x:321,y:715});
+  assert.equal((await townSnapshot(page)).player.ground,'ground-gravel');
+  await moveTo(page,{x:324,y:712});
+  await screenshot(page,'mount-dora-rail-crossing');
+  mark('Mount Dora crosses the rendered Nautilus railway on supported ground');
   assert.equal(log.errors.length,0,JSON.stringify(log.errors));assert.equal(log.requests.length,0,JSON.stringify(log.requests));await context.close();
  }
  for(const phone of [false,true]){

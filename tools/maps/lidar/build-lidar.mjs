@@ -10,6 +10,10 @@
 //   reference/lidar/bare-earth.png           1 m terrain, centimetres above NAVD88
 //   reference/lidar/bare-earth-source.png    per cell: 0 measured, 1 filled, 2 water
 //   reference/lidar/bare-earth.json          grid definition, encoding, statistics
+//   reference/lidar/crowns.json              tree crowns: top, centre, area,
+//                                            height and width of each
+//   reference/lidar/water-roofs.json         roofs over the lake no outline
+//                                            covers: boathouses, covered slips
 //   reference/county-buildings.json          county-sketched buildings the game
 //                                            lacks, placed on their roofs
 //                                            (county-buildings.mjs), each with
@@ -29,13 +33,16 @@ import {ADDRESS_NEAR_M, ADDRESS_SLACK_M, aerialUrl, planStreetView, VIEW_RADIUS_
 import {cacheDir, MARGIN_M} from './fetch-lidar.mjs';
 import {loadPoints, pointsIn} from './points.mjs';
 import {classifyRoof, median, percentile, ROOF} from './roofs.mjs';
+import {canopyHeights, findCrowns, roofCrowns, CROWNS} from './crowns.mjs';
+import {findWaterRoofs, WATER_ROOFS} from './water-roofs.mjs';
 import {decodePng, encodePng, fillGaps, maskOf} from './raster.mjs';
 import {brief, occupancy, PLACE, placeCountyBuildings, underfoot} from './county-buildings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const town = path.join(root, 'maps/mount-dora'), ref = path.join(town, 'reference'), out = path.join(ref, 'lidar');
 const targets = {roofs: path.join(ref, 'lidar-roofs.json'), county: path.join(ref, 'county-buildings.json'), terrain: path.join(out, 'bare-earth.json'),
-  elevation: path.join(out, 'bare-earth.png'), source: path.join(out, 'bare-earth-source.png')};
+  elevation: path.join(out, 'bare-earth.png'), source: path.join(out, 'bare-earth-source.png'), crowns: path.join(out, 'crowns.json'),
+  waterRoofs: path.join(out, 'water-roofs.json')};
 const hash = data => createHash('sha256').update(data).digest('hex');
 const r2 = v => v === null || Number.isNaN(v) ? null : Math.round(v * 100) / 100, r1 = v => v === null || Number.isNaN(v) ? null : Math.round(v * 10) / 10;
 const r3 = v => Math.round(v * 1000) / 1000;
@@ -302,6 +309,14 @@ export async function build() {
   }
 
   const reg = registration(index, houses);
+  // Tree crowns over the game extent, found in the lidar's frame and moved into the
+  // town (OSM) frame by taking the outline registration out.
+  // The crowns the penetration rule drops are found by finding the crowns once more
+  // without it; roofCrowns takes out the roofs once the drawn outlines are known.
+  const canopy = canopyHeights(index, (x, y) => gridZ([x, y]), extent);
+  const toTown = c => ({...c, top: [c.top[0] - reg.dx, c.top[1] - reg.dy], centre: [c.centre[0] - reg.dx, c.centre[1] - reg.dy]});
+  const foundCrowns = findCrowns(canopy).map(toTown), kept = new Set(foundCrowns.map(c => c.top.join(',')));
+  const notFoliage = findCrowns(canopy, {...CROWNS, minMultiShare: 0}).map(toTown).filter(c => !kept.has(c.top.join(',')));
   const analyseAll = (dx, dy) => houses.map(house => {
     const g = shift(house.geometry, reg.dx + dx, reg.dy + dy), a = analyse(index, {...house, centre: [house.centre[0] + reg.dx + dx, house.centre[1] + reg.dy + dy]}, g, gridZ);
     return record(house, a);
@@ -361,8 +376,8 @@ export async function build() {
   const asGame = (id, mp) => ({id, geometry: mp, box: bounds(mp)});
   const placedCounty = placeCountyBuildings({sketches: houseRef.countyOnly, holders, base: reg, grid: occupancy(index),
     games: [...houses.map(h => asGame(h.feature.id, h.geometry)),
-      ...(JSON.parse(featuresBytes).authoredStructures ?? []).map(s => asGame(s.id, s.geometry.coordinates)),
-      ...features.filter(f => isOsm(f) && f.tags.parking === 'multi-storey' && f.geometry.type === 'MultiPolygon').map(f => asGame(f.id, f.geometry.coordinates))]});
+      ...(JSON.parse(featuresBytes).authoredStructures ?? []).map(s => asGame(s.id, (s.geographicGeometry ?? s.geometry).coordinates)),
+      ...features.filter(f => isOsm(f) && f.tags.parking === 'multi-storey' && f.geometry.type === 'MultiPolygon').map(f => asGame(f.id, (f.geographicGeometry ?? f.geometry).coordinates))]});
   const saw = (b, seen) => b.roofShare >= PLACE.roofAt ? 'class-6 roof'
     : seen.raisedShare >= .5 ? 'raised returns without the building class: a deck classed as ground, or a roof under trees'
     : seen.groundShare >= .5 ? 'open ground in December 2018; placed on the county record alone' : 'too few returns to tell';
@@ -381,6 +396,13 @@ export async function build() {
       streetView, aerialUrl: aerialUrl(centre, toLatLon)};
   });
   const tally = (list, fn) => Object.fromEntries([...list.reduce((m, x) => m.set(fn(x), (m.get(fn(x)) || 0) + 1), new Map())].sort());
+  // Roofs over the lake that no drawn outline covers: OSM and county buildings, and the
+  // generator's own structures (the mapped shelters among them). All in the OSM frame: the
+  // generator writes a structure's geographicGeometry only when the town moved it, so one
+  // without it never moved and its geometry is the OSM frame's.
+  const drawn = [...houses.map(h => h.geometry), ...placedCounty.buildings.map(b => b.geometry),
+    ...(JSON.parse(featuresBytes).authoredStructures ?? []).map(st => (st.geographicGeometry ?? st.geometry).coordinates)];
+  const {roofs: waterRoofs, leftOut: waterLeftOut} = findWaterRoofs(index, {lake, drawn, reg, level: t.level, extent});
   const countyCompared = countyBuildings.filter(b => b.county.suggested.stories && b.lidar.storeysFromLidar);
   const countyDoc = {kind: 'mount-dora-county-buildings', version: 1,
     inputs: {features: featuresPin(featuresBytes), houseReference: {file: 'maps/mount-dora/reference/house-reference.json', sha256: hash(countyBytes), usedFor: 'countyOnly sketches and the records game buildings hold'},
@@ -442,8 +464,46 @@ export async function build() {
     stats: {minM: lo / 100, maxM: hi / 100, measuredShare: r3(measured / kind.length), filledShare: r3((kind.length - measured - wet) / kind.length), waterShare: r3(wet / kind.length),
       lakeLevelM: r2(t.level), lakeLevelFt: r2(t.level / .3048), lakeWaterReturns: t.waterReturns},
     collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]}};
+  const pieces = waterRoofs.flatMap(w => w.pieces);
+  const waterRoofsDoc = {kind: 'mount-dora-lidar-water-roofs', version: 4, inputs: {features: featuresPin(featuresBytes), lidar: roofs.inputs.lidar},
+    policy: 'Public-domain USGS 3DEP lidar, flown in December 2018. Roofs the lidar sees on Lake Dora where no OpenStreetMap or county outline exists: boathouses and covered slips. The art kit draws each piece as a roof on posts; walls, if any, are unknown.',
+    collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]},
+    method: {rules: WATER_ROOFS,
+      roofs: `Building (class 6) returns, moved into the town frame by the outline registration (${reg.dx}, ${reg.dy}) m and binned in ${WATER_ROOFS.cellM} m cells; two cells join into one roof, over land and water alike, where some return of one lies within ${WATER_ROOFS.joinM} m of some return of the other (cells up to two apart are compared, so a roof is its returns' own cluster at that distance, wherever the grid falls). A roof is kept when at least ${WATER_ROOFS.lakeReachM2} m² of it lies in Lake Dora's OSM outline, and at most ${WATER_ROOFS.drawnShareMax * 100}% of it inside an outline the game draws (OSM and county buildings, the generator's structures). A roof joined to a drawn one beyond that share is that building's own (a wing, a porch, an attached boathouse its county sketch leaves out) and is not kept.`,
+      outline: `Cells within ${WATER_ROOFS.drawnMarginM} m of a drawn outline are left to it. The rest of a roof splits into parts that join eight ways; a part of ${WATER_ROOFS.minAreaM2} m² or more is outlined by rectangles in its own frame (pieces): the smallest rectangle around it, unless that roofs over an open rectangle of ${WATER_ROOFS.pieceMinM2} m², ${WATER_ROOFS.pieceMinWidthM} m wide, its cells (closed by a 3 x 3 square) do not fill; otherwise the largest rectangles its cells fill, one after another, in the frame where the largest is biggest, while one of that size remains. A piece stands over water where ${WATER_ROOFS.pieceLakeMin * 100}% of it lies in the lake's outline, or where the lidar sees water around it: ${WATER_ROOFS.ringReadMin * 100}% of the cells within ${WATER_ROOFS.ringM} m read as water or ground (no roof over them; the cells under the piece's own roof are no part of its ring) and ${WATER_ROOFS.ringWaterMin * 100}% of those read as water (water returns, or no return at all: calm water returns none). A dock or reeds in the water read as water too: a cell within ${WATER_ROOFS.dockReachM} m of such water, with no ground return (classes 2 and 20) and most of its returns between half a metre under the lake's level and ${WATER_ROOFS.lowM} m over it. The rest are left out: 'not over water' where what is read of the ring is not water, 'too little read around it' where it is water but under ${WATER_ROOFS.ringReadMin * 100}% of the ring is read, or nothing is read. The pieces kept form groups, joined where their returns lie within ${WATER_ROOFS.joinM} m of one another; a group under half in the lake's outline by area that touches a piece left out as not over water is part of what stands on land, and is left out with it, recording the group's share (groupLakeShare) and how many such pieces it touched (landTouched); a group that touches one and stays records its share on each of its pieces. Each roof counts the pieces it leaves out on land (onLand: not over water, or with such a group) apart from those too little read (unread). All are listed in leftOut with their measures. Parts under ${WATER_ROOFS.minAreaM2} m², a part's cells no piece covers, and roofs left with none, go without a record. nearBar lists, for each piece and record, the measures within ${WATER_ROOFS.barBand} of their bar that decide it (moved across the bar alone, they would keep it, leave it out, or change why): shares counted in grid cells, which may fall either way as the grid or the registration moves.`,
+      heights: 'Per piece, from its own returns, in metres above the lake\'s lidar level: the eave from the roof planes as in lidar-roofs.json (the 25th percentile where none is found), the ridge at the 98th percentile; form and pitch by the same rules (roofs.mjs).'},
+    lakeLevelM: r2(t.level),
+    metrics: {roofs: waterRoofs.length, pieces: pieces.length, piecesAreaM2: r1(pieces.reduce((n, p) => n + p.areaM2, 0)), roofsAreaM2: r1(waterRoofs.reduce((n, w) => n + w.areaM2, 0)),
+      leftToOutlinesM2: r1(waterRoofs.reduce((n, w) => n + w.leftToOutlinesM2, 0)), leftOut: waterLeftOut.length, leftOutM2: r1(waterLeftOut.reduce((n, p) => n + p.areaM2, 0)), forms: tally(pieces, p => p.form)},
+    roofs: waterRoofs.map((w, i) => ({id: `lidar-water-roof-${i}`, areaM2: r2(w.areaM2), lakeShare: r3(w.lakeShare), drawnShare: r3(w.drawnShare), leftToOutlinesM2: r2(w.leftToOutlinesM2),
+      outlinedM2: r2(w.outlinedM2), coverage: r3(w.coverage), onLand: {pieces: w.onLand.pieces, areaM2: r2(w.onLand.areaM2)}, unread: {pieces: w.unread.pieces, areaM2: r2(w.unread.areaM2)}, returns: w.returns,
+      pieces: w.pieces.map(p => ({outline: p.outline.map(q => q.map(r2)), areaM2: r2(p.areaM2), fill: r3(p.fill), angleDeg: r1(p.angleDeg), eaveM: r2(p.eaveM), ridgeM: r2(p.ridgeM),
+        form: p.form, confidence: r3(p.confidence), pitchDeg: p.pitchDeg === null ? null : r1(p.pitchDeg), ridgeBearingDeg: p.ridgeBearingDeg === null ? null : r1(p.ridgeBearingDeg), returns: p.returns, lakeShare: r3(p.lakeShare), ringRead: r3(p.ringRead), ringWater: p.ringWater === null ? null : r3(p.ringWater), nearBar: p.nearBar, ...(p.groupLakeShare === undefined ? {} : {groupLakeShare: r3(p.groupLakeShare)})}))})),
+    leftOut: waterLeftOut.map(p => ({outline: p.outline.map(q => q.map(r2)), areaM2: r2(p.areaM2), reason: p.reason, returns: p.returns,
+      ...(p.lakeShare === undefined ? {} : {lakeShare: r3(p.lakeShare), ringRead: r3(p.ringRead), ringWater: p.ringWater === null ? null : r3(p.ringWater), nearBar: p.nearBar}),
+      ...(p.groupLakeShare === undefined ? {} : {groupLakeShare: r3(p.groupLakeShare), landTouched: p.landTouched})}))};
+  const sortedOf = list => Float64Array.from(list).sort();
+  const row = c => [r2(c.top[0]), r2(c.top[1]), r2(c.centre[0]), r2(c.centre[1]), r2(c.areaM2), r2(c.heightM), r2(c.widthM), r3(c.multiShare), c.topShare === null ? null : r3(c.topShare)];
+  const roofTops = roofCrowns(foundCrowns, drawn), crowns = foundCrowns.filter(c => !roofTops.includes(c));
+  const crownHeights = sortedOf(crowns.map(c => c.heightM)), crownWidths = sortedOf(crowns.map(c => c.widthM)), crownShares = sortedOf(crowns.map(c => c.multiShare));
+  const crownsDoc = {kind: 'mount-dora-lidar-crowns', version: 3, inputs: {lidar: roofs.inputs.lidar, features: featuresPin(featuresBytes)},
+    policy: 'Public-domain USGS 3DEP lidar, flown in December 2018. Each crown is canopy the lidar saw that reads as a tree; a few are roofs or thickets these rules cannot tell from one (docs/maps/mount-dora/grid-shapes-followups.md lists the known ones). build-mount-dora.py plants one tree in each crown its seeded greenery leaves empty; nothing here edits the sectors or the art kit.',
+    collection: {dataset: source.dataset, acquired: [collection.acquired.first, collection.acquired.last]},
+    method: {rules: CROWNS,
+      canopy: `The highest unclassified (class 1) return over the bare earth in each ${CROWNS.cellM} m cell, where it stands ${CROWNS.tallM} m or more above it and the cell holds no building (class 6) return. This vendor classes no vegetation, so wires, poles, signs and roofs it left unclassified are among it.`,
+      crowns: `Each canopy cell climbs a 3 x 3 mean of the canopy to the top it reaches. Neighbouring tops are one crown unless the lower stands ${CROWNS.prominenceM} m above the saddle between them, merged highest saddle first and never into a crown over ${CROWNS.maxAreaM2} m². A crown under ${CROWNS.minAreaM2} m² or under ${CROWNS.minWidthM} m across (four standard deviations along its minor axis) is dropped.`,
+      foliage: `A crown is kept only where at least ${CROWNS.minMultiShare * 100}% of its canopy returns (unclassified, ${CROWNS.tallM} m or more up) came from pulses that returned more than once: foliage lets a pulse through, a wire, pole, sign or roof left unclassified stops it. multiShare records each crown's share and topShare that of the canopy returns within ${CROWNS.topM} m of its top (null where none stands there); notFoliage lists the crowns the rule drops.`,
+      roofs: `A crown centred inside an outline the game draws (OSM and county buildings, the generator's structures) whose top stops the scanner (topShare under ${CROWNS.minMultiShare * 100}%) and which as a whole reads under ${CROWNS.roofShare * 100}% is that building's roof, left unclassified; a tree overhanging a roof lets the scanner through across its crown. roofTops lists them.`,
+      frame: `Town metres in the OSM frame: the lidar position minus the outline registration of lidar-roofs.json (${reg.dx}, ${reg.dy}) m, which features.json's OSM outlines set.`},
+    metrics: {crowns: crowns.length, notFoliage: notFoliage.length, roofTops: roofTops.length, canopyAreaHa: r2(crowns.reduce((s, c) => s + c.areaM2, 0) / 1e4),
+      multiShare: {p10: r3(percentile(crownShares, .1)), p50: r3(percentile(crownShares, .5))},
+      heightM: {p10: r2(percentile(crownHeights, .1)), p50: r2(percentile(crownHeights, .5)), p90: r2(percentile(crownHeights, .9))},
+      widthM: {p10: r2(percentile(crownWidths, .1)), p50: r2(percentile(crownWidths, .5)), p90: r2(percentile(crownWidths, .9))}},
+    columns: ['topX', 'topY', 'centreX', 'centreY', 'areaM2', 'heightM', 'widthM', 'multiShare', 'topShare'],
+    crowns: crowns.map(row), notFoliage: notFoliage.map(row), roofTops: roofTops.map(row)};
   return {roofsText: JSON.stringify(roofs, null, 1) + '\n', countyText: JSON.stringify(countyDoc, null, 1) + '\n',
-    terrainText: JSON.stringify(terrainDoc, null, 1) + '\n', elevationPng, sourcePng, elevation, kind};
+    terrainText: JSON.stringify(terrainDoc, null, 1) + '\n', crownsText: JSON.stringify(crownsDoc) + '\n', waterRoofsText: JSON.stringify(waterRoofsDoc, null, 1) + '\n',
+    elevationPng, sourcePng, elevation, kind};
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -455,13 +515,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     assert.equal(hash(fs.readFileSync(targets.roofs)), hash(built.roofsText), 'lidar-roofs.json is stale; rerun without --check.');
     assert.equal(hash(fs.readFileSync(targets.county)), hash(built.countyText), 'county-buildings.json is stale; rerun without --check.');
     assert.equal(hash(fs.readFileSync(targets.terrain)), hash(built.terrainText), 'bare-earth.json is stale; rerun without --check.');
+    assert.equal(hash(fs.readFileSync(targets.crowns)), hash(built.crownsText), 'crowns.json is stale; rerun without --check.');
+    assert.equal(hash(fs.readFileSync(targets.waterRoofs)), hash(built.waterRoofsText), 'water-roofs.json is stale; rerun without --check.');
     // PNG bytes depend on the zlib build; the samples must match exactly.
     assert.equal(hash(Buffer.from(decodePng(fs.readFileSync(targets.elevation)).samples.buffer)), hash(Buffer.from(built.elevation.buffer)), 'bare-earth.png is stale.');
     assert.equal(hash(Buffer.from(decodePng(fs.readFileSync(targets.source)).samples.buffer)), hash(Buffer.from(built.kind.buffer)), 'bare-earth-source.png is stale.');
-    console.log(`Lidar roofs and terrain are current (${((Date.now() - started) / 1000).toFixed(0)} s).`);
+    console.log(`Lidar roofs, terrain, crowns and water roofs are current (${((Date.now() - started) / 1000).toFixed(0)} s).`);
   } else {
     fs.mkdirSync(out, {recursive: true});
     fs.writeFileSync(targets.roofs, built.roofsText); fs.writeFileSync(targets.county, built.countyText); fs.writeFileSync(targets.terrain, built.terrainText);
+    fs.writeFileSync(targets.crowns, built.crownsText); fs.writeFileSync(targets.waterRoofs, built.waterRoofsText);
     fs.writeFileSync(targets.elevation, built.elevationPng); fs.writeFileSync(targets.source, built.sourcePng);
     const r = JSON.parse(built.roofsText);
     console.log(JSON.stringify({collection: r.collection.acquired, density: r.collection.densityPerM2, registration: {dx: r.registration.dx, dy: r.registration.dy},

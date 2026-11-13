@@ -5,9 +5,13 @@ import {trunkDistance,trunkSpan} from './trunk-geometry.js';
 import {MATURE_TREE_SCALE} from './aft/tactics/biome-foliage-data.js';
 import {groundHash} from './aft/tactics/biome-ground-composition.js';
 import {maturePinesForSector,MATURE_PINE_STYLES} from './mount-dora-pines.js';
+import {matureBroadleavesForSector,MATURE_BROADLEAF_STYLES} from './mount-dora-broadleaf.js';
 import {patrolError} from './aft/tactics/character-patrol.js';
 import {woodlandDepth} from './designer/a20b343a0234/tactics/core/woodland.js';
 import {foliageDepth} from './designer/a20b343a0234/tactics/foliage-data.js';
+// The tour walker's body radius, in metres: what pointClear keeps clear, and what the
+// town's art lifts onto a raised deck when it overlaps one.
+export const WALKER_RADIUS=.23;
 export const TOWN_LIMITS=Object.freeze({decodedSectors:9,concurrentFetches:2,pendingFetches:9,sectorBytes:4_000_000});
 export const TOWN_GROUNDS=Object.freeze(['ground-grass','water','woodland','ground-dirt','ground-gravel','ground-asphalt','ground-concrete','ground-wood-planks','bridge','floor']);
 const groundKinds=new Set(TOWN_GROUNDS),EPS=1e-7,BUCKET=8;
@@ -15,6 +19,7 @@ const sentryWeapons=new Set(['pistol','smg','rifle','shotgun']);
 const nativeSentries=s=>s.guards??(s.guard?[s.guard]:[]);
 const nativePoint=p=>p&&[p.x,p.y].every(n=>Number.isInteger(n)&&n>=0&&n<240)&&p.z===0;
 const sentryFields=g=>[g?.id,g?.x,g?.y,g?.z,g?.species,g?.weapon,g?.heading,g?.patrolSource,Array.isArray(g?.patrol)?g.patrol.map(p=>[p?.x,p?.y,p?.z,p?.waitSeconds]):g?.patrol];
+const roofedScenery=new Set(['building','pavilion','lighthouse','stage']);
 const plantKinds=new Set(['tree-broadleaf','tree-pine','tree-broadleaf-large','tree-pine-large','bush','reeds']);
 export const sha256=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 const intersect=(a,b)=>a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];
@@ -68,7 +73,7 @@ export function validateTownProject(p){
   if(withPatrols&&guardIds.size!==42)throw Error('The town needs 42 authored sentries.');
   return p;
 }
-export function decodeTownSector(raw,sector,visualReplacement=new Set(),physicalReplacement=new Set()){
+export function decodeTownSector(raw,sector,visualReplacement=new Set(),physicalReplacement=new Set(),roofBounds=[]){
   if(raw?.version!==2||raw.width!==240||raw.height!==240||raw.mountDora?.sectorId!==sector.id||!Array.isArray(raw.terrain)||raw.terrain.length!==240||raw.terrain.some(row=>!Array.isArray(row)||row.length!==240||row.some(t=>!groundKinds.has(t))))throw Error('Unsupported terrain in '+sector.id);
   if(Object.keys(raw.edges||{}).length||(raw.stairs||[]).length||(raw.climbs||[]).length||raw.buildingPrefabs||raw.slopedRoofs||raw.canopies||raw.farmyardWindows)throw Error('This sector needs an unsupported walking-tour feature: '+sector.id);
   const issues=wallRunErrors(raw);if(issues.length)throw Error(sector.id+': '+issues.join(' '));
@@ -89,23 +94,43 @@ export function decodeTownSector(raw,sector,visualReplacement=new Set(),physical
     if(!allRoofsReplaced){const gx=x+sector.origin.x,gy=y+sector.origin.y,id=Math.floor(gx/24)+','+Math.floor(gy/24);if(!packet.roofs.has(id))packet.roofs.set(id,[]);packet.roofs.get(id).push({x:gx,y:gy,level});}
   }
   const plantCells=new Set();
-  const place=p=>{
+  const place=(p,maturePine,matureBroadleaf)=>{
     const {x:localX,y:localY,kind}=p,x=localX+sector.origin.x,y=localY+sector.origin.y;
-    const placed={...p,x,y,id:sector.id+':'+kind+':'+localX+','+localY};
+    const placed={...p,x,y,maturePine,matureBroadleaf,id:sector.id+':'+kind+':'+localX+','+localY};
     packet.plants.add(placed,[x,y,x,y]);
     return placed;
   };
-  const props=raw.props||[],maturePines=maturePinesForSector(props,sector.origin);
+  const props=raw.props||[],retained=raw.mountDora.retainedMatureTrees===true;
+  const maturePines=retained?new Map():maturePinesForSector(props,sector.origin);
+  const matureBroadleaves=retained?new Map():matureBroadleavesForSector(props,sector.origin,maturePines,(x,y,reach)=>{
+    const p={x,y},area=[x-reach,y-reach,x+reach,y+reach];
+    if(roofBounds.some(bounds=>boxDistance(p,bounds)<reach)||
+       packet.walls.query(area).some(w=>w.draw&&boxDistance(p,w.bounds)<reach))return true;
+    const lx=x-sector.origin.x,ly=y-sector.origin.y;
+    for(let row=Math.floor(ly-reach);row<=Math.ceil(ly+reach);row++){
+      for(let col=Math.floor(lx-reach);col<=Math.ceil(lx+reach);col++){
+        if(raw.terrain[row]?.[col]==='floor'&&Math.hypot(col-lx,row-ly)<reach+Math.SQRT1_2)return true;
+      }
+    }
+    return false;
+  });
   for(const p of props){
     if(!plantKinds.has(p.kind)||(p.z||0)!==0||!Number.isInteger(p.x)||!Number.isInteger(p.y)||p.x<0||p.y<0||p.x>=240||p.y>=240)throw Error('Unsupported native town prop: '+p.kind);
-    const variant=maturePines.get(p);
-    const placed=place(variant===undefined?p:{...p,maturePine:variant});
+    if(retained&&p.mountDora?.matureVariant!==undefined){
+      const variant=p.mountDora.matureVariant,pine=p.kind.startsWith('tree-pine');
+      const styles=pine?MATURE_PINE_STYLES:MATURE_BROADLEAF_STYLES;
+      if(!Number.isInteger(variant)||!styles[variant]||!pine&&p.kind!=='tree-broadleaf-large')
+        throw Error('Unsupported retained mature tree in '+sector.id);
+      (pine?maturePines:matureBroadleaves).set(p,variant);
+    }
+    const pine=maturePines.get(p),broadleaf=matureBroadleaves.get(p);
+    const placed=place(p,pine,broadleaf);
     plantCells.add(p.x+','+p.y+',0');
     if(p.kind.startsWith('tree-')){
       const scale=p.kind.endsWith('-large')?MATURE_TREE_SCALE:1;
-      const pine=MATURE_PINE_STYLES[variant];
-      const solid={kind:'circle',centre:[placed.x,placed.y],radius:pine?.radius??.22*scale,
-        trunkHeight:pine?.trunkHeight??2*scale,id:placed.id};
+      const style=MATURE_PINE_STYLES[pine]??MATURE_BROADLEAF_STYLES[broadleaf];
+      const solid={kind:'circle',centre:[placed.x,placed.y],radius:style?.radius??.22*scale,
+        trunkHeight:style?.trunkHeight??2*scale,id:placed.id};
       packet.plantSolids.add(solid,shapeBounds(solid));
     }
   }
@@ -133,6 +158,9 @@ export class TownWorld{
       return {...globalPoint(g),id:g.id??s.row*project.columns+s.column+1,name:s.id+' sentry'+(i?' '+(i+1):''),patrol:g.patrol?.map(globalPoint)};
     }));
     this.visualReplacement=new Set(art.REPLACEMENT_SOURCE_IDS||[]);this.physicalReplacement=new Set();this.artIndex=new SpatialIndex();this.closedBuildings=new SpatialIndex();this.artRevision=art.ART_REVISION||'0'.repeat(64);this.placements=art.PLACEMENTS||[];
+    const placementsForBounds=art.placementsForBounds??(bounds=>this.placements.filter(p=>p.bounds&&intersect(bounds,p.bounds)));
+    this.roofBoundsForSector=({origin:{x,y}})=>placementsForBounds([x,y,x+240,y+240])
+      .filter(p=>roofedScenery.has(p.kind)).map(p=>p.bounds.map(n=>n-.5));
     for(const placement of this.placements){
       if(placement.collisionPolicy==='replace-source-walls')for(const id of placement.replacesSourceIds||[])this.physicalReplacement.add(id);
       if(placement.collisionPolicy==='retain-source-walls'){
@@ -192,7 +220,8 @@ export class TownWorld{
         if(this.disposed||!this.wanted.has(id)){this.stats.discarded++;return;}
         if(await sha256(bytes)!==sector.metrics.sha256)throw Error('Town source changed. Reload to load matching map and artwork.');
         if(this.disposed||!this.wanted.has(id))return;this.evict(1);const raw=JSON.parse(new TextDecoder().decode(bytes));
-        const packet=decodeTownSector(raw,sector,this.visualReplacement,this.physicalReplacement);packet.used=++this.clock;
+        const roofs=this.roofBoundsForSector(sector);
+        const packet=decodeTownSector(raw,sector,this.visualReplacement,this.physicalReplacement,roofs);packet.used=++this.clock;
         this.cache.set(id,packet);this.stats.decoded++;this.stats.peakDecoded=Math.max(this.stats.peakDecoded,this.cache.size);
         for(let y=4;y<240;y+=8)for(let x=4;x<240;x+=8)this.overview[Math.floor((y+sector.origin.y)/8)*180+Math.floor((x+sector.origin.x)/8)]=TOWN_GROUNDS.indexOf(raw.terrain[y][x])+1;this.overviewRevision++;
       }).catch(error=>{if(!this.disposed&&error.name!=='AbortError')this.errors.set(id,error.message);})
@@ -203,7 +232,7 @@ export class TownWorld{
   status(){return {loading:[...this.wanted].filter(id=>!this.cache.has(id)&&!this.errors.has(id)),failed:[...this.errors].filter(([id])=>this.wanted.has(id)).map(([id,message])=>({id,message})),decoded:this.cache.size,inFlight:this.inFlight.size,queued:this.queue.length};}
   wallsFor(bounds,{draw=false,walk=false}={}){const walls=new Map();for(const packet of this.cache.values())for(const item of packet.walls.query(bounds))if((!draw||item.draw)&&(!walk||item.walk))walls.set(item.key,item);return [...walls.values()];}
   solidsFor(bounds){const result=this.artIndex.query(bounds);for(const packet of this.cache.values())result.push(...packet.plantSolids.query(bounds));return result;}
-  pointClear(p,radius=.23){
+  pointClear(p,radius=WALKER_RADIUS){
     if(this.disposed||p.x<-.5+radius||p.x>this.width-.5-radius||p.y<-.5+radius||p.y>this.height-.5-radius)return false;
     for(let y=Math.floor(p.y+.5-radius);y<=Math.floor(p.y+.5+radius);y++)for(let x=Math.floor(p.x+.5-radius);x<=Math.floor(p.x+.5+radius);x++){
       const tile=this.tile(x,y);if(tile===null||tile==='water')if(boxDistance(p,[x-.5,y-.5,x+.5,y+.5])<radius-EPS)return false;
@@ -218,7 +247,7 @@ export class TownWorld{
     // a moved shell even when it does not touch a wall (including a courtyard).
     return this.pointClear(p)&&!this.closedBuildings.query([p.x,p.y,p.x,p.y]).some(s=>s.polygons.some(poly=>ringContains(p,poly[0])));
   }
-  walkSegment(a,b,radius=.23){const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.07));for(let i=1;i<=steps;i++)if(!this.pointClear({x:a.x+(b.x-a.x)*i/steps,y:a.y+(b.y-a.y)*i/steps},radius))return false;return true;}
+  walkSegment(a,b,radius=WALKER_RADIUS){const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.07));for(let i=1;i<=steps;i++)if(!this.pointClear({x:a.x+(b.x-a.x)*i/steps,y:a.y+(b.y-a.y)*i/steps},radius))return false;return true;}
   lineClear(a,b){
     if(!this.residentAt(a)||!this.residentAt(b))return false;
     const bounds=[Math.min(a.x,b.x),Math.min(a.y,b.y),Math.max(a.x,b.x),Math.max(a.y,b.y)];

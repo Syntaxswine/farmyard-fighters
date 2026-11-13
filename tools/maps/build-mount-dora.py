@@ -37,10 +37,45 @@ WIDTHS = {"secondary": 8, "tertiary": 7, "residential": 6, "unclassified": 6,
           "service": 3.5, "pedestrian": 4, "cycleway": 2.5, "footway": 2,
           "path": 1.5, "steps": 1.5, "track": 3, "living_street": 5}
 STREET_CLASSES = {"secondary", "tertiary", "residential", "unclassified", "living_street"}
+# A pedestrian street is part of the street grid (West 4th Avenue is one for
+# the block between McDonald and Alexander Streets): it snaps with the streets
+# but keeps its own mapped width.
+SNAP_CLASSES = STREET_CLASSES | {"pedestrian"}
 STREET_WIDTH = 6
 SIDEWALK_WIDTH = 2
-STREET_SNAP_LIMIT = 4
-PALETTE = {"ground-grass": "#87956c", "water": "#64899a", "woodland": "#426148",
+STREET_SNAP_LIMIT = 5        # metres a street may move to sit on one grid line; buildings move with it
+STREET_BRIDGE_ALONG = 40     # metres: same-named runs this close end to end may share a line
+STREET_BRIDGE_ACROSS = 2.5   # metres: ...when their ends are this nearly in line
+STREET_STRAIGHT = .025       # across/along: runs within about 1.4 degrees of the grid are fitted first
+# A mapped pier is a wooden deck as wide as a mapped boardwalk: an unsurveyed
+# proxy, since OpenStreetMap records no width for any Mount Dora pier.
+PIER_WIDTH = 2
+# A pier's deck stands this high over the water, on AFT's timber trellis cut
+# down to fit beneath it: the owner's choice of a low deck (2026-11-10). The
+# 2018 USGS lidar puts the decks of Mount Dora's 19 piers a median 0.43 m over
+# Lake Dora (most 0.37 to 0.46 m, four 0.7 to 1.4 m).
+PIER_DECK_HEIGHT = .4
+# The cells a walker crosses on a pier: centres within 0.75 m of a deck line,
+# not past its free ends, and round at the joints where two of its lines meet
+# (joints are found within one way; where two ways meet, every contact on this
+# map is a T). The cells reach past the drawn 2 m deck, 0.25 m sideways on a
+# square deck and more on a diagonal one or past a free end, so the town decides
+# a walker's height from their body (and, on a deck cell over water, from that
+# cell): see deckHeightAt in the art manifest and surfaceHeight in the town view.
+# A straight band stays joined side to side at any angle (the overlap
+# between neighbouring columns is (1.5 - sin a) / cos a >= 1.12 cells); a bend's
+# outer corner falls past both lines' square ends, which is why joints round off.
+PIER_WALK_WIDTH = 1.5
+PIER_DECK_HEIGHT_SOURCE = "owner's choice 2026-11-10 (low deck); 2018 USGS lidar median deck 0.43 m over the lake"
+# Railways whose rails are still in place. A disused line keeps its track; an
+# abandoned or razed one does not. The bed is the Nautilus branch-line track
+# bed (packages/railway-visuals, ballastWidthM 2), which the 3D track is drawn on.
+RAILWAY_KINDS = ("rail", "disused", "preserved", "narrow_gauge", "light_rail")
+RAIL_BED_WIDTH = 2
+RAIL_CLEARANCE = 1.25        # metres: a 3D track run keeps road, building, deck and water cell centres this far from its centreline
+RAIL_SAMPLE = .5             # metres between the samples that decide where a 3D track run may lie
+RAIL_RUN_MIN = 2             # metres: the shortest 3D track run, one Nautilus straight piece
+PALETTE ={"ground-grass": "#87956c", "water": "#64899a", "woodland": "#426148",
            "ground-dirt": "#bcad83", "ground-gravel": "#b3b0a1", "ground-asphalt": "#676c68",
            "ground-concrete": "#d5cfb8", "ground-wood-planks": "#a28b60", "bridge": "#c3a875", "floor": "#d0c0a1"}
 WATER = CODE["water"]
@@ -85,6 +120,10 @@ def bounds(points):
 
 def intersects_extent(box, width, depth, padding=0):
     return box[2] + padding >= 0 and box[3] + padding >= 0 and box[0] - padding <= width and box[1] - padding <= depth
+
+
+def ring_area(ring):
+    return abs(sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(ring, ring[1:]))) / 2
 
 
 def point_in_ring(point, ring):
@@ -135,6 +174,10 @@ def category(tags):
         return "beach"
     if tags.get("leisure") in ("park", "garden", "nature_reserve", "playground", "pitch") or tags.get("landuse") in ("grass", "orchard") or tags.get("natural") == "scrub":
         return "park"
+    if tags.get("man_made") == "pier":
+        return "pier"
+    if tags.get("railway") in RAILWAY_KINDS:
+        return "railway"
     return "context"
 
 
@@ -225,7 +268,12 @@ def load_source(project=PROJECT):
             continue
         points = [xy[i] for i in refs]
         closed = len(refs) >= 4 and refs[0] == refs[-1]
-        area = closed and (category(tags) not in ("road", "context") or tags.get("area") == "yes" or tags.get("landuse"))
+        # A closed pier way outlines a platform, unless it encloses no deck:
+        # Mount Dora's cross-docks are mapped out and back along one line
+        # (A-B-C-A, under 2 m2). A closed railway is still a track.
+        area = closed and (category(tags) not in ("road", "context", "railway") or tags.get("area") == "yes" or tags.get("landuse"))
+        if area and category(tags) == "pier" and ring_area(points) < PIER_WIDTH ** 2:
+            area = False
         feature(way, {"type": "MultiPolygon", "coordinates": [[points]]} if area else {"type": "LineString", "coordinates": points}, refs=refs)
     for osm_id, node in sorted(nodes.items()):
         if node.get("tags"):
@@ -277,7 +325,18 @@ def paint_polygon(grid, polygons, code, width, depth, *, land_only=False, mask=N
                         mask[index] = 1
 
 
-def paint_line(grid, points, width_m, code, width, depth, *, land_only=False, water_code=None, offset=0):
+def paint_line(grid, points, width_m, code, width, depth, *, land_only=False, water_code=None, offset=0, mask=None):
+    for index in line_cells(points, width_m, width, depth, offset=offset):
+        if not land_only or grid[index] != WATER:
+            grid[index] = water_code if water_code is not None and grid[index] == WATER else code
+            if mask is not None:
+                mask[index] = 1
+
+
+def line_cells(points, width_m, width, depth, *, offset=0, ends=True):
+    """Cells whose centres lie within width_m / 2 of the polyline (a cell on
+    two segments comes once per segment). With ends=False each segment's band
+    stops square at its ends instead of rounding past them."""
     radius = width_m / 2
     for a, b in zip(points, points[1:]):
         dx, dy = b[0] - a[0], b[1] - a[1]
@@ -294,11 +353,12 @@ def paint_line(grid, points, width_m, code, width, depth, *, land_only=False, wa
             py = y + .5
             for x in range(x0, x1 + 1):
                 px = x + .5
-                t = max(0, min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / length2))
+                along = ((px - a[0]) * dx + (py - a[1]) * dy) / length2
+                if not ends and not 0 <= along <= 1:
+                    continue
+                t = max(0, min(1, along))
                 if (px - a[0] - t * dx) ** 2 + (py - a[1] - t * dy) ** 2 <= radius * radius:
-                    index = y * width + x
-                    if not land_only or grid[index] != WATER:
-                        grid[index] = water_code if water_code is not None and grid[index] == WATER else code
+                    yield y * width + x
 
 
 def road_style(feature):
@@ -333,22 +393,52 @@ def road_style(feature):
             "verticalPolicy": "Mapped steps/bridges are flat native authoring proxies; no surveyed elevation inferred."}
 
 
-def author_streets(roads):
-    """Straighten near-cardinal runs without pulling shared junctions apart."""
-    streets = [f for f in roads if f["tags"]["highway"] in STREET_CLASSES
+def author_streets(roads, width=None, depth=None):
+    """Straighten near-cardinal runs without pulling shared junctions apart.
+
+    Only points inside the town decide a run's line. A street's source line
+    runs on past the crop (Alexander Street continues 268 m north), and those
+    outside points drifted with the real grid's slight turn; letting them vote
+    split straight in-town streets onto two lines with a sideways jump.
+    Outside points still move onto the line the town chose."""
+    streets = [f for f in roads if f["tags"]["highway"] in SNAP_CLASSES
                and f["geometry"]["type"] == "LineString"]
     fixed = {tuple(p) for f in roads if f["nativeRoad"]["bridge"] or f["nativeRoad"]["woodSurface"]
              if f["geometry"]["type"] == "LineString" for p in f["geometry"]["coordinates"]}
+
+    def in_town(point):
+        return width is None or (0 <= point[0] <= width and 0 <= point[1] <= depth)
+
+    def merge(first, second):
+        if first is None:
+            return second
+        if second is None:
+            return first
+        return min(first[0], second[0]), max(first[1], second[1])
+
     moves = [{}, {}]
     for axis in range(2):
-        links = []
+        links, named = [], defaultdict(list)
         for street in streets:
             points = street["geometry"]["coordinates"]
             for a, b in zip(points, points[1:]):
                 across, along = abs(b[axis] - a[axis]), abs(b[1-axis] - a[1-axis])
                 if along and across <= along * .2 and tuple(a) not in fixed and tuple(b) not in fixed:
-                    links.append((along, tuple(a), tuple(b)))
-        parent, ranges = {}, {}
+                    links.append((across > along * STREET_STRAIGHT, along, tuple(a), tuple(b)))
+                    if street["tags"].get("name"):
+                        named[street["tags"]["name"]] += [tuple(a), tuple(b)]
+        # A short angled piece can break one street into runs that never meet
+        # (Tremain Street's 1.6 m wiggle at 5th Avenue, Alexander Street and
+        # West 3rd Avenue across the 3rd Avenue railway junction). Same-named
+        # runs whose ends lie close along and nearly in line may share a line.
+        for ends in named.values():
+            ends = sorted(set(ends))
+            for i, a in enumerate(ends):
+                for b in ends[i + 1:]:
+                    along, across = abs(b[1-axis] - a[1-axis]), abs(b[axis] - a[axis])
+                    if 0 < along <= STREET_BRIDGE_ALONG and across <= STREET_BRIDGE_ACROSS:
+                        links.append((False, along, a, b))
+        parent, inner, outer = {}, {}, {}
 
         def root(point):
             parent.setdefault(point, point)
@@ -357,21 +447,31 @@ def author_streets(roads):
                 point = parent[point]
             return point
 
-        # Fit longer segments first. Each group needs a common integer line
-        # inside every member's allowed displacement.
-        for _, a, b in sorted(links, reverse=True):
+        def spans(point):
+            own = (point[axis], point[axis])
+            return inner.get(point, own if in_town(point) else None), outer.get(point, own)
+
+        # Straight runs (and the bridges between them) claim their points
+        # first, longer before shorter; more steeply angled runs join only
+        # where they still fit. Otherwise a tilted street (South Tremain, 3.4
+        # degrees) took points of the straight street it continues and split
+        # it with an 8 m jump. Each group needs a common integer line inside
+        # every in-town member's allowed displacement; a group wholly outside
+        # the town keeps the original all-member rule.
+        for _, _, a, b in sorted(links, key=lambda link: (link[0], -link[1], link[2], link[3])):
             first, second = root(a), root(b)
-            low_a, high_a = ranges.get(first, (first[axis], first[axis]))
-            low_b, high_b = ranges.get(second, (second[axis], second[axis]))
-            low, high = min(low_a, low_b), max(high_a, high_b)
+            inner_a, outer_a = spans(first)
+            inner_b, outer_b = spans(second)
+            town, every = merge(inner_a, inner_b), merge(outer_a, outer_b)
+            low, high = town if town is not None else every
             line = round((low + high) / 2)
             if max(line - low, high - line) <= STREET_SNAP_LIMIT:
                 parent[second] = first
-                ranges[first] = (low, high)
+                inner[first], outer[first] = town, every
         for point in parent:
             leader = root(point)
-            if leader in ranges:
-                low, high = ranges[leader]
+            if leader in outer:
+                low, high = inner[leader] if inner[leader] is not None else outer[leader]
                 moves[axis][point] = round((low + high) / 2)
 
     for feature in roads:
@@ -386,10 +486,218 @@ def author_streets(roads):
             style.update(widthM=STREET_WIDTH, widthSource="standard-game-street",
                          sidewalk="both", sidewalkWidthM=SIDEWALK_WIDTH,
                          sidewalkWidthSource="standard-game-street")
+    return moves
 
 
-def paint_roads(terrain, roads, width, depth):
+FOLLOW_REACH = 200  # metres: a street or shoreline stops moving the town this far away
+FOLLOW_CELL = 50    # metres: bucket size of the segment index
+# Pull of the unmoved town, as if an unmoved straight street lay four reaches
+# away: a point beside one moved street takes 99% of its move at 10 m and fades
+# smoothly to none at FOLLOW_REACH.
+FOLLOW_REST = math.pi / (4 * FOLLOW_REACH)
+
+
+def _segment_pull(point, a, b, move_a, move_b):
+    """How hard one constraint segment pulls a point, and toward what move.
+
+    The weight is the integral of 1/r^2 along the segment, so a segment split
+    in two pulls as hard as the whole (exactly so before the reach taper, which
+    each piece takes at its own nearest distance), and two long parallel streets at
+    distances d1 and d2 pull in the ratio 1/d1 : 1/d2 (before the reach taper,
+    which favours the nearer street a little more): the town blends across the
+    block between them. The move varies linearly along the segment.
+    Returns (distance, weight, weight * move), or (0, None, move) on the segment."""
+    ux, uy = b[0] - a[0], b[1] - a[1]
+    length = math.hypot(ux, uy)
+    ux, uy = ux / length, uy / length
+    rx, ry = point[0] - a[0], point[1] - a[1]
+    t = rx * ux + ry * uy                      # the foot of the perpendicular, from a
+    h = abs(rx * uy - ry * ux)                 # distance from the segment's line
+    s1, s2 = -t, length - t                    # the segment's ends, measured from the foot
+    slope = (move_b - move_a) / length
+    foot = move_a + slope * t                  # the move the segment's line has at the foot
+    if s1 <= 0 <= s2:
+        distance = h
+        if h < 1e-9:
+            return 0.0, None, foot
+    else:
+        distance = min(math.hypot(h, s1), math.hypot(h, s2))
+    if h < 1e-9:
+        near, far = sorted((abs(s1), abs(s2)))
+        weight = 1 / near - 1 / far
+    else:
+        weight = math.atan2(h * (s2 - s1), h * h + s1 * s2) / h
+    moment = .5 * math.log((h * h + s2 * s2) / (h * h + s1 * s1))
+    return distance, weight, foot * weight + slope * moment
+
+
+def street_follow_field(roads, features=(), width=None, depth=None):
+    """How far the town moves so everything keeps its place beside the streets.
+
+    On each axis, the snapped near-cardinal segments of the grid streets pull
+    toward their own move (snapped line minus source line, varying along a
+    segment whose two ends took different lines), and the mapped lake shore
+    pulls toward no move: it keeps its place. Pulls are 1/r^2 integrals along
+    each segment, tapered to nothing at FOLLOW_REACH, against the rest pull of
+    the unmoved town, so the field is continuous everywhere: a building moved by
+    the field at its centre keeps its setback, and nothing tears where one
+    street ends or another begins. Returns field(point) -> [dx, dy]."""
+    def in_town(point):
+        return width is None or (0 <= point[0] <= width and 0 <= point[1] <= depth)
+
+    constraints = ([], [])
+    for feature in roads:
+        if feature["tags"]["highway"] not in SNAP_CLASSES or feature["geometry"]["type"] != "LineString":
+            continue
+        source = feature["geometry"]["coordinates"]
+        line = feature["nativeRoad"].get("centerline", source)
+        for a, b, p, q in zip(source, source[1:], line, line[1:]):
+            if not (in_town(a) or in_town(b)):
+                continue
+            for axis in range(2):
+                across, along = abs(b[axis] - a[axis]), abs(b[1-axis] - a[1-axis])
+                if along and across <= along * .2:
+                    constraints[axis].append((a, b, p[axis] - a[axis], q[axis] - b[axis]))
+    for feature in features:
+        if feature["category"] == "water" and feature["geometry"]["type"] == "MultiPolygon":
+            for polygon in feature["geometry"]["coordinates"]:
+                for ring in polygon:
+                    for a, b in zip(ring, ring[1:]):
+                        if a != b and (in_town(a) or in_town(b)):
+                            for axis in range(2):
+                                constraints[axis].append((a, b, 0.0, 0.0))
+    index = ({}, {})
+    for axis in range(2):
+        for number, (a, b, _, _) in enumerate(constraints[axis]):
+            for cx in range(math.floor((min(a[0], b[0]) - FOLLOW_REACH) / FOLLOW_CELL),
+                            math.floor((max(a[0], b[0]) + FOLLOW_REACH) / FOLLOW_CELL) + 1):
+                for cy in range(math.floor((min(a[1], b[1]) - FOLLOW_REACH) / FOLLOW_CELL),
+                                math.floor((max(a[1], b[1]) + FOLLOW_REACH) / FOLLOW_CELL) + 1):
+                    index[axis].setdefault((cx, cy), []).append(number)
+
+    def move(axis, point):
+        weight, total, exact = FOLLOW_REST, 0.0, []
+        for number in index[axis].get((math.floor(point[0] / FOLLOW_CELL), math.floor(point[1] / FOLLOW_CELL)), ()):
+            a, b, move_a, move_b = constraints[axis][number]
+            distance, pull, pulled = _segment_pull(point, a, b, move_a, move_b)
+            if pull is None:
+                exact.append(pulled)
+            elif distance < FOLLOW_REACH:
+                taper = (1 - (distance / FOLLOW_REACH) ** 2) ** 2
+                weight += pull * taper
+                total += pulled * taper
+        return sum(exact) / len(exact) if exact else total / weight
+
+    cache = {}
+
+    def field(point):
+        key = (point[0], point[1])
+        if key not in cache:
+            cache[key] = [move(0, point), move(1, point)]
+        return list(cache[key])
+
+    return field
+
+
+BLOCK_PARK_SPAN = 120  # metres: a park no wider or deeper than this moves as one piece with its contents
+
+
+def _inside(point, polygons):
+    """Even/odd test against every ring of a MultiPolygon, holes included."""
+    x, y = point
+    hit = False
+    for polygon in polygons:
+        for ring in polygon:
+            for (ax, ay), (bx, by) in zip(ring, ring[1:]):
+                if (ay > y) != (by > y) and x < (bx - ax) * (y - ay) / (by - ay) + ax:
+                    hit = not hit
+    return hit
+
+
+BLOCK_PARK_BAND = 10  # metres inside a block park's edge over which its one-piece move blends into the town's
+
+
+def _edge_distance(point, polygons):
+    best = math.inf
+    for polygon in polygons:
+        for ring in polygon:
+            for a, b in zip(ring, ring[1:]):
+                dx, dy = b[0] - a[0], b[1] - a[1]
+                t = max(0, min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / (dx * dx + dy * dy or 1)))
+                best = min(best, math.hypot(point[0] - a[0] - t * dx, point[1] - a[1] - t * dy))
+    return best
+
+
+def park_follow(field, features):
+    """A block-sized park moves as one piece, with everything inside it.
+
+    The street move blends across a block, so a block between a street that
+    moved 3 m (5th Avenue) and one that did not (6th Avenue) compresses a
+    little. Inside Donnelly Park that pulled the Art Centre 1.8 m north and
+    its tennis courts under 1 m, closing the stage's approach between them.
+    A park is laid out as a whole, so a park at most BLOCK_PARK_SPAN metres
+    across takes the move at its centre, and so does any point inside it
+    deeper than BLOCK_PARK_BAND; nearer its edge the two moves blend, so a path
+    or street crossing the edge stays joined and unbent. The returned function
+    lists the block parks' one-piece moves in .parks."""
+    parks = []
+    for feature in features:
+        if (feature["category"] == "park" and feature["tags"].get("leisure") == "park"
+                and feature["geometry"]["type"] == "MultiPolygon"):
+            x0, y0, x1, y1 = feature["bounds"]
+            if x1 - x0 <= BLOCK_PARK_SPAN and y1 - y0 <= BLOCK_PARK_SPAN:
+                parks.append((feature["id"], feature["bounds"], feature["geometry"]["coordinates"],
+                              field([(x0 + x1) / 2, (y0 + y1) / 2])))
+
+    def moved(point):
+        for _, (x0, y0, x1, y1), polygons, shift in parks:
+            if x0 <= point[0] <= x1 and y0 <= point[1] <= y1 and _inside(point, polygons):
+                weight = min(1, _edge_distance(point, polygons) / BLOCK_PARK_BAND)
+                if weight == 1:
+                    return list(shift)
+                return [weight * whole + (1 - weight) * own for whole, own in zip(shift, field(point))]
+        return field(point)
+
+    moved.parks = {ident: shift for ident, _, _, shift in parks}
+    return moved
+
+
+def follow_streets(roads, moves, field, decks=()):
+    """Carry every other road with the straightened streets.
+
+    A vertex the street snap placed keeps that line on each axis it moved;
+    every other source vertex takes the town's move, so paths and curved
+    roads keep their shape and stay joined. Bridges, boardwalks and piers
+    (`decks`: their source points) keep their mapped place over the water,
+    and so does every vertex another road shares with them. A segment whose
+    two ends took different lines (a street that really turns off the grid,
+    in the east and southeast) crosses between them as the field does, so
+    the town beside it moves with it."""
+    # A road that meets a bridge, boardwalk or pier keeps the shared vertex
+    # where the deck is, so the two stay joined.
+    moored = {tuple(p) for f in roads if f["nativeRoad"]["bridge"] or f["nativeRoad"]["woodSurface"]
+              if f["geometry"]["type"] == "LineString" for p in f["geometry"]["coordinates"]}
+    moored |= {tuple(p) for p in decks}
+    for feature in roads:
+        style, geometry = feature["nativeRoad"], feature["geometry"]
+        if geometry["type"] != "LineString" or style["bridge"] or style["woodSurface"]:
+            continue
+        points = geometry["coordinates"]
+        line = []
+        for point in points:
+            shift = [0.0, 0.0] if tuple(point) in moored else field(point)
+            line.append([moves[axis][tuple(point)] if tuple(point) in moves[axis]
+                         else round(point[axis] + shift[axis], 4) for axis in range(2)])
+        if line != points:
+            style["centerline"] = line
+        else:
+            style.pop("centerline", None)
+
+
+def paint_roads(terrain, roads, width, depth, mask=None):
     # All sidewalks go down before carriageways so intersections stay open.
+    # `mask` gathers every cell a road or sidewalk painted (where a railway
+    # crosses, the road keeps its surface).
     for feature in roads:
         style, geometry = feature["nativeRoad"], feature["geometry"]
         if geometry["type"] != "LineString":
@@ -401,20 +709,237 @@ def paint_roads(terrain, roads, width, depth):
         if len(sides) == 2 and style["widthSource"] == "standard-game-street":
             # One outer ribbon keeps sidewalks joined at bends.
             paint_line(terrain, points, style["widthM"] + 2 * walk_width,
-                       CODE["ground-concrete"], width, depth, land_only=True)
+                       CODE["ground-concrete"], width, depth, land_only=True, mask=mask)
         else:
             for side in sides:
                 paint_line(terrain, points, walk_width, CODE["ground-concrete"], width, depth,
-                           land_only=True, offset=side * (style["widthM"] + walk_width) / 2)
+                           land_only=True, offset=side * (style["widthM"] + walk_width) / 2, mask=mask)
     for feature in sorted(roads, key=lambda f: f["nativeRoad"]["widthSource"] == "standard-game-street"):
         style, geometry = feature["nativeRoad"], feature["geometry"]
         if geometry["type"] == "MultiPolygon":
-            paint_polygon(terrain, geometry["coordinates"], CODE[style["terrain"]], width, depth, land_only=not style["bridge"])
+            paint_polygon(terrain, geometry["coordinates"], CODE[style["terrain"]], width, depth, land_only=not style["bridge"], mask=mask)
         else:
             bridge, wooden = style["bridge"], style["woodSurface"]
             paint_line(terrain, style.get("centerline", geometry["coordinates"]), style["widthM"],
                        CODE["bridge"] if bridge else CODE[style["terrain"]], width, depth,
-                       land_only=not (bridge or wooden), water_code=CODE["bridge"] if wooden else None)
+                       land_only=not (bridge or wooden), water_code=CODE["bridge"] if wooden else None, mask=mask)
+
+
+def geometry_points(geometry):
+    coordinates = geometry["coordinates"]
+    if geometry["type"] == "LineString":
+        return coordinates
+    return [p for polygon in coordinates for ring in polygon for p in ring]
+
+
+def _runs_back_over(s, t, sin_tolerance=math.sin(math.radians(5)), across=.6, shared=.05):
+    """Whether segment t runs back over segment s: parallel within 5 degrees,
+    both ends within 0.6 m of s's line, and more than 5 cm of s in common.
+    Two segments that only meet end to end share nothing."""
+    (a, b), (c, d) = s, t
+    length, other = math.dist(a, b), math.dist(c, d)
+    u, v = ((b[0] - a[0]) / length, (b[1] - a[1]) / length), ((d[0] - c[0]) / other, (d[1] - c[1]) / other)
+    if abs(u[0] * v[1] - u[1] * v[0]) > sin_tolerance:
+        return False
+    if any(abs((p[0] - a[0]) * u[1] - (p[1] - a[1]) * u[0]) > across for p in (c, d)):
+        return False
+    low, high = sorted((p[0] - a[0]) * u[0] + (p[1] - a[1]) * u[1] for p in (c, d))
+    return min(high, length) - max(low, 0) > shared
+
+
+def pier_decks(points):
+    """The deck centrelines of a pier way, each a straight line. Every segment
+    is a line, except that segments mapped back over one another merge into
+    the chord between their two farthest vertices, so no deck is drawn twice:
+    Mount Dora's cross-docks are mapped out and back (A-B-C-A, a closed way
+    enclosing no deck), and one open way walks its crossbar three times."""
+    segments = [(a, b) for a, b in zip(points, points[1:]) if math.dist(a, b) > 1e-9]
+    parent = list(range(len(segments)))
+
+    def root(i):
+        while parent[i] != i:
+            i = parent[i]
+        return i
+    for i, segment in enumerate(segments):
+        for j in range(i):
+            # Tested both ways round, so a reversed way merges the same segments.
+            if (_runs_back_over(segments[j], segment) or _runs_back_over(segment, segments[j])) and root(i) != root(j):
+                parent[root(i)] = root(j)
+    groups = defaultdict(list)
+    for i in range(len(segments)):
+        groups[root(i)].append(i)
+    lines = []
+    for members in sorted(groups.values()):
+        ends = [p for k in members for p in segments[k]]
+        a, b = segments[members[0]] if len(members) == 1 else max(
+            ((p, q) for i, p in enumerate(ends) for q in ends[i + 1:]), key=lambda pair: math.dist(*pair))
+        lines.append([list(a), list(b)])
+    return lines
+
+
+def paint_piers(terrain, green, piers, road_mask, corridor, width, depth, observations=()):
+    """Lay every mapped pier as a wooden deck PIER_DECK_HEIGHT over the water:
+    bridge over open water, planks on open ground. A pier keeps its mapped
+    place, as a boardwalk does. Its walkable cells run PIER_WALK_WIDTH wide
+    (the drawn deck PIER_WIDTH) along each of pier_decks' lines, plus any
+    line a reviewed observation adds (the owner's
+    pierObservations in source/authoring-config.json, each recorded with the
+    pier); a closed way enclosing a deck would outline a platform (Mount Dora
+    has none). A pier never replaces a road, path or sidewalk, a building,
+    another deck or the street corridor, and no plant grows on it."""
+    soft = {CODE[k] for k in ("ground-grass", "woodland", "ground-dirt")}
+    seen = {item["source"]["id"]: item for item in observations}
+    for feature in piers:
+        geometry = feature["geometry"]
+        observed = [item for item in observations if f"osm-way-{item['source']['id']}" == feature["id"]]
+        joints = []
+        if geometry["type"] == "LineString":
+            lines = pier_decks(geometry["coordinates"])
+            vertices = {tuple(p) for p in geometry["coordinates"]}
+            for item in observed:
+                added = item["addLine"]
+                if len(added) != 2 or math.dist(*added) < 1e-9:
+                    raise ValueError("Pier observation %s must add one straight line." % item["id"])
+                if tuple(added[0]) not in vertices:
+                    raise ValueError("Pier observation %s no longer starts on a vertex of its pier." % item["id"])
+                if any(_runs_back_over(line, added) or _runs_back_over(added, line) for line in lines):
+                    raise ValueError("Pier observation %s runs over a mapped deck line." % item["id"])
+                lines.append(added)
+            # A vertex where two of the pier's lines end is a joint. The bands stop
+            # square at free ends, so no walkable cell reaches past a deck's end,
+            # but round off at joints, so a bend stays joined side to side.
+            ends = Counter(tuple(p) for line in lines for p in line)
+            joints = [list(p) for p, count in ends.items() if count > 1]
+            cells = {index for line in lines for index in line_cells(line, PIER_WALK_WIDTH, width, depth, ends=False)}
+            cells |= {index for joint in joints for index in line_cells([joint, [joint[0] + 1e-6, joint[1]]], PIER_WALK_WIDTH, width, depth)}
+        else:
+            if observed:
+                raise ValueError("A pier observation may only extend a deck line: " + feature["id"])
+            cells = {y * width + x for y, left, right in polygon_spans(geometry["coordinates"], width, depth)
+                     for x in range(left, right)}
+        water = land = 0
+        for index in sorted(cells):
+            if road_mask[index] or corridor[index]:
+                continue
+            if terrain[index] == WATER:
+                terrain[index] = CODE["bridge"]
+                water += 1
+            elif terrain[index] in soft:
+                terrain[index] = CODE["ground-wood-planks"]
+                land += 1
+            else:
+                continue
+            green[index] = 0
+        feature["nativePier"] = {
+            "shape": "deck-lines" if geometry["type"] == "LineString" else "platform-outline",
+            **({"lines": lines, "joints": joints, "widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy", "walkWidthM": PIER_WALK_WIDTH} if geometry["type"] == "LineString" else {}),
+            "heightM": PIER_DECK_HEIGHT, "heightSource": PIER_DECK_HEIGHT_SOURCE,
+            **({"observations": observed} if observed else {}),
+            "bridgeCells": water, "plankCells": land,
+            "policy": "Mapped pier at its source place: bridge over open water, planks on open ground; roads, paths, sidewalks, buildings and other decks keep their surface. No surveyed width or railing."}
+    missing = set(seen) - {int(f["id"].removeprefix("osm-way-")) for f in piers if f["id"].startswith("osm-way-")}
+    if missing:
+        raise ValueError("Pier observations name ways the town has no pier for: %s" % sorted(missing))
+
+
+def rail_line(feature, follow):
+    """A railway's centreline moved with the town vertex by vertex, as the
+    curved roads are (follow_streets), so it keeps its level crossings and the
+    buildings beside it."""
+    return [[round(x + dx, 4), round(y + dy, 4)] for (x, y), (dx, dy) in
+            ((point, follow(point)) for point in feature["geometry"]["coordinates"])]
+
+
+def _segment_distance(point, a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    t = max(0, min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / (dx * dx + dy * dy or 1)))
+    return math.hypot(point[0] - a[0] - t * dx, point[1] - a[1] - t * dy)
+
+
+def rail_runs(line, open_at):
+    """The stretches of a polyline where every RAIL_SAMPLE sample is open,
+    each at least RAIL_RUN_MIN long, as polylines (the source vertices inside
+    a stretch are kept, so a run bends where the railway does). Openness is
+    tested at the samples only, so a run's clearance can dip a few
+    centimetres between two of them."""
+    if len(line) < 2:
+        return []
+    lengths = [0.0]
+    for a, b in zip(line, line[1:]):
+        lengths.append(lengths[-1] + math.dist(a, b))
+    total = lengths[-1]
+
+    def at(s):
+        i = max(0, min(len(line) - 2, next((k for k in range(1, len(lengths)) if lengths[k] >= s), len(lengths) - 1) - 1))
+        a, b, span = line[i], line[i + 1], lengths[i + 1] - lengths[i]
+        t = (s - lengths[i]) / span if span else 0
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+
+    stations = [k * RAIL_SAMPLE for k in range(int(total / RAIL_SAMPLE) + 1)]
+    if total - stations[-1] > 1e-6:
+        stations.append(total)
+    runs, start, last = [], None, None
+    for s in stations + [None]:
+        if s is not None and open_at(at(s)):
+            start = s if start is None else start
+            last = s
+            continue
+        if start is not None and last - start >= RAIL_RUN_MIN - 1e-9:
+            inner = [line[k] for k in range(1, len(line) - 1) if start < lengths[k] < last]
+            runs.append([[round(v, 4) for v in p] for p in [at(start), *inner, at(last)]])
+        start = None
+    return runs
+
+
+def paint_railways(terrain, green, railways, road_mask, corridor, follow, width, depth):
+    """Lay each railway whose rails remain as a gravel bed RAIL_BED_WIDTH wide,
+    and find where its 3D track may lie (nativeRailway.runs).
+
+    The bed moves with the town (rail_line). Roads and sidewalks keep their
+    surface where the railway crosses them, as do buildings, decks and
+    water. A track run covers only the stretches where no road, building,
+    deck or water cell centre comes within RAIL_CLEARANCE of the centreline,
+    so the track stops short of every level crossing; a siding also stops
+    where its bed would meet a main line's (no turnout is drawn)."""
+    keep = {WATER, CODE["floor"], CODE["bridge"], CODE["ground-wood-planks"]}
+    lines = {f["id"]: rail_line(f, follow) for f in railways}
+    for feature in railways:
+        gravel = 0
+        for index in sorted(set(line_cells(lines[feature["id"]], RAIL_BED_WIDTH, width, depth))):
+            if road_mask[index] or corridor[index] or terrain[index] in keep:
+                continue
+            gravel += terrain[index] != CODE["ground-gravel"]
+            terrain[index] = CODE["ground-gravel"]
+            green[index] = 0
+        feature["nativeRailway"] = {"centerline": lines[feature["id"]], "bedWidthM": RAIL_BED_WIDTH,
+                                    "bedWidthSource": "nautilus.railway.branch-line ballastWidthM", "terrain": "ground-gravel",
+                                    "gravelCells": gravel}
+    mains = [lines[f["id"]] for f in railways if not f["tags"].get("service")]
+    reach = RAIL_CLEARANCE + .5
+
+    def blocked(point):
+        for y in range(math.floor(point[1] - reach), math.floor(point[1] + reach) + 1):
+            for x in range(math.floor(point[0] - reach), math.floor(point[0] + reach) + 1):
+                if (x + .5 - point[0]) ** 2 + (y + .5 - point[1]) ** 2 > RAIL_CLEARANCE ** 2:
+                    continue
+                if not (0 <= x < width and 0 <= y < depth):
+                    return True
+                index = y * width + x
+                if road_mask[index] or corridor[index] or terrain[index] in keep:
+                    return True
+        return False
+
+    for feature in railways:
+        others = [] if not feature["tags"].get("service") else mains
+
+        def open_at(point):
+            return not blocked(point) and all(_segment_distance(point, a, b) >= RAIL_BED_WIDTH
+                                              for line in others for a, b in zip(line, line[1:]))
+        runs = rail_runs(lines[feature["id"]], open_at)
+        feature["nativeRailway"].update(runs=runs, runLengthM=round(sum(math.dist(a, b) for run in runs for a, b in zip(run, run[1:])), 2),
+                                        policy="Rails still in place (railway=%s): a gravel bed on open ground; roads, sidewalks, buildings, decks and water keep their surface where the railway meets them. "
+                                               "The 3D track (Nautilus railway-visuals) is drawn only on runs and stops short of every road, so level crossings and the bridge over a road show the road; "
+                                               "no turnout, crossing panel or bridge structure is drawn." % feature["tags"]["railway"])
 
 
 def street_corridor(roads, width, depth):
@@ -436,6 +961,25 @@ EVIDENCE = (("house-reference.json", "county", "Lake County Property Appraiser t
 # Survey wall finishes the native kit can draw; storefront glass keeps the record's material.
 SURVEY_WALLS = {"wood-siding": "wood", "other-siding": "wood", "brick": "brick", "stucco": "concrete", "block": "concrete", "stone": "concrete"}
 SURVEY_STORIES = {"1": (1, False), "1.5": (1, True), "2": (2, False), "2.5": (2, True), "3": (3, False), "4": (4, False)}
+
+
+LIDAR_CROWNS = "reference/lidar/crowns.json"
+
+
+def load_crowns(follow, project=PROJECT):
+    """The 2018 lidar's tree crowns (reference/lidar/crowns.json, written by
+    tools/maps/lidar/build-lidar.mjs), each moved with the town by the field at its
+    top, as the inside of a park is, and the file's pin for project.json."""
+    raw = (project / LIDAR_CROWNS).read_bytes()
+    doc = json.loads(raw)
+    crowns = []
+    for i, row in enumerate(doc["crowns"]):
+        crown = dict(zip(doc["columns"], row))
+        dx, dy = follow([crown["topX"], crown["topY"]])
+        crowns.append({"id": "lidar-crown-%d" % i, "top": [crown["topX"] + dx, crown["topY"] + dy],
+                       "centre": [crown["centreX"] + dx, crown["centreY"] + dy],
+                       "areaM2": crown["areaM2"], "heightM": crown["heightM"], "widthM": crown["widthM"]})
+    return crowns, {"file": LIDAR_CROWNS, "sha256": sha(raw), "bytes": len(raw), "acquired": doc["collection"]["acquired"], "crowns": len(crowns)}
 
 
 def load_evidence(project=PROJECT):
@@ -680,25 +1224,102 @@ def split_walls(walls, extent, diagnostics):
     return pieces
 
 
-def vegetation_clearings():
-    # Keep the launch point, source-reviewed visit approaches, and the
-    # Donnelly four-sector crossing clear of decorative brush and tree trunks.
-    approaches = ((459, 500), (477, 484), (336, 810), (469, 1004), (504, 1168),
-                  (737, 1181), (529, 1402), (665, 1296), (433, 635), (414, 480),
-                  (481, 598), (328, 687), (479, 479))
-    clear = {(x + dx, y + dy) for x, y in approaches for dx in range(-3, 4) for dy in range(-3, 4)}
-    clear.update((x, y) for x in range(458, 491) for y in range(506, 511))
+# Source-reviewed approach points of the walking tour, in town metres. Each
+# moves with the town at its own place by whole metres (approach_moves, recorded
+# in project.json as approachMovesM); the game's TOUR_VISITS (mount-dora-entry.js)
+# and the route review's targets hold the moved points.
+APPROACH_POINTS = {
+    "launch": (459.5, 500.5), "donnelly-park": (478, 484.75), "lakeside-inn": (336.5, 810.5),
+    "elizabeth-evans": (470, 1005), "evans-route": (430.5, 1015.5), "grantham-lighthouse": (504.5, 1168.5),
+    "gilbert-park": (737.2963, 1181.367), "gilbert-route": (710.5, 1207.5), "palm-island": (529.5, 1402.5),
+    "palm-entrance": (665.969, 1296.5786), "historic-shopfronts": (433.5, 635.5), "donnelly-house": (414.5, 480.5),
+    "history-museum": (481.5, 598.5), "former-depot": (328.5, 687.5)}
+
+
+# Each approach keeps its place beside its landmark as reviewed on main
+# 57887f1: a building's authored centre there, a structure's box centre, the
+# lines of the two streets at a corner. The game's spawn, the lighthouse and the
+# moored Palm Island boardwalk do not move; the Gilbert Park route target, in an
+# open park, moves with the town where it stands.
+APPROACH_ANCHORS = {
+    "launch": ("fixed",), "donnelly-park": ("structure", "md:donnelly-stage", (478.5, 484.5)),
+    "lakeside-inn": ("building", "osm-way-560095890", (346.5, 811.0)),
+    "elizabeth-evans": ("structure", "md:evans-pavilion", (470.0, 1005.0)),
+    "evans-route": ("structure", "md:evans-pavilion", (470.0, 1005.0)),
+    "grantham-lighthouse": ("fixed",), "gilbert-park": ("structure", "md:shelter:557154684", (737.0, 1181.5)),
+    "gilbert-route": ("town",), "palm-island": ("fixed",), "palm-entrance": ("fixed",),
+    "historic-shopfronts": ("streets", ("North Donnelly Street", 430), ("East 4th Avenue", 634)),
+    "donnelly-house": ("building", "osm-way-547799531", (398.5, 479.0)),
+    "history-museum": ("building", "osm-way-556809468", (494.0, 598.0)),
+    "former-depot": ("building", "osm-way-557494933", (315.5, 679.0))}
+
+
+def street_line(roads, name, axis, at):
+    """Where the named street's straight run covering `at` lies on `axis`."""
+    for feature in roads:
+        if feature["tags"].get("name") != name or feature["geometry"]["type"] != "LineString":
+            continue
+        line = feature["nativeRoad"].get("centerline", feature["geometry"]["coordinates"])
+        for p, q in zip(line, line[1:]):
+            if p[axis] == q[axis] and min(p[1 - axis], q[1 - axis]) <= at <= max(p[1 - axis], q[1 - axis]):
+                return p[axis]
+    raise ValueError(f"No straight run of {name} at {at}")
+
+
+def approach_moves(authored, structures, roads, follow):
+    """Each approach point's whole-metre move: its landmark's move since main."""
+    records = {record["id"]: record for record in authored["records"]}
+    boxes = {}
+    for structure in structures:
+        points = [q for poly in structure["geometry"]["coordinates"] for ring in poly for q in ring]
+        boxes[structure["id"]] = [min(q[0] for q in points), min(q[1] for q in points), max(q[0] for q in points), max(q[1] for q in points)]
+    moves = {}
+    for name, (kind, *anchor) in APPROACH_ANCHORS.items():
+        point = APPROACH_POINTS[name]
+        if kind == "fixed":
+            move = [0, 0]
+        elif kind == "town":
+            move = [round(v) for v in follow(list(point))]
+        elif kind in ("building", "structure"):
+            ident, then = anchor
+            box = records[ident]["bounds"] if kind == "building" else boxes[ident]
+            move = [round((box[i] + box[i + 2]) / 2 - then[i]) for i in (0, 1)]
+        else:
+            (across, x_then), (along, y_then) = anchor
+            move = [round(street_line(roads, across, 0, point[1]) - x_then), round(street_line(roads, along, 1, point[0]) - y_then)]
+        moves[name] = move
+    return moves
+
+
+def vegetation_clearings(moves):
+    # Keep the launch point and the source-reviewed visit approaches (each moved
+    # with the town at its place) and the Donnelly four-sector crossing (a fixed
+    # sector corner) clear of decorative brush and tree trunks.
+    approaches = {"launch": (459, 500), "donnelly-park": (477, 484), "lakeside-inn": (336, 810),
+                  "elizabeth-evans": (469, 1004), "grantham-lighthouse": (504, 1168), "gilbert-park": (737, 1181),
+                  "palm-island": (529, 1402), "palm-entrance": (665, 1296), "historic-shopfronts": (433, 635),
+                  "donnelly-house": (414, 480), "history-museum": (481, 598), "former-depot": (328, 687)}
+    clear = {(x + moves[name][0] + dx, y + moves[name][1] + dy) for name, (x, y) in approaches.items()
+             for dx in range(-3, 4) for dy in range(-3, 4)}
+    clear.update((479 + dx, 479 + dy) for dx in range(-3, 4) for dy in range(-3, 4))
+    clear.update((x + moves["launch"][0], y + moves["launch"][1]) for x in range(458, 491) for y in range(506, 511))
     return clear
 
 
-def preview_anchors(terrain, blocked, props, origin, size, width):
+def preview_anchors(terrain, blocked, props, origin, size, width, within=None, avoid=()):
+    """The first five connected eligible cells of a sector in scan order (local
+    coordinates), optionally only cells in `within` (local indices) and not in
+    `avoid` (local (x, y) cells)."""
     ox, oy = origin
     occupied = {(p["x"], p["y"]) for p in props}
+    avoid = set(avoid)
     eligible = bytearray(size * size)
     for y in range(1, size - 1):
         for x in range(1, size - 1):
             index = (oy + y) * width + ox + x
-            if terrain[index] not in (WATER, CODE["floor"]) and not blocked[index] and not any((x + dx, y + dy) in occupied for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
+            if (terrain[index] not in (WATER, CODE["floor"]) and not blocked[index]
+                    and not any((x + dx, y + dy) in occupied for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+                    and (within is None or y * size + x in within) and (x, y) not in avoid):
                 eligible[y * size + x] = 1
     # A five-cell flood produces connected existing floor, even on narrow land.
     for index, valid in enumerate(eligible):
@@ -723,6 +1344,40 @@ def preview_anchors(terrain, blocked, props, origin, size, width):
     return []
 
 
+def sector_area(terrain, origin, size, width, start):
+    """The local indices of a sector's cells reachable from `start` (local x, y)
+    over 4-connected cells that are not water, without leaving the sector. Water
+    divides the validator's walk within one sector file; a building cut by the
+    sector edge has no cap wall, so its floor does not."""
+    ox, oy = origin
+    first = start[1] * size + start[0]
+    area, queue = {first}, deque([first])
+    while queue:
+        current = queue.popleft()
+        x, y = current % size, current // size
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + dx, y + dy
+            nxt = ny * size + nx
+            if 0 <= nx < size and 0 <= ny < size and nxt not in area and terrain[(oy + ny) * width + ox + nx] != WATER:
+                area.add(nxt)
+                queue.append(nxt)
+    return area
+
+
+def anchors_with_sentries(terrain, blocked, props, origin, size, width, anchors, guards):
+    """The validator walks from the squad starts to every sentry post and patrol
+    point within the sector. Anchors in another walkable area than the sector's
+    first sentry (a deck that meets land only in the next sector) move to the
+    first five-cell cluster in the sentry's area, clear of every post."""
+    if not anchors or not guards:
+        return anchors
+    area = sector_area(terrain, origin, size, width, (guards[0]["x"], guards[0]["y"]))
+    if all(p["y"] * size + p["x"] in area for p in anchors):
+        return anchors
+    posts = {(p["x"], p["y"]) for guard in guards for p in [guard, *guard.get("patrol", [])]}
+    return preview_anchors(terrain, blocked, props, origin, size, width, within=area, avoid=posts) or anchors
+
+
 def render_atlas(features, config):
     extent = config["extent"]
     width, depth = extent["widthM"], extent["depthM"]
@@ -735,6 +1390,18 @@ def render_atlas(features, config):
         for feature in features:
             if feature["category"] == kind and feature["geometry"]["type"] == "MultiPolygon":
                 out.append(f'<path d="{paths(feature["geometry"]["coordinates"])}" fill="{color}" fill-rule="evenodd"/>')
+    # Piers and the railway bed go under the roads, which keep their surface where they meet.
+    for feature in features:
+        if "nativePier" in feature and feature["geometry"]["type"] == "MultiPolygon":
+            out.append(f'<path d="{paths(feature["geometry"]["coordinates"])}" fill="{PALETTE["bridge"]}" fill-rule="evenodd"/>')
+        elif "nativePier" in feature:
+            for line in feature["nativePier"]["lines"]:
+                points = " ".join(f"{p[0]},{p[1]}" for p in line)
+                out.append(f'<polyline points="{points}" fill="none" stroke="{PALETTE["bridge"]}" stroke-width="{PIER_WIDTH}"/>')
+        elif "nativeRailway" in feature:
+            points = " ".join(f"{p[0]},{p[1]}" for p in feature["nativeRailway"]["centerline"])
+            out.append(f'<polyline points="{points}" fill="none" stroke="{PALETTE["ground-gravel"]}" stroke-width="{RAIL_BED_WIDTH}" stroke-linejoin="round"/>')
+            out.append(f'<polyline points="{points}" fill="none" stroke="#5f584d" stroke-width=".9" stroke-dasharray=".25 .25" stroke-linejoin="round"/>')
     roads = [f for f in features if f.get("nativeRoad") and f["geometry"]["type"] == "LineString"]
 
     def road_line(feature, color, width_m):
@@ -805,6 +1472,31 @@ def build_project(project=PROJECT):
         elif feature["category"] == "building" and feature["geometry"]["type"] == "MultiPolygon":
             feature["nativeProxy"] = building_style(feature, evidence)
             buildings.append(feature)
+    piers = [f for f in features if f["category"] == "pier"]
+    railways = [f for f in features if f["category"] == "railway" and f["geometry"]["type"] == "LineString"]
+    # Straighten the grid streets first. Every other road, every building,
+    # every park, pitch and car park and every railway then moves with them
+    # (street_follow_field), so each keeps its place in its block instead of
+    # being pushed off a moved sidewalk. Woods, wetlands, beaches, piers and
+    # the lake keep the mapped shoreline.
+    moves = author_streets(roads, width, depth)
+    follow = park_follow(street_follow_field(roads, features, width, depth), features)
+    follow_streets(roads, moves, follow, [p for f in piers for p in geometry_points(f["geometry"])])
+    # Park, pitch and car-park outlines move vertex by vertex with the town, so
+    # their edges stay on the paths and streets around them; a block park's
+    # inside moves as one piece (nativeShiftM).
+    for feature in features:
+        if feature["category"] in ("park", "parking") and feature["geometry"]["type"] == "MultiPolygon":
+            source = feature["geometry"]["coordinates"]
+            moved = [[[[round(x + dx, 4), round(y + dy, 4)] for (x, y), (dx, dy) in ((point, follow(point)) for point in ring)]
+                      for ring in polygon] for polygon in source]
+            if moved != source:
+                points = [point for polygon in moved for ring in polygon for point in ring]
+                feature["geographicGeometry"], feature["geographicBounds"] = feature["geometry"], feature["bounds"]
+                feature["geometry"] = {"type": "MultiPolygon", "coordinates": moved}
+                feature["bounds"] = [min(p[0] for p in points), min(p[1] for p in points), max(p[0] for p in points), max(p[1] for p in points)]
+            if feature["id"] in follow.parks:
+                feature["nativeShiftM"] = [round(v, 4) for v in follow.parks[feature["id"]]]
     for feature in features:
         if feature["category"] == "water" and feature["geometry"]["type"] == "MultiPolygon":
             paint_polygon(terrain, feature["geometry"]["coordinates"], WATER, width, depth)
@@ -826,6 +1518,7 @@ def build_project(project=PROJECT):
     # A pitch can be nested in a park polygon. It must not inherit the park's
     # procedural trees, and hard courts need a visible existing ground proxy.
     # Keep overlapping/historical source polygons; do not invent court markings.
+    pitch_cells = set()
     for feature in features:
         if feature["tags"].get("leisure") != "pitch" or feature["geometry"]["type"] != "MultiPolygon":
             continue
@@ -843,44 +1536,65 @@ def build_project(project=PROJECT):
             paint_polygon(terrain, polygons, CODE[surface], width, depth, land_only=True)
         for y, left, right in polygon_spans(polygons, width, depth):
             green[y * width + left:y * width + right] = bytes(right - left)
-    terrain_without_roads = bytes(terrain)
-    paint_roads(terrain, roads, width, depth)
+            pitch_cells.update((x, y) for x in range(left, right))
+    road_cells = bytearray(width * depth)
+    paint_roads(terrain, roads, width, depth, mask=road_cells)
     # A county building stands on its 2018 lidar roof. Where the mapped Lake
     # Dora shoreline runs through one, its outline already supports itself
     # over that water, as a mapped footprint may; let the one-metre fit also
-    # take the water cells touching it. Only the fit sees this; nothing is
-    # painted as land.
+    # take the water cells touching it, where the building now stands. Only
+    # the fit sees this; nothing is painted as land.
+    # Buildings move by whole metres with their cluster (building_shifts), so
+    # each keeps the shape the one-metre fit gives it unmoved.
+    walls = deduplicated_walls(buildings)
+    shifts, exact = _grid.building_shifts(buildings, walls, follow)
     fit_terrain = bytearray(terrain)
     for feature in buildings:
         if "county" in feature:
+            shift = shifts[feature["id"]]
             for x, y in _grid.cells(feature["geometry"]["coordinates"]):
-                for nx in range(max(0, x - 3), min(width, x + 4)):
-                    for ny in range(max(0, y - 3), min(depth, y + 4)):
+                for nx in range(max(0, x + shift[0] - 3), min(width, x + shift[0] + 4)):
+                    for ny in range(max(0, y + shift[1] - 3), min(depth, y + shift[1] + 4)):
                         if fit_terrain[ny * width + nx] == WATER:
                             fit_terrain[ny * width + nx] = CODE["ground-grass"]
-    terrain[:] = terrain_without_roads
-    author_streets(roads)
-    paint_roads(terrain, roads, width, depth)
-    # Preserve the source fit for paths, water and adjoining buildings, and
-    # reserve the full playable street and sidewalk ribbon for every footprint.
+    # Reserve the full playable street and sidewalk ribbon for every footprint.
     corridor = street_corridor(roads, width, depth)
-    authored = author_buildings(buildings, deduplicated_walls(buildings), fit_terrain, CODE,
-                                config["buildingGrid"], street_corridor=corridor, street_fit_terrain=terrain)
-    # A mapped shelter deck supplies support over water, never invented land.
+    authored = author_buildings(buildings, walls, fit_terrain, CODE,
+                                config["buildingGrid"], street_corridor=corridor, street_fit_terrain=terrain,
+                                shifts=shifts, exact=exact)
+    # A mapped shelter deck supplies support over water, never invented land,
+    # and keeps its place there as the boardwalks do; a shelter on land moves
+    # with the town at its centre (the Gilbert Park paths around it moved), by
+    # whole metres.
     structures = []
     for source_id in ('osm-way-557051211', 'osm-way-557154683', 'osm-way-557154684'):
         source = next(f for f in features if f['id'] == source_id)
         polygons, _ = rectify([[source['geometry']['coordinates']]])
         if source_id == 'osm-way-557051211':
             polygons = [[[[562,1383],[569,1383],[569,1389],[562,1389],[562,1383]]]]
+        points = [q for poly in polygons for ring in poly for q in ring]
+        centre = [(min(q[i] for q in points) + max(q[i] for q in points)) / 2 for i in (0, 1)]
+        dx, dy = (0, 0) if source_water[int(centre[1]) * width + int(centre[0])] else tuple(round(v) for v in follow(centre))
+        moved = [[[[x + dx, y + dy] for x, y in ring] for ring in poly] for poly in polygons]
         structures.append({'id':'md:shelter:'+source_id.removeprefix('osm-way-'), 'sourceIds':[source_id],
-                           'geometry':{'type':'MultiPolygon','coordinates':polygons}})
+                           'geometry':{'type':'MultiPolygon','coordinates':moved},
+                           **({'geographicGeometry':{'type':'MultiPolygon','coordinates':polygons}} if (dx, dy) != (0, 0) else {})})
     for ident, source_id, box in (('md:donnelly-stage','osm-way-468920884',[472,482,485,487]),
                                   ('md:evans-pavilion','osm-way-486656245',[466,1002,474,1008])):
-        x0,y0,x1,y1 = box
+        # Inside a block park it moves with the park; elsewhere with the town
+        # at its centre; by whole metres either way.
+        centre = [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2]
+        homes = [f for f in features if f["category"] == "park" and f["geometry"]["type"] == "MultiPolygon"
+                 and _inside(centre, f.get("geographicGeometry", f["geometry"])["coordinates"])]
+        home = min(homes, key=lambda f: _grid.area(f.get("geographicGeometry", f["geometry"])["coordinates"]), default=None)
+        dx, dy = (round(v) for v in (home["nativeShiftM"] if home and "nativeShiftM" in home else follow(centre)))
+        x0,y0,x1,y1 = box[0]+dx, box[1]+dy, box[2]+dx, box[3]+dy
         structures.append({'id':ident,'sourceIds':[source_id],'geometry':{'type':'MultiPolygon',
-                           'coordinates':[[[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]]]}})
+                           'coordinates':[[[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]]]},
+                           **({'geographicGeometry':{'type':'MultiPolygon','coordinates':[[[[box[0],box[1]],[box[2],box[1]],[box[2],box[3]],[box[0],box[3]],[box[0],box[1]]]]]}}
+                              if (dx, dy) != (0, 0) else {})})
     authored['structures'] = structures
+    approaches = approach_moves(authored, structures, roads, follow)
     layout_digest = sha(encoded(authored))
     authored_by_id = {record['id']: record for record in authored['records']}
     for feature in buildings:
@@ -921,6 +1635,11 @@ def build_project(project=PROJECT):
                     raise ValueError('Grid shelter overlaps a closed building: ' + structure['id'])
                 terrain[index] = CODE['bridge'] if source_water[index] else CODE['ground-wood-planks']
                 green[index] = 0
+    # Piers and railways go down after the building fit, which treats gravel,
+    # planks and decks as cells a footprint must clear: they take only what the
+    # fitted town leaves open.
+    paint_piers(terrain, green, piers, road_cells, corridor, width, depth, config.get("pierObservations", []))
+    paint_railways(terrain, green, railways, road_cells, corridor, follow, width, depth)
     walls = deduplicated_walls(buildings)
     wall_pieces = split_walls(walls, extent, diagnostics)
     # A source boundary can enter a neighbouring sector by less than one cell.
@@ -934,9 +1653,11 @@ def build_project(project=PROJECT):
     for wall in walls:
         paint_line(blocked, [wall["a"], wall["b"]], 2.6, 1, width, depth)
     vegetation = load_map_helper("mount_dora_foliage")
+    retention_file = project / "source" / "retained-mature-trees.json"
+    retention = json.loads(retention_file.read_bytes()) if retention_file.exists() else None
     props_by_sector, foliage_by_sector, tree_cells = vegetation.build_vegetation(
         features, terrain, green, blocked, width, depth, size, CODE, sector_id,
-        reserved=vegetation_clearings())
+        reserved=vegetation_clearings(approaches), retained=retention["trees"] if retention else ())
     sector_positions = [(col, row) for row in range(extent["rows"]) for col in range(extent["columns"])]
     anchors_by_sector = {}
     for col, row in sector_positions:
@@ -945,7 +1666,35 @@ def build_project(project=PROJECT):
     patrols = load_map_helper("mount_dora_patrols")
     guards_by_sector = patrols.author_guards(
         terrain, blocked, tree_cells, roads, {cell for cell, anchors in anchors_by_sector.items() if anchors},
-        width=width, depth=depth, size=size, code=CODE, anchors_by_sector=anchors_by_sector)
+        width=width, depth=depth, size=size, code=CODE, anchors_by_sector=anchors_by_sector, moves=approaches)
+    for col, row in sector_positions:
+        anchors_by_sector[col, row] = anchors_with_sentries(
+            terrain, blocked, props_by_sector.get(sector_id(col, row), []), (col * size, row * size), size, width,
+            anchors_by_sector[col, row], guards_by_sector.get((col, row), []))
+    # The 2018 lidar's tree crowns that the seeded greenery leaves empty get a tree each,
+    # after the sentries and markers, so neither moves: a trunk keeps 1.45 m from every
+    # post and patrol route cell (the sentries' own clearance from trees) and a cell from
+    # every marker.
+    crowns, crowns_record = load_crowns(follow, project)
+    keep_clear = set()
+    for (col, row), guards in guards_by_sector.items():
+        for guard in guards:
+            points = [(guard["x"] + col * size, guard["y"] + row * size)] + [(p["x"] + col * size, p["y"] + row * size) for p in guard.get("patrol", [])]
+            route = points[1:] or points
+            cells = {points[0]}.union(*(set(patrols._line_cells(a, b)) for a, b in zip(route, route[1:] + route[:1])))
+            for gx, gy in cells:
+                keep_clear.update((x, y) for x in range(gx - 1, gx + 2) for y in range(gy - 1, gy + 2) if math.hypot(x - gx, y - gy) <= 1.45)
+    for (col, row), anchors in anchors_by_sector.items():
+        for p in anchors:
+            keep_clear.update((p["x"] + col * size + dx, p["y"] + row * size + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+    occupied = {(p["x"] + col * size, p["y"] + row * size) for col, row in sector_positions for p in props_by_sector.get(sector_id(col, row), [])}
+    # A mapped pitch keeps lidar trunks off it as it keeps the seeded ones: a crown over a
+    # pitch's edge takes the nearest cell beside it.
+    tally = {}
+    crowns_record["planted"] = vegetation.plant_crowns(
+        crowns, terrain, green, blocked, width, depth, size, CODE, sector_id, props_by_sector, foliage_by_sector, tree_cells, occupied,
+        reserved=vegetation_clearings(approaches) | pitch_cells, keep_clear=keep_clear, tally=tally)
+    crowns_record["notPlanted"] = tally
     outputs, sectors = {'authored-buildings.json': encoded(authored)}, []
     config_digest = sha((project / "source" / "authoring-config.json").read_bytes())
     digest = sha(encoded(source_records))
@@ -967,12 +1716,14 @@ def build_project(project=PROJECT):
                        "starts": anchors[:4], "guards": guards, "exits": anchors[4:],
                        "mountDora": {"version": 1, "projectId": config["id"], "sectorId": sid, "originM": {"x": ox, "y": oy},
                                      "sourceDigest": digest, "authoredLayoutSHA256": layout_digest, "buildingIds": sorted(sector_buildings[sid]),
-                                     "previewAnchors": "Authoring-validator markers on existing connected land; not real spawn/extraction locations.",
+                                     "previewAnchors": "Authoring-validator markers on existing connected walkable cells (land, or a mapped deck); not real spawn/extraction locations.",
                                      "buildingPolicy": "Grid-generalized footprints from retained geographic source; closed native-kit exteriors; no cut-boundary cap walls."}}
             if runs:
                 mapping["wallRuns"] = {"version": 1, "segments": runs}
             if foliage:
                 mapping["foliage"] = foliage
+            if retention:
+                mapping["mountDora"]["retainedMatureTrees"] = True
             filename = f"sectors/{sid}.map.json"
             data = encoded(mapping)
             if len(data) > 4000000 or len(runs) > 4096 or sum(math.ceil(math.dist(r["a"], r["b"]) - 1e-9) * r["stories"] for r in runs) > 50000:
@@ -993,7 +1744,7 @@ def build_project(project=PROJECT):
                             "bounds": {"x": ox, "y": oy, "widthM": size, "depthM": size}, "nativeImport": native_import, "metrics": metrics,
                             "buildingIds": sorted(sector_buildings[sid]), "guards": guards})
     feature_database = {"kind": "mount-dora-source-features", "version": 1, "id": config["id"], "projection": config["projection"],
-                        "coordinates": "Local east/south metres. Buildings retain geographicGeometry; street geometry retains the source line with playable adjustments in nativeRoad.centerline.",
+                        "coordinates": "Local east/south metres. Buildings, parks and car parks that moved with their streets retain geographicGeometry, and a block-sized park that moved as one piece records nativeShiftM; street geometry retains the source line with playable adjustments in nativeRoad.centerline, and a railway its moved bed and 3D track runs in nativeRailway. Piers keep their source place.",
                         "authoredLayoutSHA256": layout_digest,
                         "authoredStructures": structures,
                         "sources": source_records, "features": features, "diagnostics": diagnostics}
@@ -1007,13 +1758,21 @@ def build_project(project=PROJECT):
                                "sourceDigest": digest, "terrainCodebook": list(KINDS), "globalTerrainSHA256": sha(terrain),
                                "sampleRule": "Global cell centre (column*240+x+0.5, row*240+y+0.5); one global raster sliced without seam repaint.",
                                "nativeCoordinates": "Wall metre endpoints = global east/south - sectorOrigin - 0.5; tile indices remain integer cells.",
-                               "streets": {"classes": sorted(STREET_CLASSES), "widthM": STREET_WIDTH, "sidewalkWidthM": SIDEWALK_WIDTH,
+                               "streets": {"classes": sorted(STREET_CLASSES), "snapClasses": sorted(SNAP_CLASSES), "widthM": STREET_WIDTH, "sidewalkWidthM": SIDEWALK_WIDTH,
                                            "buildingClearanceTiles": 1,
-                                           "snapLimitMPerAxis": STREET_SNAP_LIMIT, "policy": "Near-cardinal street runs align to a common metre line. Connected source nodes stay joined. Bridge and boardwalk points stay fixed."},
+                                           "snapLimitMPerAxis": STREET_SNAP_LIMIT, "policy": "Near-cardinal street runs align to a common metre line. Connected source nodes stay joined. Bridge, boardwalk and pier points stay fixed."},
+                               "approachMovesM": approaches,
                                "defaultRoadWidthsM": WIDTHS,
+                               "piers": {"widthM": PIER_WIDTH, "widthSource": "declared-boardwalk-proxy", "walkWidthM": PIER_WALK_WIDTH, "deckHeightM": PIER_DECK_HEIGHT, "deckHeightSource": PIER_DECK_HEIGHT_SOURCE,
+                                         "observations": len(config.get("pierObservations", [])),
+                                         "policy": "Every man_made=pier way is a wooden deck at its source place: bridge over open water, planks on open ground, drawn raised on AFT's timber trellis. Segments mapped back over one another are drawn once; a reviewed observation may add a deck line. Roads, paths, sidewalks, buildings and other decks keep their surface."},
+                               "railways": {"kinds": list(RAILWAY_KINDS), "bedWidthM": RAIL_BED_WIDTH, "trackClearanceM": RAIL_CLEARANCE, "track": "Nautilus railway-visuals branch-line profile",
+                                            "policy": "Railways whose rails remain move with the town and lie as a gravel bed on open ground. The 3D track covers only runs clear of roads, buildings, decks and water, so it stops short of level crossings and of road bridges over the line; a siding stops where its bed would meet its main line's."},
                                "waterPolicy": "Fill complete source polygons first; land cover never creates land in water. Only mapped building footprints, bridges or wooden-surface paths can provide source-backed support over water; a county building on its lidar roof is such a footprint, and its one-metre fit may take the mapped water within three cells of it.",
                                "vegetation": {"seed": 1947, "brush": "woodland-v1",
-                                              "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas. Individual plants are gameplay scenery."},
+                                              "policy": "AFT woodland brush and seeded trees, shrubs and reeds on mapped parks, woods, wetlands and open land in residential areas, then one tree in each tree crown the 2018 lidar saw that holds no trunk yet. Individual plants are gameplay scenery.",
+                                              "lidarCrowns": {**crowns_record,
+                                                              "policy": "Each crown with no trunk within its radius of its centre gets one tree on the clear ground nearest its top (within half its radius, at least 1 m; 2 m from other trunks; never on brush already painted or on a mapped pitch): mature from 12 m tall, a pine where it stands at least twice as tall as it is wide (the game has no palm). A crown moves with the town by the field at its top. Planted after the sentries and validator markers, 1.45 m from every post and patrol route and a cell from every marker, so neither moves; seeded plants are unchanged."}},
                                "guardPolicy": "Fictional posts on land sectors include street patrols and local circuits. Posts and waypoints use the native editor format.",
                                "sportsSurfaces": "Mapped pitch polygons exclude procedural greenery; tennis/pickleball use a declared existing asphalt proxy unless a supported source surface tag is present. No invented court lines or current inventory claim.",
                                "buildingDefaults": {"stories": 1, "material": "brick", "heightM": 2, "slabM": .12, "pitchM": 2.12,
@@ -1035,11 +1794,19 @@ def build_project(project=PROJECT):
                                 "Flat terrain. Storeys and wall materials follow recorded evidence (nativeProxy sources) as whole native-kit storeys, not measured wall heights; no interiors or entrances are inferred.",
                                 "Buildings use cardinal integer tile edges and clear the full sidewalk ribbon with a tile of facade clearance. The authored fit records any setbacks or frontage adjustments; source outlines remain in geographicGeometry and raw snapshots.",
                                 "County buildings come from appraiser sketches placed on December 2018 lidar roofs; a few stand where the lidar saw no building class, and the mapped Lake Dora shoreline runs through six lakeside ones.",
-                                "The former depot is relocated approximately6.2m to preserve its proportions while clearing the original streets; other fitting changes are recorded in authored-buildings.json.",
+                                ("The former depot's reviewed plan stands %.1f m from its geographic centre: relocated to keep its proportions "
+                                 "while clearing the original streets, and since moved with its street, so it needs re-review; other fitting "
+                                 "changes are recorded in authored-buildings.json." % authored_by_id["osm-way-557494933"]["metrics"]["centreShiftM"]),
                                 "Native wall butt joints and per-run texture phases retain the workshop's existing limits; curved decorative parts and the lighthouse remain curved.",
                                 "Water-only sectors remain complete in the atlas/source but the existing four-start/one-exit native validator refuses them.",
-                                "Street widths, sidewalk widths, bridge/steps heights and seeded vegetation are declared authoring approximations.",
+                                "Street widths, sidewalk widths, pier widths, bridge/steps heights and seeded vegetation are declared authoring approximations.",
+                                "Railways keep their mapped line and a declared 2 m bed. Level crossings, a railway bridge over a road, a road bridge over the railway, turnouts and crossing panels are not drawn: the 3D track stops short of each road.",
+                                "Pier decks stand a declared 0.4 m over the water; the shore end is a single 0.4 m step, and shots and sight still treat a walker on a deck at ground height.",
                                 "No suggested future roads or gameplay objectives are authored."]}
+    if retention:
+        manifest["generation"]["retainedMatureTrees"] = {
+            "file": "source/retained-mature-trees.json", "sha256": sha(retention_file.read_bytes()),
+            "sourceCommit": retention["sourceCommit"], "count": len(retention["trees"])}
     outputs["project.json"] = encoded(manifest, pretty=True)
     return outputs, manifest, feature_database, terrain
 

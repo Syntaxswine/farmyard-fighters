@@ -37,6 +37,11 @@
       "usedFor": "Lighthouse landmark in Grantham Point."
     },
     {
+      "id": "usgs-3dep-2018",
+      "url": "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/FL_Peninsular_Lake_2018",
+      "usedFor": "Boathouses and covered slips over Lake Dora with no OSM or county outline: outline, eave and roof form from the December 2018 point cloud (maps/mount-dora/reference/lidar/water-roofs.json). Walls, cover and posts are inferred. Public domain."
+    },
+    {
       "id": "chamber-history",
       "url": "https://www.mountdora.com/mount-dora-history/",
       "usedFor": "35-foot lighthouse historical context."
@@ -69,6 +74,41 @@
         }
       ],
       "inference": "Dimensions, exact turret position, gable divisions and present facade arrangements are inferred. OSM controls Shamrock floor count. No source pixels or PDF included in assets."
+    },
+    {
+      "id": "depot-street-view-2025",
+      "url": "https://www.google.com/maps/@?api=1&map_action=pano&pano=C8pItcY-jQX1nxuHrXDeWw&heading=251.61&pitch=0&fov=75",
+      "subject": "Old Atlantic Coast Line Depot, 341 Alexander Street, Mount Dora",
+      "captureMonth": "2025-05",
+      "reviewedAt": "2026-11-10",
+      "views": [
+        {
+          "lat": 28.7992248,
+          "lon": -81.6457297,
+          "headingDeg": 251.61,
+          "elevations": "Alexander Street frontage"
+        },
+        {
+          "lat": 28.799133,
+          "lon": -81.6457467,
+          "headingDeg": 280.89,
+          "elevations": "South end and Alexander Street frontage"
+        }
+      ],
+      "usedFor": "White lap siding, dark fascia and vertical trim, pale stamped metal hip roof, brick chimney, tall east sashes, two narrower sashes and a wider sash on the south end.",
+      "uncertainty": "Street-side entrances are visible. Dimensions and hardware require a closer survey. Kiosks obscure parts of the east frontage. The windows, overhang and chimney are approximate proportions fitted to the game's rectangular plan. Reference viewed visually."
+    },
+    {
+      "id": "depot-national-register",
+      "url": "https://npgallery.nps.gov/GetAsset/ea47980f-ed4f-45ae-9520-51389d7829bc",
+      "reviewedAt": "2026-11-10",
+      "usedFor": "One-story timber building, hip roof, east entrance and the historic track-side bay."
+    },
+    {
+      "id": "depot-chamber",
+      "url": "https://www.mountdora.com/train-depot/",
+      "reviewedAt": "2026-11-10",
+      "usedFor": "341 Alexander Street, the 2015 tin roof restoration and recreated platform-side sliding doors. The owner's August 24, 2026 Google Maps update shows interior work."
     }
   ],
   "notUsed": [

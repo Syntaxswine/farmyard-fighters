@@ -36,11 +36,12 @@ test('the mature pine draws a raised crown and registers only its visible trunk 
   const materials={bark:new T.MeshStandardMaterial(),pine:new T.MeshStandardMaterial()};
   const factory=createBiomePlantFactory(materials);
   const sector=project.sectors.find(s=>s.id==='C03'),raw=readSector(sector);
+  delete raw.mountDora.retainedMatureTrees;
   raw.terrain=Array.from({length:240},()=>Array(240).fill('ground-grass'));
   raw.upper=[{},{}];raw.levels=3;delete raw.wallRuns;delete raw.foliage;
   raw.props=[
     {x:20,y:20,z:0,kind:'tree-pine-large',mountDora:{sourceId:null,habitat:'park',placement:'declared-seeded-greenery'}},
-    {x:5,y:30,z:0,kind:'tree-pine'}
+    {x:5,y:30,z:0,kind:'tree-pine',maturePine:1}
   ];
   const world=await new TownWorld(project,{baseURL:base}).identify();
   try{

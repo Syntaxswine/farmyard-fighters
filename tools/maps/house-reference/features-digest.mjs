@@ -15,9 +15,9 @@ export function featuresDigest(bytes) {
   const doc = JSON.parse(bytes);
   const read = doc.features.filter(isOsm).map(f => ({id: f.id, category: f.category, tags: f.tags,
     geometry: f.geographicGeometry ?? f.geometry, ...(f.category === 'building' ? {sectors: f.nativeSectors ?? []} : {})}));
-  const structures = (doc.authoredStructures ?? []).map(s => ({id: s.id, geometry: s.geometry}));
+  const structures = (doc.authoredStructures ?? []).map(s => ({id: s.id, geometry: s.geographicGeometry ?? s.geometry}));
   return createHash('sha256').update(JSON.stringify({features: read, structures})).digest('hex');
 }
 
 export const featuresPin = bytes => ({file: 'maps/mount-dora/features.json', sha256OfFieldsRead: featuresDigest(bytes),
-  fields: 'OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geometry'});
+  fields: 'OSM-sourced features only: id, category, tags, geographicGeometry (else geometry); nativeSectors for buildings; authoredStructures ids and geographicGeometry (else geometry)'});
