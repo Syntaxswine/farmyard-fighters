@@ -27,6 +27,9 @@
 - The user authorized fictional Mount Dora gameplay interiors and entrances on
   2026-11-13, including simpler houses within the same footprints. Keep that
   overlay explicitly fictional and separate from the reviewed geographic data.
+- Upper floors are playable to the source storey count. Keep their stair
+  openings, physical elevation, floor slabs, doors, visibility, weapon effects
+  and navigation in the production path; stairs must walk rather than teleport.
 - Verify placed objects through the actual game path, including import/editor
   playtest where applicable. Test fixtures may supply declared synthetic data,
   but must exercise the same production implementation as the shipped game.

@@ -10,6 +10,7 @@ import {patrolError} from './aft/tactics/character-patrol.js';
 import {woodlandDepth} from './designer/a20b343a0234/tactics/core/woodland.js';
 import {foliageDepth} from './designer/a20b343a0234/tactics/foliage-data.js';
 import {TownInteriors} from './town-interiors.js';
+import {FLOOR_SPACING,floorLevel,baseHeight,levelNavigation} from './town-levels.js';
 // The tour walker's body radius, in metres: what pointClear keeps clear, and what the
 // town's art lifts onto a raised deck when it overlaps one.
 export const WALKER_RADIUS=.23;
@@ -182,7 +183,10 @@ export class TownWorld{
   }
   async identify(){this.sourceRevision=await sha256(new TextEncoder().encode(JSON.stringify({source:this.project.generation.sourceDigest,version:this.project.generation.version,projection:this.project.projection,sectors:this.project.sectors.map(s=>[s.id,s.metrics.sha256]),...(this.interiors?{interiors:this.interiors.manifest.INTERIOR_REVISION}:{})})));return this;}
   descriptor(){return {terrain:this.map,edges:{},props:[],obstacles:[],worldBounds:{x:0,y:0,w:this.width,h:this.height},groundPalette:'mount-dora'};}
-  bind(state){this.state=state;state.seen=state.seen instanceof TownExplored?state.seen:new TownExplored();this.interiors?.sync();this.subscribe(()=>{state.revision++;delete state.fogAt;});}
+  bind(state){this.state=state;this.exploredFloors??=new Map([[0,state.seen instanceof TownExplored?state.seen:new TownExplored()]]);state.seen=this.exploredFloors.get(floorLevel(state.units[0]))||new TownExplored();this.interiors?.sync();this.subscribe(()=>{state.revision++;delete state.fogAt;});}
+  restoreExploration(progress){if(!progress)return;this.exploredFloors=new Map([[0,progress.seen instanceof TownExplored?progress.seen:TownExplored.restore(progress.explored)]]);for(const [level,bits]of progress.upperExplored||[])this.exploredFloors.set(level,TownExplored.restore(bits));}
+  exploredSnapshot(){return this.exploredFloors?.get(0)?.snapshot()??this.state.seen.snapshot();}
+  upperExploredSnapshot(){return [...this.exploredFloors||[]].filter(([level,seen])=>level>0&&seen.size>0).map(([level,seen])=>[level,seen.snapshot()]);}
   interactionChanged(){this.interiors?.changed();}
   savedObjects(state){return this.interiors?.savedObjects(state)??state.interactables.map(({id,open,searched,inventory})=>({id,open,searched,inventory}));}
   restoreObjectChanges(objects){this.interiors?.restore(objects);}
@@ -248,27 +252,33 @@ export class TownWorld{
   status(){return {loading:[...this.wanted].filter(id=>!this.cache.has(id)&&!this.errors.has(id)),failed:[...this.errors].filter(([id])=>this.wanted.has(id)).map(([id,message])=>({id,message})),decoded:this.cache.size,inFlight:this.inFlight.size,queued:this.queue.length};}
   wallsFor(bounds,{draw=false,walk=false}={}){const walls=new Map();for(const packet of this.cache.values())for(const item of packet.walls.query(bounds))if((!draw||item.draw)&&(!walk||item.walk))walls.set(item.key,item);return [...walls.values()];}
   solidsFor(bounds){const result=this.artIndex.query(bounds);for(const packet of this.cache.values())result.push(...packet.plantSolids.query(bounds));return result;}
-  pointClear(p,radius=WALKER_RADIUS){
+  locationAt(p,from=null,radius=WALKER_RADIUS){return this.interiors?this.interiors.locationAt(p,from,radius):{...p,level:0,elevation:0};}
+  applyMovement(unit,next){const p=this.locationAt(next,unit);if(!p)return false;Object.assign(unit,{level:p.level,elevation:p.elevation});if(p.stairId)unit.stairId=p.stairId;else delete unit.stairId;return true;}
+  pointClear(p,radius=WALKER_RADIUS,from=null){
+    const location=this.locationAt(p,from,radius);if(!location)return false;
     if(this.disposed||p.x<-.5+radius||p.x>this.width-.5-radius||p.y<-.5+radius||p.y>this.height-.5-radius)return false;
     for(let y=Math.floor(p.y+.5-radius);y<=Math.floor(p.y+.5+radius);y++)for(let x=Math.floor(p.x+.5-radius);x<=Math.floor(p.x+.5+radius);x++){
-      const tile=this.tile(x,y);if(tile===null||tile==='water')if(boxDistance(p,[x-.5,y-.5,x+.5,y+.5])<radius-EPS)return false;
+      const tile=this.tile(x,y);if(tile===null||tile==='water'||floorLevel(location)>0&&!this.interiors?.roomAt(x,y,floorLevel(location)))if(boxDistance(p,[x-.5,y-.5,x+.5,y+.5])<radius-EPS)return false;
     }
     const bounds=[p.x-radius,p.y-radius,p.x+radius,p.y+radius];
-    if(this.solidsFor(bounds).some(s=>solidDistance(s,p)<radius-EPS))return false;
-    if(this.interiors&&!this.interiors.pointClear(p,radius))return false;
+    if(this.solidsFor(bounds).some(s=>(s.trunkHeight??s.height??2)>baseHeight(location)+.1&&solidDistance(s,p)<radius-EPS))return false;
+    if(this.interiors&&!this.interiors.pointClear(location,radius))return false;
     const segments=this.wallsFor(bounds,{walk:true}).map(w=>w.run);
-    return !wallRunsIntersect({wallRuns:{version:1,segments}},{...p,h:.8},{...p,h:.8},{radius});
+    return !wallRunsIntersect({wallRuns:{version:1,segments}},{...p,h:baseHeight(location)+.8},{...p,h:baseHeight(location)+.8},{radius});
   }
   resumeClear(p){
     // Closed tour buildings have no entrances. An old save can be enclosed by
     // a moved shell even when it does not touch a wall (including a courtyard).
+    const location=this.locationAt(p);if(!location||this.interiors?.plotAt(p)&&!p.stairId||p.elevation!==undefined&&Math.abs(p.elevation-location.elevation)>.025)return false;
     return this.pointClear(p)&&!this.closedBuildings.query([p.x,p.y,p.x,p.y]).some(s=>s.polygons.some(poly=>ringContains(p,poly[0])));
   }
-  walkSegment(a,b,radius=WALKER_RADIUS){const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.07));for(let i=1;i<=steps;i++)if(!this.pointClear({x:a.x+(b.x-a.x)*i/steps,y:a.y+(b.y-a.y)*i/steps},radius))return false;return true;}
+  traceWalk(a,b,radius=WALKER_RADIUS,clear=()=>true){let at={...a};const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.07));for(let i=1;i<=steps;i++){const next={x:a.x+(b.x-a.x)*i/steps,y:a.y+(b.y-a.y)*i/steps};if(!this.pointClear(next,radius,at))return null;at=this.locationAt(next,at,radius);if(!at||!clear(at))return null;}return at;}
+  walkSegment(a,b,radius=WALKER_RADIUS){return !!this.traceWalk(a,b,radius);}
+  levelPath(unit,target,options){return levelNavigation(this,unit,target,options);}
   lineClear(a,b){
     if(!this.residentAt(a)||!this.residentAt(b))return false;
     const bounds=[Math.min(a.x,b.x),Math.min(a.y,b.y),Math.max(a.x,b.x),Math.max(a.y,b.y)];
-    const segments=this.wallsFor(bounds,{walk:true}).map(w=>w.run),za=a.h??1.1,zb=b.h??1.1;
+    const segments=this.wallsFor(bounds,{walk:true}).map(w=>w.run),za=a.h??baseHeight(a)+1.1,zb=b.h??baseHeight(b)+1.1;
     if(wallRunsIntersect({wallRuns:{version:1,segments}},{...a,h:za},{...b,h:zb}))return false;
     if(this.interiors&&!this.interiors.lineClear({...a,h:za},{...b,h:zb}))return false;
     for(const packet of this.cache.values())for(const trunk of packet.plantSolids.query(bounds)){
@@ -310,10 +320,11 @@ export class TownWorld{
   }
   navigationGrid(){return this.navigation||(this.navigation={width:this.width,height:this.height,nodes:sparseStore(16384),walks:sparseStore(131072),standIns:new Map()});}
   reveal(state,unit){
-    if(state.fogAt&&Math.hypot(unit.x-state.fogAt.x,unit.y-state.fogAt.y)<.75)return;
+    const level=floorLevel(unit);this.exploredFloors??=new Map([[0,state.seen]]);if(!this.exploredFloors.has(level))this.exploredFloors.set(level,new TownExplored());state.seen=this.exploredFloors.get(level);
+    if(state.fogAt&&state.fogAt.level===level&&Math.abs((state.fogAt.elevation??0)-baseHeight(unit))<.25&&Math.hypot(unit.x-state.fogAt.x,unit.y-state.fogAt.y)<.75)return;
     const rooms=this.interiors?.reveal(unit);
-    const visible=new Set();for(let y=Math.max(0,Math.floor(unit.y-36));y<=Math.min(this.height-1,Math.ceil(unit.y+36));y++)for(let x=Math.max(0,Math.floor(unit.x-36));x<=Math.min(this.width-1,Math.ceil(unit.x+36));x++)if(Math.hypot(x-unit.x,y-unit.y)<36&&this.tile(x,y)!==null){const key=x+','+y,room=this.interiors?.roomAt(x,y);if(room&&!rooms.has(room.id))continue;visible.add(key);if(Math.hypot(x-unit.x,y-unit.y)<24)state.seen.add(key);}
-    state.visible=visible;state.fogAt={x:unit.x,y:unit.y};
+    const visible=new Set();for(let y=Math.max(0,Math.floor(unit.y-36));y<=Math.min(this.height-1,Math.ceil(unit.y+36));y++)for(let x=Math.max(0,Math.floor(unit.x-36));x<=Math.min(this.width-1,Math.ceil(unit.x+36));x++)if(Math.hypot(x-unit.x,y-unit.y)<36&&this.tile(x,y)!==null){const key=x+','+y,room=this.interiors?.roomAt(x,y,level);if(room&&!rooms.has(room.id)||level&&!room)continue;visible.add(key);if(Math.hypot(x-unit.x,y-unit.y)<24)state.seen.add(key);}
+    state.visible=visible;state.fogAt={x:unit.x,y:unit.y,level,elevation:baseHeight(unit)};
   }
   wallPanelsFor(window){const bounds=[window.x-.5,window.y-.5,window.x+window.w-.5,window.y+window.h-.5],panels=[];for(const {run,key}of this.wallsFor(bounds,{draw:true}))for(const p of wallPanels(run)){const hx=(Math.abs(Math.cos(p.yaw))*p.size[0]+Math.abs(Math.sin(p.yaw))*p.size[2])/2,hy=(Math.abs(Math.sin(p.yaw))*p.size[0]+Math.abs(Math.cos(p.yaw))*p.size[2])/2;if(intersect(bounds,[p.center[0]-hx,p.center[2]-hy,p.center[0]+hx,p.center[2]+hy]))panels.push({...p,id:key+':'+p.id});}return panels;}
   roofsFor(block){const result=[];for(const packet of this.cache.values())result.push(...packet.roofs.get(block.id)||[]);return result;}

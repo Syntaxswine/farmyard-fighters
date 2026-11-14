@@ -1,5 +1,6 @@
 // Solo coordinates are metres: (x,y) on the ground, h above it. The inherited
 // painted renderer consumes these as Three (x,h,y), without AFT floor scaling.
+import {baseHeight} from './town-levels.js';
 export const FLAME_RAY_COUNT=37,FLAME_HALF_ANGLE=24*Math.PI/180;
 const cell=(x,y)=>`${Math.round(x)},${Math.round(y)}`;
 const gap=(a,b)=>a.kind==='hidden'||a.kind!==b.kind||Math.abs(a.distance-b.distance)>1.05;
@@ -16,7 +17,7 @@ function wallEntry(a,b,box){
 }
 
 export function recordFlame(source,range,geometry,visible){
-  const heading=source.heading*Math.PI/180,h=source.stance==='prone'?.3:source.stance==='kneeling'?.75:1.1;
+ const heading=source.heading*Math.PI/180,h=baseHeight(source)+(source.stance==='prone'?.3:source.stance==='kneeling'?.75:1.1);
   const origin={x:source.x,y:source.y,h},walls=geometry.filter(box=>(box.kind==='wall'||box.kind==='glass')&&(!box.windowPart||h>=(box.z0??0)&&h<=box.height)),sourceVisible=visible.has(cell(source.x,source.y));
   const rays=Array.from({length:FLAME_RAY_COUNT},(_,i)=>{
     const angle=heading-FLAME_HALF_ANGLE+2*FLAME_HALF_ANGLE*i/(FLAME_RAY_COUNT-1),dx=Math.cos(angle),dy=Math.sin(angle),end={x:source.x+dx*range,y:source.y+dy*range};
@@ -27,7 +28,7 @@ export function recordFlame(source,range,geometry,visible){
     return {x:source.x+dx*reach,y:source.y+dy*reach,h,distance:reach,kind};
   });
   const visibleCells=[...visible].filter(key=>{const [x,y]=key.split(',').map(Number);return Math.hypot(x-source.x,y-source.y)<=range+1;});
-  return {origin,heading,range,halfAngle:FLAME_HALF_ANGLE,rays,visibleCells,sourceVisible,source:{id:source.id,species:source.species,stance:source.stance,heading:source.heading,x:source.x,y:source.y}};
+ return {origin,heading,range,halfAngle:FLAME_HALF_ANGLE,rays,visibleCells,sourceVisible,source:{id:source.id,species:source.species,stance:source.stance,heading:source.heading,x:source.x,y:source.y,...(baseHeight(source)?{elevation:baseHeight(source),level:source.level}:{})}};
 }
 
 // Same conservative wedge contract as the inherited sheets, also enforced on

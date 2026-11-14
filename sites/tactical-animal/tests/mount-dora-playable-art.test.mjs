@@ -281,7 +281,7 @@ test('a walker stands on a deck wherever their body overlaps it, and on any deck
  assert.ok(plank,'a plank cell under the deck with a position more than a body off it');assert.equal(TownEnvironment.prototype.surfaceHeight.call(town,...field(plank)),0);
  const view=fs.readFileSync(new URL('../dist/mount-dora-view.js',import.meta.url),'utf8');assert.match(view,/constructor\(renderer,state,\{[^\n]*\bartModule\b[^\n]*\}=\{\}\)\{\r?\n[^\n]*\bthis\.artModule=artModule;/);
  const fieldView=fs.readFileSync(new URL('../dist/field-view.js',import.meta.url),'utf8');
- assert.match(fieldView,/a\.root\.position\.set\(sample\.x,this\.art\?\.surfaceHeight\?\.\(sample\.x,sample\.y\)\?\?0,sample\.y\);a\.root\.updateMatrixWorld\(true\);/);
+ assert.match(fieldView,/a\.root\.position\.set\(sample\.x,this\.art\?\.surfaceHeight\?\.\(sample\.x,sample\.y,v\)\?\?0,sample\.y\);a\.root\.updateMatrixWorld\(true\);/);
 });
 test('every walkable pier cell over water has its centre under the drawn deck',()=>{
  // The generator's band: cell centres within 0.75 m of a deck line (square at its ends) or of a joint.

@@ -178,7 +178,7 @@ existing hand control, AP/real-time costs and blocked-swing checks. Door deltas
 survive streaming and save/resume; static layouts are never saved. An open leaf
 remains solid. Closed rooms remain concealed until entered or connected through
 open doors. The operation briefing and town menu identify these layouts as
-fictional. Upper floors are exterior shells, not playable rooms in this pass.
+fictional. Upper floors are playable to the source storey count, as described below.
 
 `TownInteriorScenery` streams within the normal render window. Imported roofs
 remain above replacement gameplay walls, and roofs/wall tops cut away for
@@ -187,3 +187,46 @@ hidden. The source kit itself is not modified. Interior packets share the
 existing nine-sector residency and two-request concurrency budget, and fail
 closed on hash mismatch or incomplete loading. New geometry uses the same
 source-version checks and retry path as the town.
+
+## Playable upper floors
+
+Overlay version 2 adds 190 upper floors to the 164 multi-storey buildings, up to
+five storeys. The geographic files, imported roofs and catalogue pin remain
+unchanged. Ground-floor door IDs and positions remain stable. Upper layouts
+reuse the connected room arrangement with Nautilus upper-storey room names and
+the inherited furniture library. Every upper-floor door is operational.
+
+The generator fits a switchback staircase inside a connected room, keeps its
+approaches clear and reserves its turning landing. Most flights use two-metre
+runs; compact plots use one-metre runs. Every upper slab has a real stairwell
+opening. `town-levels.js` adapts Nautilus's 2.12-metre floor spacing to continuous
+Fighters coordinates. The bounded navigation graph sweeps every edge through
+the same collision as held input. Walking the steps changes physical elevation;
+the Upstairs/Downstairs hand action queues that walk and charges normal movement
+costs. Living units can block the landing. Guards remember a target's floor,
+pursue through accessible stairs and can return to their ground patrols.
+
+Units carry optional `level`, `elevation` and `stairId` fields. Movement checks
+the supported surface rather than allowing a fall off an upper footprint.
+Floor slabs, treads, walls, furniture and door leaves enter normal 3-D sight and
+projectile tests. Grenade arcs, muzzle origins, impacts, flame, burns and fuel
+fire retain the physical height. Existing flat operations keep zero elevation.
+The original ballistic collider is consumed through an explicit support-height
+adapter; frozen engine files are not changed.
+
+The camera follows elevation. Only the active interior floor is exposed, with
+the floor above and roof cut away; stairs remain visible through the slab hole.
+The HUD names the current floor. Picking uses rendered floor and stair surfaces,
+so a click on an upper floor plans a route there. Adjacent Upstairs/Downstairs
+choices are also available by holding the existing hand control. A zero-elapsed
+frame after a graphics-loading clock reset preserves movement orders.
+
+Tour progress stores upper explored areas as at most four additional compact
+bitsets, door deltas and the actor's current surface. Old ground checkpoints
+remain supported. A checkpoint on a newly occupied stair plot relocates to
+clear ground; a checkpoint saved partway along a current flight resumes at its
+actual height. Static floor data is never saved. Residency still caps at nine
+decoded sectors and two source requests. `tools/test-town-upper-floors.mjs`
+reviews the production bootstrap, stair actions, five-storey traversal, touch
+controls, resume and renderer, with a ten-minute helper deadline and verified
+browser/server cleanup. `--check` on the overlay generator verifies reproducibility.

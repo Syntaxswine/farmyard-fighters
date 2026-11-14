@@ -24,7 +24,7 @@ export class FlameConePreview {
     updateFlameMask(this,shape,visible);this.bytes=this.data;
     for(const mesh of [this.fill,this.outline]){const u=mesh.material.uniforms;u.fogMask.value=this.fog;u.fogOrigin.value.set(this.rect.origin.x,this.rect.origin.y);u.fogSize.value.set(this.rect.width,this.rect.height);}
     const fill=this.fill.geometry.getAttribute('position'),edge=this.outline.geometry.getAttribute('position');let filled=0,lined=0;
-    const point=(array,index,p)=>{array.setXYZ(index,p.x,.07,p.y);return index+1;};
+    const point=(array,index,p)=>{array.setXYZ(index,p.x,(shape.source?.elevation??0)+.07,p.y);return index+1;};
     const open=i=>{const a=shape.rays[i],b=shape.rays[i+1];return !!a&&!!b&&a.kind!=='hidden'&&a.kind===b.kind&&Math.abs(a.distance-b.distance)<=1.05;};
     for(let i=0;i<shape.rays.length-1;i++){
       if(!open(i))continue;const a=shape.rays[i],b=shape.rays[i+1];

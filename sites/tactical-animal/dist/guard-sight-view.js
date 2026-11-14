@@ -3,6 +3,7 @@ import {sightOf} from './aft/tactics/core/perception.js';
 import {getTourWorld} from './mount-dora-activity.js';
 import {alive,canSee,geometry,sightRange} from './solo-game.js';
 import {worldBounds} from './world-grid.js';
+import {baseHeight,floorLevel} from './town-levels.js';
 
 const ANGLE_STEP=3,UPDATE_MS=100,GROUND_OFFSET=.045;
 const MAX_POINTS=(360/ANGLE_STEP+6)*2;
@@ -19,7 +20,7 @@ export function guardSightOutline(state,guard,player,window){
   const bounds=worldBounds(state);
   const x0=Math.max(bounds.x,window.x)-.5,y0=Math.max(bounds.y,window.y)-.5;
   const x1=Math.min(bounds.x+bounds.w,window.x+window.w)-.5,y1=Math.min(bounds.y+bounds.h,window.y+window.h)-.5;
-  const target={team:'squad',stance:player.stance,sneaking:player.sneaking};
+  const target={team:'squad',stance:player.stance,sneaking:player.sneaking,level:floorLevel(guard),elevation:baseHeight(guard)};
   const heading=Number.isFinite(guard.heading)?guard.heading:0,{field,bino}=sightOf(guard);
   const angles=new Set(Array.from({length:360/ANGLE_STEP},(_,i)=>-180+i*ANGLE_STEP));
   // Include the hard field edges so that even the short rear blind wedge is
@@ -80,7 +81,7 @@ export class GuardSightView{
     this.scenery=scenery;this.context=context;
     for(const guard of guards){
       let record=this.outlines.get(guard.id);
-      const pose=[guard.x,guard.y,guard.heading,guard.stance].join(':');
+      const pose=[guard.x,guard.y,guard.heading,guard.stance,baseHeight(guard)].join(':');
       if(record&&!force&&(pose===record.pose||now-record.at<UPDATE_MS))continue;
       if(!record){
         const buffer=new T.BufferGeometry();
@@ -93,7 +94,7 @@ export class GuardSightView{
         this.outlines.set(guard.id,record);
       }
       const outline=guardSightOutline(state,guard,player,window),buffer=record.line.geometry,position=buffer.getAttribute('position');
-      for(const [index,point] of outline.entries())position.setXYZ(index,point.x,GROUND_OFFSET,point.y);
+      for(const [index,point] of outline.entries())position.setXYZ(index,point.x,baseHeight(guard)+GROUND_OFFSET,point.y);
       position.needsUpdate=true;buffer.setDrawRange(0,outline.length);
       record.pose=pose;record.at=now;
     }

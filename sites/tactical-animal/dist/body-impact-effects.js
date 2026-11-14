@@ -4,6 +4,7 @@ import {BLOOD_ATLAS,BLOOD_DURATION} from './designer/a20b343a0234/tactics/painte
 import {BloodSprayPool,BLOOD_EMITTER_LIMIT} from './designer/a20b343a0234/tactics/blood-spray-pool.js';
 import {gunshotSprayFrame} from './designer/a20b343a0234/tactics/gunshot-spray-frame.js';
 import {DIMENSIONS} from './designer/a20b343a0234/tactics/hybrid-world.js';
+import {baseHeight} from './town-levels.js';
 
 const atlas=new URL(BLOOD_ATLAS,new URL('./designer/a20b343a0234/tactics/',import.meta.url)).href;
 const support={level:0,baseHeight:0,offset:0};
@@ -29,8 +30,9 @@ export class BodyImpactEffects{
     const impact=event.bodyImpact;
     if(!impact||this.disposed||this.failed||this.pending.length>=BLOOD_EMITTER_LIMIT)return;
     const {x,y,h}=impact.contact;
+    const victim=state.units?.find(u=>u.id===(event.impact?.unitId??event.target)),shooter=state.units?.find(u=>u.id===event.shooter),at=unit=>baseHeight(unit)?{level:0,baseHeight:baseHeight(unit)*1.8/DIMENSIONS.standing,offset:baseHeight(unit)}:support;
     const placement=gunshotSprayFrame({contact:artPoint(x,y,h),origin:artPoint(event.ax,event.ay,event.ah),
-      incoming:artPoint(x-event.ax,y-event.ay,h-event.ah),originSupport:support,victim:{support},visualSeed:impact.seed});
+      incoming:artPoint(x-event.ax,y-event.ay,h-event.ah),originSupport:at(shooter),victim:{support:at(victim)},visualSeed:impact.seed});
     if(shotVisible(state,placement.contact))this.pending.push({placement,strength:impact.strength,at:now});
   }
   draw(state,camera,now){

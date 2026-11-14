@@ -132,3 +132,6 @@ dialog .target-options .burst-toggle{min-height:44px;padding:5px 10px;font:10px 
   .grenade-icon{height:21px;width:21px}#grenade .control-caption{font-size:6px;letter-spacing:0}#grenade-cost{font-size:6px;margin-top:1px}.grenade-count{font-size:8px;right:2px;top:2px}
   #minimap-button{width:105px;height:95px}#minimap{height:64px}
 }
+
+#battle .hero-identity #floor-status{display:block;margin-top:3px;font:7px var(--mono);color:var(--cream);letter-spacing:.6px}
+#battle .hero-identity #floor-status[hidden]{display:none}

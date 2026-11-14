@@ -43,6 +43,7 @@ function restoreGuard(state,guard,saved,rosterChanged,layoutChanged){
     Object.assign(guard,previous,{x:fresh.x,y:fresh.y,heading:fresh.heading,name,patrol,alert:false,lastKnown:null,isMoving:false});
   }
   delete guard.patrolIndex;delete guard.patrolWaitUntil;
+  delete guard.level;delete guard.elevation;delete guard.stairId;
   if(state.realtime?.actors)delete state.realtime.actors[guard.id];
 }
 export async function loadTownTour({build,progress=null,signal,fetcher=globalThis.fetch,projectURL=new URL('./maps/mount-dora/project.json',import.meta.url),artModule,kitModule,interiorModule}={}){
@@ -56,6 +57,7 @@ export async function loadTownTour({build,progress=null,signal,fetcher=globalThi
   if(await sha256(features)!==art.SOURCE_FEATURES_SHA256)throw Error('Town map and artwork revisions differ. Reload the page before starting.');
   const world=await new TownWorld(project,{baseURL,fetcher,art,interiors}).identify();
   world.restoreObjectChanges(progress?.runtime?.objects);
+  world.restoreExploration(progress);
   world.artModule=art;world.visits=TOUR_VISITS;world.sourceSignal=new AbortController();
   const abort=()=>world.dispose();signal?.addEventListener('abort',abort,{once:true});
   const dispose=world.dispose.bind(world);world.dispose=()=>{world.sourceSignal.abort();signal?.removeEventListener('abort',abort);world.overviewImage=null;dispose();};
@@ -63,7 +65,7 @@ export async function loadTownTour({build,progress=null,signal,fetcher=globalThi
     loadAtlas:THREE=>kit.loadMountDoraAtlas({THREE,signal:world.sourceSignal.signal,url:new URL(art.ATLAS_URL,new URL('./mission-art/mount-dora/manifest.js',import.meta.url)).href})});
   world.drawMinimap=drawTownMinimap;
   if(typeof Image!=='undefined'){const image=new Image();image.onload=()=>{if(!world.disposed){world.overviewImage=image;world.emit();}};image.onerror=()=>{world.overviewUnavailable=true;};image.src=new URL(project.atlasFile,baseURL).href;}
-  world.startPoint=progress?{x:progress.player.x,y:progress.player.y,heading:progress.player.heading}:{...TOUR_ACTIVITY.spawn};
+  world.startPoint=progress?{x:progress.player.x,y:progress.player.y,heading:progress.player.heading,...(progress.player.level||progress.player.stairId?{level:progress.player.level??0,elevation:progress.player.elevation,...(progress.player.stairId?{stairId:progress.player.stairId}:{})}:{})}:{...TOUR_ACTIVITY.spawn};
   try{
     await world.readyAt(world.startPoint);
     let relocated=false;
@@ -81,7 +83,7 @@ export async function loadTownTour({build,progress=null,signal,fetcher=globalThi
     const state=createSoloGame(progress?.build||build,1947,TOUR_ID,{tourWorld:world});
     if(progress){
       const initial=hero(state),u=progress.player;if(u.species!==initial.species||u.slots.some(kind=>!Core.WEAPONS[kind])||!Core.WEAPONS[u.weapon])throw Error('Unsupported saved tour animal or equipment.');
-      Object.assign(initial,structuredClone(u),{id:0,team:'squad',x:world.startPoint.x,y:world.startPoint.y,isMoving:false});state.seen=progress.seen instanceof TownExplored?progress.seen:TownExplored.restore(progress.explored);
+      Object.assign(initial,structuredClone(u),{id:0,team:'squad',x:world.startPoint.x,y:world.startPoint.y,isMoving:false,...(relocated?{level:0,elevation:0,stairId:undefined}:{})});state.seen=world.exploredFloors.get(initial.level??0)||new TownExplored();
       state.solo.dressings=progress.dressings;state.solo.distance=progress.distance;state.elapsed=progress.elapsed;state.log=(progress.log||[]).filter(x=>typeof x==='string').slice(0,20);
       if(progress.runtime){
         const r=progress.runtime;if(r.realtime)state.realtime=structuredClone(r.realtime);Object.assign(state,{phase:r.phase,round:r.round,seed:r.seed,engaged:r.engaged,enemyIndex:r.enemyIndex,enemyDelay:r.enemyDelay,fires:structuredClone(r.fires)});
@@ -110,12 +112,12 @@ export async function loadTownTour({build,progress=null,signal,fetcher=globalThi
 }
 export async function visitTownLandmark(state,id){
   const world=getTourWorld(state),visit=TOUR_VISITS.find(v=>v.id===id);if(!world||!visit)throw Error('Choose a town landmark.');
-  const u=hero(state),old={x:u.x,y:u.y},target={x:visit.town[0]-.5,y:visit.town[1]-.5};
+  const u=hero(state),old={x:u.x,y:u.y},target={x:visit.town[0]-.5,y:visit.town[1]-.5,level:0,elevation:0};
   world.coverageTarget=target;world.ensureCoverage(blockWindow(state,target),target);world.retry();
   try{
     await world.readyAt(target);if(world.disposed)throw Error('The tour has ended.');
-    if(!world.resumeClear(target)||!freePoint(state,target,u.id))throw Error('That landmark approach is obstructed. Your animal has stayed at its previous location.');
-    Core.stop(state);Object.assign(u,target,{isMoving:false});delete state.fogAt;Core.refresh(state,{forceFog:true});log(state,'Visited '+visit.name+'.');
+    if(!world.resumeClear(target)||!freePoint(state,target,u.id,{from:null}))throw Error('That landmark approach is obstructed. Your animal has stayed at its previous location.');
+    Core.stop(state);Object.assign(u,target,{isMoving:false});delete u.stairId;delete state.fogAt;Core.refresh(state,{forceFog:true});log(state,'Visited '+visit.name+'.');
   }finally{
     world.coverageTarget=null;
     if(!world.disposed)world.ensureCoverage(blockWindow(state,u),u);

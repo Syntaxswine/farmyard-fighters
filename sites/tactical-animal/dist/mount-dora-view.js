@@ -14,6 +14,7 @@ import {blockWindow} from './world-grid.js';
 import {getTourWorld} from './mount-dora-activity.js';
 import {WALKER_RADIUS} from './mount-dora-world.js';
 import {TownInteriorScenery} from './town-interior-view.js';
+import {baseHeight,stairHeight} from './town-levels.js';
 const origin=new URL('./aft/tactics/',import.meta.url);
 const surfaceFiles={
   'ground-grass':'ground-grass.png',woodland:'ground-grass.png','ground-dirt':'ground-dirt.png','ground-gravel':'ground-gravel.png',
@@ -138,10 +139,10 @@ export class TownEnvironment{
   // anywhere on a deck cell over water (bridge) whose centre the deck covers, so no
   // walker stands at water level on a pier's walkable cells. Field cell centres are
   // integers, half a cell from town metres.
-  surfaceHeight(x,y){const art=this.artModule;if(!art?.deckHeightAt)return 0;const cx=Math.floor(x+.5),cy=Math.floor(y+.5);
+  surfaceHeight(x,y,unit){if(unit?.stairId){const stair=this.world.interiors?.stairs.get(unit.stairId);if(stair)return stairHeight(stair,{x,y});}if(baseHeight(unit))return baseHeight(unit);const art=this.artModule;if(!art?.deckHeightAt)return 0;const cx=Math.floor(x+.5),cy=Math.floor(y+.5);
     return Math.max(art.deckHeightAt([x+.5,y+.5],WALKER_RADIUS),this.world?.tile(cx,cy)==='bridge'?art.deckHeightAt([cx+.5,cy+.5]):0);}
   setFocus(unit,camera){
-    const eyeHeight=this.surfaceHeight(unit.x,unit.y)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2);
+    const eyeHeight=this.surfaceHeight(unit.x,unit.y,unit)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2);
     this.landmarks?.setFocus?.([unit.x+.5,unit.y+.5],{camera,eyeHeight});
     this.interiors?.focus(this.landmarks);
     this.plantCutaway.update(camera,[{id:unit.id,position:[unit.x,eyeHeight,unit.y],level:0}]);
@@ -155,6 +156,7 @@ export class TownEnvironment{
       }
     }
   }
+  pickSurface(ray){return this.interiors?.pickSurface(ray);}
   metrics(){return {...this.stats,blocks:this.chunks.size,landmarks:this.landmarks?{...this.landmarks.metrics(),residentIds:this.landmarks.root.children.map(o=>o.name)}:null,decodedSectors:this.world.cache.size,interiors:this.interiors?.metrics()};}
   dispose(){if(this.disposed)return;this.disposed=true;this.readyForMovement=false;this.root.removeFromParent();for(const c of this.chunks.values())this.release(c);this.chunks.clear();for(const child of this.wallGroup.children)child.dispose();this.wallGroup.clear();this.plantPrototypes.clear();this.plantCutaway.dispose();this.interiors?.dispose();this.landmarks?.dispose();this.atlasOwner?.dispose();this.plantFactory?.dispose();for(const m of Object.values(this.plantMaterials||{}))m.dispose();for(const t of Object.values(this.plantTextures||{}))t.dispose();for(const material of this.materials.values())material.dispose();for(const promise of this.textures.values())promise.then(t=>t?.dispose()).catch(()=>{});this.materials.clear();this.textures.clear();this.cube.dispose();this.plane.dispose();this.root.clear();}
 }

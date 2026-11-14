@@ -1,4 +1,5 @@
 import * as T from './aft/tactics/vendor/three.module.js';
+import {baseHeight} from './town-levels.js';
 import {makeBurnRoute,burnState,FIRE_TIME,paintedBurnSupported} from './aft/tactics/painted-fire-state.js';
 import {createPaintedFireEffects,FIRE_ASSETS} from './aft/tactics/painted-fire-effects.js';
 import {createPaintedFireMotion} from './designer/a20b343a0234/tactics/painted-fire-motion.js';
@@ -9,7 +10,7 @@ import {createTankBlastMotion,TANK_TIME} from './designer/a20b343a0234/tactics/t
 const V=(x=0,y=0,z=0)=>new T.Vector3(x,y,z);
 const cell=p=>`${Math.round(p.x)},${Math.round(p.y)}`;
 export function burnSegments(event){
-  const points=event.route.map(p=>({x:p.x,y:0,z:p.y})),segments=[];let part=[points[0]],last=null;
+  const points=event.route.map(p=>({x:p.x,y:baseHeight(p),z:p.y})),segments=[];let part=[points[0]],last=null;
   for(let i=1;i<points.length;i++){
     const a=points[i-1],b=points[i],heading=Math.atan2(b.z-a.z,b.x-a.x);
     if(last!==null&&Math.abs(heading-last)>1e-6){segments.push(makeBurnRoute(part));part=[a];}
@@ -57,7 +58,7 @@ export class SoloBurnEffects{
       if(entry.waiting){const start=startFor(entry.event,now);if(start!==null){entry.start=start;entry.waiting=false;}}
     }
     for(const u of visibleUnits)if((u.burnedRemains||u.hp>0&&u.burningTurns)&&!this.entries.has(u.id)&&!this.failures.has(u.id)){
-      const event={unitId:u.id,kind:u.burnedRemains?'ash':'ignite',weapon:u.weapon,route:[{x:u.x,y:u.y,heading:u.heading}]};
+      const event={unitId:u.id,kind:u.burnedRemains?'ash':'ignite',weapon:u.weapon,route:[{x:u.x,y:u.y,heading:u.heading,elevation:baseHeight(u)}]};
       this.entries.set(u.id,{event,segments:burnSegments(event),start:now-(u.burnedRemains?5400:1500),waiting:false});
     }
     if(this.entries.size)this.load();
@@ -93,7 +94,7 @@ export class SoloBurnEffects{
           if(s.disposed)fx.dispose();else{fx.group.visible=false;s.effects=fx;}
         }).catch(e=>{s.loading=false;s.loadFailed=true;this.onError(e);});
       }
-      if(this.reduced){entry.segments=burnSegments({route:[{x:unit.x,y:unit.y,heading:unit.heading}]});entry.start=this.now-(unit.burnedRemains?5400:1500);entry.waiting=false;}
+      if(this.reduced){entry.segments=burnSegments({route:[{x:unit.x,y:unit.y,heading:unit.heading,elevation:baseHeight(unit)}]});entry.start=this.now-(unit.burnedRemains?5400:1500);entry.waiting=false;}
       const waiting=entry.waiting||this.now<entry.start;
       if(!this.reduced&&!waiting&&entry.event.kind==='ash'&&entry.event.sequence!==undefined){
         // Keep the initial engulf visible even when the atlases arrive late.
@@ -111,9 +112,9 @@ export class SoloBurnEffects{
       s.value.value=body.dissolve;
       actor.paint.setGripForearm?.(body.bodyVisible&&!!actor.worker.weapon?.carry?.handPoses?.support?.gripMesh);
       if(s.effects)s.effects.update(waiting?0:p.time,{camera,route:p.route,flame:false,terminal:p.terminal,groundPoint:s.motion?.groundPoint,body:true});
-      if(s.motion){const point=body.point;actor.pick.position.set(point.x,unit.hp>0?.9:.18,point.z);actor.ring.position.set(point.x,.018,point.z);actor.shadow.position.set(point.x,.01,point.z);}
+      if(s.motion){const point=body.point;actor.pick.position.set(point.x,baseHeight(unit)+(unit.hp>0?.9:.18),point.z);actor.ring.position.set(point.x,baseHeight(unit)+.018,point.z);actor.shadow.position.set(point.x,baseHeight(unit)+.01,point.z);}
       actor.root.updateMatrixWorld(true);actor.worker.skeleton.update();if(s.effects&&p.terminal&&p.time>=FIRE_TIME.duration)s.settledEvent=entry.event;return true;
-    }catch(error){this.failures.add(unit.id);this.remove(unit.id);actor.root.position.set(unit.x,0,unit.y);this.onError(error);return false;}
+    }catch(error){this.failures.add(unit.id);this.remove(unit.id);actor.root.position.set(unit.x,baseHeight(unit),unit.y);this.onError(error);return false;}
   }
   release(id){
     const s=this.sessions.get(id);if(!s)return;s.disposed=true;s.restoreSkin();

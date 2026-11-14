@@ -12,6 +12,7 @@ import {FlameAim} from './flame-controls.js';
 import {weaponArtwork} from './original-art.js';
 import {STANCE_ICONS} from './aft/tactics/battle-control-icons.js';
 import {isInactiveLoot,selectInteractionTarget} from './interactions.js';
+import {baseHeight,floorLevel} from './town-levels.js';
 import {aimOptions,availableAim,flashAPShortage,switchSymbol} from './shooting-controls.js';
 import {createTargetMonitor} from './targeting-monitor.js';
 import {createOperationStorage} from './operation-storage.js';
@@ -56,7 +57,7 @@ function renderTourStatus(){
 $('tour-retry').onclick=()=>{if(!isTour(state))return;if(tourArtError){const progress=readTourProgress(encodeSave(state));launchTour({progress});}else getTourWorld(state).retry();};
 function tourMenu(){
   storage.write();const u=hero(state);
-  showDialog('<p class="eyebrow">MOUNT DORA / WALKING TOUR</p><h2>Explore the town.</h2><p>'+safe(u.name)+' · '+short(u.weapon)+'<br>'+Math.round(state.solo.distance)+' metres walked. Sentries are posted throughout town. Ground-floor interiors and entrances are fictional gameplay layouts. Use the hand control to open doors. Weapons and interactions use normal gameplay rules.</p>',[
+  showDialog('<p class="eyebrow">MOUNT DORA / WALKING TOUR</p><h2>Explore the town.</h2><p>'+safe(u.name)+' · '+short(u.weapon)+'<br>'+Math.round(state.solo.distance)+' metres walked. Sentries are posted throughout town. Interiors and entrances are fictional gameplay layouts. Open doors with the hand control; use Upstairs or Downstairs near a flight, or walk along its steps. Weapons and interactions use normal gameplay rules.</p>',[
     ['Continue walking',()=>{},'primary'],['Visit landmark',tourVisits],...weaponActions('Inventory & equipment'),['Tour notes',tourNotes],['Controls',help],
     ['Choose animal or operation',backToPrep],['Title screen',()=>{storage.write();location.assign('./');}],['Start a new walking tour',()=>launchTour()]
   ]);
@@ -74,7 +75,7 @@ async function travelToLandmark(id){
   catch(error){if(state===current&&active)toast(error.message.includes('obstructed')?error.message:'Could not load that landmark approach. Your animal has stayed here. Choose the landmark again to retry.');}
   finally{if(state===current){tourTransit=false;paused=false;$('loading').textContent='Preparing the town…';view?.reportLoading();frameClock.reset(performance.now());renderBattle();}}
 }
-function tourNotes(){showDialog('<p class="eyebrow">MOUNT DORA</p><h2>Walking tour.</h2><p>Explore the streets, parks and lakefront. Crouch or crawl through brush to stay harder to spot. On the Sneak button, BRUSH signals concealment and SEEN means a guard has you in sight. Water is impassable except for mapped supported routes. Closed buildings remain closed; the town is a source-based exterior approximation.</p><p>'+Math.round(state.solo.distance)+' metres walked. Your animal, equipment, resources and explored area have their own tour save.</p><p>Map data © OpenStreetMap contributors, ODbL 1.0.</p>',[['Back to tour menu',tourMenu],['Continue walking',()=>{},'primary']]);}
+function tourNotes(){showDialog('<p class="eyebrow">MOUNT DORA</p><h2>Walking tour.</h2><p>Explore the streets, parks and lakefront. Crouch or crawl through brush to stay harder to spot. On the Sneak button, BRUSH signals concealment and SEEN means a guard has you in sight. Water is impassable except for mapped supported routes. Building interiors are fictional gameplay layouts within the mapped footprints. Walk the stairs or use the hand control to change floors. Walls and floor slabs block sight and weapons.</p><p>'+Math.round(state.solo.distance)+' metres walked. Your animal, equipment, resources and explored area have their own tour save.</p><p>Map data © OpenStreetMap contributors, ODbL 1.0.</p>',[['Back to tour menu',tourMenu],['Continue walking',()=>{},'primary']]);}
 
 let build={...DEFAULT_BUILD},state=null,view=null,active=false,paused=false,selected=null,aim='hip',zone='torso',burst=false,contextKey='',lastUI=0,lastSave=0,lastPhase='',stick={x:0,y:0},stickPointer=null,resultShown=false,aimViewport=null;
 const grenadeAim=new GrenadeAim();
@@ -290,9 +291,9 @@ function reloadFromTrigger({targeting=false}={}){
 }
 function pick(p){if(!state||paused||aiming()||state.phase==='enemy'||state.solo.status!=='active')return;resetStick();
   if(p.barrelId){pointTargeting=false;selected=null;act(()=>{Core.stop(state);if(!Core.targetBarrel(state,hero(state),p))toast('Cannot fire at that barrel with the current weapon.');});return;}
-  if(pointTargeting){pointTargeting=false;if(p.interactionId){const object=Core.interactionObjects(state).find(o=>o.id===p.interactionId);if(object)shootPoint({...object,ground:true,h:1,targetName:object.name});return;}if(p.unitId===undefined){shootPoint({...p,ground:true,h:p.h??1.1});return;}}if(p.interactionId){focusInteraction(p.interactionId);return;}if(p.unitId!==undefined){if(p.unitId===0){operationMenu();return;}const target=state.units.find(u=>u.id===p.unitId);if(target?.hp<=0){focusInteraction('body:'+target.id);return;}if(!state.detected.has(target?.id))return;if(hero(state).weapon==='flamethrower'){armFlame(Core.headingTo(hero(state),target));return;}Core.stop(state);Core.turnTo(state,hero(state),Core.headingTo(hero(state),target));if(state.realtime)Core.pinRealtimeTarget(state,target.id);selected={targetId:target.id};burst=false;aim=availableAim(Core.WEAPONS[hero(state).weapon],hero(state).ap);zone='torso';}
+  if(pointTargeting){pointTargeting=false;if(p.interactionId){const object=Core.interactionObjects(state).find(o=>o.id===p.interactionId);if(object)shootPoint({...object,ground:true,h:(object.z0??0)+1,targetName:object.name});return;}if(p.unitId===undefined){shootPoint({...p,ground:true,h:p.h??baseHeight(p)+1.1});return;}}if(p.interactionId){focusInteraction(p.interactionId);return;}if(p.unitId!==undefined){if(p.unitId===0){operationMenu();return;}const target=state.units.find(u=>u.id===p.unitId);if(target?.hp<=0){focusInteraction('body:'+target.id);return;}if(!state.detected.has(target?.id))return;if(hero(state).weapon==='flamethrower'){armFlame(Core.headingTo(hero(state),target));return;}Core.stop(state);Core.turnTo(state,hero(state),Core.headingTo(hero(state),target));if(state.realtime)Core.pinRealtimeTarget(state,target.id);selected={targetId:target.id};burst=false;aim=availableAim(Core.WEAPONS[hero(state).weapon],hero(state).ap);zone='torso';}
   else if(p.windowId){shootPoint(p);return;}
-  else{const path=Core.navigationPath(state,hero(state),p.x,p.y);if(!path){toast('No clear route to that point.');return;}view.route([hero(state),...path]);if(state.phase==='player')selected={point:p,path};else{Core.move(state,hero(state),p.x,p.y);selected=null;view.center();}}
+  else{const path=Core.navigationPath(state,hero(state),p.x,p.y,p);if(!path){toast('No clear route to that point.');return;}view.route([hero(state),...path]);if(state.phase==='player')selected={point:p,path};else{Core.move(state,hero(state),p.x,p.y,p);selected=null;view.center();}}
   contextKey='';renderBattle();if(selected)selected.targetId!==undefined?shootingMenu():operationMenu();
 }
 function selectPointTarget(){
@@ -376,7 +377,7 @@ function renderContext(focusControl){if(!state)return;if(state.realtime){renderR
     const warning=reload.empty?reload.reason:p.reason||(!chosen.available?'Not enough AP':'');
     if(warning||w.blast){const note=document.createElement('p');note.className='shooting-warning';note.setAttribute('role','status');note.textContent=[warning,w.blast?'BLAST CAN HURT YOU':''].filter(Boolean).join(' · ');root.append(note);}
     restoreFocus?.focus?.({preventScroll:true});
-  }else if(selected?.point){const path=Core.navigationPath(state,u,selected.point.x,selected.point.y),cost=path?.reduce((n,p)=>n+p.cost,0)||0,d=cost/Core.movementRate(u);content('Move to this point',`${d.toFixed(1)} m · ${cost.toFixed(1)} AP${cost>u.ap?' · stops when AP runs out':''}`,'Move',()=>{Core.move(state,u,selected.point.x,selected.point.y);selected=null;view.center();},!path||u.ap<.01);
+  }else if(selected?.point){const path=Core.navigationPath(state,u,selected.point.x,selected.point.y,selected.point),cost=path?.reduce((n,p)=>n+p.cost,0)||0,d=cost/Core.movementRate(u);content('Move to this point',`${d.toFixed(1)} m · ${cost.toFixed(1)} AP${cost>u.ap?' · stops when AP runs out':''}`,'Move',()=>{Core.move(state,u,selected.point.x,selected.point.y,selected.point);selected=null;view.center();},!path||u.ap<.01);
   }else if(near){const mission=missionForState(state);content(near.label,near.kind==='extract'?mission.extraction.name:`${near.cost} AP · ${mission.objective.after}`,near.kind==='extract'?'Extract ↗':'Collect',()=>interact(state),!near.ok);}
   else if(state.detected.size){const guard=[...state.detected].map(id=>state.units.find(v=>v.id===id)).sort((a,b)=>distance(u,a)-distance(u,b))[0];content('Visible contact',`${guard.name} · ${distance(u,guard).toFixed(1)} m`,'Target',()=>pick({unitId:guard.id}));}
   if(selected&&!p){const cancel=document.createElement('button');cancel.className='cancel-context';cancel.textContent='×';cancel.setAttribute('aria-label','Cancel selection');cancel.onclick=()=>{clearTargeting();renderContext();};root.append(cancel);}
@@ -384,6 +385,8 @@ function renderContext(focusControl){if(!state)return;if(state.realtime){renderR
 function renderBattle(){if(!state)return;const u=hero(state),combat=state.phase==='player'||state.phase==='enemy',can=Core.canControl(state,u);
   $('zoom-out').disabled=view?.canZoom?.(1.2)===false;$('zoom-in').disabled=view?.canZoom?.(.83)===false;
   $('battle-name').textContent=u.name;$('battle-species').textContent=speciesLabel(u.species);
+  const showFloor=isTour(state)&&(u.level||u.stairId||getTourWorld(state).interiors?.buildings.get(getTourWorld(state).interiors?.roomAt(u.x,u.y)?.building)?.stories>1);
+  $('floor-status').hidden=!showFloor;$('floor-status').textContent=showFloor?(u.stairId?'STAIRS':u.level?'FLOOR '+u.level:'GROUND'):'';
   $('hp-label').textContent=`${Math.ceil(u.hp)} / ${u.maxHp} HP`;$('hp-bar').style.width=`${u.hp/u.maxHp*100}%`;
   $('ap').textContent=combat?Math.max(0,u.ap).toFixed(1):'∞';$('ap-label').textContent=combat?'AP':'FREE MOVE';
   if(!state.realtime){
@@ -789,10 +792,10 @@ requestAnimationFrame(frame);
 // Read-only production diagnostics used by native acceptance; no state mutation or test teleports.
 export function inspectMountDora(){
   const world=getTourWorld(state);if(!world)return {active,missionId:state?.solo?.missionId||null,touring:false};
-  const u=hero(state),actor=view?.actors.get(u.id),projection=view?.projectWorldPoint?.({x:u.x,y:u.y,h:.9}),resident=view?.residentWindow;let actorMeshes=0,actorVertices=0;actor?.root.traverse(o=>{if(o.isMesh){actorMeshes++;actorVertices+=o.geometry?.attributes?.position?.count||0;}});
+  const u=hero(state),actor=view?.actors.get(u.id),projection=view?.projectWorldPoint?.({x:u.x,y:u.y,h:baseHeight(u)+.9}),resident=view?.residentWindow;let actorMeshes=0,actorVertices=0;actor?.root.traverse(o=>{if(o.isMesh){actorMeshes++;actorVertices+=o.geometry?.attributes?.position?.count||0;}});
   return {active,paused,touring:true,ready:!!view?.art?.readyForMovement&&!view?.pending.size&&!view?.failed.size,phase:state.phase,sourceRevision:world.sourceRevision,artRevision:world.artRevision,elapsed:state.elapsed,queueLength:state.queue.length,renderedAt:view?.lastFrameAt,frames:view?.frameCount,input:{stickHeld:stickPointer!==null,keys:[...keys]},
-    player:{x:u.x,y:u.y,heading:u.heading,ground:world.tile(Math.round(u.x),Math.round(u.y)),name:u.name,species:u.species,weapon:u.weapon,stance:u.stance,running:u.running,sneaking:u.sneaking,speed:Core.movementSpeed(u),stamina:u.stamina,hp:u.hp,ammo:{...u.ammo}},distance:state.solo.distance,explored:state.seen.size,
-    source:{...world.status(),stats:{...world.stats}},interiors:world.interiors?.metrics(),room:world.interiors?.roomAt(u.x,u.y)||null,render:view?.art?.metrics()||null,camera:view?{span:view.span,requestedSpan:view.requestedSpan,following:view.follow,target:{x:view.target.x,y:view.target.z},resident}:null,actor:{visible:!!actor?.root.visible,standY:actor?.root.position.y??null,visualDistance:view?.samples.get(u.id)?.distance,physicalDistance:u.travelled,onScreen:!!projection?.visible,projection,insideResident:!!resident&&pointInWorldRect(u,resident),meshes:actorMeshes,vertices:actorVertices},
+    player:{x:u.x,y:u.y,level:floorLevel(u),elevation:baseHeight(u),stairId:u.stairId??null,heading:u.heading,ground:world.tile(Math.round(u.x),Math.round(u.y)),name:u.name,species:u.species,weapon:u.weapon,stance:u.stance,running:u.running,sneaking:u.sneaking,speed:Core.movementSpeed(u),stamina:u.stamina,hp:u.hp,ammo:{...u.ammo}},distance:state.solo.distance,explored:state.seen.size,
+    source:{...world.status(),stats:{...world.stats}},interiors:world.interiors?.metrics(),room:world.interiors?.roomAt(u.x,u.y,floorLevel(u))||null,render:view?.art?.metrics()||null,camera:view?{span:view.span,requestedSpan:view.requestedSpan,following:view.follow,target:{x:view.target.x,y:view.target.z,height:view.target.y},resident}:null,actor:{visible:!!actor?.root.visible,standY:actor?.root.position.y??null,visualDistance:view?.samples.get(u.id)?.distance,physicalDistance:u.travelled,onScreen:!!projection?.visible,projection,insideResident:!!resident&&pointInWorldRect(u,resident),meshes:actorMeshes,vertices:actorVertices},
     memory:view?{geometries:view.renderer.info.memory.geometries,textures:view.renderer.info.memory.textures,programs:view.renderer.info.programs.length,shaderFailures:view.renderer.info.programs.filter(p=>p.diagnostics?.runnable===false).length}:null,artError:tourArtError};
 }
 export function projectMountDoraTownPoint(point){if(!isTour(state)||!view)return null;return view.projectWorldPoint({x:point[0]-.5,y:point[1]-.5,h:point[2]||0});}
@@ -935,7 +938,7 @@ export function inspectRealtime(){
     player:{x:hero(state).x,y:hero(state).y,hp:hero(state).hp,stance:hero(state).stance,sneaking:hero(state).sneaking,distance:state.solo.distance,ammo:{...hero(state).ammo},stats:{...hero(state).stats}},
     contacts:Core.visibleOpponents(state).map(v=>({id:v.id,name:v.name,hp:v.hp,x:v.x,y:v.y})),
     guards:state.units.filter(v=>v.team==='guard').map(v=>({id:v.id,x:v.x,y:v.y,hp:v.hp,maxHp:v.maxHp,weapon:v.weapon,firearms:v.stats.firearms,alert:v.alert,
-      patrolPoints:v.patrol?.length||0,patrolIndex:v.patrolIndex,moving:v.isMoving,ammo:{...v.ammo},reload:state.realtime.actors[v.id]?.reload,projection:view?.projectWorldPoint?.({...v,h:.9})})),
+      patrolPoints:v.patrol?.length||0,patrolIndex:v.patrolIndex,moving:v.isMoving,ammo:{...v.ammo},reload:state.realtime.actors[v.id]?.reload,projection:view?.projectWorldPoint?.({...v,h:baseHeight(v)+.9})})),
     objects:Core.interactionObjects(state).map(o=>({id:o.id,kind:o.kind,open:o.open,searched:o.searched,x:o.x,y:o.y})),shaderFailures:view?.renderer?.info.programs.filter(p=>p.diagnostics?.runnable===false).length??0};
 }
 export function projectRealtimePoint(point){return view?.projectWorldPoint?.(point)||null;}

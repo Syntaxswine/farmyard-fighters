@@ -8,7 +8,7 @@ own.push('window-system.js','window-catalogue.js','window-authoring.js','window-
 own.push('overmap-elements.js','overmap-model.js','overmap-generator.js','overmap-view.js','overmap-worker.js','overmap.js');
 own.push('prison-map.js','prison-view.js','barrier-art.js');
 own.push('game-start.js');
-own.push('town-interiors.js','town-interior-view.js');
+own.push('town-interiors.js','town-interior-view.js','town-levels.js');
 own.push('solo-barrels.js','explosion-shake.js','prepared-ground-fire.js');
 execFileSync(process.execPath,[path.resolve('sites/tactical-animal/tools/import-aft-sector.mjs'),'--check'],{stdio:'inherit'});
 for(const file of own)execFileSync(process.execPath,['--check',path.join(root,file)]);

@@ -1,3 +1,4 @@
+import {baseHeight,floorLevel,surfacePosition} from './town-levels.js';
 import {WEAPONS} from './aft/tactics/solo-weapon-data.js';
 import {AIM_LEVELS} from './aft/tactics/aim-levels.js';
 import {weaponSkill,refreshStats} from './aft/tactics/character-stats.js';
@@ -187,6 +188,9 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
   function walkPatrol(s,g,dt){
     if(!g.patrol?.length)return;
     const point=g.patrol[g.patrolIndex??0];
+    if(point&&(floorLevel(g)!==floorLevel(point)||g.stairId)){
+      let detour=patrolDetours.get(g);if(!detour||s.realtime.time>=detour.retryAt){detour={target:point,route:navigationPath(s,g,point.x,point.y,{level:floorLevel(point)})||[],retryAt:s.realtime.time+1};patrolDetours.set(g,detour);}while(detour.route.length&&distance(g,detour.route[0])<.06)detour.route.shift();if(detour.route[0])walkGuard(s,g,detour.route[0],2.2,dt);return;
+    }
     // The AFT scheduler uses tile arrivals. Normalize sub-micrometre drift
     // after continuous travel so it advances exactly once per waypoint.
     if(point&&distance(g,point)<=1e-7){g.x=point.x;g.y=point.y;}
@@ -208,7 +212,7 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
     const a=actor(s,g),u=hero(s);if(!alive(g)||g.burningTurns||!alive(u)||!guardActive(s,g))return;
     if(!g.alert){walkPatrol(s,g,dt);return;}
     if(g.patrol?.length){g.running=true;patrolDetours.delete(g);}
-    const sees=canSee(s,g,u);if(sees){g.lastKnown={x:u.x,y:u.y};a.search=8;}
+    const sees=canSee(s,g,u);if(sees){g.lastKnown=surfacePosition(u);a.search=8;}
     const w=WEAPONS[g.weapon];
     if(w.mag&&!g.ammo[g.weapon]&&g.ammoPouch[g.weapon]>0&&!a.reload)reload(s,g);
     if(eligible(s,g,u,'torso')&&(g.ammo[g.weapon]>0||!w.mag)){
@@ -216,7 +220,7 @@ export function createRealtimeRules({hero,alive,distance,canSee,confirmedImpact,
     }
     resetAim(a);
     if(!g.lastKnown)return;
-    if(distance(g,g.lastKnown)<1.2&&!sees){
+    if(Math.hypot(distance(g,g.lastKnown),baseHeight(g)-baseHeight(g.lastKnown))<1.2&&!sees){
       a.route=[];a.search-=dt;g.heading=(g.heading+dt*45)%360;
       if(a.search<=0){g.alert=false;g.lastKnown=null;a.search=8;log(s,g.name+' finished searching.');}return;
     }

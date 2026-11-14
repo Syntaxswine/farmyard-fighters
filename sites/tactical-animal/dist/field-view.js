@@ -15,6 +15,7 @@ import {OriginalEnvironment} from './original-art.js';
 import {hero, Core, missionForState, objectiveSecured,realtimeWeaponAim} from './solo-game.js';
 import {fieldCameraFor,grenadeCameraFrame} from './grenade-controls.js';
 import {InteractionScenery} from './interaction-view.js';
+import {baseHeight,floorLevel} from './town-levels.js';
 import {clueAnchorHeight,missionHasArt,SCENERY_DIGEST} from './mission-scenery.js';
 import {SoloFlameEffects} from './flame-effects.js';
 import {FIRE_TIME,fireState} from './aft/tactics/painted-fire-state.js';
@@ -84,7 +85,7 @@ export class FieldView {
   updateCamera(){
     const w=this.container?.clientWidth,h=this.container?.clientHeight;
     const requested=this.grenadeCamera||this.returnSpan!=null?this.span:this.contactSpan??this.requestedSpan??this.span,viewport={width:w,height:h};
-    if(this.state){const point=clampCameraPoint(this.state,{x:this.target.x,y:this.target.z});this.target.set(point.x,0,point.y);this.residentWindow=residentWindowForCamera(this.state,point,viewport,requested);}
+    if(this.state){const point=clampCameraPoint(this.state,{x:this.target.x,y:this.target.z});this.target.set(point.x,this.target.y,point.y);this.residentWindow=residentWindowForCamera(this.state,point,viewport,requested);}
     if(w&&h){
       this.span=this.state?residentCameraSpan(this.state,{x:this.target.x,y:this.target.z},viewport,requested,this.residentWindow):requested;
       this.camera.left=-this.span*w/h/2;this.camera.right=this.span*w/h/2;this.camera.top=this.span/2;this.camera.bottom=-this.span/2;this.camera.near=.1;this.camera.far=120;this.camera.updateProjectionMatrix();
@@ -97,9 +98,9 @@ export class FieldView {
   canZoom(factor){const span=this.grenadeCamera?.baseSpan??this.requestedSpan??this.span,max=this.grenadeCamera?MAX_CAMERA_SPAN:this.zoomLimit();return factor>1?span<max-.01:span>6.01;}
   zoom(factor){if(this.grenadeCamera){this.grenadeCamera.baseSpan=T.MathUtils.clamp(this.grenadeCamera.baseSpan*factor,6,MAX_CAMERA_SPAN);return;}this.returnSpan=null;this.requestedSpan=T.MathUtils.clamp((this.requestedSpan??this.span)*factor,6,this.zoomLimit());this.resize();}
 
-  center(){if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=null;this.follow=true;if(this.state&&this.contactSpan==null){const u=hero(this.state);this.target.set(u.x,0,u.y);this.updateCamera();}}
-  focusOpponent(id){const u=this.state?.units.find(v=>v.id===id&&v.team==='guard'&&Core.alive(v)&&this.state.detected.has(v.id));if(!u)return false;if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=id;this.follow=false;this.contactSpan=null;this.target.set(u.x,0,u.y);this.updateCamera();return true;}
-  ground(clientX,clientY){const r=this.container.getBoundingClientRect();this.ray.setFromCamera(new T.Vector2((clientX-r.left)/r.width*2-1,-(clientY-r.top)/r.height*2+1),this.camera);return this.ray.ray.intersectPlane(this.plane,V());}
+  center(){if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=null;this.follow=true;if(this.state&&this.contactSpan==null){const u=hero(this.state);this.target.set(u.x,baseHeight(u),u.y);this.updateCamera();}}
+  focusOpponent(id){const u=this.state?.units.find(v=>v.id===id&&v.team==='guard'&&Core.alive(v)&&this.state.detected.has(v.id));if(!u)return false;if(this.grenadeCamera)this.endGrenadeAim();this.focusedId=id;this.follow=false;this.contactSpan=null;this.target.set(u.x,baseHeight(u),u.y);this.updateCamera();return true;}
+  ground(clientX,clientY){const r=this.container.getBoundingClientRect();this.ray.setFromCamera(new T.Vector2((clientX-r.left)/r.width*2-1,-(clientY-r.top)/r.height*2+1),this.camera);const surface=this.art?.pickSurface?.(this.ray);if(surface){const p=surface.point.clone();p.level=surface.level;p.elevation=surface.elevation;p.stairId=surface.stairId;return p;}return this.ray.ray.intersectPlane(this.plane,V());}
   clearBarrelHover(){if(this.hoveringBarrel){this.container.style.cursor='';delete this.container.dataset.barrelTarget;this.hoveringBarrel=false;}}
   updateBarrelHover(now,force=false){
     if(!this.hoverPoint||this.pointers.size||this.grenadeCamera||!this.state||!Core.canControl(this.state,hero(this.state))){this.clearBarrelHover();return;}
@@ -112,7 +113,7 @@ export class FieldView {
     if(!present||wall&&wall.distance<hit.distance||front&&front.distance<hit.distance){this.clearBarrelHover();return;}
     this.hoveringBarrel=true;this.container.dataset.barrelTarget='true';this.container.style.cursor=BARREL_CURSOR;
   }
-  interactionAnchor(object){const height=clueAnchorHeight(missionForState(this.state),object,object.kind==='door'?2.15:object.kind==='chest'?1.15:.7),point=V(object.x,height,object.y).project(this.camera);return {x:(point.x+1)*this.container.clientWidth/2,y:(1-point.y)*this.container.clientHeight/2,visible:Math.abs(point.x)<.95&&Math.abs(point.y)<.95&&Math.abs(point.z)<1};}
+  interactionAnchor(object){const height=(object.z0??0)+clueAnchorHeight(missionForState(this.state),object,object.kind==='door'||object.kind==='stairs'?2.15:object.kind==='chest'?1.15:.7),point=V(object.x,height,object.y).project(this.camera);return {x:(point.x+1)*this.container.clientWidth/2,y:(1-point.y)*this.container.clientHeight/2,visible:Math.abs(point.x)<.95&&Math.abs(point.y)<.95&&Math.abs(point.z)<1};}
   down(e){if(e.button!==0||this.grenadeCamera)return;this.unlockSound();this.container.setPointerCapture(e.pointerId);this.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(this.pointers.size===1)this.gesture={x:e.clientX,y:e.clientY,target:this.target.clone(),moved:false,at:performance.now()};if(this.pointers.size===2){const [a,b]=[...this.pointers.values()];this.pinch={distance:Math.hypot(a.x-b.x,a.y-b.y),span:this.span};this.gesture.moved=true;}}
   drag(e){const point=this.pointers.get(e.pointerId);if(!point)return;point.x=e.clientX;point.y=e.clientY;
     if(this.pointers.size===2&&this.pinch){const [a,b]=[...this.pointers.values()];this.returnSpan=null;this.requestedSpan=T.MathUtils.clamp(this.pinch.span*this.pinch.distance/Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),6,this.zoomLimit());this.resize();return;}
@@ -136,7 +137,7 @@ export class FieldView {
       const p=wall.point.addScaledVector(this.ray.ray.direction,.004);
       this.onPick({x:p.x,y:p.z,h:Math.max(0,p.y),ground:true,wallEdge:wall.object.userData.wallEdges[wall.instanceId],targetName:'Wall'});return;
     }
-    this.onPick(hit?hit.object.userData.windowId?{windowId:hit.object.userData.windowId,paneId:hit.object.userData.windowPaneId,ground:true,x:hit.point.x,y:hit.point.z,h:hit.point.y}:hit.object.userData.interactionId?{interactionId:hit.object.userData.interactionId}:{unitId:hit.object.userData.unitId}:{x:point.x,y:point.z});
+    this.onPick(hit?hit.object.userData.windowId?{windowId:hit.object.userData.windowId,paneId:hit.object.userData.windowPaneId,ground:true,x:hit.point.x,y:hit.point.z,h:hit.point.y}:hit.object.userData.interactionId?{interactionId:hit.object.userData.interactionId}:{unitId:hit.object.userData.unitId}:{x:point.x,y:point.z,...(getTourWorld(this.state)?{level:point.level??0,elevation:point.elevation??0,...(point.stairId?{stairId:point.stairId}:{})}:{})});
   }
   unlockSound(){
     this.windowEffects?.unlock();
@@ -292,7 +293,7 @@ export class FieldView {
       .finally(()=>{if(generation===this.generation){this.missionArtBusy=false;this.reportLoading();}});
   }
   makePin(point,color){const group=new T.Group();group.position.set(point.x,0,point.y);const mat=new T.MeshBasicMaterial({color,transparent:true,opacity:.8,side:T.DoubleSide});const ring=new T.Mesh(new T.RingGeometry(.36,.45,32),mat);ring.rotation.x=-Math.PI/2;ring.position.y=.035;group.add(ring);const shaft=new T.Mesh(new T.CylinderGeometry(.017,.017,1.6,6),mat.clone());shaft.position.y=.8;group.add(shaft);const flag=new T.Mesh(new T.OctahedronGeometry(.14),mat.clone());flag.position.y=1.65;group.add(flag);this.environment.add(group);return group;}
-  route(path=[]){this.flameCone?.hide();this.flamePreviewKey='';this.blastMarker.visible=false;this.blastArea.visible=false;this.grenadePreviewKey='';this.marker.material.color.setHex(0xf2c56a);this.pathLine.material.color.setHex(0xe6b464);this.pathLine.geometry.dispose();this.pathLine.geometry=new T.BufferGeometry().setFromPoints(path.map(p=>V(p.x,.06,p.y)));const end=path.at(-1);this.marker.visible=!!end;if(end)this.marker.position.set(end.x,.035,end.y);}
+  route(path=[]){this.flameCone?.hide();this.flamePreviewKey='';this.blastMarker.visible=false;this.blastArea.visible=false;this.grenadePreviewKey='';this.marker.material.color.setHex(0xf2c56a);this.pathLine.material.color.setHex(0xe6b464);this.pathLine.geometry.dispose();this.pathLine.geometry=new T.BufferGeometry().setFromPoints(path.map(p=>V(p.x,baseHeight(p)+.06,p.y)));const end=path.at(-1);this.marker.visible=!!end;if(end)this.marker.position.set(end.x,baseHeight(end)+.035,end.y);}
   beginGrenadeAim(){
     const baseSpan=this.grenadeCamera?.baseSpan??this.returnSpan??this.requestedSpan??this.span;
     for(const id of this.pointers.keys())if(this.container.hasPointerCapture(id))this.container.releasePointerCapture(id);
@@ -319,18 +320,18 @@ export class FieldView {
     const color=!preview.ok||preview.selfDanger?0xf08068:0xf4c77a;
     this.pathLine.material.color.setHex(color);this.pathLine.geometry.dispose();
     this.pathLine.geometry=new T.BufferGeometry().setFromPoints(Core.grenadeTrajectory(hero(this.state),point).map(p=>V(p.x,p.z,p.y)));
-    this.marker.visible=true;this.marker.position.set(point.x,.035,point.y);this.marker.material.color.setHex(color);
-    this.blastMarker.position.set(point.x,.05,point.y);this.blastMarker.material.color.setHex(color);this.blastMarker.visible=true;
+    this.marker.visible=true;this.marker.position.set(point.x,baseHeight(point)+.035,point.y);this.marker.material.color.setHex(color);
+    this.blastMarker.position.set(point.x,baseHeight(point)+.05,point.y);this.blastMarker.material.color.setHex(color);this.blastMarker.visible=true;
     const edge=Core.grenadeBlastFootprint(this.state,point),vertices=[];
-    for(let i=1;i<edge.length;i++)vertices.push(point.x,.045,point.y,edge[i-1].x,.045,edge[i-1].y,edge[i].x,.045,edge[i].y);
+    for(let i=1;i<edge.length;i++)vertices.push(point.x,baseHeight(point)+.045,point.y,edge[i-1].x,baseHeight(point)+.045,edge[i-1].y,edge[i].x,baseHeight(point)+.045,edge[i].y);
     this.blastArea.geometry.dispose();this.blastArea.geometry=new T.BufferGeometry();this.blastArea.geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));this.blastArea.material.color.setHex(color);this.blastArea.visible=vertices.length>0;
   }
   trackGrenadeCamera(now,elapsed=1/60){
     const aim=this.grenadeCamera;if(!aim)return;
     if(aim.until&&now>=aim.until&&!(aim.kind==='flame'&&this.flameEffects?.queue.length)){this.endGrenadeAim();return;}
-    const u=hero(this.state),points=aim.kind==='flame'?(aim.shape?.rays||[]).flatMap(ray=>[{x:ray.x,y:ray.y,z:0},{x:ray.x,y:ray.y,z:1.5}]):aim.point?Core.grenadeTrajectory(u,aim.point):[{x:u.x,y:u.y,z:1.8}];
-    points.push({x:u.x,y:u.y,z:0},{x:u.x,y:u.y,z:1.8});
-    if(aim.point)for(let i=0;i<16;i++){const a=i/16*Math.PI*2;points.push({x:aim.point.x+Math.cos(a)*Core.WEAPONS.grenade.blast,y:aim.point.y+Math.sin(a)*Core.WEAPONS.grenade.blast,z:0});}
+    const u=hero(this.state),points=aim.kind==='flame'?(aim.shape?.rays||[]).flatMap(ray=>[{x:ray.x,y:ray.y,z:baseHeight(u)},{x:ray.x,y:ray.y,z:baseHeight(u)+1.5}]):aim.point?Core.grenadeTrajectory(u,aim.point):[{x:u.x,y:u.y,z:baseHeight(u)+1.8}];
+    points.push({x:u.x,y:u.y,z:baseHeight(u)},{x:u.x,y:u.y,z:baseHeight(u)+1.8});
+    if(aim.point)for(let i=0;i<16;i++){const a=i/16*Math.PI*2;points.push({x:aim.point.x+Math.cos(a)*Core.WEAPONS.grenade.blast,y:aim.point.y+Math.sin(a)*Core.WEAPONS.grenade.blast,z:baseHeight(aim.point)});}
     const frame=grenadeCameraFrame(points,{width:this.container.clientWidth,height:this.container.clientHeight,...this.getAimViewport?.()},aim.baseSpan,fieldCameraFor(this.state));
     const blend=T.MathUtils.damp(0,1,-60*Math.log(.86),elapsed);this.target.lerp(V(frame.target.x,0,frame.target.y),blend);this.span+=(frame.span-this.span)*blend;this.resize();
   }
@@ -395,7 +396,7 @@ export class FieldView {
       const at=now+delay+(burst?event.shot*BURST_SHOT_INTERVAL:0);
       let line=null,points=null,projectile=null;
       if(thrown){
-        points=Core.grenadeTrajectory({x:event.ax,y:event.ay},{x:event.bx,y:event.by}).map(p=>V(p.x,p.z,p.y));
+        points=Core.grenadeTrajectory({x:event.ax,y:event.ay,elevation:event.sourceElevation??0},{x:event.bx,y:event.by,elevation:event.impactElevation??0}).map(p=>V(p.x,p.z,p.y));
         line=new T.Line(new T.BufferGeometry().setFromPoints(points),new T.LineBasicMaterial({color:0xf6d68c,transparent:true}));
         projectile=createGrenadeModel();
         for(const part of projectile.parts)if(part.name==='pull ring'||part.name==='curved safety lever')part.visible=false;
@@ -409,7 +410,7 @@ export class FieldView {
       if(burst)previousRounds.set(event.shooter,visual);
       if(thrown){
         const ring=new T.Mesh(new T.RingGeometry(event.blast-.07,event.blast,64),new T.MeshBasicMaterial({color:0xf4a568,side:T.DoubleSide,transparent:true,depthWrite:false}));
-        ring.rotation.x=-Math.PI/2;ring.position.set(event.bx,.07,event.by);ring.visible=false;
+        ring.rotation.x=-Math.PI/2;ring.position.set(event.bx,(event.impactElevation??0)+.07,event.by);ring.visible=false;
         this.scene.add(ring);this.effects.push({line:ring,at,ttl:700,delay:GRENADE_IMPACT_MS,follow:visual});
       }
     }
@@ -568,7 +569,7 @@ export class FieldView {
         if(sample.pose.prone||sample.pose.kneel||sample.pose.down)a.posture.ground();
         if(throwAction){
           result=a.throwPose?.apply(sample,throwAction);
-          if(throwing&&result&&!throwing.flightStarted)throwing.releaseOrigin=result.origin.clone().add(V(sample.x,this.art?.surfaceHeight?.(sample.x,sample.y)??0,sample.y));
+          if(throwing&&result&&!throwing.flightStarted)throwing.releaseOrigin=result.origin.clone().add(V(sample.x,this.art?.surfaceHeight?.(sample.x,sample.y,v)??0,sample.y));
         }else{
           a.throwPose?.clear();
           if(!fire&&!flameReady&&alive)result=a.weaponPose?.apply(sample,action);
@@ -577,7 +578,7 @@ export class FieldView {
       a.crawlResult=crawling?result:undefined;
     }
     a.action=action;a.posing=posing;a.hadFlame=flaming;
-    a.root.position.set(sample.x,this.art?.surfaceHeight?.(sample.x,sample.y)??0,sample.y);a.root.updateMatrixWorld(true);a.worker.skeleton.update();
+    a.root.position.set(sample.x,this.art?.surfaceHeight?.(sample.x,sample.y,v)??0,sample.y);a.root.updateMatrixWorld(true);a.worker.skeleton.update();
     if(displayedWeapon==='rpg')for(const part of a.equipment.parts)
       if(['shaped RPG warhead','warhead shoulder seam','nose fuse'].includes(part.name))part.visible=(v.ammo.rpg||0)>0;
     if(fire||flameReady){
@@ -618,7 +619,7 @@ export class FieldView {
   updateFollowCamera(s,now){this.state=s;const u=hero(s),elapsed=this.lastFrameAt===undefined?1/60:boundedElapsed((now-this.lastFrameAt)/1000),followBlend=T.MathUtils.damp(0,1,-60*Math.log(.82),elapsed),zoomBlend=T.MathUtils.damp(0,1,-60*Math.log(.86),elapsed);this.lastFrameAt=now;
     if(this.grenadeCamera)this.trackGrenadeCamera(now,elapsed);
     if(this.returnSpan!=null){const goal=residentCameraSpan(s,{x:this.target.x,y:this.target.z},{width:this.container.clientWidth,height:this.container.clientHeight},this.returnSpan);this.span+=(goal-this.span)*zoomBlend;if(Math.abs(goal-this.span)<.01){this.span=goal;this.returnSpan=null;}this.resize();}
-    if(this.focusedId!=null){const contact=s.units.find(v=>v.id===this.focusedId&&Core.alive(v)&&s.detected.has(v.id));if(contact){this.target.lerp(V(contact.x,0,contact.y),followBlend);this.updateCamera();}else this.center();}
+    if(this.focusedId!=null){const contact=s.units.find(v=>v.id===this.focusedId&&Core.alive(v)&&s.detected.has(v.id));if(contact){this.target.lerp(V(contact.x,baseHeight(contact),contact.y),followBlend);this.updateCamera();}else this.center();}
     if(this.follow){
       const viewport={width:this.container.clientWidth,height:this.container.clientHeight};
       const baseSpan=this.requestedSpan??this.span;
@@ -626,7 +627,7 @@ export class FieldView {
       const settling=this.contactSpan!=null&&!frame;
       const settleBlend=T.MathUtils.damp(0,1,4,elapsed);
       const point=frame?.target??u;
-      this.target.lerp(V(point.x,0,point.y),settling?settleBlend:followBlend);
+      this.target.lerp(V(point.x,baseHeight(u),point.y),settling?settleBlend:followBlend);
       if(frame||settling){
         const goal=frame?.span??baseSpan;
         const span=this.span+(goal-this.span)*(goal>this.span?zoomBlend:settleBlend);
@@ -638,7 +639,7 @@ export class FieldView {
   }
   sync(s,now){if(this.waitingForGraphics())return;this.frameCount=(this.frameCount||0)+1;this.state=s;const u=hero(s),elapsed=this.updateFollowCamera(s,now),motionBlend=T.MathUtils.damp(0,1,-60*Math.log(.8),elapsed),poseBlend=T.MathUtils.damp(0,1,-60*Math.log(.85),elapsed);
     this.updateBarrelHover(now);
-    const window=this.residentWindow||blockWindow(s,u),visible=s.units.filter(v=>pointInWorldRect(v,window)&&(v.team==='squad'||(v.hp>0?s.detected.has(v.id):s.visible.has(Core.key(v.x,v.y)))));
+    const window=this.residentWindow||blockWindow(s,u),visible=s.units.filter(v=>pointInWorldRect(v,window)&&(v.team==='squad'||(v.hp>0?s.detected.has(v.id):floorLevel(v)===floorLevel(u)&&s.visible.has(Core.key(v.x,v.y)))));
     this.reconcileActors(visible);
     if(s.effect&&s.effect!==this.lastEffect){this.lastEffect=s.effect;this.queueEffects(s.effect,now);}
     this.animateEffects(now);
@@ -686,7 +687,7 @@ export class FieldView {
       try{this.warmFieldGraphics(now);}catch(error){console.warn('Could not prepare field graphics',error);}
     }
     if(this.searchHalo){
-      const targets=this.artBusy||this.propBusy?[]:searchHaloCandidates(s,window).map(object=>searchHaloTarget(object,this)).filter(target=>target.root);
+      const targets=this.artBusy||this.propBusy?[]:searchHaloCandidates(s,window).filter(o=>floorLevel(o)===floorLevel(u)).map(object=>searchHaloTarget(object,this)).filter(target=>target.root);
       this.renderWithShake(now,()=>this.searchHalo.render(this.renderer,this.scene,this.camera,targets,now));
     }else this.renderWithShake(now,()=>this.renderer.render(this.scene,this.camera));
     if(graphicsReady){

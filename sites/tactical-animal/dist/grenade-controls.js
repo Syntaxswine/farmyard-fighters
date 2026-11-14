@@ -1,4 +1,5 @@
 import {isTour} from './mount-dora-activity.js';
+import {baseHeight,floorLevel} from './town-levels.js';
 
 // Movement and weapon aiming use the same axes as the current field camera.
 export const FIELD_CAMERA=Object.freeze({x:10,y:14,z:12});
@@ -26,7 +27,7 @@ export class GrenadeAim {
     if(n<=deadZone)return this.point;
     const distance=Math.max(0,(Math.min(1,n)-deadZone)/(1-deadZone))*range;
     const direction=screenToGround(offset.x/n,offset.y/n,camera);
-    this.point={x:origin.x+direction.x*distance,y:origin.y+direction.y*distance};
+    this.point={x:origin.x+direction.x*distance,y:origin.y+direction.y*distance,...(floorLevel(origin)||baseHeight(origin)?{level:floorLevel(origin),elevation:baseHeight(origin)}:{})};
     return this.point;
   }
   nudge(origin,direction,range,dt,camera){

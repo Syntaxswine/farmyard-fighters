@@ -44,7 +44,7 @@ export class InteractionScenery {
   update(state,window=blockWindow(state,state.units?.find(unit=>unit.team==='squad')||{x:0,y:0})){
     if(this.disposed)return;
     if(this.assets){
-      const resident=state.interactables.filter(object=>pointInWorldRect(object,window)),ids=new Set(resident.map(object=>object.id));
+      const resident=state.interactables.filter(object=>object.kind!=='stairs'&&(object.level??0)===(state.units.find(u=>u.team==='squad')?.level??0)&&pointInWorldRect(object,window)),ids=new Set(resident.map(object=>object.id));
       for(const id of this.records.keys())if(!ids.has(id))this.release(id);
       for(const object of resident)if(!this.records.has(object.id))this.create(object);
       this.window=window;
@@ -57,7 +57,7 @@ export class InteractionScenery {
         record.sprite.visible=known;record.sprite.position.set(object.x,.015,object.y);record.sprite.scale.set(1.15,object.open?1.1:.9,1);
         record.sprite.material.map=object.open?this.chestPaint.open:this.chestPaint.closed;record.sprite.material.color.setScalar(visible?1:.38);
       }else if(record.leaf){
-        const box=doorFootprint(object);record.leaf.visible=known;record.leaf.position.set((box.x0+box.x1)/2,box.height/2,(box.y0+box.y1)/2);record.leaf.scale.set(box.x1-box.x0,box.height,box.y1-box.y0);
+        const box=doorFootprint(object),base=box.z0??0;record.leaf.visible=known;record.leaf.position.set((box.x0+box.x1)/2,(base+box.height)/2,(box.y0+box.y1)/2);record.leaf.scale.set(box.x1-box.x0,box.height-base,box.y1-box.y0);
         if(object.barrier){const x=box.x1-box.x0,y=box.y1-box.y0;record.leaf.rotation.y=x>y?0:Math.PI/2;record.leaf.scale.set(Math.max(x,y),box.height,Math.min(x,y));}
       }else{
         record.marker.visible=known;record.marker.position.set(object.x,clueAnchorHeight(missionForState(state),object,.8),object.y);record.marker.material.color.setHex(state.solo.inspected?.includes(object.id)?0xaab68a:0xe0c17b);record.marker.material.color.multiplyScalar(visible?1:.38);

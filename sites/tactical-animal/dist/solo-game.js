@@ -2,13 +2,14 @@ import {createRealtimeRules,validateRealtime,awardRealtimeKill,shotSeconds,grena
 import {boundedElapsed,SIMULATION_STEP_SECONDS} from './frame-timing.js';
 import {TOUR_ID,getTourWorld,bindTourWorld,isTour} from './mount-dora-activity.js';
 import {encodeTourProgress} from './mount-dora-progress.js';
+import {baseHeight,floorLevel,surfacePosition} from './town-levels.js';
 import {trunkDistance,trunkSpan} from './trunk-geometry.js';
 import {WEAPONS,AIM_ZONES} from './aft/tactics/solo-weapon-data.js';
 import {initializeStats,weaponAccuracy,damageAfterResistance} from './aft/tactics/character-stats.js';
 import {QUICKPLAY_PRESETS} from './aft/tactics/quickplay-presets.js';
 import {identifyRange,headingTo} from './aft/tactics/core/perception.js';
 import {shotAim} from './aft/tactics/aim-levels.js';
-import {bodyIntersection} from './designer/a20b343a0234/tactics/ballistic-shot.js';
+import {bodyIntersection as aftBodyIntersection} from './designer/a20b343a0234/tactics/ballistic-shot.js';
 import {angularHelicoidShot,failedShotRoll,placeHelicoidMiss,rollMarginScatter,seededShots} from './designer/a20b343a0234/tactics/helicoid-shot.js';
 import {grenadeDamage} from './designer/a20b343a0234/tactics/grenade-ballistics.js';
 import {WALL_DIMENSIONS,CRATE_DIMENSIONS} from './world-dimensions.js';
@@ -46,6 +47,8 @@ export const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export const key=(x,y)=>`${Math.round(x)},${Math.round(y)}`;
 export const hero=s=>s.units.find(u=>u.team==='squad');
 export const alive=u=>!!u&&u.hp>0;
+// The frozen collider accepts an absolute support height through cliffSupport.
+const bodyIntersection=(u,...args)=>aftBodyIntersection(baseHeight(u)?{...u,z:0,towerPost:undefined,cliffSupport:{level:0,height:baseHeight(u)}}:u,...args);
 export const movementModeOf=u=>u.sneaking?'sneak':u.running?'run':'walk';
 export const movementRate=u=>(u.stance==='prone'?8:u.stance==='kneeling'?4:2)*(u.running?.5:u.sneaking?1.5:1);
 export const movementSpeed=u=>u.realtimeMovement?(u.stance==='prone'?3.6:u.stance==='kneeling'?7.2:14.4)*(u.sneaking?.5:1):(u.stance==='prone'?1.8:u.stance==='kneeling'?3.6:7.2)*(u.running?2:u.sneaking?.5:1);
@@ -87,6 +90,7 @@ export function createSoloGame(build=DEFAULT_BUILD,seed=1947,missionId=DEFAULT_M
   const mission=getMission(missionId,layoutVersion),p=ANIMALS.find(a=>a.id===build.animal),m=walkingWorld?walkingWorld.descriptor():authoredMap?adaptAftSector(authoredMap):missionMap(mission.id,mission.layoutVersion??1),spawn=walkingWorld?.startPoint||authoredMap?.starts?.[0]||mission.spawn;
   if(!insideWorld({map:m.terrain,worldBounds:m.worldBounds},spawn))throw Error('Place a ground-level start in the map designer.');
   const u=makeUnit(0,'squad',p.name,p.species,build.primary,spawn.x,spawn.y,spawn.heading??270,p.stats);
+  if(walkingWorld&&(spawn.level||spawn.stairId))Object.assign(u,{level:spawn.level??0,elevation:baseHeight(spawn),...(spawn.stairId?{stairId:spawn.stairId}:{})});
   u.slots=[build.primary,build.secondary];const kinds=[...u.slots,...(build.utility==='grenade'?['grenade']:[])];
   u.ammo=Object.fromEntries(kinds.map(k=>[k,WEAPONS[k].mag]));u.pack=kinds.map(kind=>({type:'weapon',kind,rounds:u.ammo[kind],condition:100}));if(build.secondary==='pistol')u.ammoPouch.pistol=24;
   const stats=walkingWorld?.guardRosterVersion?Object.fromEntries(Object.entries(u.stats).map(([key,value])=>[key,Math.max(1,Math.round(value/2))])):{strength:10,endurance:20,agility:22,firearms:35,perception:35,dexterity:35};
@@ -136,7 +140,7 @@ const GEOMETRY_LAYERS={walk:box=>blocksWalking(box),air:box=>box.sourceKind!=='b
 // Broad phase shared by movement, sight, silhouettes and area weapons. The
 // interaction system invalidates this cache immediately after a door changes.
 export function geometryNear(s,a,b,padding,layer){
-  const town=getTourWorld(s);if(town)return town.geometryBoxes([Math.min(a.x,b.x)-padding,Math.min(a.y,b.y)-padding,Math.max(a.x,b.x)+padding,Math.max(a.y,b.y)+padding]);
+  const town=getTourWorld(s);if(town){const boxes=town.geometryBoxes([Math.min(a.x,b.x)-padding,Math.min(a.y,b.y)-padding,Math.max(a.x,b.x)+padding,Math.max(a.y,b.y)+padding]);return layer==='walk'?boxes.filter(box=>blocksWalking(box)&&(box.z0??0)<baseHeight(a)+.8&&box.height>baseHeight(a)+.1):boxes.filter(box=>!box.reservation);}
   if(!GEOMETRY_LAYERS[layer])throw Error(`geometryNear needs a layer (${Object.keys(GEOMETRY_LAYERS).join(', ')}), not ${layer}.`);
   if(![a.x,a.y,b.x,b.y,padding].every(Number.isFinite)||padding<0)return [];
   geometry(s);const buckets=geometryCache.get(s).layers[layer],boxes=new Set();
@@ -152,11 +156,11 @@ export function geometryNear(s,a,b,padding,layer){
 export const blocksWalking=box=>box.kind!=='part'&&!box.overhead;
 const occupiesAir=box=>box.kind!=='prop';
 const STANDING_EYE=1.1,PRONE_EYE=.3;
-const eyeHeight=u=>u.stance==='prone'?PRONE_EYE:u.stance==='kneeling'?.75:STANDING_EYE;
+const eyeHeight=u=>baseHeight(u)+(u.stance==='prone'?PRONE_EYE:u.stance==='kneeling'?.75:STANDING_EYE);
 const bodyHeight=u=>u.stance==='prone'?.42:u.stance==='kneeling'?1.15:1.75;
 const pointBoxDistance=(p,b)=>b.trunk?trunkDistance(p,b.trunk):Math.hypot(Math.max(b.x0-p.x,0,p.x-b.x1),Math.max(b.y0-p.y,0,p.y-b.y1));
 function insideWorld(s,p,padding=0){const b=worldBounds(s);return Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=b.x-.5+padding&&p.x<=b.x+b.w-.5-padding&&p.y>=b.y-.5+padding&&p.y<=b.y+b.h-.5-padding;}
-export function freePoint(s,p,ignoreId=null,{units=true,radius=RADIUS}={}){if(!insideWorld(s,p,radius))return false;const town=getTourWorld(s);if(town?!town.pointClear(p,radius):geometryNear(s,p,p,radius,'walk').some(b=>pointBoxDistance(p,b)<radius-EPS))return false;return !units||!s.units.some(u=>alive(u)&&u.id!==ignoreId&&distance(u,p)<RADIUS+radius-EPS);}
+export function freePoint(s,p,ignoreId=null,{units=true,radius=RADIUS,from}={}){if(!insideWorld(s,p,radius))return false;const town=getTourWorld(s),actor=from===undefined?(ignoreId===null?null:s.units.find(u=>u.id===ignoreId)):from,location=town?.locationAt(p,actor,radius)??p;if(town?!town.pointClear(p,radius,actor):geometryNear(s,p,p,radius,'walk').some(b=>pointBoxDistance(p,b)<radius-EPS))return false;return !units||!s.units.some(u=>alive(u)&&u.id!==ignoreId&&Math.abs(baseHeight(u)-baseHeight(location))<1.75&&distance(u,p)<RADIUS+radius-EPS);}
 function boxInterval(a,b,box){if(box.trunk)return trunkSpan(a,b,box.trunk);let lo=0,hi=1;for(const [k,min,max] of [['x',box.x0,box.x1],['y',box.y0,box.y1]]){const d=b[k]-a[k];if(Math.abs(d)<EPS){if(a[k]<min||a[k]>max)return null;continue;}const t0=(min-a[k])/d,t1=(max-a[k])/d;lo=Math.max(lo,Math.min(t0,t1));hi=Math.min(hi,Math.max(t0,t1));if(lo>hi)return null;}return [lo,hi];}
 function intersectsBox(a,b,box){const span=boxInterval(a,b,box);return !!span&&span[1]>EPS&&span[0]<1-EPS;}
 // The parameter span within [0,1] where a segment, rising linearly from height
@@ -193,7 +197,7 @@ function sceneryWalk(s,a,b){
 // outside the walk's box grown by two radii cannot reach any sample, so it is skipped.
 function unitsWalk(s,a,b,ignoreId){
   const pad=2*RADIUS,x0=Math.min(a.x,b.x)-pad,x1=Math.max(a.x,b.x)+pad,y0=Math.min(a.y,b.y)-pad,y1=Math.max(a.y,b.y)+pad;
-  const units=s.units.filter(u=>alive(u)&&u.id!==ignoreId&&u.x>=x0&&u.x<=x1&&u.y>=y0&&u.y<=y1);if(!units.length)return true;
+  const units=s.units.filter(u=>alive(u)&&u.id!==ignoreId&&Math.abs(baseHeight(u)-baseHeight(a))<1.75&&u.x>=x0&&u.x<=x1&&u.y>=y0&&u.y<=y1);if(!units.length)return true;
   const steps=Math.max(1,Math.ceil(distance(a,b)/.1));
   for(let i=1;i<=steps;i++){const p={x:a.x+(b.x-a.x)*i/steps,y:a.y+(b.y-a.y)*i/steps};if(units.some(u=>distance(u,p)<2*RADIUS-EPS))return false;}
   return true;
@@ -247,7 +251,7 @@ export function visibleOpponents(s){
       const p={x:g.x+nx*offset,y:g.y+ny*offset};
       // Columns conceal whatever stands behind their footprint; a part conceals
       // only where it crosses the line from the viewer's eye to the torso.
-      return !geometryNear(s,u,p,0,'air').some(box=>box.kind!=='glass'&&intersectsBox(u,p,box)&&(box.kind!=='part'&&!box.windowPart||!!airSpan(u,p,eyeHeight(u),bodyHeight(g)*.62,box)));
+      return !geometryNear(s,u,p,0,'air').some(box=>box.kind!=='glass'&&intersectsBox(u,p,box)&&(box.kind!=='part'&&!box.windowPart||!!airSpan(u,p,eyeHeight(u),baseHeight(g)+bodyHeight(g)*.62,box)));
     }).length/5;
     const clarity=(.5+exposed*.5)*identifyRange(u,g,35)/35*(g.sneaking?.7:1);
     return {unit:g,distance:d,score:d/Math.max(.01,clarity)};
@@ -268,7 +272,7 @@ export function refresh(s,{forceFog=false}={}){
   for(const g of guards){
     const sight=sightResult(s,g,u);
     if(sight==='spotted'){
-      g.alert=true;g.lastKnown={x:u.x,y:u.y};g.alertAge=0;status='spotted';
+      g.alert=true;g.lastKnown=surfacePosition(u);g.alertAge=0;status='spotted';
     }else if(s.realtime&&status==='clear'&&sight==='brush'&&lineClear(s,g,u))status='brush';
   }
   if(town){if(forceFog)delete s.fogAt;town.reveal(s,u);}
@@ -315,7 +319,7 @@ export function travel(s,u,dx,dy,{enemy=false}={}){
     const d=distance(u,next);
     if(d<EPS)break;
     u.heading=headingTo(u,next);
-    u.x=next.x;u.y=next.y;walked+=d;
+    town?.applyMovement(u,next);u.x=next.x;u.y=next.y;walked+=d;
     if(spends)u.ap=Math.max(0,u.ap-d*rate);
     u.travelled+=d;fireRules.enterFire(s,u);
     if(u.burningTurns)break;
@@ -395,14 +399,15 @@ function smoothRoute(s,u,raw){
   while(index<raw.length){let far=index;for(let j=raw.length-1;j>=index;j--)if(walkSegment(s,a,raw[j],u.id)){far=j;break;}const b=raw[far];result.push({...b,z:0,cost:distance(a,b)*movementRate(u)});a=b;index=far+1;}
   return result;
 }
-export function navigationPath(s,u,x,y){
+export function navigationPath(s,u,x,y,surface={}){
+  const town=getTourWorld(s);if(town?.interiors?.stairs.size||town?.interiors&&(floorLevel(u)||surface.level||u.stairId)){const target={x,y,...(typeof surface==='number'?{level:surface}:surface)};return town.levelPath(u,target,{rate:movementRate(u),clear:p=>!s.units.some(v=>alive(v)&&v.id!==u.id&&Math.abs(baseHeight(v)-baseHeight(p))<1.75&&distance(v,p)<2*RADIUS-EPS)});}
   const end={x,y};if(!freePoint(s,end,u.id))return null;
   if(walkSegment(s,u,end,u.id))return [{...end,z:0,cost:distance(u,end)*movementRate(u)}];
   const start=gridNodesAround(s,u,u)[0],goals=gridNodesAround(s,u,end);if(!start||!goals.length)return null;
   const goalKeys=new Set(goals.map(p=>key(p.x,p.y))),raw=gridSearch(s,u,[start],(p,pk)=>goalKeys.has(pk),q=>distance(q,end));
   return raw&&smoothRoute(s,u,[...raw,end]);
 }
-export function move(s,u,x,y){if(!canControl(s,u))return false;const path=navigationPath(s,u,x,y);if(!path?.length)return false;s.queue=path;s.revision++;return true;}
+export function move(s,u,x,y,surface={}){if(!canControl(s,u))return false;const path=navigationPath(s,u,x,y,surface);if(!path?.length)return false;s.queue=path;s.revision++;return true;}
 export function turnTo(s,u,heading){if(!canControl(s,u)||!Number.isFinite(heading))return false;u.heading=heading;refresh(s);return true;}
 export function setMovementMode(s,u,mode){
   if(!canControl(s,u)||!['run','sneak','walk'].includes(mode))return false;
@@ -415,7 +420,7 @@ const random=s=>{s.seed=(Math.imul(s.seed,1664525)+1013904223)>>>0;return s.seed
 export const grenadeCost=u=>WEAPONS.grenade.cost*(['pistol','pistol-offhand','smg'].includes(u.weapon)?.5:1);
 export function grenadeTrajectory(a,b){
   const rise=Math.min(2.5,distance(a,b)*.35);
-  return Array.from({length:33},(_,i)=>{const t=i/32;return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,z:1.1*(1-t)+.08*t+Math.sin(t*Math.PI)*rise};});
+  return Array.from({length:33},(_,i)=>{const t=i/32;return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,z:(baseHeight(a)+1.1)*(1-t)+(baseHeight(b)+.08)*t+Math.sin(t*Math.PI)*rise};});
 }
 function grenadePathBlocked(s,path){
   return geometryNear(s,path[0],path.at(-1),0,'air').some(box=>{
@@ -423,7 +428,7 @@ function grenadePathBlocked(s,path){
     return false;
   });
 }
-export const grenadeAffects=(s,point,target)=>distance(target,point)<=WEAPONS.grenade.blast&&lineClear(s,point,target);
+export const grenadeAffects=(s,point,target)=>Math.hypot(distance(target,point),baseHeight(target)-baseHeight(point))<=WEAPONS.grenade.blast&&lineClear(s,point,target);
 // The fill stops at walls and unexplored ground. The outer ring still shows the
 // maximum blast radius; neither the preview nor its camera changes visibility.
 export function grenadeBlastFootprint(s,point){
@@ -432,7 +437,7 @@ export function grenadeBlastFootprint(s,point){
   return Array.from({length:97},(_,i)=>{
     const angle=i/96*Math.PI*2,dx=Math.cos(angle),dy=Math.sin(angle),end={x:point.x+dx*radius,y:point.y+dy*radius};
     let reach=radius;
-    for(const wall of walls){const span=wall.windowPart?airSpan(point,end,1.1,1.1,wall):boxInterval(point,end,wall);if(span&&span[1]>EPS)reach=Math.min(reach,Math.max(0,span[0]*radius-.01));}
+    for(const wall of walls){const span=wall.windowPart?airSpan(point,end,baseHeight(point)+1.1,baseHeight(point)+1.1,wall):boxInterval(point,end,wall);if(span&&span[1]>EPS)reach=Math.min(reach,Math.max(0,span[0]*radius-.01));}
     for(let d=0;d<=reach;d+=.1)if(!s.seen.has(key(point.x+dx*d,point.y+dy*d))){reach=Math.max(0,d-.1);break;}
     return {x:point.x+dx*reach,y:point.y+dy*reach};
   });
@@ -457,7 +462,7 @@ function throwGrenadeNow(s,u,point){
   stop(s);if(s.phase!=='player'){s.engaged=true;refresh(s);}
   u.ap=Math.max(0,u.ap-p.cost);u.ammo.grenade--;syncAmmo(u,'grenade');u.heading=headingTo(u,point);
   const impactEvent={explosions:[]},fireBefore=s.fireAnimationSequence||0,windowBefore=s.windowSequence||0;
-  const walls=planWallBlast(s,{...point,h:.08},p.blast,grenadeDamage);
+  const walls=planWallBlast(s,{...point,h:baseHeight(point)+.08},p.blast,grenadeDamage);
   let hits=0;for(const target of s.units.filter(alive))if(alive(target)&&grenadeAffects(s,point,target)){
     if(!detonateImpact(s,u,target,'torso',WEAPONS.grenade,impactEvent))hurt(s,target,Math.round(WEAPONS.grenade.damage*Math.max(.2,1-distance(target,point)/(p.blast+1))));hits++;
   }
@@ -465,8 +470,8 @@ function throwGrenadeNow(s,u,point){
   windowBlast(s,point,p.blast);
   commitWallDamage(s,walls,impactEvent);
   log(s,`${u.name} threw a grenade (${p.cost} AP).`);
-  for(const guard of s.units.filter(g=>g.team==='guard'&&alive(g)))if(distance(u,guard)<=WEAPONS.grenade.range*2){guard.alert=true;guard.lastKnown={x:u.x,y:u.y};guard.alertAge=0;}
-  s.effect={sequence:[{shooter:u.id,ax:u.x,ay:u.y,bx:point.x,by:point.y,hit:hits>0,weapon:'grenade',blast:p.blast,...impactEvent,windowSequences:windowReceipts(s,windowBefore),fireSequences:(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence)}]};
+  for(const guard of s.units.filter(g=>g.team==='guard'&&alive(g)))if(distance(u,guard)<=WEAPONS.grenade.range*2){guard.alert=true;guard.lastKnown=surfacePosition(u);guard.alertAge=0;}
+  s.effect={sequence:[{shooter:u.id,ax:u.x,ay:u.y,bx:point.x,by:point.y,...(baseHeight(u)||baseHeight(point)?{sourceElevation:baseHeight(u),impactElevation:baseHeight(point),ah:eyeHeight(u),bh:baseHeight(point)+.08}:{}),hit:hits>0,weapon:'grenade',blast:p.blast,...impactEvent,windowSequences:windowReceipts(s,windowBefore),fireSequences:(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence)}]};
   refresh(s);return true;
 }
 function attackRounds(s,u,w,burst){
@@ -497,16 +502,17 @@ const damageOwners=new WeakMap(),realtimeReceipts=new WeakMap();
 function damageAction(s,u,weapon,action){const previous=damageOwners.get(s);damageOwners.set(s,{id:u.id,weapon,stealth:false});try{return action();}finally{if(previous)damageOwners.set(s,previous);else damageOwners.delete(s);}}
 function markDamageCredit(s,u,stealth=false){const owner=damageOwners.get(s);if(s.realtime&&owner)realtimeRules.actor(s,u).credit={...owner,stealth};}
 function kill(s,u,fromDamage=false){const living=alive(u)||!!s.realtime&&fromDamage,credit=s.realtime?.actors[u.id]?.credit,owner=damageOwners.get(s);if(living&&u.team==='guard')awardRealtimeKill(s,credit&&(!owner||credit.id===owner.id&&credit.weapon===owner.weapon)?credit:owner);u.hp=0;u.ap=0;u.casualty='dead';u.burningTurns=0;u.isMoving=false;interactionRules.registerBody(s,u);if(living)log(s,u.name+' is down.');}
-function hurt(s,u,damage){if(!alive(u))return;const owner=damageOwners.get(s),source=s.units.find(v=>v.id===owner?.id),w=WEAPONS[owner?.weapon];const stealth=!!(s.realtime&&source?.team==='squad'&&source.sneaking&&!u.alert&&!w?.blast&&!w?.incendiary);if(stealth)damage*=1.5;markDamageCredit(s,u,stealth);if(s.realtime&&source&&source.team!==u.team){u.alert=true;u.lastKnown={x:source.x,y:source.y};}u.hp=Math.max(0,u.hp-damageAfterResistance(u,damage));if(!u.hp)kill(s,u,true);}
+function hurt(s,u,damage){if(!alive(u))return;const owner=damageOwners.get(s),source=s.units.find(v=>v.id===owner?.id),w=WEAPONS[owner?.weapon];const stealth=!!(s.realtime&&source?.team==='squad'&&source.sneaking&&!u.alert&&!w?.blast&&!w?.incendiary);if(stealth)damage*=1.5;markDamageCredit(s,u,stealth);if(s.realtime&&source&&source.team!==u.team){u.alert=true;u.lastKnown=surfacePosition(source);}u.hp=Math.max(0,u.hp-damageAfterResistance(u,damage));if(!u.hp)kill(s,u,true);}
 function flameAffects(s,a,u,heading){
   const angle=Math.abs(((headingTo(a,u)-heading+540)%360)-180);
   if(!alive(u)||u.id===a.id||distance(a,u)>WEAPONS.flamethrower.range||angle>=24)return false;
-  const source=eyeHeight(a),heights=u.stance==='prone'?[.3,.42,.15]:u.stance==='kneeling'?[.75,1.15,.2]:[1.1,1.75,.5];
+  const source=eyeHeight(a),heights=(u.stance==='prone'?[.3,.42,.15]:u.stance==='kneeling'?[.75,1.15,.2]:[1.1,1.75,.5]).map(h=>h+baseHeight(u));
+  if(floorLevel(a)!==floorLevel(u)&&(source<baseHeight(u)+.05||source>baseHeight(u)+bodyHeight(u)))return false;
   const blockers=geometryNear(s,a,u,0,'air');
   // The recorded jet is horizontal at the operator's stance height. A lower
   // broken cell must not deal damage behind a still-clipped upper aim cone.
   if(blockers.some(box=>box.windowPart&&boxInterval(a,u,box)?.[1]>EPS&&!!airSpan(a,u,source,source,box)))return false;
-  return heights.some(height=>!blockers.some(box=>{if(box.windowPart)return false;const span=boxInterval(a,u,box);return !!span&&span[1]>EPS&&span[0]<1-EPS&&!!airSpan(a,u,source,height,box);}));
+  return heights.some(height=>!blockers.some(box=>{if(box.windowPart&&!box.slab)return false;const span=boxInterval(a,u,box);return !!span&&span[1]>EPS&&span[0]<1-EPS&&!!airSpan(a,u,source,height,box);}));
 }
 function resolveFlame(s,a,event={explosions:[]}){
   const impacts=[];
@@ -538,7 +544,7 @@ function fireFlameNow(s,a,heading,keepMovement=false){
   a.ap=Math.max(0,a.ap-p.cost);a.ammo.flamethrower--;syncAmmo(a,'flamethrower');a.heading=p.heading;
   const impactEvent={explosions:[]},fireBefore=s.fireAnimationSequence||0,windowBefore=s.windowSequence||0,flame=recordFlame(a,p.range,geometryNear(s,a,a,p.range,'flame'),s.visible),impacts=resolveFlame(s,a,impactEvent),angle=a.heading*Math.PI/180;
   log(s,`${a.name} fired a flamethrower cone (${p.cost} AP).`);
-  for(const guard of s.units.filter(u=>u.team==='guard'&&alive(u)))if(distance(a,guard)<=p.range*2){guard.alert=true;guard.lastKnown={x:a.x,y:a.y};guard.alertAge=0;}
+  for(const guard of s.units.filter(u=>u.team==='guard'&&alive(u)))if(distance(a,guard)<=p.range*2){guard.alert=true;guard.lastKnown=surfacePosition(a);guard.alertAge=0;}
   s.effect={sequence:[{shooter:a.id,ax:a.x,ay:a.y,bx:a.x+Math.cos(angle)*p.range,by:a.y+Math.sin(angle)*p.range,incendiary:true,hit:impacts.length>0,weapon:'flamethrower',shot:0,shots:1,flame,impacts,...impactEvent,windowSequences:windowReceipts(s,windowBefore),fireSequences:(s.fireAnimations||[]).filter(e=>e.sequence>fireBefore).map(e=>e.sequence)}]};
   refresh(s);return true;
 }
@@ -574,7 +580,7 @@ export function previewPointAttack(s,a,point,burst=false,aimLevel='hip'){
   else if(combatCosts(s)&&a.ap+EPS<aim.cost)reason='Not enough AP';
   return {ok:!reason,reason,cost:s.realtime?0:aim?.cost??0,rounds,distance:d,cover:0,chance:Math.round(Math.max(5,Math.min(95,weaponAccuracy(a)+(w?.accuracy||0)-(w?.rangeLoss||0)*d/(w?.range||1)+(aim?.accuracy||0))))};
 }
-const shotHeight=(point,zone)=>point.ground?point.h:zone==='head'?bodyHeight(point):zone==='legs'?bodyHeight(point)*.25:bodyHeight(point)*.62;
+const shotHeight=(point,zone)=>point.ground?point.h:baseHeight(point)+(zone==='head'?bodyHeight(point):zone==='legs'?bodyHeight(point)*.25:bodyHeight(point)*.62);
 // A visual muzzle may replace the recorded start only along clear air.
 // Contact at the recorded endpoint is valid, including a shot into a wall.
 export function projectileSegmentClear(s,a,b){
@@ -652,7 +658,7 @@ function missedTrace(s,a,b,event,chance){
   // At arm's length a steep miss can still cross another part of the target.
   const rotation=sample(),sideways=!b.ground&&d<1.2;
   const frame={origin:[a.x,a.y,event.ah],aim:[b.x,b.y,event.bh],error,rotation:sideways?(rotation<.5?0:.5):rotation};
-  const target={x:b.x,y:b.y};
+  const target={x:b.x,y:b.y,elevation:baseHeight(b)};
   const ray=b.ground||d<2*RADIUS?angularHelicoidShot(frame):
     placeHelicoidMiss(frame,({direction:[x,y,h]})=>!!bodyIntersection(target,origin,{x,y,h},Infinity,bodyHeight(b)));
   const [x,y,h]=ray.direction;
@@ -678,8 +684,8 @@ export function confirmedImpact(s,a,b,zone='torso'){
   const obstacle=firstShotObstacle(s,a,b,source,end),blocked=obstacle?.t??1+EPS;
   return s.units.filter(u=>alive(u)&&u.id!==a.id).map(unit=>{
     const t=length2?((unit.x-a.x)*dx+(unit.y-a.y)*dy)/length2:1,h=source+dh*t;
-    if(t<=0||t>1+EPS||t>blocked||h<0||h>height(unit)||Math.hypot(unit.x-a.x-dx*t,unit.y-a.y-dy*t)>RADIUS)return null;
-    return {unit,t,zone:unit.id===b.id?zone:h>height(unit)*.8?'head':h<height(unit)*.32?'legs':'torso'};
+    const relative=h-baseHeight(unit);if(t<=0||t>1+EPS||t>blocked||relative<0||relative>height(unit)||Math.hypot(unit.x-a.x-dx*t,unit.y-a.y-dy*t)>RADIUS)return null;
+    return {unit,t,zone:unit.id===b.id?zone:relative>height(unit)*.8?'head':relative<height(unit)*.32?'legs':'torso'};
   }).filter(Boolean).sort((a,b)=>a.t-b.t||a.unit.id-b.unit.id)[0]||obstacle;
 }
 export function attack(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimLevel='hip'){if(s.realtime)return realtimeRules.requestShot(s,a,b,burst,zone,aimLevel);return attackNow(s,a,b,burst,byAI,zone,reaction,aimLevel);}
@@ -734,7 +740,7 @@ function attackNow(s,a,b,burst=false,byAI=false,zone='torso',reaction=false,aimL
   }
   for(const event of sequence)event.shots=sequence.length;
   log(s,`${a.name} → ${b.name||'window'}: ${b.ground?sequence.some(e=>e.glass)?'glass broken':'shot':hits?Math.round(bodyDamage||hp-b.hp)+' damage':'miss'} (${p.chance}%).`);
-  for(const g of s.units.filter(g=>g.team==='guard'&&alive(g)))if(distance(a,g)<=w.range*2){g.alert=true;g.lastKnown=s.realtime&&a.team==='guard'&&a.lastKnown?{...a.lastKnown}:{x:a.x,y:a.y};g.alertAge=0;}
+  for(const g of s.units.filter(g=>g.team==='guard'&&alive(g)))if(distance(a,g)<=w.range*2){g.alert=true;g.lastKnown=s.realtime&&a.team==='guard'&&a.lastKnown?{...a.lastKnown}:surfacePosition(a);g.alertAge=0;}
   s.effect={sequence,cost:p.cost};refresh(s);return true;
 }
 export function equip(s,u,id){if(!canControl(s,u)||!u.pack.some(i=>i.kind===id)||u.weapon===id)return false;const cost=combatCosts(s)?u.slots.includes(id)?2:3:0;if(u.ap+EPS<cost)return false;stop(s);u.ap-=cost;u.weapon=id;if(s.realtime)realtimeRules.changedWeapon(s,u);log(s,'Equipped '+WEAPONS[id].name+'.');return true;}
@@ -749,25 +755,26 @@ function enemyStep(s,dt){const u=hero(s);let g=s.units[s.enemyIndex];if(!g){fire
 // Every frame reuses the same movement/turn step; stop catch-up at control-phase changes.
 export function tick(s,dt=1/60,input=null){
   if(s.solo.status!=='active')return false;
-  const seconds=boundedElapsed(dt),steps=Math.max(1,Math.ceil((seconds-1e-9)/SIMULATION_STEP_SECONDS)),receipts=s.realtime&&s.effect&&realtimeReceipts.get(s)!==s.effect?[{effect:s.effect,at:0}]:[];let previous=s.effect;
+  const seconds=boundedElapsed(dt);if(!seconds)return false;
+  const steps=Math.max(1,Math.ceil((seconds-1e-9)/SIMULATION_STEP_SECONDS)),receipts=s.realtime&&s.effect&&realtimeReceipts.get(s)!==s.effect?[{effect:s.effect,at:0}]:[];let previous=s.effect;
   for(let i=0;i<steps;i++){const phase=s.phase;tickStep(s,seconds/steps,input);if(s.effect&&s.effect!==previous){receipts.push({effect:s.effect,at:i*seconds/steps});previous=s.effect;}if(s.phase!==phase||s.solo.status!=='active')break;}
   if(receipts.length>1)s.effect={...s.effect,sequence:receipts.flatMap(({effect,at})=>(effect.sequence||[effect]).map(event=>({...event,catchupDelayMs:(event.catchupDelayMs||0)+(at-receipts[0].at)*1000})))};
   if(s.realtime)realtimeReceipts.set(s,s.effect);return true;
 }
 function tickStep(s,dt,input){if(s.realtime)return realtimeRules.step(s,dt,input);s.elapsed+=dt;for(const u of s.units)u.isMoving=false;if(s.phase==='enemy'){enemyStep(s,dt);return true;}const u=hero(s);if(u.burningTurns){refresh(s);if(s.phase==='player'){s.panicDelay=Math.max(0,(s.panicDelay??3)-dt);if(!s.panicDelay)endTurn(s);}return true;}if(input&&Math.hypot(input.x,input.y)>.1){s.queue=[];const n=Math.max(1,Math.hypot(input.x,input.y));travel(s,u,input.x/n*movementSpeed(u)*dt,input.y/n*movementSpeed(u)*dt);}else if(s.queue.length){const p=s.queue[0],d=distance(u,p);if(d<.025)s.queue.shift();else{const step=Math.min(d,movementSpeed(u)*dt),moved=travel(s,u,(p.x-u.x)/d*step,(p.y-u.y)/d*step);if(!moved||s.phase==='player'&&u.ap<EPS)s.queue=[];}}else if(s.phase==='explore'||s.phase==='won')u.stamina=Math.min(u.maxStamina,u.stamina+dt*2);return true;}
-const fireRules=createFireRules({kill,walkSegment,random,key,log,onIgnite:(s,u)=>markDamageCredit(s,u)});
-const fuelRules=createFuelRules({kill,ignite:fireRules.ignite,recordBurn,inside:insideWorld,log,windowBlast});
+const fireRules=createFireRules({kill,walkSegment,random,key,log,onIgnite:(s,u)=>markDamageCredit(s,u),movePosition:(s,u,p)=>{getTourWorld(s)?.applyMovement(u,p);Object.assign(u,p);}});
+const fuelRules=createFuelRules({kill,ignite:fireRules.ignite,recordBurn,inside:insideWorld,log,windowBlast,supports:(s,p)=>!floorLevel(p)||!!getTourWorld(s)?.interiors?.roomAt(p.x,p.y,floorLevel(p))&&!getTourWorld(s).interiors.plotAt(p)});
 const barrelRules=createBarrelRules({log,clearGeometry:s=>{geometryCache.delete(s);delete s.fogAt;},explode:(s,prop)=>{
   const walls=planWallBlast(s,{...prop,h:.4},5,d=>180*(1-d/5)),receipt=fuelRules.barrel(s,prop);
   commitWallDamage(s,walls,receipt);return receipt;
 }});
 export const ignite=(s,u)=>{const result=fireRules.ignite(s,u);if(result)refresh(s);return result;};
 export const enterFire=(s,u)=>{const result=fireRules.enterFire(s,u);if(result)refresh(s);return result;};
-const interactionRules=createInteractionSystem({hero,canControl,combatCosts,distance,geometry,blocksWalking,pointBoxDistance,refresh,stop,log,clearGeometry:s=>{geometryCache.delete(s);getTourWorld(s)?.interactionChanged();},weapons:WEAPONS,radius:RADIUS});
+const interactionRules=createInteractionSystem({hero,canControl,combatCosts,distance,geometry:(s,a,b,r)=>a?geometryNear(s,a,b,r,'walk'):geometry(s),heightOf:baseHeight,traverse:(s,o)=>move(s,hero(s),o.destination.x,o.destination.y,{level:o.destination.level})?{ok:true,name:o.name,targetId:o.id}:{ok:false,reason:'The stairs or landing are blocked.'},blocksWalking,pointBoxDistance,refresh,stop,log,clearGeometry:s=>{geometryCache.delete(s);getTourWorld(s)?.interactionChanged();},weapons:WEAPONS,radius:RADIUS});
 export const interactionObjects=s=>interactionRules.objects(s);
 export const nearbyInteractions=s=>interactionRules.nearby(s);
 export const previewInteraction=(s,id,action,itemId)=>interactionRules.preview(s,id,action,itemId);
-export const performInteraction=(s,id,action,itemId)=>{const result=interactionRules.perform(s,id,action,itemId);if(result.ok&&s.realtime&&!['loot','inspect'].includes(action))realtimeRules.actor(s,hero(s)).cooldown=Math.max(realtimeRules.actor(s,hero(s)).cooldown,action==='open'||action==='search'?1:.4);return result;};
+export const performInteraction=(s,id,action,itemId)=>{const result=interactionRules.perform(s,id,action,itemId);if(result.ok&&s.realtime&&!['loot','inspect','traverse'].includes(action))realtimeRules.actor(s,hero(s)).cooldown=Math.max(realtimeRules.actor(s,hero(s)).cooldown,action==='open'||action==='search'?1:.4);return result;};
 // Existing mission/menu callers use the same validated actions as the hand.
 export function interaction(s){const mission=missionForState(s),object=nearbyInteractions(s).find(object=>['ledger','objective','extract'].includes(object.kind));if(!object)return null;return {...object.actions[0],kind:object.kind,label:object.kind==='extract'?mission.extraction.label:'Take the '+mission.objective.name.toLowerCase()};}
 export function interact(s){if(missionForState(s).exploration){const object=nearbyInteractions(s)[0];return !!object&&performInteraction(s,object.id,object.actions[0].id).ok;}const secured=objectiveSecured(s);return performInteraction(s,secured?'extraction':missionForState(s).objective.id,secured?'extract':'collect').ok;}
@@ -877,6 +884,7 @@ function searchStarts(s,g){
   return [...starts.values()];
 }
 export function approachPath(s,g,lastSeen){
+  if(getTourWorld(s)?.interiors&&(floorLevel(g)||floorLevel(lastSeen)||g.stairId||lastSeen.stairId)){const choices=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(dx||dy)choices.push({x:lastSeen.x+dx,y:lastSeen.y+dy});choices.sort((a,b)=>distance(g,a)-distance(g,b));for(const p of choices){const route=navigationPath(s,g,p.x,p.y,{level:floorLevel(lastSeen),...(lastSeen.stairId?{stairId:lastSeen.stairId}:{})});if(route)return route;}return null;}
   const quarries=standIns(s,lastSeen);if(!quarries.length)return null;
   // The straight walk tries the stand-ins nearest first; the search weighs them all.
   for(const quarry of [...quarries].sort((a,b)=>distance(a,g)-distance(b,g))){
