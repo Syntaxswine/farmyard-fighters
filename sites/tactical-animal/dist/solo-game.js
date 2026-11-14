@@ -149,7 +149,7 @@ export function geometryNear(s,a,b,padding,layer){
 // prop reservations stand on the ground from 0 to their height. A prop's parts
 // each fill only their own [z0, height]. Walking asks the ground; anything that
 // travels through the air asks the parts, so the air beside or under them stays open.
-export const blocksWalking=box=>box.kind!=='part';
+export const blocksWalking=box=>box.kind!=='part'&&!box.overhead;
 const occupiesAir=box=>box.kind!=='prop';
 const STANDING_EYE=1.1,PRONE_EYE=.3;
 const eyeHeight=u=>u.stance==='prone'?PRONE_EYE:u.stance==='kneeling'?.75:STANDING_EYE;
@@ -763,7 +763,7 @@ const barrelRules=createBarrelRules({log,clearGeometry:s=>{geometryCache.delete(
 }});
 export const ignite=(s,u)=>{const result=fireRules.ignite(s,u);if(result)refresh(s);return result;};
 export const enterFire=(s,u)=>{const result=fireRules.enterFire(s,u);if(result)refresh(s);return result;};
-const interactionRules=createInteractionSystem({hero,canControl,combatCosts,distance,geometry,blocksWalking,pointBoxDistance,refresh,stop,log,clearGeometry:s=>geometryCache.delete(s),weapons:WEAPONS,radius:RADIUS});
+const interactionRules=createInteractionSystem({hero,canControl,combatCosts,distance,geometry,blocksWalking,pointBoxDistance,refresh,stop,log,clearGeometry:s=>{geometryCache.delete(s);getTourWorld(s)?.interactionChanged();},weapons:WEAPONS,radius:RADIUS});
 export const interactionObjects=s=>interactionRules.objects(s);
 export const nearbyInteractions=s=>interactionRules.nearby(s);
 export const previewInteraction=(s,id,action,itemId)=>interactionRules.preview(s,id,action,itemId);

@@ -53,8 +53,9 @@ Each sector is SHA-256 verified against the project before decoding. The runtime
 source revision includes projection, generator version and all sector hashes.
 Feature bytes must match the artist manifest's source hash. Unsupported native
 geometry fails explicitly. Authoring squad starts/exits never become gameplay
-objectives or markers. Upper masks represent exterior height/roof proxies, with
-no invented building interiors, doors or extra gameplay floors.
+objectives or markers. Upper masks represent exterior height/roof proxies.
+The source documents still make no claims about real interiors or entrances.
+The separately authorized fictional gameplay overlay is described below.
 
 The unchanged Nautilus wall helper, its immutable source commit and SHA-256 are
 recorded in `dist/mount-dora-source/`. Movement uses its oriented wall slabs,
@@ -122,8 +123,8 @@ It contains source/art revisions, global position, animal/equipment/resources,
 distance, elapsed time and compact explored bits. Static map cells are never
 serialized. A full explored-town bitset occupies 302,400 raw bytes. Resume validates
 resources, equipment and position against the current loaded town before starting.
-Recovery excludes the enclosed areas of closed buildings as well as their walls.
-An enclosed old checkpoint moves to a clear nearby outdoor point or the validated
+Recovery accepts clear fictional interior floors and excludes closed source
+proxies and solid geometry. An obstructed old checkpoint moves to a clear nearby outdoor point or the validated
 Donnelly Park spawn. Heading, equipment, resources, distance, elapsed time and
 exploration are preserved, and the activity log explains the relocation.
 Preparation preferences may remember the chosen activity; the operation writer
@@ -149,4 +150,40 @@ it is not the destination for Fighters application or gameplay changes.
 Global pace, disabled stamina, elapsed stepping and visual cadence are described
 in [movement-runtime.md](movement-runtime.md).
 
-Playtests use production wiring by default (see `AGENTS.md`). The town save also retains active AP phase/round, RNG seed, fire state and authored object changes; transient effects are not replayed. Existing saves without this optional runtime section remain supported. No doors are inferred from an address, facade texture or building outline. Supported editor door records create real open/close interactions before scene construction.
+Playtests use production wiring by default (see `AGENTS.md`). The town save also retains active AP phase/round, RNG seed, fire state and authored object changes; transient effects are not replayed. Existing saves without this optional runtime section remain supported. Supported editor door records create real open/close interactions before scene construction.
+
+## Fictional ground floors, authorized 2026-11-13
+
+The user authorized fictional interiors and entrances throughout Mount Dora,
+including simpler houses occupying the same footprints. The reviewed map,
+building polygons, evidence, imported kit and provenance remain unchanged.
+`tools/maps/build-mount-dora-interiors.mjs` produces an independent overlay in
+`maps/mount-dora/interiors/` and its hashed manifest in
+`dist/mission-art/mount-dora-interiors/`. Regenerate with
+`node tools/maps/build-mount-dora-interiors.mjs` after a footprint change.
+
+The generator adapts the room naming and arrangement rules from the vendored
+Nautilus building catalogue at `2502646482218524fd5129641da769bb82462e4d`.
+It fits one-storey modules to the exact grid footprint, preserves courtyards,
+merges clipped room slivers, connects each room to an entrance, reserves portal
+paths and then places inherited AFT beds, tables, cabinets and refrigerators.
+Buildings crossing the town boundary have playable floors clipped to that
+boundary; their original source bounds and geometry remain recorded.
+Entrances face free land and avoid party walls, water and tree trunks.
+
+`TownInteriors` replaces the sealed source walls only for overlay-owned
+buildings. Its wall headers, partitions, furniture and swinging door leaves
+feed the production movement, sight and projectile geometry. Doors use the
+existing hand control, AP/real-time costs and blocked-swing checks. Door deltas
+survive streaming and save/resume; static layouts are never saved. An open leaf
+remains solid. Closed rooms remain concealed until entered or connected through
+open doors. The operation briefing and town menu identify these layouts as
+fictional. Upper floors are exterior shells, not playable rooms in this pass.
+
+`TownInteriorScenery` streams within the normal render window. Imported roofs
+remain above replacement gameplay walls, and roofs/wall tops cut away for
+visible interior rooms. Unknown rooms stay dark and their furniture stays
+hidden. The source kit itself is not modified. Interior packets share the
+existing nine-sector residency and two-request concurrency budget, and fail
+closed on hash mismatch or incomplete loading. New geometry uses the same
+source-version checks and retry path as the town.

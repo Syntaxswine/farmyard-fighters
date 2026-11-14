@@ -10,7 +10,7 @@ import * as ART from '../dist/mission-art/mount-dora/manifest.js';
 const base=new URL('../../../maps/mount-dora/',import.meta.url),projectURL=new URL('project.json',base);
 const project=JSON.parse(fs.readFileSync(projectURL)),fetcher=async url=>new Response(fs.readFileSync(url));
 
-test('old saves enclosed by a moved building resume outdoors without losing resources or progress',async()=>{
+test('old saves in a formerly sealed building resume on its clear fictional floor without losing resources or progress',async()=>{
  const original=await loadTownTour({build:DEFAULT_BUILD,fetcher,projectURL}),w=getTourWorld(original);
  try{
   const u=hero(original);u.ammo.assault=4;u.stamina=0;u.heading=1.23;original.solo.distance=123;original.elapsed=45;
@@ -20,9 +20,9 @@ test('old saves enclosed by a moved building resume outdoors without losing reso
   // (The rectangle moved with its streets; this point is 3.5 m inside it.)
   assert(solidDistance({kind:'polygon',polygons:house.geographicGeometry.coordinates},{x:276.5,y:714.5})>.31);
   Object.assign(p.player,{x:276,y:714});p.sourceRevision='0'.repeat(64);
-  await w.readyAt(p.player);assert(w.pointClear(p.player),'Interior is clear of walls, demonstrating why pointClear alone is insufficient');assert(!w.resumeClear(p.player));
+  await w.readyAt(p.player);assert(w.pointClear(p.player));assert(w.resumeClear(p.player),'The authorized fictional floor is now playable');
   const oldPosition={x:p.player.x,y:p.player.y},restored=await loadTownTour({progress:p,fetcher,projectURL});
-  try{const q=hero(restored),rw=getTourWorld(restored);assert(rw.resumeClear(q));assert(Math.hypot(q.x-oldPosition.x,q.y-oldPosition.y)<24);assert.equal(q.ammo.assault,4);assert.equal(q.stamina,0);assert.equal(q.heading,1.23);assert.deepEqual(q.pack,p.player.pack);assert.equal(restored.solo.distance,123);assert.equal(restored.elapsed,45);for(const key of p.seen)assert(restored.seen.has(key));assert.deepEqual({x:p.player.x,y:p.player.y},oldPosition);assert(restored.log.some(s=>s.includes('clear outdoor approach')));}finally{getTourWorld(restored).dispose();}
+  try{const q=hero(restored),rw=getTourWorld(restored);assert(rw.resumeClear(q));assert.deepEqual({x:q.x,y:q.y},oldPosition);assert.equal(q.ammo.assault,4);assert.equal(q.stamina,0);assert.equal(q.heading,1.23);assert.deepEqual(q.pack,p.player.pack);assert.equal(restored.solo.distance,123);assert.equal(restored.elapsed,45);for(const key of p.seen)assert(restored.seen.has(key));assert.deepEqual({x:p.player.x,y:p.player.y},oldPosition);assert(restored.log.some(s=>s.includes('town has been updated')));}finally{getTourWorld(restored).dispose();}
  }finally{w.dispose();}
 });
 

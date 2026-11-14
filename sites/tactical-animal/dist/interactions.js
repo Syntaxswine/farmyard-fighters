@@ -4,7 +4,7 @@ export {missionInteractables} from './missions.js';
 
 // The open leaf stays solid, tucked along the inside of its doorway.
 export function doorFootprint(object,open=object.open){
-  const {length,thickness,height}=WALL_DIMENSIONS,half=length/2,t=thickness/2;
+  const {length,thickness}=WALL_DIMENSIONS,half=length/2,t=thickness/2,height=object.height??WALL_DIMENSIONS.height;
   const swing=object.swing??1;
   if(object.edge?.startsWith('s:'))return open?
     {x0:object.x-half-t,x1:object.x-half+t,y0:Math.min(object.y,object.y+swing*length),y1:Math.max(object.y,object.y+swing*length),height}:
@@ -164,6 +164,7 @@ export function createInteractionSystem({hero,canControl,combatCosts,distance,ge
         if(!state.units.some(unit=>unit.id===object.unitId&&unit.team==='guard'&&unit.hp<=0))throw Error('Unsupported body save.');
       }else if(!Number.isFinite(object.x)||!Number.isFinite(object.y)||object.kind!=='clue'&&typeof object.open!=='boolean')throw Error('Unsupported object save.');
       if(object.kind==='door'&&(!/^[es]:\d+:\d+$/.test(object.edge)||!Object.hasOwn(state.edges,object.edge)||object.swing!==undefined&&![-1,1].includes(object.swing)))throw Error('Unsupported door save.');
+      if(object.kind==='door'&&object.height!==undefined&&(!Number.isFinite(object.height)||object.height<1||object.height>WALL_DIMENSIONS.height))throw Error('Unsupported door height.');
       if(['chest','body'].includes(object.kind)&&typeof object.searched!=='boolean')throw Error('Unsupported container save.');
       if(object.kind==='clue'&&(typeof object.text!=='string'||!missionForState(state).clues.some(clue=>clue.id===object.id)))throw Error('Unsupported clue save.');
       const itemIds=new Set();

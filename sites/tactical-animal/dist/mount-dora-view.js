@@ -13,6 +13,7 @@ import {windowChanges} from './render-residency.js';
 import {blockWindow} from './world-grid.js';
 import {getTourWorld} from './mount-dora-activity.js';
 import {WALKER_RADIUS} from './mount-dora-world.js';
+import {TownInteriorScenery} from './town-interior-view.js';
 const origin=new URL('./aft/tactics/',import.meta.url);
 const surfaceFiles={
   'ground-grass':'ground-grass.png',woodland:'ground-grass.png','ground-dirt':'ground-dirt.png','ground-gravel':'ground-gravel.png',
@@ -57,7 +58,8 @@ export class TownEnvironment{
       for(const [id,material] of Object.entries(this.plantMaterials))this.plantCutaway.decorate(material,0,id==='bark');
       this.plantFactory=createBiomePlantFactory(this.plantMaterials);
     });
-    this.ready=Promise.all([atlasReady,plantReady,...this.textures.values()]).then(([atlas])=>{
+    const interiorReady=Promise.all([...this.textures.values()]).then(()=>{if(!this.disposed&&this.world.interiors){this.interiors=new TownInteriorScenery(this.world,this.loader,this.materials);this.root.add(this.interiors.root);return this.interiors.ready;}});
+    this.ready=Promise.all([atlasReady,plantReady,interiorReady,...this.textures.values()]).then(([atlas])=>{
       if(this.disposed)return;this.landmarks=createArt({THREE:T,atlas});this.landmarks.root.position.set(-.5,0,-.5);this.root.add(this.landmarks.root);this.readyForMovement=true;
       this.update(state,state.units[0],this.window||blockWindow(state,state.units[0]),true);onLoading(false);
     }).catch(error=>{if(!this.disposed){this.failed=error.message;onError(error.message);}});
@@ -122,6 +124,7 @@ export class TownEnvironment{
       this.stats.wallPanels=panelCount;
       if(this.plantFactory)for(const chunk of this.chunks.values())if(!chunk.plantMeshes)this.buildPlants(chunk);
       this.landmarks?.updateResident([window.x,window.y,window.x+window.w,window.y+window.h]);
+      this.interiors?.update(window);
       this.window=window;this.dataRevision=this.world.revision;
       this.stats.groundCells=0;this.stats.plantModels=0;this.stats.plantBatches=0;
       for(const chunk of this.chunks.values()){
@@ -140,6 +143,7 @@ export class TownEnvironment{
   setFocus(unit,camera){
     const eyeHeight=this.surfaceHeight(unit.x,unit.y)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2);
     this.landmarks?.setFocus?.([unit.x+.5,unit.y+.5],{camera,eyeHeight});
+    this.interiors?.focus(this.landmarks);
     this.plantCutaway.update(camera,[{id:unit.id,position:[unit.x,eyeHeight,unit.y],level:0}]);
     const ppu=this.renderer.domElement.clientHeight*camera.zoom/(camera.top-camera.bottom);
     for(const {rect,plantMeshes} of this.chunks.values()){
@@ -151,8 +155,8 @@ export class TownEnvironment{
       }
     }
   }
-  metrics(){return {...this.stats,blocks:this.chunks.size,landmarks:this.landmarks?{...this.landmarks.metrics(),residentIds:this.landmarks.root.children.map(o=>o.name)}:null,decodedSectors:this.world.cache.size};}
-  dispose(){if(this.disposed)return;this.disposed=true;this.readyForMovement=false;this.root.removeFromParent();for(const c of this.chunks.values())this.release(c);this.chunks.clear();for(const child of this.wallGroup.children)child.dispose();this.wallGroup.clear();this.plantPrototypes.clear();this.plantCutaway.dispose();this.landmarks?.dispose();this.atlasOwner?.dispose();this.plantFactory?.dispose();for(const m of Object.values(this.plantMaterials||{}))m.dispose();for(const t of Object.values(this.plantTextures||{}))t.dispose();for(const material of this.materials.values())material.dispose();for(const promise of this.textures.values())promise.then(t=>t?.dispose()).catch(()=>{});this.materials.clear();this.textures.clear();this.cube.dispose();this.plane.dispose();this.root.clear();}
+  metrics(){return {...this.stats,blocks:this.chunks.size,landmarks:this.landmarks?{...this.landmarks.metrics(),residentIds:this.landmarks.root.children.map(o=>o.name)}:null,decodedSectors:this.world.cache.size,interiors:this.interiors?.metrics()};}
+  dispose(){if(this.disposed)return;this.disposed=true;this.readyForMovement=false;this.root.removeFromParent();for(const c of this.chunks.values())this.release(c);this.chunks.clear();for(const child of this.wallGroup.children)child.dispose();this.wallGroup.clear();this.plantPrototypes.clear();this.plantCutaway.dispose();this.interiors?.dispose();this.landmarks?.dispose();this.atlasOwner?.dispose();this.plantFactory?.dispose();for(const m of Object.values(this.plantMaterials||{}))m.dispose();for(const t of Object.values(this.plantTextures||{}))t.dispose();for(const material of this.materials.values())material.dispose();for(const promise of this.textures.values())promise.then(t=>t?.dispose()).catch(()=>{});this.materials.clear();this.textures.clear();this.cube.dispose();this.plane.dispose();this.root.clear();}
 }
 const miniCache=new WeakMap();
 export function drawTownMinimap(canvas,state,options={}){

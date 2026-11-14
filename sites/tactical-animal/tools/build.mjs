@@ -66,7 +66,7 @@ const townSource=path.join(workspace,'maps/mount-dora');
 const townDestination=path.join(destination,'maps/mount-dora');
 if(fs.existsSync(path.join(townSource,'project.json'))){
   if(JSON.parse(fs.readFileSync(path.join(townSource,'workshop/host.json'),'utf8')).kind!=='mount-dora-static-atlas-v1')throw Error('Publish only the static atlas host configuration.');
-  for(const file of ['project.json','features.json','authored-buildings.json','atlas.svg','source','sectors',
+  for(const file of ['project.json','features.json','authored-buildings.json','atlas.svg','source','sectors','interiors',
     'workshop/index.html','workshop/atlas.css','workshop/atlas.js',
     'workshop/model.js','workshop/audit.json','workshop/host.json']){
     const target=path.join(townDestination,file);

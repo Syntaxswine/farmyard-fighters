@@ -45,16 +45,17 @@ function restoreGuard(state,guard,saved,rosterChanged,layoutChanged){
   delete guard.patrolIndex;delete guard.patrolWaitUntil;
   if(state.realtime?.actors)delete state.realtime.actors[guard.id];
 }
-export async function loadTownTour({build,progress=null,signal,fetcher=globalThis.fetch,projectURL=new URL('./maps/mount-dora/project.json',import.meta.url),artModule,kitModule}={}){
+export async function loadTownTour({build,progress=null,signal,fetcher=globalThis.fetch,projectURL=new URL('./maps/mount-dora/project.json',import.meta.url),artModule,kitModule,interiorModule}={}){
   if(!validBuild(progress?.build||build))throw Error('Choose a valid animal and loadout.');
-  const [projectBytes,art,kit]=await Promise.all([readBytes(fetcher,projectURL,signal,1_000_000),
-    artModule||import('./mission-art/mount-dora/manifest.js'),kitModule||import('./mission-art/mount-dora/kit.js')]);
+  const [projectBytes,art,kit,interiors]=await Promise.all([readBytes(fetcher,projectURL,signal,1_000_000),
+    artModule||import('./mission-art/mount-dora/manifest.js'),kitModule||import('./mission-art/mount-dora/kit.js'),interiorModule||import('./mission-art/mount-dora-interiors/manifest.js')]);
   if(signal?.aborted)throw new DOMException('Canceled','AbortError');
   const project=JSON.parse(new TextDecoder().decode(projectBytes)),baseURL=new URL('./',projectURL);
   if(project.generation.authoredLayoutSHA256!==art.AUTHORED_LAYOUT_SHA256)throw Error('Town map and artwork layouts differ. Reload the page before starting.');
   const features=await readBytes(fetcher,new URL(project.featuresFile,baseURL),signal,8_000_000);
   if(await sha256(features)!==art.SOURCE_FEATURES_SHA256)throw Error('Town map and artwork revisions differ. Reload the page before starting.');
-  const world=await new TownWorld(project,{baseURL,fetcher,art}).identify();
+  const world=await new TownWorld(project,{baseURL,fetcher,art,interiors}).identify();
+  world.restoreObjectChanges(progress?.runtime?.objects);
   world.artModule=art;world.visits=TOUR_VISITS;world.sourceSignal=new AbortController();
   const abort=()=>world.dispose();signal?.addEventListener('abort',abort,{once:true});
   const dispose=world.dispose.bind(world);world.dispose=()=>{world.sourceSignal.abort();signal?.removeEventListener('abort',abort);world.overviewImage=null;dispose();};
