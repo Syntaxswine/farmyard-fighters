@@ -65,6 +65,14 @@ test('a checkpoint obstructed by a new partition relocates to a nearby clear flo
  try{const b=[...w.interiors.buildings.values()].find(b=>b.walls.some(w=>!w.exterior&&w.z0===0)),wall=b.walls.find(w=>!w.exterior&&w.z0===0),saved=readTourProgress(encodeSave(s));Object.assign(saved.player,{x:(wall.a[0]+wall.b[0])/2,y:(wall.a[1]+wall.b[1])/2});assert(!w.resumeClear(saved.player));restored=await loadTownTour({progress:saved,fetcher,projectURL});const p=hero(restored);assert(getTourWorld(restored).resumeClear(p));assert(Math.hypot(p.x-saved.player.x,p.y-saved.player.y)<24);assert.deepEqual(p.ammo,saved.player.ammo);assert(restored.log.some(s=>s.includes('clear outdoor approach')));}finally{getTourWorld(restored)?.dispose();w.dispose();}
 });
 
+test('production flame and grenade previews stop at a closed leaf and pass beneath an open doorway header',async()=>{
+ const s=await loadTownTour({build:{...DEFAULT_BUILD,primary:'flamethrower'},fetcher,projectURL}),w=getTourWorld(s),u=hero(s);
+ try{const d=s.interactables.filter(d=>d.exterior).sort((a,b)=>Math.hypot(a.x-u.x,a.y-u.y)-Math.hypot(b.x-u.x,b.y-u.y))[0];Object.assign(u,point(d.outside));Core.refresh(s,{forceFog:true});const heading=Core.headingTo(u,point(d.inside)),ray=()=>Core.previewFlame(s,u,heading).shape.rays[18],blast=()=>Core.grenadeBlastFootprint(s,u)[Math.round(heading/360*96)];
+  assert.equal(u.weapon,'flamethrower');assert(Core.previewFlame(s,u,heading).ok);assert(ray().distance<.5);assert(Math.hypot(blast().x-u.x,blast().y-u.y)<.5);assert(!Core.grenadeAffects(s,u,point(d.inside)));
+  assert(Core.performInteraction(s,d.id,'open').ok);assert(ray().distance>.9);assert(Math.hypot(blast().x-u.x,blast().y-u.y)>.9);assert(Core.grenadeAffects(s,u,point(d.inside)));
+ }finally{w.dispose();}
+});
+
 test('door deltas survive streaming eviction, and a failed interior packet blocks coverage and retries',async()=>{
  let fail=true;const get=async url=>fail&&url.pathname.endsWith('/C03.json')?new Response('offline',{status:503}):fetcher(url),w=await new TownWorld(project,{baseURL:base,fetcher:get,art,interiors}).identify();
  try{await assert.rejects(w.readyAt({x:500,y:500}),/Interior HTTP 503/);fail=false;w.retry();await w.readyAt({x:500,y:500});await idle(w);const d=[...w.interiors.doors.values()][0];d.open=true;w.interiors.changed();const origin=point(d.inside),id=d.id;

@@ -6,7 +6,8 @@ class Index{
  add(value,bounds){for(let y=Math.floor(bounds[1]/8);y<=Math.floor(bounds[3]/8);y++)for(let x=Math.floor(bounds[0]/8);x<=Math.floor(bounds[2]/8);x++){const k=key(x,y);if(!this.buckets.has(k))this.buckets.set(k,[]);this.buckets.get(k).push(value);}}
  query(bounds){const found=new Set();for(let y=Math.floor(bounds[1]/8);y<=Math.floor(bounds[3]/8);y++)for(let x=Math.floor(bounds[0]/8);x<=Math.floor(bounds[2]/8);x++)for(const v of this.buckets.get(key(x,y))||[])found.add(v);return [...found];}
 }
-export function interiorWallBox(w){return {x0:Math.min(w.a[0],w.b[0])-(w.a[0]===w.b[0]?.08:0),y0:Math.min(w.a[1],w.b[1])-(w.a[1]===w.b[1]?.08:0),x1:Math.max(w.a[0],w.b[0])+(w.a[0]===w.b[0]?.08:0),y1:Math.max(w.a[1],w.b[1])+(w.a[1]===w.b[1]?.08:0),z0:w.z0,height:w.height,kind:'wall',...(w.z0>=1.65?{overhead:true}:{})};}
+// Reuse the production height-aware wall-part contract for overhead headers.
+export function interiorWallBox(w){return {x0:Math.min(w.a[0],w.b[0])-(w.a[0]===w.b[0]?.08:0),y0:Math.min(w.a[1],w.b[1])-(w.a[1]===w.b[1]?.08:0),x1:Math.max(w.a[0],w.b[0])+(w.a[0]===w.b[0]?.08:0),y1:Math.max(w.a[1],w.b[1])+(w.a[1]===w.b[1]?.08:0),z0:w.z0,height:w.height,kind:'wall',...(w.z0>=1.65?{overhead:true,windowPart:true}:{})};}
 export function interiorRayHits(a,b,box){
  let lo=0,hi=1;const za=a.h??1.1,zb=b.h??1.1;
  for(const [start,delta,min,max]of [[a.x,b.x-a.x,box.x0,box.x1],[a.y,b.y-a.y,box.y0,box.y1],[za,zb-za,box.z0??0,box.height]]){if(Math.abs(delta)<1e-8){if(start<min||start>max)return false;}else{const p=(min-start)/delta,q=(max-start)/delta;lo=Math.max(lo,Math.min(p,q));hi=Math.min(hi,Math.max(p,q));if(lo>hi)return false;}}
@@ -41,7 +42,7 @@ export class TownInteriors{
   this.dataVersion=(this.dataVersion||0)+1;this.sync();
  }
  roomAt(x,y){return this.cells.get(key(Math.floor(x+.5),Math.floor(y+.5)));}
- boxes(bounds){return this.index.query(bounds).map(v=>v.box||{...doorFootprint(v.door),interactionId:v.door.id,kind:'door'}).filter(b=>intersects(bounds,boundsOf(b)));}
+ boxes(bounds){return this.index.query(bounds).map(v=>v.box||{...doorFootprint(v.door),interactionId:v.door.id,kind:'wall'}).filter(b=>intersects(bounds,boundsOf(b)));}
  pointClear(p,radius){return !this.boxes([p.x-radius,p.y-radius,p.x+radius,p.y+radius]).some(b=>(b.z0??0)<.8&&Math.hypot(Math.max(b.x0-p.x,0,p.x-b.x1),Math.max(b.y0-p.y,0,p.y-b.y1))<radius-1e-7);}
  lineClear(a,b){const area=[Math.min(a.x,b.x),Math.min(a.y,b.y),Math.max(a.x,b.x),Math.max(a.y,b.y)];return !this.boxes(area).some(box=>interiorRayHits(a,b,box));}
  capture(d){if(d.open)this.changes.set(d.id,true);else this.changes.delete(d.id);}
