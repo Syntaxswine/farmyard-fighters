@@ -5,6 +5,7 @@ import {createBarrelBlastMotion} from './designer/a20b343a0234/tactics/barrel-bl
 import {barrelId} from './aft/tactics/explosive-barrels.js';
 import {PreparedGroundFire} from './prepared-ground-fire.js';
 import {baseHeight,floorLevel} from './town-levels.js';
+import {getTourWorld} from './mount-dora-activity.js';
 const base=new URL('./designer/a20b343a0234/tactics/',import.meta.url),V=(x=0,y=0,z=0)=>new T.Vector3(x,y,z),key=p=>`${Math.round(p.x)},${Math.round(p.y)}`;
 export class SoloTankEffects{
   constructor(scene,{loadTexture=url=>new T.TextureLoader().loadAsync(url),reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false,onError=error=>console.warn('Fuel artwork unavailable; simulation continues.',error)}={}){
@@ -75,7 +76,7 @@ export class SoloTankEffects{
     // Persistent cells rebuild from saves; old cells are never withheld by a
     // new explosion. Only newly committed cells wait for that impact's cue.
     const withheld=new Set([...this.bursts.values()].filter(b=>b.waiting||this.now<b.start).flatMap(b=>(b.event.fires||[]).map(key)));
-    const level=floorLevel(this.state.units.find(u=>u.team==='squad')),cells=(this.state.fires||[]).filter(p=>p.turns>0&&(p.level??p.z??0)===level&&this.state.visible.has(key(p))&&!withheld.has(key(p)));
+    const level=floorLevel(this.state.units.find(u=>u.team==='squad')),town=getTourWorld(this.state),cells=(this.state.fires||[]).filter(p=>p.turns>0&&(town?town.visibleSurface(p,1.1):(p.level??p.z??0)===level&&this.state.visible.has(key(p)))&&!withheld.has(key(p)));
     if(this.ground instanceof PreparedGroundFire){this.ground.draw(cells,this.now,camera,this.reduced);return;}
     if(!cells.length){if(this.ground){this.ground.disposed=true;this.ground.effects?.dispose();this.ground=null;}return;}
     this.ground??={origin:V(0,1,0)};const signature=cells.map(key).join(';');

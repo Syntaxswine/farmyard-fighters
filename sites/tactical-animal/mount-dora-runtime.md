@@ -230,3 +230,45 @@ decoded sectors and two source requests. `tools/test-town-upper-floors.mjs`
 reviews the production bootstrap, stair actions, five-storey traversal, touch
 controls, resume and renderer, with a ten-minute helper deadline and verified
 browser/server cleanup. `--check` on the overlay generator verifies reproducibility.
+
+## Open firing windows
+
+Overlay version 3 adds 18,547 fictional open windows across all 1,076 buildings,
+including the 190 upper floors. Geographic evidence and the Nautilus pin stay
+separate from these gameplay placements. The generator fits windows around the
+existing furniture, stair plots and door approaches. Folded shutters are omitted
+where they would intrude into another part of a building or its neighbour.
+
+`town-windows.js` supplies the shared aperture and frame dimensions: a one-metre
+span, a 0.65-metre sill, a 1.75-metre head and 55-mm timber members. Exterior wall
+packets contain the actual openings. Rendering and collision use the same frame
+and shutter boxes. These windows start open; they have no pane or interaction
+menu. Their sills block movement and provide cover for a prone soldier. A steep
+shot down from a high floor can meet the sill, just as it meets the visible
+geometry. Standing positions support sight and bullets in both directions.
+
+The outdoor ground becomes visible through the real height-aware sight path
+while upstairs. Ground exploration is retained without revealing lower rooms.
+Bodies and persistent fire outside remain visible from upstairs where the
+opening permits a view. Ordinary combat, return fire, equipment and casualty
+persistence continue through the production implementation.
+
+For the ground-view fog pass, `town-sight.js` conservatively buckets potential
+occluders by angle. Exact wall-run, timber, slab and trunk intersection tests
+still decide visibility. The acceptance suite compares this lookup against
+ordinary production sight over thousands of rays. Interior packets retain the
+nine-sector/two-request residency limits; their byte cap is two megabytes, with
+the largest current packet under 1.2 megabytes.
+
+`tools/test-town-windows.mjs` uses declared starting positions with the production
+roster and equipment. Desktop and touch controls walk between a window and its
+wall pier, fire at an outdoor sentry, and resume upstairs with that casualty
+intact. The desktop review also uses a fifth-storey firing position. Its browser
+and optional local server have a ten-minute deadline and verified cleanup.
+
+Before detailed navigation, open-door and stair connectivity rules reject
+unreachable rooms. Open windows never count as walking portals. This prevents a
+guard losing sight of an upstairs target from flooding the outdoor search grid
+when every entrance is closed. Automatic contact framing uses each actor's
+height relative to the player, keeping a high firing position and its lower
+contact above the controls.

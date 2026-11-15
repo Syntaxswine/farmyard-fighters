@@ -1,4 +1,5 @@
 import {doorFootprint} from './interactions.js';
+import {townWindowParts} from './town-windows.js';
 import {FLOOR_SPACING,buildingFloors,floorKey,floorLevel,baseHeight,stairBoxes,stairPoint,stairLocal,stairPosition,stairCoreContains,stairTurn} from './town-levels.js';
 const intersects=(a,b)=>a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1],key=(x,y)=>x+','+y;
 const boundsOf=b=>[b.x0,b.y0,b.x1,b.y1];
@@ -18,7 +19,7 @@ export function interiorRayHits(a,b,box){
 // fictional geometry only; neither source footprints nor catalogue assets mutate.
 export class TownInteriors{
  constructor(world,manifest){
-  if(![1,2].includes(manifest.VERSION)||manifest.SOURCE_LAYOUT_SHA256!==world.project.generation.authoredLayoutSHA256)throw Error('Town interiors and source footprints differ.');
+  if(![1,2,3].includes(manifest.VERSION)||manifest.SOURCE_LAYOUT_SHA256!==world.project.generation.authoredLayoutSHA256)throw Error('Town interiors and source footprints differ.');
   this.world=world;this.manifest=manifest;this.buildings=new Map();this.changes=new Map();this.catalogue=new Map(manifest.BUILDINGS.map(b=>[b.id,b]));this.sectors=new Map(manifest.SECTORS.map(s=>[s.id,s]));this.cells=new Map();this.index=new Index();this.visibleRooms=new Set();
  }
  validate(packet,sector){
@@ -33,7 +34,7 @@ export class TownInteriors{
    const canonical=d=>({...structuredClone(d),building:id,fictionalInterior:true,open:this.changes.get(d.id)===true});
    const record={...b,doors:b.doors.map(canonical),upperFloors:(b.upperFloors||[]).map(f=>({...f,doors:f.doors.map(canonical)}))};
    record.floors=buildingFloors(record);record.allDoors=record.floors.flatMap(f=>f.doors);record.boxes=[];
-   for(const floor of record.floors){const base=floor.level*FLOOR_SPACING;record.boxes.push(...floor.walls.map(interiorWallBox),...floor.furniture.flatMap(f=>{const box={x0:f.bounds[0],y0:f.bounds[1],x1:f.bounds[2],y1:f.bounds[3],z0:base,height:base+f.height,cover:true,windowPart:true};return [{...box,kind:'prop',reservation:true},{...box,kind:'part'}];}));
+   for(const floor of record.floors){const base=floor.level*FLOOR_SPACING;record.boxes.push(...floor.walls.map(interiorWallBox),...(floor.windows||[]).flatMap(townWindowParts),...floor.furniture.flatMap(f=>{const box={x0:f.bounds[0],y0:f.bounds[1],x1:f.bounds[2],y1:f.bounds[3],z0:base,height:base+f.height,cover:true,windowPart:true};return [{...box,kind:'prop',reservation:true},{...box,kind:'part'}];}));
     if(floor.level)for(const [y,x0,x1]of floor.slabRuns)record.boxes.push({x0:x0-.5,y0:y-.5,x1:x1-.5,y1:y+.5,z0:base-.12,height:base,kind:'wall',overhead:true,windowPart:true,slab:true});
    }
    for(const stair of b.stairs||[])record.boxes.push(...stairBoxes(stair));
@@ -63,6 +64,22 @@ export class TownInteriors{
   }
   if(level&&!this.roomAt(p.x,p.y,level))return null;
   return {...p,level,elevation:level*FLOOR_SPACING,stairId:undefined};
+ }
+ connected(a,b){
+  // A firing aperture is not a walking portal. Reject sealed-room chases
+  // before a metre-by-metre search can wander across the entire outdoor town.
+  const revision=this.world.revision+':'+this.dataVersion;
+  if(this.linkRevision!==revision){
+   this.linkRevision=revision;const links=this.links=new Map([['outdoors',new Set()]]),join=(a,b)=>{if(!links.has(a))links.set(a,new Set());if(!links.has(b))links.set(b,new Set());links.get(a).add(b);links.get(b).add(a);};
+   for(const building of this.buildings.values()){
+    for(const floor of building.floors)for(const d of floor.doors)if(d.open)join(floorKey(building.id,d.rooms[0],floor.level),d.rooms[1]?floorKey(building.id,d.rooms[1],floor.level):'outdoors');
+    for(const stair of building.stairs||[])join(floorKey(building.id,stair.room,stair.level),floorKey(building.id,stair.room,stair.level+1));
+   }
+  }
+  const nodes=p=>{const stair=p.stairId&&this.stairs.get(p.stairId);if(stair)return [floorKey(stair.building,stair.room,stair.level),floorKey(stair.building,stair.room,stair.level+1)];const room=this.roomAt(p.x,p.y,floorLevel(p));return room?[room.id]:floorLevel(p)?[]:['outdoors'];};
+  const starts=nodes(a),goals=new Set(nodes(b)),seen=new Set(starts),queue=[...starts];
+  for(let i=0;i<queue.length;i++){const node=queue[i];if(goals.has(node))return true;for(const next of this.links.get(node)||[])if(!seen.has(next)){seen.add(next);queue.push(next);}}
+  return false;
  }
  boxes(bounds){return this.index.query(bounds).map(v=>v.box||{...doorFootprint(v.door),interactionId:v.door.id,kind:'wall'}).filter(b=>intersects(bounds,boundsOf(b)));}
  pointClear(p,radius){const base=baseHeight(p),h=base+.8;return !this.boxes([p.x-radius,p.y-radius,p.x+radius,p.y+radius]).some(b=>!b.slab&&(b.z0??0)<h&&b.height>base+(b.stairTread?.8:.1)&&Math.hypot(Math.max(b.x0-p.x,0,p.x-b.x1),Math.max(b.y0-p.y,0,p.y-b.y1))<radius-1e-7);}
@@ -95,10 +112,11 @@ export class TownInteriors{
  reveal(unit){
   const level=floorLevel(unit),visible=new Set(),queue=[],own=this.roomAt(unit.x,unit.y,level);if(own){visible.add(own.id);queue.push(own);}
   const eye={...unit,h:baseHeight(unit)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2)};
+  for(const b of this.buildings.values())for(const window of b.floors[level]?.windows||[]){const target={x:window.x-window.outward[0]*.15,y:window.y-window.outward[1]*.15,h:level*FLOOR_SPACING+1.1},id=floorKey(b.id,window.room,level);if(visible.has(id)||Math.hypot(target.x-unit.x,target.y-unit.y)>24)continue;if(this.world.lineClear(eye,target)){visible.add(id);queue.push({building:b.id,room:window.room,level,id});}}
   for(const b of this.buildings.values())for(const d of b.allDoors)if(d.exterior&&d.open&&level===floorLevel(d)&&Math.hypot(d.x-unit.x,d.y-unit.y)<24){const target={x:d.inside[0],y:d.inside[1],h:eye.h};if(this.world.lineClear(eye,target)){const id=floorKey(b.id,d.rooms[0],level);if(!visible.has(id)){visible.add(id);queue.push({building:b.id,room:d.rooms[0],level,id});}}}
   for(let i=0;i<queue.length;i++){const r=queue[i],b=this.buildings.get(r.building);for(const d of b.floors[r.level].doors)if(d.open&&d.rooms.includes(r.room))for(const room of d.rooms)if(room){const id=floorKey(b.id,room,r.level),target=room===d.rooms[0]?d.inside:d.outside;if(!visible.has(id)&&this.world.lineClear(eye,{x:target[0],y:target[1],h:eye.h})){visible.add(id);queue.push({building:b.id,room,level:r.level,id});}}}
   this.visibleRooms=visible;return visible;
  }
  metrics(){return {buildings:this.buildings.size,doors:this.doors?.size||0,cells:this.cells.size,stairs:this.stairs?.size||0,activeDoors:this.world.state?.interactables.filter(o=>o.fictionalInterior&&o.kind==='door').length||0,changedDoors:this.changes.size,visibleRooms:this.visibleRooms.size,revision:this.manifest.INTERIOR_REVISION};}
- dispose(){this.buildings.clear();this.changes.clear();this.cells.clear();this.index=new Index();this.doors?.clear();this.stairs?.clear();this.plotIndex=new Index();this.visibleRooms.clear();}
+ dispose(){this.links?.clear();this.linkRevision=null;this.buildings.clear();this.changes.clear();this.cells.clear();this.index=new Index();this.doors?.clear();this.stairs?.clear();this.plotIndex=new Index();this.visibleRooms.clear();}
 }

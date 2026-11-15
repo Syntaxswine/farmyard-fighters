@@ -5,7 +5,7 @@ export const floorLevel=p=>p?.level??0;
 export const baseHeight=p=>p?.elevation??(p?.level??0)*FLOOR_SPACING;
 export const surfacePosition=p=>({x:p.x,y:p.y,...(floorLevel(p)||p.stairId?{level:floorLevel(p),elevation:baseHeight(p),...(p.stairId?{stairId:p.stairId}:{})}:{})});
 export const floorKey=(building,room,level=0)=>building+(level?':L'+level:'')+':'+room;
-export const buildingFloors=b=>[{level:0,rooms:b.rooms,doors:b.doors,walls:b.walls,furniture:b.furniture},...(b.upperFloors||[])];
+export const buildingFloors=b=>[{level:0,rooms:b.rooms,doors:b.doors,walls:b.walls,furniture:b.furniture,windows:b.windows||[]},...(b.upperFloors||[])];
 export function stairLocal(stair,p){const dx=p.x-stair.x,dy=p.y-stair.y;return stair.rotated?{u:dy,v:dx}:{u:dx,v:dy};}
 export function stairPoint(stair,u,v){return stair.rotated?{x:stair.x+v,y:stair.y+u}:{x:stair.x+u,y:stair.y+v};}
 export const stairTurn=s=>(s.runCells??2)+.5;
@@ -47,6 +47,7 @@ const sameSurface=(a,b)=>floorLevel(a)===floorLevel(b)&&(a.stairId||'')===(b.sta
 export function levelNavigation(world,unit,target,{clear=()=>true,rate=1,limit=16384}={}){
  const goal={...target,level:target.level??floorLevel(unit)},end=world.locationAt(goal);
  if(!end||!clear(end))return null;
+ if(world.interiors&&!world.interiors.connected(unit,end))return null;
  const trace=(a,b)=>world.traceWalk(a,b,.23,clear);
  const direct=trace(unit,end);if(direct&&sameSurface(direct,end))return [{...end,cost:Math.hypot(end.x-unit.x,end.y-unit.y)*rate}];
  const open=new Frontier(),cost=new Map(),points=new Map(),parents=new Map();

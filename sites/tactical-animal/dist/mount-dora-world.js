@@ -9,7 +9,8 @@ import {matureBroadleavesForSector,MATURE_BROADLEAF_STYLES} from './mount-dora-b
 import {patrolError} from './aft/tactics/character-patrol.js';
 import {woodlandDepth} from './designer/a20b343a0234/tactics/core/woodland.js';
 import {foliageDepth} from './designer/a20b343a0234/tactics/foliage-data.js';
-import {TownInteriors} from './town-interiors.js';
+import {TownInteriors,interiorRayHits} from './town-interiors.js';
+import {sightBuckets} from './town-sight.js';
 import {FLOOR_SPACING,floorLevel,baseHeight,levelNavigation} from './town-levels.js';
 // The tour walker's body radius, in metres: what pointClear keeps clear, and what the
 // town's art lifts onto a raised deck when it overlaps one.
@@ -236,7 +237,7 @@ export class TownWorld{
           const definition=this.interiors.sectors.get(id);if(!definition)throw Error('Missing interior sector '+id);
           const interiorURL=new URL(definition.file,this.baseURL);interiorURL.searchParams.set('v',definition.sha256);
           const response=await this.fetcher(interiorURL,{signal:controller.signal});if(!response.ok)throw Error('Interior HTTP '+response.status);
-          const bytes=await response.arrayBuffer();if(bytes.byteLength>1_000_000||bytes.byteLength!==definition.bytes||await sha256(bytes)!==definition.sha256)throw Error('Town interior data changed. Reload the page.');
+          const bytes=await response.arrayBuffer();if(bytes.byteLength>2_000_000||bytes.byteLength!==definition.bytes||await sha256(bytes)!==definition.sha256)throw Error('Town interior data changed. Reload the page.');
           if(this.disposed||!this.wanted.has(id))return;
           packet.interiors=this.interiors.validate(JSON.parse(new TextDecoder().decode(bytes)),id);
           this.evict(1);
@@ -287,6 +288,26 @@ export class TownWorld{
     }
     return true;
   }
+  groundSightProbe(eye,radius=36){
+    const bounds=[eye.x-radius,eye.y-radius,eye.x+radius,eye.y+radius],entries=[],low=Math.min(eye.h,1.1),high=Math.max(eye.h,1.1);
+    for(const item of this.wallsFor(bounds,{walk:true}))entries.push({bounds:item.bounds,kind:'walls',value:item.run});
+    for(const box of this.interiors?.boxes(bounds)||[])if(box.height>=low&&(box.z0??0)<=high)entries.push({bounds:[box.x0,box.y0,box.x1,box.y1],kind:'boxes',value:box});
+    for(const packet of this.cache.values())for(const trunk of packet.plantSolids.query(bounds))entries.push({bounds:shapeBounds(trunk),kind:'trunks',value:trunk});
+    const bucket=sightBuckets(eye,entries);
+    return point=>{
+      if(!this.residentAt(eye)||!this.residentAt(point))return false;
+      const {walls,boxes,trunks}=bucket(point),target={...point,h:1.1};
+      if(wallRunsIntersect({wallRuns:{version:1,segments:walls}},eye,target)||boxes.some(box=>interiorRayHits(eye,target,box)))return false;
+      return !trunks.some(trunk=>{const span=trunkSpan(eye,target,trunk,eye.h,1.1);return span&&span[1]>EPS&&span[0]<1-EPS;});
+    };
+  }
+  visibleSurface(point,height=.12){
+    const u=this.state?.units.find(u=>u.team==='squad'),level=point.level??point.z??0;
+    if(!u||!this.state.visible.has(Math.round(point.x)+','+Math.round(point.y)))return false;
+    if(level===floorLevel(u))return true;
+    if(level!==0||!floorLevel(u)||this.interiors?.roomAt(point.x,point.y,0))return false;
+    return this.lineClear({...u,h:baseHeight(u)+(u.stance==='prone'?.3:u.stance==='kneeling'?.75:1.1)},{...point,h:height});
+  }
   hasBrush(p,radius){
     // The footprint can still overlap brush while the centre passes a trunk.
     for(let y=Math.round(p.y-radius);y<=Math.round(p.y+radius);y++)for(let x=Math.round(p.x-radius);x<=Math.round(p.x+radius);x++){
@@ -322,8 +343,16 @@ export class TownWorld{
   reveal(state,unit){
     const level=floorLevel(unit);this.exploredFloors??=new Map([[0,state.seen]]);if(!this.exploredFloors.has(level))this.exploredFloors.set(level,new TownExplored());state.seen=this.exploredFloors.get(level);
     if(state.fogAt&&state.fogAt.level===level&&Math.abs((state.fogAt.elevation??0)-baseHeight(unit))<.25&&Math.hypot(unit.x-state.fogAt.x,unit.y-state.fogAt.y)<.75)return;
-    const rooms=this.interiors?.reveal(unit);
-    const visible=new Set();for(let y=Math.max(0,Math.floor(unit.y-36));y<=Math.min(this.height-1,Math.ceil(unit.y+36));y++)for(let x=Math.max(0,Math.floor(unit.x-36));x<=Math.min(this.width-1,Math.ceil(unit.x+36));x++)if(Math.hypot(x-unit.x,y-unit.y)<36&&this.tile(x,y)!==null){const key=x+','+y,room=this.interiors?.roomAt(x,y,level);if(room&&!rooms.has(room.id)||level&&!room)continue;visible.add(key);if(Math.hypot(x-unit.x,y-unit.y)<24)state.seen.add(key);}
+    const rooms=this.interiors?.reveal(unit),inside=this.interiors?.roomAt(unit.x,unit.y,level),eye={...unit,h:baseHeight(unit)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.1)},outdoorClear=level||inside?this.groundSightProbe(eye):null;
+    const visible=new Set();for(let y=Math.max(0,Math.floor(unit.y-36));y<=Math.min(this.height-1,Math.ceil(unit.y+36));y++)for(let x=Math.max(0,Math.floor(unit.x-36));x<=Math.min(this.width-1,Math.ceil(unit.x+36));x++){
+      const distance=Math.hypot(x-unit.x,y-unit.y);if(distance>=36||this.tile(x,y)===null)continue;
+      const key=x+','+y,room=this.interiors?.roomAt(x,y,level);
+      if(room&&!rooms.has(room.id))continue;
+      // From a building, reveal the outdoor ground through real 3-D openings.
+      // Other ground-floor interiors keep their own exploration layer.
+      const outdoors=!room;if(outdoors&&(level&&this.interiors?.roomAt(x,y,0)||outdoorClear&&!outdoorClear({x,y})))continue;
+      visible.add(key);if(distance<24){state.seen.add(key);if(level&&outdoors)this.exploredFloors.get(0).add(key);}
+    }
     state.visible=visible;state.fogAt={x:unit.x,y:unit.y,level,elevation:baseHeight(unit)};
   }
   wallPanelsFor(window){const bounds=[window.x-.5,window.y-.5,window.x+window.w-.5,window.y+window.h-.5],panels=[];for(const {run,key}of this.wallsFor(bounds,{draw:true}))for(const p of wallPanels(run)){const hx=(Math.abs(Math.cos(p.yaw))*p.size[0]+Math.abs(Math.sin(p.yaw))*p.size[2])/2,hy=(Math.abs(Math.sin(p.yaw))*p.size[0]+Math.abs(Math.cos(p.yaw))*p.size[2])/2;if(intersect(bounds,[p.center[0]-hx,p.center[2]-hy,p.center[0]+hx,p.center[2]+hy]))panels.push({...p,id:key+':'+p.id});}return panels;}

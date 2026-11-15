@@ -30,6 +30,9 @@
 - Upper floors are playable to the source storey count. Keep their stair
   openings, physical elevation, floor slabs, doors, visibility, weapon effects
   and navigation in the production path; stairs must walk rather than teleport.
+- The user authorized fictional Mount Dora windows on 2026-11-14. Their open
+  frames, sills and folded shutters share the sight/projectile and movement
+  geometry. Windows provide firing positions without permitting a floor drop.
 - Verify placed objects through the actual game path, including import/editor
   playtest where applicable. Test fixtures may supply declared synthetic data,
   but must exercise the same production implementation as the shipped game.

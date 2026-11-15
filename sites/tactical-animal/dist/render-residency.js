@@ -1,5 +1,6 @@
 import {blockWindow,gridDimensions,worldBounds} from './world-grid.js';
 import {FIELD_CAMERA,fieldCameraFor,grenadeCameraFrame} from './grenade-controls.js';
+import {baseHeight} from './town-levels.js';
 
 export function windowChanges(previous,next){
   const old=new Map((previous?.blocks||[]).map(block=>[block.id,block]));
@@ -34,7 +35,7 @@ export function contactCameraFrame(state,player,{width,height},minimumSpan){
   const viewport={width,height,top:Math.min(100,height*.17),bottom:height-Math.min(220,height*.26)};
   const camera=fieldCameraFor(state),maximumSpan=Math.max(minimumSpan,Math.min(MAX_CAMERA_SPAN,height/20));
   const combatSpan=Math.min(maximumSpan,minimumSpan*1.15);
-  const fit=()=>grenadeCameraFrame([player,...contacts].flatMap(({x,y})=>[{x,y,z:0},{x,y,z:1.8}]),viewport,combatSpan,camera);
+  const fit=()=>grenadeCameraFrame([player,...contacts].flatMap(unit=>{const {x,y}=unit,z=baseHeight(unit)-baseHeight(player);return [{x,y,z},{x,y,z:z+1.8}];}),viewport,combatSpan,camera);
   let frame=fit();
   while(frame.span>maximumSpan&&contacts.length>1){contacts.pop();frame=fit();}
   if(frame.span<=maximumSpan)return frame;

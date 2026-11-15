@@ -8,6 +8,7 @@ import * as T from '../../sites/tactical-animal/dist/aft/tactics/vendor/three.mo
 import {createFurnitureLibrary} from '../../sites/tactical-animal/dist/aft/tactics/painted-furniture.js';
 import {doorFootprint} from '../../sites/tactical-animal/dist/interactions.js';
 import {FLOOR_SPACING,stairPoint} from '../../sites/tactical-animal/dist/town-levels.js';
+import {TOWN_WINDOW,townWindowParts} from '../../sites/tactical-animal/dist/town-windows.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url)),source=path.join(root,'maps/mount-dora');
 const checking=process.argv.includes('--check');
@@ -50,6 +51,19 @@ function furnishing(rooms,cells,reserved,seed){
   for(const form of formsFor){let done=false;for(const c of group){if(done)break;for(const rotation of [0,1]){const spec=forms.get(form),min=rotation?[-spec.max[1],spec.min[0]]:spec.min,max=rotation?[-spec.min[1],spec.max[0]]:spec.max,bounds=[c.x+min[0],c.y+min[1],c.x+max[0],c.y+max[1]],covered=[];let clear=true;for(let y=Math.floor(bounds[1]+.5-.22);y<=Math.floor(bounds[3]+.5+.22);y++)for(let x=Math.floor(bounds[0]+.5-.22);x<=Math.floor(bounds[2]+.5+.22);x++){const k=key(x,y);if(cells.get(k)?.room!==room.id||reserved.has(k)||occupied.has(k))clear=false;covered.push(k);}if(!clear)continue;furniture.push({form,skin:['honey','cream','sage'][seed%3],x:c.x,y:c.y,rotation,room:room.id,bounds,height:spec.height});for(const k of covered)occupied.add(k);done=true;break;}}}
  }return furniture;
 }
+function shuttersClear(e){
+ const w={x:e.c.x+e.dx*.5,y:e.c.y+e.dy*.5,axis:e.axis,outward:[e.dx,e.dy],level:0};
+ for(const box of townWindowParts(w).filter(p=>p.role==='shutter'))for(let y=Math.floor(box.y0+.5);y<=Math.floor(box.y1+.5-1e-7);y++)for(let x=Math.floor(box.x0+.5);x<=Math.floor(box.x1+.5-1e-7);x++)if(occupancy.has(key(x,y)))return false;
+ return true;
+}
+function windowPlan(outer,doors,portalKeys,stair,furniture){
+ const groups=new Map(),blocked=new Set(stair?.plot||[]),selected=[];
+ for(const e of outer){if(portalKeys.has(edgeKey(e))||blocked.has(key(e.c.x,e.c.y))||furniture.some(f=>Math.hypot(Math.max(f.bounds[0]-e.c.x,0,e.c.x-f.bounds[2]),Math.max(f.bounds[1]-e.c.y,0,e.c.y-f.bounds[3]))<.27)||occupancy.has(key(e.c.x+e.dx,e.c.y+e.dy))||doors.some(d=>Math.hypot(d.x-(e.c.x+e.dx*.5),d.y-(e.c.y+e.dy*.5))<2))continue;const k=[e.c.room,e.axis,e.fixed,e.dx,e.dy].join(':');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);}
+ for(const edges of groups.values()){
+  edges.sort((a,b)=>a.start-b.start);const runs=[];for(const e of edges){const r=runs.at(-1);if(r&&r.at(-1).end===e.start)r.push(e);else runs.push([e]);}
+  for(const run of runs){const count=Math.max(1,Math.floor((run.length+1)/4));for(let i=0;i<count;i++){const e=run[Math.min(run.length-1,Math.floor((i+.5)*run.length/count))],p={x:e.c.x+e.dx*.5,y:e.c.y+e.dy*.5};if(selected.some(q=>Math.hypot(q.c.x+q.dx*.5-p.x,q.c.y+q.dy*.5-p.y)<2.5))continue;selected.push(e);}}
+ }return selected;
+}
 const records=[],issues=[];
 for(const b of authored.records){
  const cells=masks.get(b.id),f=featureById.get(b.id),use=f?.tags?.building||'yes',layout=/school/.test(use)?'school':/church/.test(use)?'assembly':/hotel/.test(use)?'lodging':/commercial|retail/.test(use)?'shop':/industrial|warehouse/.test(use)?'warehouse':'home';
@@ -78,25 +92,26 @@ for(const b of authored.records){
  const stories=f?.nativeProxy?.stories||1,material=f?.nativeProxy?.material||'wood';
  const stair=stories>1?stairPlot(b,cells,rooms,doors):null;if(stories>1&&!stair)issues.push(b.id+': no connected staircase plot');
  const blockedCore=new Set(stair?.core||[]);for(const k of stair?.plot||[])reserved.add(k);
+ let windowEdges=[],windowKeys=new Set();
+ const windowsFor=level=>windowEdges.map((e,i)=>({id:'window:'+b.id+':L'+level+':'+i,axis:e.axis,x:e.c.x+e.dx*.5,y:e.c.y+e.dy*.5,level,room:e.c.room,outward:[e.dx,e.dy],...(shuttersClear(e)?{}:{shutters:false})}));
  // Reserve paths joining every portal and room centre before furnishing.
  for(const room of rooms){const group=[...cells.values()].filter(c=>c.room===room.id&&!blockedCore.has(key(c.x,c.y))),set=new Set(group.map(c=>key(c.x,c.y))),anchors=doors.flatMap(o=>[o.inside,o.outside]).filter(p=>set.has(key(...p))),centre=group[Math.floor(group.length/2)];if(!centre)continue;const queue=[centre],prev=new Map([[key(centre.x,centre.y),null]]);for(let i=0;i<queue.length;i++)for(const [dx,dy]of dirs){const c=queue[i],k=key(c.x+dx,c.y+dy);if(set.has(k)&&!prev.has(k)){prev.set(k,key(c.x,c.y));queue.push(cells.get(k));}}for(const p of anchors){let k=key(...p);while(k){reserved.add(k);k=prev.get(k);}}reserved.add(key(centre.x,centre.y));}
- const furniture=furnishing(rooms,cells,reserved,records.length),walls=[];
- for(const e of outer){const isDoor=portalKeys.has(edgeKey(e));walls.push({...e,z0:isDoor?1.65:0,height:2,exterior:true});}
- for(const edges of adjacent.values())for(const e of edges)walls.push({...e,z0:portalKeys.has(edgeKey(e))?1.65:0,height:2,exterior:false});
- const groundWalls=mergeEdges(walls),upperFloors=[],stairs=[];
+ function floorWalls(level){const walls=[];for(const e of outer){if(windowKeys.has(edgeKey(e))){walls.push({...e,z0:0,height:TOWN_WINDOW.sill,exterior:true},{...e,z0:TOWN_WINDOW.head,height:2,exterior:true});}else walls.push({...e,z0:level===0&&portalKeys.has(edgeKey(e))?1.65:0,height:2,exterior:true});}for(const edges of adjacent.values())for(const e of edges)walls.push({...e,z0:portalKeys.has(edgeKey(e))?1.65:0,height:2,exterior:false});return mergeEdges(walls).map(w=>level?{...w,level,z0:w.z0+level*FLOOR_SPACING,height:w.height+level*FLOOR_SPACING}:w);}
+ const furniture=furnishing(rooms,cells,reserved,records.length),upperFloors=[],stairs=[];
  for(let level=1;level<stories;level++){
   const above=template(layout,tw,td,level),height=level*FLOOR_SPACING;
   const upperRooms=rooms.map(r=>{const names=new Map();for(const c of cells.values())if(c.room===r.id){const bx=Math.min(nx-1,Math.floor((c.x-x0)/mw)),by=Math.min(ny-1,Math.floor((c.y-y0)/md)),tx=Math.min(tw*2-1,Math.floor(((c.x-x0+.5)/mw-bx)*tw*2)),ty=Math.min(td*2-1,Math.floor(((c.y-y0+.5)/md-by)*td*2)),name=above.names.get(above.cells.get(key(tx,ty)))||'Upper room';names.set(name,(names.get(name)||0)+1);}return {...r,name:[...names].sort((a,b)=>b[1]-a[1])[0][0]};});
   const upperDoors=doors.filter(d=>!d.exterior).map((d,i)=>({...d,id:'interior:'+b.id+':L'+level+':d'+i,edge:d.edge+':'+level,level,z0:height,name:'Door · '+upperRooms.find(r=>r.id===d.rooms[1]).name}));
-  upperFloors.push({level,rooms:upperRooms,doors:upperDoors,walls:groundWalls.map(w=>({...w,level,z0:height+(w.exterior?0:w.z0),height:height+2})),furniture:furnishing(upperRooms,cells,reserved,records.length+level),slabRuns:runs([...cells.values()].filter(c=>!blockedCore.has(key(c.x,c.y))))});
+  upperFloors.push({level,rooms:upperRooms,doors:upperDoors,furniture:furnishing(upperRooms,cells,reserved,records.length+level),slabRuns:runs([...cells.values()].filter(c=>!blockedCore.has(key(c.x,c.y))))});
  }
+ windowEdges=windowPlan(outer,doors,portalKeys,stair,[...furniture,...upperFloors.flatMap(f=>f.furniture)]);windowKeys=new Set(windowEdges.map(edgeKey));const groundWalls=floorWalls(0),windows=windowsFor(0);for(const f of upperFloors){f.walls=floorWalls(f.level);f.windows=windowsFor(f.level);}
  if(stair)for(let level=0;level<stories-1;level++){const {plot,core,score,...placement}=stair;stairs.push({...placement,id:'stairs:'+b.id+':'+level,building:b.id,level});}
- records.push({id:b.id,bounds:b.bounds.map(n=>n-.5),footprintSHA256:hash(JSON.stringify(b.geometry)),designId:t.id,layout,stories,material,rooms,doors,walls:groundWalls,furniture,upperFloors,stairs});
+ records.push({id:b.id,bounds:b.bounds.map(n=>n-.5),footprintSHA256:hash(JSON.stringify(b.geometry)),designId:t.id,layout,stories,material,rooms,doors,walls:groundWalls,windows,furniture,upperFloors,stairs});
 }
 library.dispose();texture.dispose();
 if(issues.length)throw Error(issues.join('\n'));
 const out=path.join(source,'interiors');if(!checking)await fs.mkdir(out,{recursive:true});const packets=[];
-for(const s of project.sectors){const bounds=[s.origin.x-.5,s.origin.y-.5,s.origin.x+239.5,s.origin.y+239.5],buildings=records.filter(b=>b.bounds[0]<bounds[2]&&b.bounds[2]>bounds[0]&&b.bounds[1]<bounds[3]&&b.bounds[3]>bounds[1]),packet=JSON.stringify({kind:'farmyard-fictional-interiors',version:2,sector:s.id,sourceLayoutSHA256:hash(bytes),buildings})+'\n';await output(path.join(out,s.id+'.json'),packet);packets.push({id:s.id,file:'interiors/'+s.id+'.json',sha256:hash(packet),bytes:Buffer.byteLength(packet)});}
-const manifest={VERSION:2,SOURCE_LAYOUT_SHA256:hash(bytes),NAUTILUS_REVISION:'2502646482218524fd5129641da769bb82462e4d',POLICY:'Fictional gameplay interiors, entrances and upper floors, authorized 2026-11-13. Geographic footprints and source evidence remain unchanged.',BUILDINGS:records.map(({id,bounds,doors,stories,upperFloors})=>({id,bounds,doorCount:doors.length,stories,upperDoorCounts:upperFloors.map(f=>f.doors.length)})),SECTORS:packets,INTERIOR_REVISION:hash(JSON.stringify(packets))};
+for(const s of project.sectors){const bounds=[s.origin.x-.5,s.origin.y-.5,s.origin.x+239.5,s.origin.y+239.5],buildings=records.filter(b=>b.bounds[0]<bounds[2]&&b.bounds[2]>bounds[0]&&b.bounds[1]<bounds[3]&&b.bounds[3]>bounds[1]),packet=JSON.stringify({kind:'farmyard-fictional-interiors',version:3,sector:s.id,sourceLayoutSHA256:hash(bytes),buildings})+'\n';await output(path.join(out,s.id+'.json'),packet);packets.push({id:s.id,file:'interiors/'+s.id+'.json',sha256:hash(packet),bytes:Buffer.byteLength(packet)});}
+const manifest={VERSION:3,SOURCE_LAYOUT_SHA256:hash(bytes),NAUTILUS_REVISION:'2502646482218524fd5129641da769bb82462e4d',POLICY:'Fictional gameplay interiors and entrances authorized 2026-11-13; open windows authorized 2026-11-14. Geographic footprints and source evidence remain unchanged.',BUILDINGS:records.map(({id,bounds,doors,stories,upperFloors})=>({id,bounds,doorCount:doors.length,stories,upperDoorCounts:upperFloors.map(f=>f.doors.length)})),SECTORS:packets,INTERIOR_REVISION:hash(JSON.stringify(packets))};
 const dir=path.join(root,'sites/tactical-animal/dist/mission-art/mount-dora-interiors');if(!checking)await fs.mkdir(dir,{recursive:true});await output(path.join(dir,'manifest.js'),'// Generated by tools/maps/build-mount-dora-interiors.mjs.\n'+Object.entries(manifest).map(([k,v])=>'export const '+k+'='+JSON.stringify(v)+';').join('\n')+'\n');
-console.log(JSON.stringify({buildings:records.length,upperFloors:records.reduce((n,b)=>n+b.upperFloors.length,0),stairFlights:records.reduce((n,b)=>n+b.stairs.length,0),rooms:records.reduce((n,b)=>n+b.rooms.length,0),doors:records.reduce((n,b)=>n+b.doors.length,0),furniture:records.reduce((n,b)=>n+b.furniture.length,0),bytes:packets.reduce((n,p)=>n+p.bytes,0),largestPacket:Math.max(...packets.map(p=>p.bytes))}));
+console.log(JSON.stringify({buildings:records.length,upperFloors:records.reduce((n,b)=>n+b.upperFloors.length,0),stairFlights:records.reduce((n,b)=>n+b.stairs.length,0),rooms:records.reduce((n,b)=>n+b.rooms.length,0),doors:records.reduce((n,b)=>n+b.doors.length,0),furniture:records.reduce((n,b)=>n+b.furniture.length,0),windows:records.reduce((n,b)=>n+b.windows.length+b.upperFloors.reduce((m,f)=>m+f.windows.length,0),0),bytes:packets.reduce((n,p)=>n+p.bytes,0),largestPacket:Math.max(...packets.map(p=>p.bytes))}));

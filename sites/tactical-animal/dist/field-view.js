@@ -639,7 +639,7 @@ export class FieldView {
   }
   sync(s,now){if(this.waitingForGraphics())return;this.frameCount=(this.frameCount||0)+1;this.state=s;const u=hero(s),elapsed=this.updateFollowCamera(s,now),motionBlend=T.MathUtils.damp(0,1,-60*Math.log(.8),elapsed),poseBlend=T.MathUtils.damp(0,1,-60*Math.log(.85),elapsed);
     this.updateBarrelHover(now);
-    const window=this.residentWindow||blockWindow(s,u),visible=s.units.filter(v=>pointInWorldRect(v,window)&&(v.team==='squad'||(v.hp>0?s.detected.has(v.id):floorLevel(v)===floorLevel(u)&&s.visible.has(Core.key(v.x,v.y)))));
+    const window=this.residentWindow||blockWindow(s,u),town=getTourWorld(s),visible=s.units.filter(v=>pointInWorldRect(v,window)&&(v.team==='squad'||(v.hp>0?s.detected.has(v.id):town?town.visibleSurface(v):floorLevel(v)===floorLevel(u)&&s.visible.has(Core.key(v.x,v.y)))));
     this.reconcileActors(visible);
     if(s.effect&&s.effect!==this.lastEffect){this.lastEffect=s.effect;this.queueEffects(s.effect,now);}
     this.animateEffects(now);

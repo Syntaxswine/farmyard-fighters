@@ -3,6 +3,7 @@ import {createFurnitureLibrary} from './aft/tactics/painted-furniture.js';
 import {PAINTED_ATLAS} from './aft/tactics/painted-environment-scene.js';
 import {CARGO_ATLAS} from './aft/tactics/painted-cargo.js';
 import {interiorWallBox} from './town-interiors.js';
+import {townWindowParts} from './town-windows.js';
 import {FLOOR_SPACING,baseHeight,floorLevel,floorKey,stairBoxes,stairCoreContains,stairHeight} from './town-levels.js';
 const origin=new URL('./aft/tactics/',import.meta.url),intersects=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
 const colourFor=name=>/Kitchen|Bath|laundry/.test(name)?0xb6b4a0:/Hall|hall|aisle/.test(name)?0xb69d79:/Bedroom|Study|room \d/.test(name)?0xa58b6b:0xc8ad80;
@@ -10,7 +11,7 @@ const colourFor=name=>/Kitchen|Bath|laundry/.test(name)?0xb6b4a0:/Hall|hall|aisl
 // remain available; the gameplay shell replaces their sealed exterior walls.
 export class TownInteriorScenery{
  constructor(world,loader,materials){
-  this.world=world;this.root=new T.Group();this.root.name='Fictional Mount Dora ground floors';this.resident=new Map();this.cube=new T.BoxGeometry(1,1,1);this.textures=[];this.materials=[];this.disposed=false;
+  this.world=world;this.root=new T.Group();this.root.name='Fictional Mount Dora interiors';this.resident=new Map();this.cube=new T.BoxGeometry(1,1,1);this.textures=[];this.materials=[];this.disposed=false;
   const material=(colour,map)=>{const m=new T.MeshStandardMaterial({color:colour,...(map?{map}:{}),roughness:.91});this.materials.push(m);return m;};
   this.wallMaterials={wood:material(0xd2c7ab,materials.get('wood')?.map),brick:material(0xc49c81,materials.get('brick')?.map),concrete:material(0xd1d0bd,materials.get('concrete')?.map)};
   this.floorMaterial=material(0xffffff,materials.get('wood')?.map);this.roofMaterial=material(0x646759,materials.get('floor')?.map);this.frameMaterial=material(0x6f5d47);this.railMaterial=material(0x747b71);this.shutterMaterial=material(0x526e60);
@@ -27,10 +28,7 @@ export class TownInteriorScenery{
   const floorBoxes=[],floorRooms=[],plot=b.stairs?.[0];
   for(const r of floor.rooms)for(const [y,x0,x1]of r.runs){let start=null;for(let x=x0;x<=x1;x++){const hole=x===x1||floor.level>0&&plot&&stairCoreContains(plot,{x,y});if(hole){if(start!==null){floorBoxes.push({x0:start-.5,y0:y-.5,x1:x-.5,y1:y+.5,z0:base+.003,height:base+.018});floorRooms.push(r);start=null;}}else if(start===null)start=x;}}
   const floors=this.batch(floorBoxes,this.floorMaterial);floors.castShadow=false;floors.userData.noShadow=true;floors.userData.floorSurface=true;floors.userData.level=floor.level;floors.userData.building=b.id;
-  const frames=[],shutters=[];
-  for(const w of floor.walls){if(!w.exterior||w.z0!==base)continue;const vertical=w.a[0]===w.b[0],length=Math.hypot(w.b[0]-w.a[0],w.b[1]-w.a[1]);for(let along=1.5;along<length-1;along+=3.5){const x=w.a[0]+(w.b[0]-w.a[0])*along/length,y=w.a[1]+(w.b[1]-w.a[1])*along/length,side=this.world.interiors.roomAt(x+(vertical?.25:0),y+(vertical?0:.25),floor.level)?-1:1,cx=x+(vertical?side*.11:0),cy=y+(vertical?0:side*.11);
-   frames.push({x0:cx-(vertical?.035:.54),x1:cx+(vertical?.035:.54),y0:cy-(vertical?.54:.035),y1:cy+(vertical?.54:.035),z0:base+.65,height:base+1.51});const px=cx+(vertical?side*.04:0),py=cy+(vertical?0:side*.04);for(const sign of [-1,1])shutters.push({x0:px-(vertical?.025:.235)+(vertical?0:sign*.25),x1:px+(vertical?.025:.235)+(vertical?0:sign*.25),y0:py-(vertical?.235:.025)+(vertical?sign*.25:0),y1:py+(vertical?.235:.025)+(vertical?sign*.25:0),z0:base+.72,height:base+1.44});
-  }}
+  const parts=(floor.windows||[]).flatMap(townWindowParts),frames=parts.filter(p=>p.role==='frame'),shutters=parts.filter(p=>p.role==='shutter');
   const trim=this.batch(frames,this.frameMaterial),panels=this.batch(shutters,this.shutterMaterial);root.add(full,cut,outer,floors,trim,panels);const furniture=[];
   for(const f of floor.furniture){const model=this.library.build(f.form,f.skin),o=model.root;o.position.set(f.x,base+.018,f.y);o.rotation.y=-f.rotation*Math.PI/2;root.add(o);furniture.push({root:o,room:f.room});}
   return {floor,root,full,cut,outer,floors,trim,panels,floorRooms,furniture,meshes:[full,cut,outer,floors,trim,panels],visibilityKey:null};
@@ -60,7 +58,7 @@ export class TownInteriorScenery{
   for(const [id,r]of this.resident){
    const inside=r.levels.some(f=>f.floor.rooms.some(room=>visible.has(floorKey(id,room.id,f.floor.level))));r.inside=inside;
    const original=originals.get(id);let sourceRoof=false;original?.traverse(o=>{if(!o.isMesh)return;const roof=o.userData.occlusionRole==='roof';o.visible=roof&&!inside;sourceRoof||=roof;});r.roofs.visible=!inside&&!sourceRoof;
-   for(const f of r.levels){const active=inside&&f.floor.level===level,lower=inside&&f.floor.level<level;f.root.visible=!inside||f.floor.level<=level;f.full.visible=!inside;f.cut.visible=active;f.outer.visible=lower;f.trim.visible=f.panels.visible=!inside||lower;f.floors.visible=!inside||active;
+   for(const f of r.levels){const active=inside&&f.floor.level===level,lower=inside&&f.floor.level<level;f.root.visible=!inside||f.floor.level<=level;f.full.visible=!inside;f.cut.visible=active;f.outer.visible=lower;f.trim.visible=f.panels.visible=!inside||lower||active;f.floors.visible=!inside||active;
     const seen=this.world.exploredFloors?.get(f.floor.level),flags=f.floor.rooms.map(room=>visible.has(floorKey(id,room.id,f.floor.level))?'v':seen?.has(room.runs[0][1]+','+room.runs[0][0])?'s':'?').join('');
     if(f.visibilityKey!==flags){f.visibilityKey=flags;const colour=new T.Color();f.floorRooms.forEach((room,i)=>{const known=visible.has(floorKey(id,room.id,f.floor.level)),remembered=seen?.has(room.runs[0][1]+','+room.runs[0][0]);colour.setHex(colourFor(room.name)).multiplyScalar(known?1:remembered?.5:.13);f.floors.setColorAt(i,colour);});if(f.floors.instanceColor)f.floors.instanceColor.needsUpdate=true;}
     for(const furniture of f.furniture)furniture.root.visible=active&&visible.has(floorKey(id,furniture.room,f.floor.level));
@@ -71,6 +69,6 @@ export class TownInteriorScenery{
  }
  get surfacePicks(){const meshes=[];for(const r of this.resident.values()){for(const f of r.levels)if(f.root.visible&&f.floors.visible&&(r.inside||f.floor.level===0))meshes.push(f.floors);for(const s of r.stairs)if(s.root.visible)meshes.push(s.treads);}return meshes;}
  pickSurface(ray){const hit=ray.intersectObjects(this.surfacePicks,false)[0];if(!hit)return null;const stair=this.world.interiors.stairs.get(hit.object.userData.stairId);if(stair){const p={x:hit.point.x,y:hit.point.z},elevation=stairHeight(stair,p);return {...hit,level:Math.round(elevation/FLOOR_SPACING),elevation,stairId:stair.id};}return {...hit,level:hit.object.userData.level,elevation:hit.object.userData.level*FLOOR_SPACING};}
- metrics(){return {buildings:this.resident.size,floors:[...this.resident.values()].reduce((n,r)=>n+r.levels.length,0),stairs:[...this.resident.values()].reduce((n,r)=>n+r.stairs.length,0),wallPanels:[...this.resident.values()].reduce((n,r)=>n+r.levels.reduce((v,f)=>v+f.full.count,0),0),furniture:[...this.resident.values()].reduce((n,r)=>n+r.furniture.length,0)};}
+ metrics(){return {buildings:this.resident.size,windows:[...this.resident.values()].reduce((n,r)=>n+r.levels.reduce((m,f)=>m+(f.floor.windows?.length||0),0),0),floors:[...this.resident.values()].reduce((n,r)=>n+r.levels.length,0),stairs:[...this.resident.values()].reduce((n,r)=>n+r.stairs.length,0),wallPanels:[...this.resident.values()].reduce((n,r)=>n+r.levels.reduce((v,f)=>v+f.full.count,0),0),furniture:[...this.resident.values()].reduce((n,r)=>n+r.furniture.length,0)};}
  dispose(){if(this.disposed)return;this.disposed=true;for(const r of this.resident.values())this.release(r);this.resident.clear();this.library?.dispose();for(const t of this.textures)t.dispose();for(const m of this.materials)m.dispose();this.cube.dispose();this.root.removeFromParent();}
 }
