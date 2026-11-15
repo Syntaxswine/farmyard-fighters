@@ -14,7 +14,8 @@ const guards=s=>s.units.filter(u=>u.team==='guard');
 test('the forty-two sentries use the real map, clear patrol legs, and half-player stats',async()=>{
   const state=await load(),world=getTourWorld(state),player=hero(state);
   try{
-    const posts=guards(state);
+    const posts=guards(state).filter(g=>g.id<=45);
+    assert.equal(guards(state).length,50);
     assert.equal(posts.length,42);
     assert.deepEqual(new Set(posts.map(g=>g.weapon)),new Set(['pistol','smg','rifle','shotgun']));
     assert(posts.some(g=>g.patrol?.length===2));
@@ -79,12 +80,12 @@ test('a pre-patrol checkpoint gets the new roster without reviving a fallen sent
     const legacy=JSON.parse(encodeSave(original));
     delete legacy.runtime.guardRosterVersion;
     legacy.runtime.guards=legacy.runtime.guards.filter(g=>g.id<=42);
-    for(const id of [43,44,45])delete legacy.runtime.realtime.actors[id];
+    for(const id of [43,44,45,46,47,48,49,50,51,52,53])delete legacy.runtime.realtime.actors[id];
     const casualty=legacy.runtime.guards.find(g=>g.id===14);
     Object.assign(casualty,{hp:0,ap:0,casualty:'dead'});
     restored=Core.enableRealtime(await load(readTourProgress(JSON.stringify(legacy))));
     const sentry=guards(restored).find(g=>g.id===casualty.id);
-    assert.equal(guards(restored).length,42);
+    assert.equal(guards(restored).length,50);
     assert.equal(sentry.hp,0);
     assert(Core.interactionObjects(restored).some(o=>o.id==='body:'+sentry.id));
     assert(guards(restored).some(g=>g.hp>0&&g.patrol?.length===2));

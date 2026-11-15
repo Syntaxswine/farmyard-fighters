@@ -1,6 +1,6 @@
 // Declared synthetic firing post, exercising the complete production town.
 // Only the two actors' starting positions change; their health, weapons, AI and
-// the remaining forty-one guards retain the normal production rules.
+// the remaining forty-nine guards retain the normal production rules.
 import fs from 'node:fs';
 import {loadTownTour} from '../../dist/mount-dora-entry.js';
 import {getTourWorld} from '../../dist/mount-dora-activity.js';

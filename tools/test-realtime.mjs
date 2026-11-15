@@ -79,7 +79,7 @@ try{
   await context.addInitScript(installNativeProbe);await page.goto(`http://127.0.0.1:${port}/game.html?activity=mount-dora`);
   assert.equal(await page.locator('#operation-select').inputValue(),'mount-dora');await page.locator('#deploy').click();
   const start=await wait(page,s=>s.ready,'Mount Dora renderer',90000);
-  assert.equal(start.guards.length,42);assert.equal(start.contacts.length,0);assert.equal(start.guardSight.length,0);
+  assert.equal(start.guards.length,50);assert.equal(start.guards.filter(g=>g.level>0).length,8);assert.equal(start.contacts.length,0);assert.equal(start.guardSight.length,0);
   assert.deepEqual(new Set(start.guards.map(g=>g.weapon)),new Set(['pistol','smg','rifle','shotgun']));
   assert(start.guards.every(g=>g.maxHp===Math.round(start.player.hp/2)&&g.firearms===Math.round(start.player.stats.firearms/2)));
   assert(start.guards.some(g=>g.patrolPoints===2)&&start.guards.some(g=>g.patrolPoints>2));

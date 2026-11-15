@@ -43,7 +43,7 @@ function restoreGuard(state,guard,saved,rosterChanged,layoutChanged){
     Object.assign(guard,previous,{x:fresh.x,y:fresh.y,heading:fresh.heading,name,patrol,alert:false,lastKnown:null,isMoving:false});
   }
   delete guard.patrolIndex;delete guard.patrolWaitUntil;
-  delete guard.level;delete guard.elevation;delete guard.stairId;
+  for(const key of ['level','elevation','stairId']){if(fresh[key]===undefined)delete guard[key];else guard[key]=fresh[key];}
   if(state.realtime?.actors)delete state.realtime.actors[guard.id];
 }
 export async function loadTownTour({build,progress=null,signal,fetcher=globalThis.fetch,projectURL=new URL('./maps/mount-dora/project.json',import.meta.url),artModule,kitModule,interiorModule}={}){
@@ -92,7 +92,9 @@ export async function loadTownTour({build,progress=null,signal,fetcher=globalThi
         for(const saved of r.guards||[]){
           const guard=state.units.find(u=>u.id===saved.id&&u.team==='guard');
           if(!guard||saved.species!==guard.species||!Core.WEAPONS[saved.weapon]||saved.slots.some(kind=>!Core.WEAPONS[kind]))throw Error('Unsupported saved town guard.');
-          const rosterChanged=!!world.guardRosterVersion&&r.guardRosterVersion!==world.guardRosterVersion;
+          // Adding window posts leaves the version-1 street roster intact.
+          const retainedStreetRoster=r.guardRosterVersion===1&&world.guardRosterVersion===2&&guard.id<=45;
+          const rosterChanged=!!world.guardRosterVersion&&r.guardRosterVersion!==world.guardRosterVersion&&!retainedStreetRoster;
           restoreGuard(state,guard,saved,rosterChanged,progress.sourceRevision!==world.sourceRevision);
         }
       }

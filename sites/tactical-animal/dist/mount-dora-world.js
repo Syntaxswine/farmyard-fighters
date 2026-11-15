@@ -11,6 +11,7 @@ import {woodlandDepth} from './designer/a20b343a0234/tactics/core/woodland.js';
 import {foliageDepth} from './designer/a20b343a0234/tactics/foliage-data.js';
 import {TownInteriors,interiorRayHits} from './town-interiors.js';
 import {sightBuckets} from './town-sight.js';
+import {UPPER_GUARD_POSTS,TOWN_GUARD_ROSTER_VERSION} from './mount-dora-upper-guards.js';
 import {FLOOR_SPACING,floorLevel,baseHeight,levelNavigation} from './town-levels.js';
 // The tour walker's body radius, in metres: what pointClear keeps clear, and what the
 // town's art lifts onto a raised deck when it overlaps one.
@@ -151,7 +152,7 @@ export function decodeTownSector(raw,sector,visualReplacement=new Set(),physical
 }
 
 export class TownWorld{
-  constructor(project,{baseURL,fetcher=globalThis.fetch,art={},interiors}={}){
+  constructor(project,{baseURL,fetcher=globalThis.fetch,art={},interiors,upperGuards=UPPER_GUARD_POSTS}={}){
     this.project=validateTownProject(project);this.baseURL=new URL(baseURL||'./maps/mount-dora/',import.meta.url);this.fetcher=(...args)=>fetcher(...args);
     this.width=1440;this.height=1680;this.cache=new Map();this.inFlight=new Map();this.errors=new Map();this.queue=[];this.wanted=new Set();this.pinned=new Set();this.clock=0;this.revision=0;this.listeners=new Set();this.disposed=false;
     this.byId=new Map(project.sectors.map(s=>[s.id,s]));this.byCell=new Map(project.sectors.map(s=>[s.column+','+s.row,s]));
@@ -160,6 +161,9 @@ export class TownWorld{
       const globalPoint=p=>({...p,x:s.origin.x+p.x,y:s.origin.y+p.y});
       return {...globalPoint(g),id:g.id??s.row*project.columns+s.column+1,name:s.id+' sentry'+(i?' '+(i+1):''),patrol:g.patrol?.map(globalPoint)};
     }));
+    this.upperGuardPosts=interiors&&project.generation?.version>=7?structuredClone(upperGuards):[];
+    const ids=new Set(this.guardPosts.map(g=>g.id));for(const g of this.upperGuardPosts){if(ids.has(g.id)||!Number.isInteger(g.level)||g.level<1||g.level>4||g.elevation!==g.level*FLOOR_SPACING||!interiors.BUILDINGS.some(b=>b.id===g.building&&b.stories>g.level))throw Error('Invalid upper-floor guard post.');ids.add(g.id);}
+    if(this.upperGuardPosts.length){this.guardPosts.push(...this.upperGuardPosts);this.guardRosterVersion=TOWN_GUARD_ROSTER_VERSION;}
     this.visualReplacement=new Set(art.REPLACEMENT_SOURCE_IDS||[]);this.physicalReplacement=new Set();this.artIndex=new SpatialIndex();this.closedBuildings=new SpatialIndex();this.artRevision=art.ART_REVISION||'0'.repeat(64);this.placements=art.PLACEMENTS||[];
     if(interiors){this.interiors=new TownInteriors(this,interiors);for(const b of interiors.BUILDINGS){this.visualReplacement.add(b.id);this.physicalReplacement.add(b.id);}}
     const placementsForBounds=art.placementsForBounds??(bounds=>this.placements.filter(p=>p.bounds&&intersect(bounds,p.bounds)));
@@ -342,8 +346,10 @@ export class TownWorld{
   navigationGrid(){return this.navigation||(this.navigation={width:this.width,height:this.height,nodes:sparseStore(16384),walks:sparseStore(131072),standIns:new Map()});}
   reveal(state,unit){
     const level=floorLevel(unit);this.exploredFloors??=new Map([[0,state.seen]]);if(!this.exploredFloors.has(level))this.exploredFloors.set(level,new TownExplored());state.seen=this.exploredFloors.get(level);
-    if(state.fogAt&&state.fogAt.level===level&&Math.abs((state.fogAt.elevation??0)-baseHeight(unit))<.25&&Math.hypot(unit.x-state.fogAt.x,unit.y-state.fogAt.y)<.75)return;
+    const contactRooms=state.units.filter(g=>state.detected.has(g.id)).map(g=>this.interiors?.roomAt(g.x,g.y,floorLevel(g))?.id||'outside').sort().join('|');
+    if(state.fogAt&&state.fogAt.contactRooms===contactRooms&&state.fogAt.level===level&&Math.abs((state.fogAt.elevation??0)-baseHeight(unit))<.25&&Math.hypot(unit.x-state.fogAt.x,unit.y-state.fogAt.y)<.75)return;
     const rooms=this.interiors?.reveal(unit),inside=this.interiors?.roomAt(unit.x,unit.y,level),eye={...unit,h:baseHeight(unit)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.1)},outdoorClear=level||inside?this.groundSightProbe(eye):null;
+    for(const b of this.interiors?.buildings.values()||[])for(const floor of b.floors)if(floor.level!==level)for(const room of floor.rooms)if(rooms.has(b.id+(floor.level?':L'+floor.level:'')+':'+room.id)){if(!this.exploredFloors.has(floor.level))this.exploredFloors.set(floor.level,new TownExplored());const seen=this.exploredFloors.get(floor.level);for(const [y,x0,x1]of room.runs)for(let x=x0;x<x1;x++)if(Math.hypot(x-unit.x,y-unit.y)<24)seen.add(x+','+y);}
     const visible=new Set();for(let y=Math.max(0,Math.floor(unit.y-36));y<=Math.min(this.height-1,Math.ceil(unit.y+36));y++)for(let x=Math.max(0,Math.floor(unit.x-36));x<=Math.min(this.width-1,Math.ceil(unit.x+36));x++){
       const distance=Math.hypot(x-unit.x,y-unit.y);if(distance>=36||this.tile(x,y)===null)continue;
       const key=x+','+y,room=this.interiors?.roomAt(x,y,level);
@@ -353,7 +359,7 @@ export class TownWorld{
       const outdoors=!room;if(outdoors&&(level&&this.interiors?.roomAt(x,y,0)||outdoorClear&&!outdoorClear({x,y})))continue;
       visible.add(key);if(distance<24){state.seen.add(key);if(level&&outdoors)this.exploredFloors.get(0).add(key);}
     }
-    state.visible=visible;state.fogAt={x:unit.x,y:unit.y,level,elevation:baseHeight(unit)};
+    state.visible=visible;state.fogAt={x:unit.x,y:unit.y,level,elevation:baseHeight(unit),contactRooms};
   }
   wallPanelsFor(window){const bounds=[window.x-.5,window.y-.5,window.x+window.w-.5,window.y+window.h-.5],panels=[];for(const {run,key}of this.wallsFor(bounds,{draw:true}))for(const p of wallPanels(run)){const hx=(Math.abs(Math.cos(p.yaw))*p.size[0]+Math.abs(Math.sin(p.yaw))*p.size[2])/2,hy=(Math.abs(Math.sin(p.yaw))*p.size[0]+Math.abs(Math.cos(p.yaw))*p.size[2])/2;if(intersect(bounds,[p.center[0]-hx,p.center[2]-hy,p.center[0]+hx,p.center[2]+hy]))panels.push({...p,id:key+':'+p.id});}return panels;}
   roofsFor(block){const result=[];for(const packet of this.cache.values())result.push(...packet.roofs.get(block.id)||[]);return result;}

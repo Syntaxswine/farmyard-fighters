@@ -76,12 +76,16 @@ export class GuardSightView{
     if(!guards.length)return;
 
     const scenery=getTourWorld(state)?.revision??geometry(state);
-    const context=[window.key,player.stance,player.sneaking].join(':');
+    const context=[window.key,player.stance,player.sneaking,floorLevel(player)].join(':');
     const force=scenery!==this.scenery||context!==this.context;
     this.scenery=scenery;this.context=context;
     for(const guard of guards){
       let record=this.outlines.get(guard.id);
-      const pose=[guard.x,guard.y,guard.heading,guard.stance,baseHeight(guard)].join(':');
+      const crossFloor=Math.abs(baseHeight(guard)-baseHeight(player))>.5;
+      // A flat fan would paint a window sill's blind zone as visible. Across
+      // storeys, show only the confirmed sight line to the player's real eye.
+      if(crossFloor&&!canSee(state,guard,player)){if(record)this.remove(guard.id,record);continue;}
+      const pose=[guard.x,guard.y,guard.heading,guard.stance,baseHeight(guard),...(crossFloor?[player.x,player.y,baseHeight(player)]:[])].join(':');
       if(record&&!force&&(pose===record.pose||now-record.at<UPDATE_MS))continue;
       if(!record){
         const buffer=new T.BufferGeometry();
@@ -93,8 +97,9 @@ export class GuardSightView{
         record={line};
         this.outlines.set(guard.id,record);
       }
-      const outline=guardSightOutline(state,guard,player,window),buffer=record.line.geometry,position=buffer.getAttribute('position');
-      for(const [index,point] of outline.entries())position.setXYZ(index,point.x,baseHeight(guard)+GROUND_OFFSET,point.y);
+      const eye=unit=>baseHeight(unit)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.1);
+      const outline=crossFloor?[{x:guard.x,y:guard.y,h:eye(guard)},{x:player.x,y:player.y,h:eye(player)}]:guardSightOutline(state,guard,player,window),buffer=record.line.geometry,position=buffer.getAttribute('position');
+      for(const [index,point] of outline.entries())position.setXYZ(index,point.x,point.h??baseHeight(guard)+GROUND_OFFSET,point.y);
       position.needsUpdate=true;buffer.setDrawRange(0,outline.length);
       record.pose=pose;record.at=now;
     }

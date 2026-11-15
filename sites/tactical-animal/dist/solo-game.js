@@ -65,6 +65,7 @@ export function log(s,message){s.log.unshift(message);s.log=s.log.slice(0,35);s.
 function makeUnit(id,team,name,species,weapon,x,y,heading,stats){const u={id,team,name,species,weapon,x,y,z:0,heading,stance:'standing',running:false,sneaking:false,travelled:0,isMoving:false,alert:false,lastKnown:null,alertAge:0,slots:[weapon],pack:[],ammo:{[weapon]:WEAPONS[weapon].mag},ammoPouch:{[weapon]:WEAPONS[weapon].mag*3}};initializeStats(u,stats);return u;}
 function makeGuard(post,id,stats,townPlayer){
   const guard=makeUnit(id,'guard',post.name||post.character?.displayName||'Guard '+id,post.species,post.weapon,post.x,post.y,post.heading??0,stats);
+  if(townPlayer&&post.level)Object.assign(guard,{level:post.level,elevation:baseHeight(post),windowPost:post.windowId,homeBuilding:post.building});
   if(post.patrol?.length)guard.patrol=structuredClone(post.patrol);
   if(townPlayer){
     // The usual 50-point base pools would leave a half-strength guard

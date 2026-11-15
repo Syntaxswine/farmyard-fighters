@@ -6,6 +6,8 @@ import {clueAnchorHeight} from './mission-scenery.js';
 import {blockWindow,pointInWorldRect} from './world-grid.js';
 import {barrierGeometry,barrierPanel} from './barrier-art.js';
 import {WALL_DIMENSIONS} from './world-dimensions.js';
+import {getTourWorld} from './mount-dora-activity.js';
+import {floorKey} from './town-levels.js';
 
 // Reuse the parent game's chest paintings and timber surface. The simulation
 // supplies the authoritative positions, open state, and physical footprints.
@@ -43,8 +45,9 @@ export class InteractionScenery {
   release(id){const record=this.records.get(id),mesh=record.sprite||record.leaf||record.marker;mesh.removeFromParent();mesh.material.dispose();this.records.delete(id);}
   update(state,window=blockWindow(state,state.units?.find(unit=>unit.team==='squad')||{x:0,y:0})){
     if(this.disposed)return;
+    const player=state.units.find(u=>u.team==='squad'),world=getTourWorld(state),focusLevels=world?.interiors?.focusLevels(player),level=player?.level??0;
     if(this.assets){
-      const resident=state.interactables.filter(object=>object.kind!=='stairs'&&(object.level??0)===(state.units.find(u=>u.team==='squad')?.level??0)&&pointInWorldRect(object,window)),ids=new Set(resident.map(object=>object.id));
+      const resident=state.interactables.filter(object=>{const floor=object.level??0,shown=focusLevels?.get(object.building)??level;return object.kind!=='stairs'&&(floor===shown||object.fictionalInterior&&object.exterior&&floor<shown)&&pointInWorldRect(object,window);}),ids=new Set(resident.map(object=>object.id));
       for(const id of this.records.keys())if(!ids.has(id))this.release(id);
       for(const object of resident)if(!this.records.has(object.id))this.create(object);
       this.window=window;
@@ -52,7 +55,8 @@ export class InteractionScenery {
     for(const object of state.interactables){
       const record=this.records.get(object.id);if(!record)continue;
       const cells=object.kind==='door'?[`${Math.floor(object.x)},${Math.floor(object.y)}`,`${Math.ceil(object.x)},${Math.ceil(object.y)}`]:[`${Math.round(object.x)},${Math.round(object.y)}`];
-      const known=cells.some(cell=>state.seen.has(cell)),visible=cells.some(cell=>state.visible.has(cell));
+      const seen=object.fictionalInterior?world?.exploredFloors.get(object.level??0)||state.seen:state.seen;
+      const known=cells.some(cell=>seen.has(cell)),visible=object.fictionalInterior&&(object.level??0)!==level?(object.rooms||[]).some(room=>world?.interiors?.visibleRooms.has(floorKey(object.building,room,object.level))):cells.some(cell=>state.visible.has(cell));
       if(record.sprite){
         record.sprite.visible=known;record.sprite.position.set(object.x,.015,object.y);record.sprite.scale.set(1.15,object.open?1.1:.9,1);
         record.sprite.material.map=object.open?this.chestPaint.open:this.chestPaint.closed;record.sprite.material.color.setScalar(visible?1:.38);

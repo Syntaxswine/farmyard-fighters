@@ -25,6 +25,7 @@ export class TownInteriors{
  validate(packet,sector){
   if(packet?.kind!=='farmyard-fictional-interiors'||packet.version!==this.manifest.VERSION||packet.sector!==sector||packet.sourceLayoutSHA256!==this.manifest.SOURCE_LAYOUT_SHA256||!Array.isArray(packet.buildings))throw Error('Unsupported town interior packet.');
   for(const b of packet.buildings){const reference=this.catalogue.get(b.id);if(!reference||JSON.stringify(reference.bounds)!==JSON.stringify(b.bounds)||reference.doorCount!==b.doors?.length||!b.rooms?.length||!Array.isArray(b.walls)||!Array.isArray(b.furniture))throw Error('Invalid fictional building '+b.id);}
+  for(const b of packet.buildings)for(const post of this.world.upperGuardPosts?.filter(p=>p.building===b.id)||[]){const floor=b.upperFloors?.find(f=>f.level===post.level),win=floor?.windows?.find(w=>w.id===post.windowId);if(!win||post.x!==win.x-win.outward[0]*.5||post.y!==win.y-win.outward[1]*.5)throw Error('Town sentry data changed. Reload the page.');}
   return packet;
  }
  reconcile(){
@@ -51,6 +52,11 @@ export class TownInteriors{
   this.dataVersion=(this.dataVersion||0)+1;this.sync();
  }
  roomAt(x,y,level=0){return this.cells.get(key(Math.floor(x+.5),Math.floor(y+.5))+':'+level);}
+ focusLevels(unit){
+  const level=floorLevel(unit),own=this.roomAt(unit?.x,unit?.y,level)?.building,result=new Map();if(own)result.set(own,level);
+  for(const guard of this.world.state?.units||[])if(guard.hp>0&&this.world.state.detected.has(guard.id)){const room=this.roomAt(guard.x,guard.y,floorLevel(guard));if(room&&room.building!==own)result.set(room.building,Math.max(result.get(room.building)??-1,room.level));}
+  return result;
+ }
  plotAt(p){return this.plotIndex?.query([p.x,p.y,p.x,p.y]).find(s=>stairCoreContains(s,p));}
  locationAt(p,from=null,radius=.23){
   if(!from&&p.stairId){const stair=this.stairs.get(p.stairId);return stair&&stairCoreContains(stair,p)?stairPosition(stair,p,radius):null;}
@@ -112,9 +118,10 @@ export class TownInteriors{
  reveal(unit){
   const level=floorLevel(unit),visible=new Set(),queue=[],own=this.roomAt(unit.x,unit.y,level);if(own){visible.add(own.id);queue.push(own);}
   const eye={...unit,h:baseHeight(unit)+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2)};
+  for(const guard of this.world.state?.units||[])if(guard.team==='guard'&&guard.hp>0&&this.world.state.detected.has(guard.id)){const room=this.roomAt(guard.x,guard.y,floorLevel(guard));if(room&&!visible.has(room.id)){visible.add(room.id);queue.push(room);}}
   for(const b of this.buildings.values())for(const window of b.floors[level]?.windows||[]){const target={x:window.x-window.outward[0]*.15,y:window.y-window.outward[1]*.15,h:level*FLOOR_SPACING+1.1},id=floorKey(b.id,window.room,level);if(visible.has(id)||Math.hypot(target.x-unit.x,target.y-unit.y)>24)continue;if(this.world.lineClear(eye,target)){visible.add(id);queue.push({building:b.id,room:window.room,level,id});}}
   for(const b of this.buildings.values())for(const d of b.allDoors)if(d.exterior&&d.open&&level===floorLevel(d)&&Math.hypot(d.x-unit.x,d.y-unit.y)<24){const target={x:d.inside[0],y:d.inside[1],h:eye.h};if(this.world.lineClear(eye,target)){const id=floorKey(b.id,d.rooms[0],level);if(!visible.has(id)){visible.add(id);queue.push({building:b.id,room:d.rooms[0],level,id});}}}
-  for(let i=0;i<queue.length;i++){const r=queue[i],b=this.buildings.get(r.building);for(const d of b.floors[r.level].doors)if(d.open&&d.rooms.includes(r.room))for(const room of d.rooms)if(room){const id=floorKey(b.id,room,r.level),target=room===d.rooms[0]?d.inside:d.outside;if(!visible.has(id)&&this.world.lineClear(eye,{x:target[0],y:target[1],h:eye.h})){visible.add(id);queue.push({building:b.id,room,level:r.level,id});}}}
+  for(let i=0;i<queue.length;i++){const r=queue[i],b=this.buildings.get(r.building);for(const d of b.floors[r.level].doors)if(d.open&&d.rooms.includes(r.room))for(const room of d.rooms)if(room){const id=floorKey(b.id,room,r.level),target=room===d.rooms[0]?d.inside:d.outside;if(!visible.has(id)&&this.world.lineClear(eye,{x:target[0],y:target[1],h:r.level*FLOOR_SPACING+(unit.stance==='prone'?.3:unit.stance==='kneeling'?.75:1.2)})){visible.add(id);queue.push({building:b.id,room,level:r.level,id});}}}
   this.visibleRooms=visible;return visible;
  }
  metrics(){return {buildings:this.buildings.size,doors:this.doors?.size||0,cells:this.cells.size,stairs:this.stairs?.size||0,activeDoors:this.world.state?.interactables.filter(o=>o.fictionalInterior&&o.kind==='door').length||0,changedDoors:this.changes.size,visibleRooms:this.visibleRooms.size,revision:this.manifest.INTERIOR_REVISION};}

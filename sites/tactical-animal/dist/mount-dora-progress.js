@@ -1,3 +1,4 @@
+import {TOWN_GUARD_ROSTER_VERSION,TOWN_MAX_GUARDS,TOWN_MAX_GUARD_ID} from './mount-dora-upper-guards.js';
 const BLOCK=24,BYTES=72;
 const encode=bytes=>{let text='';for(const b of bytes)text+=String.fromCharCode(b);return btoa(text);};
 const decode=text=>Uint8Array.from(atob(text),c=>c.charCodeAt(0));
@@ -49,8 +50,9 @@ export function readTourProgress(text){
   const r=p.runtime;
   if(r&&(!['explore','player','enemy','lost','won'].includes(r.phase)||!['active','lost'].includes(r.status)||typeof r.engaged!=='boolean'||(r.phase==='lost')!==(r.status==='lost')||!Number.isSafeInteger(r.round)||r.round<0||!Number.isSafeInteger(r.seed)||r.seed<0||r.seed>0xffffffff||!Number.isInteger(r.enemyIndex)||r.enemyIndex<1||r.enemyIndex>129||!Number.isFinite(r.enemyDelay)||r.enemyDelay<0||r.enemyDelay>60||!Array.isArray(r.fires)||r.fires.length>1000||!Array.isArray(r.objects)||r.objects.length>20000||r.areaWeapon!==undefined&&!['grenade','flamethrower'].includes(r.areaWeapon)))throw Error('Unsupported town gameplay progress.');
   if((u.hp===0)!==(r?.status==='lost'))throw Error('Unsupported town casualty progress.');
-  if(r?.guardRosterVersion!==undefined&&r.guardRosterVersion!==1)throw Error('Unsupported town guard roster.');
-  if(r?.guards!==undefined&&(!Array.isArray(r.guards)||r.guards.length>42||r.guards.some(g=>!validUnit(g)||g.team!=='guard'||!Number.isInteger(g.id)||g.id<1||g.id>45||
+  if(r?.guardRosterVersion!==undefined&&![1,TOWN_GUARD_ROSTER_VERSION].includes(r.guardRosterVersion))throw Error('Unsupported town guard roster.');
+  const upperRoster=r?.guardRosterVersion===TOWN_GUARD_ROSTER_VERSION;
+  if(r?.guards!==undefined&&(!Array.isArray(r.guards)||r.guards.length>(upperRoster?TOWN_MAX_GUARDS:42)||r.guards.some(g=>!validUnit(g)||g.team!=='guard'||!Number.isInteger(g.id)||g.id<1||g.id>(upperRoster?TOWN_MAX_GUARD_ID:45)||
     g.patrolIndex!==undefined&&(!Number.isInteger(g.patrolIndex)||g.patrolIndex<0||g.patrolIndex>=128)||
     g.patrolWaitUntil!==undefined&&(!Number.isFinite(g.patrolWaitUntil)||g.patrolWaitUntil<0))||
     new Set(r.guards.map(g=>g.id)).size!==r.guards.length))throw Error('Unsupported town guard progress.');
