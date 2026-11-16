@@ -9,6 +9,7 @@ import {createFurnitureLibrary} from '../../sites/tactical-animal/dist/aft/tacti
 import {doorFootprint} from '../../sites/tactical-animal/dist/interactions.js';
 import {FLOOR_SPACING,stairPoint} from '../../sites/tactical-animal/dist/town-levels.js';
 import {TOWN_WINDOW,townWindowParts} from '../../sites/tactical-animal/dist/town-windows.js';
+import {DONNELLY_ID,DONNELLY_LAYOUT,DONNELLY_REVISION,donnellyRooms,donnellyDoorOrder,donnellyRoof} from './donnelly-house-adapter.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url)),source=path.join(root,'maps/mount-dora');
 const checking=process.argv.includes('--check');
@@ -47,7 +48,7 @@ function stairPlot(b,cells,rooms,doors){
 }
 function furnishing(rooms,cells,reserved,seed){
  const furniture=[],occupied=new Set();
- for(const room of rooms){const group=[...cells.values()].filter(c=>c.room===room.id);if(group.length<12)continue;const formsFor=/Bedroom|room \d/.test(room.name)?['single-bed','bedside-table']:/Kitchen|laundry/.test(room.name)?['refrigerator','cabinet']:/Living|Sales|hall|floor/i.test(room.name)?['dining-table','coffee-table']:['cabinet','bedside-table'];
+ for(const room of rooms){const group=[...cells.values()].filter(c=>c.room===room.id);if(group.length<12)continue;const formsFor=/Bedroom|chamber|room \d/i.test(room.name)?['single-bed','bedside-table']:/Kitchen|laundry/.test(room.name)?['refrigerator','cabinet']:/Living|Sales|hall|floor|parlor|Dining/i.test(room.name)?['dining-table','coffee-table']:['cabinet','bedside-table'];
   for(const form of formsFor){let done=false;for(const c of group){if(done)break;for(const rotation of [0,1]){const spec=forms.get(form),min=rotation?[-spec.max[1],spec.min[0]]:spec.min,max=rotation?[-spec.min[1],spec.max[0]]:spec.max,bounds=[c.x+min[0],c.y+min[1],c.x+max[0],c.y+max[1]],covered=[];let clear=true;for(let y=Math.floor(bounds[1]+.5-.22);y<=Math.floor(bounds[3]+.5+.22);y++)for(let x=Math.floor(bounds[0]+.5-.22);x<=Math.floor(bounds[2]+.5+.22);x++){const k=key(x,y);if(cells.get(k)?.room!==room.id||reserved.has(k)||occupied.has(k))clear=false;covered.push(k);}if(!clear)continue;furniture.push({form,skin:['honey','cream','sage'][seed%3],x:c.x,y:c.y,rotation,room:room.id,bounds,height:spec.height});for(const k of covered)occupied.add(k);done=true;break;}}}
  }return furniture;
 }
@@ -65,7 +66,47 @@ function windowPlan(outer,doors,portalKeys,stair,furniture){
  }return selected;
 }
 const records=[],issues=[];
+function donnelly(b){
+ const floors=[0,1].map(level=>({...donnellyRooms(masks.get(b.id),level,runs),level}));
+ let stair;
+ for(const floor of floors){
+  const {cells,rooms,level}=floor,outer=[],adjacent=new Map();
+  for(const c of cells.values())for(const [dx,dy]of dirs){const n=cells.get(key(c.x+dx,c.y+dy)),e={...edge(c,dx,dy),c,n,dx,dy};if(!n)outer.push(e);else if(c.room!==n.room&&(dx===1||dy===1)){const id=[c.room,n.room].sort().join(':');if(!adjacent.has(id))adjacent.set(id,[]);adjacent.get(id).push(e);}}
+  const doors=[],parent=new Map(rooms.map(r=>[r.id,r.id])),find=a=>parent.get(a)===a?a:(parent.set(a,find(parent.get(a))),parent.get(a));
+  const pick=edges=>[...edges].sort((a,b)=>a.fixed-b.fixed||a.start-b.start)[Math.floor((edges.length-1)/2)];
+  const makeDoor=(e,exterior=false)=>{
+   const x=e.axis==='e'?e.fixed:e.start+.5,y=e.axis==='s'?e.fixed:e.start+.5;
+   // A leaf across the one-metre stair gallery seals the room internally even
+   // when its aperture itself clears. Swing hall doors into the adjoining room.
+   const swing=(e.c.room==='rhall'?1:-1)*(e.axis==='e'?e.dx:e.dy);
+   doors.push({id:'interior:'+b.id+':'+DONNELLY_LAYOUT+(level?':L'+level:'')+':d'+doors.length,kind:'door',name:exterior?'Entrance · Donnelly House':'Door · '+rooms.find(r=>r.id===e.n?.room)?.name,x,y,edge:e.axis+':'+Math.floor(x)+':'+Math.floor(y)+(level?':'+level:''),swing,range:1.65,height:1.65,open:false,inventory:[],rooms:[e.c.room,e.n?.room??null],inside:[e.c.x,e.c.y],outside:[e.c.x+e.dx,e.c.y+e.dy],exterior,...(level?{level,z0:level*FLOOR_SPACING}:{})});
+  };
+  const sourceID=id=>rooms.find(r=>r.sourceRoom===id)?.id;
+  const preferred=donnellyDoorOrder(level).filter(d=>d.from!=='Outside').map(d=>adjacent.get([sourceID(d.from),sourceID(d.to)].sort().join(':'))).filter(Boolean);
+  for(const edges of [...preferred,...adjacent.values()]){const e=pick(edges),a=find(e.c.room),c=find(e.n.room);if(a!==c){parent.set(a,c);makeDoor(e);}}
+  if(!level){
+   const eligible=outer.filter(e=>!occupancy.has(key(e.c.x+e.dx,e.c.y+e.dy))&&ground(e.c.x+e.dx,e.c.y+e.dy)!=='water'&&!trunks.has(key(e.c.x+e.dx,e.c.y+e.dy)));
+   for(const sourceRoom of ['G01','G06']){const options=eligible.filter(e=>e.c.room===sourceID(sourceRoom)&&(sourceRoom==='G01'?e.dx===1:e.dx===-1));if(!options.length)throw Error('No clear Donnelly entrance '+sourceRoom);makeDoor(pick(options),true);}
+  }
+  // Keep all leaves usable even with every room open; relocate along the same
+  // shared boundary or reverse the swing without changing the room graph.
+  for(let pass=0;pass<8;pass++)for(const d of doors){if(!doors.some(o=>o!==d&&clash(d,o)))continue;const choices=d.exterior?outer.filter(e=>e.c.room===d.rooms[0]&&!occupancy.has(key(e.c.x+e.dx,e.c.y+e.dy))):adjacent.get([...d.rooms].sort().join(':'));let replacement;
+   for(const e of choices)for(const sign of [1,-1]){const x=e.axis==='e'?e.fixed:e.start+.5,y=e.axis==='s'?e.fixed:e.start+.5,candidate={...d,x,y,edge:e.axis+':'+Math.floor(x)+':'+Math.floor(y)+(level?':'+level:''),swing:-(e.axis==='e'?e.dx:e.dy)*sign,rooms:[e.c.room,e.n?.room??null],inside:[e.c.x,e.c.y],outside:[e.c.x+e.dx,e.c.y+e.dy]};if(!doors.some(o=>o!==d&&clash(candidate,o))){replacement=candidate;break;}}if(replacement)Object.assign(d,replacement);
+  }
+  if(doors.some(d=>doors.some(o=>o!==d&&clash(d,o))))throw Error('Donnelly leaves conflict on floor '+level);
+  if(!level){stair=stairPlot(b,cells,rooms.filter(r=>r.id==='rhall'),doors);if(!stair)throw Error('No Donnelly main-hall staircase');}
+  const reserved=new Set(stair.plot),blocked=new Set(stair.core),portalKeys=new Set(doors.map(d=>d.edge[0]+':'+(d.edge[0]==='e'?d.x:d.y)+':'+((d.edge[0]==='e'?d.y:d.x)-.5)));
+  for(const room of rooms){const group=[...cells.values()].filter(c=>c.room===room.id&&!blocked.has(key(c.x,c.y))),anchors=doors.flatMap(d=>[d.inside,d.outside]).filter(p=>cells.get(key(...p))?.room===room.id),set=new Set(group.map(c=>key(c.x,c.y))),queue=[group[Math.floor(group.length/2)]],prev=new Map([[key(queue[0].x,queue[0].y),null]]);for(let i=0;i<queue.length;i++)for(const [dx,dy]of dirs){const c=queue[i],k=key(c.x+dx,c.y+dy);if(set.has(k)&&!prev.has(k)){prev.set(k,key(c.x,c.y));queue.push(cells.get(k));}}for(const p of anchors){let k=key(...p);while(k){reserved.add(k);k=prev.get(k);}}}
+  const furniture=furnishing(rooms,cells,reserved,records.length+level),windowEdges=windowPlan(outer,doors,portalKeys,stair,furniture),windowKeys=new Set(windowEdges.map(edgeKey)),walls=[];
+  for(const e of outer){if(windowKeys.has(edgeKey(e)))walls.push({...e,z0:TOWN_WINDOW.head,height:2,exterior:true},{...e,z0:0,height:TOWN_WINDOW.sill,exterior:true});else walls.push({...e,z0:portalKeys.has(edgeKey(e))?1.65:0,height:2,exterior:true});}
+  for(const edges of adjacent.values())for(const e of edges)walls.push({...e,z0:portalKeys.has(edgeKey(e))?1.65:0,height:2,exterior:false});
+  Object.assign(floor,{rooms,doors,furniture,walls:mergeEdges(walls).map(w=>level?{...w,level,z0:w.z0+level*FLOOR_SPACING,height:w.height+level*FLOOR_SPACING}:w),windows:windowEdges.map((e,i)=>({id:'window:'+b.id+':'+DONNELLY_LAYOUT+':L'+level+':'+i,axis:e.axis,x:e.c.x+e.dx*.5,y:e.c.y+e.dy*.5,level,room:e.c.room,outward:[e.dx,e.dy],...(shuttersClear(e)?{}:{shutters:false})})),...(level?{slabRuns:runs([...cells.values()].filter(c=>!blocked.has(key(c.x,c.y))))}:{})});delete floor.cells;
+ }
+ const {plot,core,score,...placement}=stair,groundFloor=floors[0];
+ return {id:b.id,bounds:b.bounds.map(n=>n-.5),footprintSHA256:hash(JSON.stringify(b.geometry)),designId:'nautilus-donnelly-interior-v1',layout:DONNELLY_LAYOUT,sourceRevision:DONNELLY_REVISION,stories:2,material:'wood',appearance:'donnelly-yellow',roof:donnellyRoof(),rooms:groundFloor.rooms,doors:groundFloor.doors,walls:groundFloor.walls,windows:groundFloor.windows,furniture:groundFloor.furniture,upperFloors:[floors[1]],stairs:[{...placement,id:'stairs:'+b.id+':0',building:b.id,level:0}]};
+}
 for(const b of authored.records){
+ if(b.id===DONNELLY_ID){records.push(donnelly(b));continue;}
  const cells=masks.get(b.id),f=featureById.get(b.id),use=f?.tags?.building||'yes',layout=/school/.test(use)?'school':/church/.test(use)?'assembly':/hotel/.test(use)?'lodging':/commercial|retail/.test(use)?'shop':/industrial|warehouse/.test(use)?'warehouse':'home';
  const [x0,y0,x1,y1]=b.bounds,w=x1-x0,d=y1-y0,nx=Math.max(1,Math.ceil(w/14)),ny=Math.max(1,Math.ceil(d/14)),mw=w/nx,md=d/ny,tw=Math.max(4,Math.round(mw*2)/2),td=Math.max(4,Math.round(md*2)/2),t=template(layout,tw,td);
  for(const c of cells.values()){const bx=Math.min(nx-1,Math.floor((c.x-x0)/mw)),by=Math.min(ny-1,Math.floor((c.y-y0)/md)),tx=Math.min(tw*2-1,Math.floor(((c.x-x0+.5)/mw-bx)*tw*2)),ty=Math.min(td*2-1,Math.floor(((c.y-y0+.5)/md-by)*td*2)),id=t.cells.get(key(tx,ty));c.name=t.names.get(id)||'Utility room';c.label=bx+':'+by+':'+id;}
@@ -112,6 +153,6 @@ library.dispose();texture.dispose();
 if(issues.length)throw Error(issues.join('\n'));
 const out=path.join(source,'interiors');if(!checking)await fs.mkdir(out,{recursive:true});const packets=[];
 for(const s of project.sectors){const bounds=[s.origin.x-.5,s.origin.y-.5,s.origin.x+239.5,s.origin.y+239.5],buildings=records.filter(b=>b.bounds[0]<bounds[2]&&b.bounds[2]>bounds[0]&&b.bounds[1]<bounds[3]&&b.bounds[3]>bounds[1]),packet=JSON.stringify({kind:'farmyard-fictional-interiors',version:3,sector:s.id,sourceLayoutSHA256:hash(bytes),buildings})+'\n';await output(path.join(out,s.id+'.json'),packet);packets.push({id:s.id,file:'interiors/'+s.id+'.json',sha256:hash(packet),bytes:Buffer.byteLength(packet)});}
-const manifest={VERSION:3,SOURCE_LAYOUT_SHA256:hash(bytes),NAUTILUS_REVISION:'2502646482218524fd5129641da769bb82462e4d',POLICY:'Fictional gameplay interiors and entrances authorized 2026-11-13; open windows authorized 2026-11-14. Geographic footprints and source evidence remain unchanged.',BUILDINGS:records.map(({id,bounds,doors,stories,upperFloors})=>({id,bounds,doorCount:doors.length,stories,upperDoorCounts:upperFloors.map(f=>f.doors.length)})),SECTORS:packets,INTERIOR_REVISION:hash(JSON.stringify(packets))};
+const manifest={VERSION:3,SOURCE_LAYOUT_SHA256:hash(bytes),NAUTILUS_REVISION:'2502646482218524fd5129641da769bb82462e4d',DONNELLY_REVISION,POLICY:'Fictional gameplay interiors and entrances authorized 2026-11-13; open windows authorized 2026-11-14. Geographic footprints and source evidence remain unchanged.',BUILDINGS:records.map(({id,bounds,doors,stories,upperFloors,layout})=>({id,bounds,doorCount:doors.length,stories,upperDoorCounts:upperFloors.map(f=>f.doors.length),...(layout===DONNELLY_LAYOUT?{layoutId:DONNELLY_LAYOUT}:{})})),SECTORS:packets,INTERIOR_REVISION:hash(JSON.stringify(packets))};
 const dir=path.join(root,'sites/tactical-animal/dist/mission-art/mount-dora-interiors');if(!checking)await fs.mkdir(dir,{recursive:true});await output(path.join(dir,'manifest.js'),'// Generated by tools/maps/build-mount-dora-interiors.mjs.\n'+Object.entries(manifest).map(([k,v])=>'export const '+k+'='+JSON.stringify(v)+';').join('\n')+'\n');
 console.log(JSON.stringify({buildings:records.length,upperFloors:records.reduce((n,b)=>n+b.upperFloors.length,0),stairFlights:records.reduce((n,b)=>n+b.stairs.length,0),rooms:records.reduce((n,b)=>n+b.rooms.length,0),doors:records.reduce((n,b)=>n+b.doors.length,0),furniture:records.reduce((n,b)=>n+b.furniture.length,0),windows:records.reduce((n,b)=>n+b.windows.length+b.upperFloors.reduce((m,f)=>m+f.windows.length,0),0),bytes:packets.reduce((n,p)=>n+p.bytes,0),largestPacket:Math.max(...packets.map(p=>p.bytes))}));

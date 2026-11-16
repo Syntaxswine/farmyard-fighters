@@ -111,7 +111,11 @@ export class TownInteriors{
   return [...state.interactables.filter(o=>!o.fictionalInterior).map(({id,open,searched,inventory})=>({id,open,searched,inventory})),...[...this.changes].map(([id,open])=>({id,open}))];
  }
  restore(objects=[]){
-  for(const o of objects){if(!o?.id?.startsWith('interior:'))continue;const match=/^interior:(.+?)(?::L(\d+))?:d(\d+)$/.exec(o.id),b=match&&this.catalogue.get(match[1]),count=b&&(match[2]?b.upperDoorCounts?.[Number(match[2])-1]:b.doorCount);if(!b||!Number.isInteger(count)||Number(match[3])>=count||typeof o.open!=='boolean')throw Error('Unsupported saved interior door.');if(o.open)this.changes.set(o.id,true);else this.changes.delete(o.id);}
+  for(const o of objects){if(!o?.id?.startsWith('interior:'))continue;const match=/^interior:(.+?)(?::(donnelly-v1))?(?::L(\d+))?:d(\d+)$/.exec(o.id),b=match&&this.catalogue.get(match[1]);
+   // Old Donnelly door indices describe a different room graph. Retire only
+   // those deltas; do not apply an old kitchen door state to a new parlor.
+   if(b?.layoutId&&!match[2])continue;
+   const count=b&&(match[3]?b.upperDoorCounts?.[Number(match[3])-1]:b.doorCount);if(!b||b.layoutId!==match[2]||!Number.isInteger(count)||Number(match[4])>=count||typeof o.open!=='boolean')throw Error('Unsupported saved interior door.');if(o.open)this.changes.set(o.id,true);else this.changes.delete(o.id);}
   for(const d of this.doors?.values()||[])d.open=this.changes.get(d.id)===true;
   this.syncSignature=null;this.sync();
  }

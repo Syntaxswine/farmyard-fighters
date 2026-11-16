@@ -294,14 +294,55 @@ indicator follows a confirmed eye-to-eye sight line, avoiding a false flat fan
 through the window sill's blind zone. Guards use the real stairs when an open
 route is available and stay behind closed entrances when no walking route exists.
 
-The user's 2026-11-15 notice of ongoing Nautilus Victorian-house interior work
-is pending for a later pinned integration. These posts exclude Donnelly House
-(`osm-way-547799531`) and bind to their own windows, so its interior can be
-reviewed independently when the donor work is ready. The current pinned house
-artwork and fictional interiors remain the production reference.
+These posts exclude Donnelly House (`osm-way-547799531`) and bind to their own
+windows. Its separate pinned interior upgrade below retains all eight post
+positions, equipment and firing lanes.
 
 `tools/test-mount-dora-upper-guards.mjs` places only the player at declared
 street approaches. The guards remain at their published posts with normal
 weapons and AI. Desktop and touch reviews verify spotting, cutaways, downward
 fire, selecting an upstairs opponent, return fire and casualty persistence.
 Temporary browser/server helpers have a ten-minute deadline and cleanup receipt.
+
+## Donnelly Victorian house, adopted 2026-11-16
+
+Nautilus completed and merged its interpreted interior in PR #65. The house-only
+pin is `18e6d5c155a30c645d6bf0fa068a2896bd26768e`, reviewed in merge
+`7e9052dcf6a2aa00c6d38130f5f2345b86ceb593`. Exact source files, the resolved
+plan, notice and hashes are retained under `dist/mission-art/donnelly-house/`;
+`tools/maps/import-donnelly-house.mjs` reads only immutable donor Git objects.
+This does not advance the general building catalogue or geographic map pins.
+
+`tools/maps/donnelly-house-adapter.mjs` fits the donor's twelve ground rooms and
+ten upper rooms to the existing 303-cell footprint. The front parlors, dining
+room, study, main hall, service wing and independently accessed upper chambers
+retain their domestic identities. The service wing and main body require
+different fits. Two hall connections redundant in the donor graph are omitted;
+all 22 rooms remain accessible. The two entrances, all door leaves, furniture,
+stairs and open firing windows use the ordinary production systems. Gallery
+doors swing into adjoining rooms so their leaves do not seal the stair passage.
+
+Fighters retains its ground elevation of zero, 2.12-metre first floor and
+existing physical return-stair implementation. There is no walkable third floor
+or attic. Yellow walls and cream trim accompany the adapted main/rear hipped
+roofs, two front gables and six-sided blind attic turret. Roof surfaces use the
+existing pinned Nautilus roof renderer through a local-coordinate adapter;
+cutaways hide them over a visible interior. The original house source artwork
+remains preserved and is suppressed at this placement to avoid duplicate roofs.
+The updated house is a fictional gameplay interpretation, not surveyed evidence.
+
+Only Donnelly's records in B02/B03 change. A regression fingerprint preserves
+the other 1,075 building interiors exactly. The town still has 190 upper floors,
+50 guards and eight upper window posts; it now has 18,551 open firing windows.
+New Donnelly door IDs include `donnelly-v1`. Old house door deltas are retired
+without assigning their indices to different rooms. Existing progress, resources,
+other building doors and casualties retain their ordinary resume behavior.
+
+`tests/donnelly-house.test.mjs` checks source hashes, all room accesses with normal
+hand actions/navigation, continuous stair traversal, two-way projectiles through
+both storeys' windows, solid sills/slabs, save/resume, cutaways and resource
+disposal. `tools/test-donnelly-house.mjs` reviews the same production entry,
+parlor, stair, chamber window and return trip with desktop/touch controls. It
+changes only the declared starting approach, keeps all guards and gameplay
+enabled, and closes its temporary browser/server on completion or its real
+ten-minute deadline.

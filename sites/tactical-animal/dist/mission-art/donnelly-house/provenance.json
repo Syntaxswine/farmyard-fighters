@@ -1,0 +1,40 @@
+{
+  "schema": "fighters-donnelly-house/1",
+  "repository": "https://github.com/Syntaxswine/nautilus-engine",
+  "revision": "18e6d5c155a30c645d6bf0fa068a2896bd26768e",
+  "reviewedMerge": "7e9052dcf6a2aa00c6d38130f5f2345b86ceb593",
+  "review": "https://github.com/Syntaxswine/nautilus-engine/pull/65",
+  "files": [
+    {
+      "path": "source/packages/mount-dora-core/donnelly-layout.js",
+      "sha256": "ef43026badd2f869832487fd0e4e934263c850b75be0aa3dcbcd919eb30ce613",
+      "bytes": 3846
+    },
+    {
+      "path": "source/packages/mount-dora-core/donnelly-furnishing.js",
+      "sha256": "d8a80983867c521b981bb9cfdcb70d3793730a251f8a06231ed5db13f570170d",
+      "bytes": 3629
+    },
+    {
+      "path": "source/packages/mount-dora-core/donnelly-house.js",
+      "sha256": "c412377eea19b4d13468fdda02d4b57487488d6cbb432b2c6f190ab94398be41",
+      "bytes": 18658
+    },
+    {
+      "path": "source/docs/projects/donnelly-house/resolved-interior-v1.json",
+      "sha256": "e71788ff6112ed73573fe23bf40041675dd5a3c62ce86497211aa8f9ae1b73af",
+      "bytes": 18852
+    },
+    {
+      "path": "source/docs/donnelly-interior.md",
+      "sha256": "dafc69dd06fe15901f5a3f5f44785130ae230d24e35bdd596c854ee54073db5b",
+      "bytes": 10156
+    },
+    {
+      "path": "source/NOTICE.md",
+      "sha256": "d6b2035207f19e3e9b95c72282e6140ad6b01ade274c6f458bf124e984c32ccd",
+      "bytes": 8811
+    }
+  ],
+  "policy": "Approved fictional domestic interpretation fitted to the existing Fighters footprint. Original source bytes are retained separately. Fighters owns movement, doors, floors, windows, combat and guards; the donor world/save/controller are not loaded."
+}

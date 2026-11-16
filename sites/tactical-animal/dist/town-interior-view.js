@@ -4,6 +4,7 @@ import {PAINTED_ATLAS} from './aft/tactics/painted-environment-scene.js';
 import {CARGO_ATLAS} from './aft/tactics/painted-cargo.js';
 import {interiorWallBox} from './town-interiors.js';
 import {townWindowParts} from './town-windows.js';
+import {createDonnellyRoof} from './donnelly-house-view.js';
 import {FLOOR_SPACING,baseHeight,floorLevel,floorKey,stairBoxes,stairCoreContains,stairHeight} from './town-levels.js';
 const origin=new URL('./aft/tactics/',import.meta.url),intersects=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
 const colourFor=name=>/Kitchen|Bath|laundry/.test(name)?0xb6b4a0:/Hall|hall|aisle/.test(name)?0xb69d79:/Bedroom|Study|room \d/.test(name)?0xa58b6b:0xc8ad80;
@@ -15,6 +16,7 @@ export class TownInteriorScenery{
   const material=(colour,map)=>{const m=new T.MeshStandardMaterial({color:colour,...(map?{map}:{}),roughness:.91});this.materials.push(m);return m;};
   this.wallMaterials={wood:material(0xd2c7ab,materials.get('wood')?.map),brick:material(0xc49c81,materials.get('brick')?.map),concrete:material(0xd1d0bd,materials.get('concrete')?.map)};
   this.floorMaterial=material(0xffffff,materials.get('wood')?.map);this.roofMaterial=material(0x646759,materials.get('floor')?.map);this.frameMaterial=material(0x6f5d47);this.railMaterial=material(0x747b71);this.shutterMaterial=material(0x526e60);
+  this.donnellyWall=material(0xe7c467);this.donnellyTrim=material(0xf4ecd9);
   const load=async url=>{const t=await loader.loadAsync(new URL(url,origin).href);if(this.disposed){t.dispose();return null;}t.colorSpace=T.SRGBColorSpace;this.textures.push(t);return t;};
   this.ready=Promise.all([load(PAINTED_ATLAS),load(CARGO_ATLAS)]).then(([atlas,cargo])=>{if(!this.disposed)this.library=createFurnitureLibrary(atlas,cargo);});
  }
@@ -24,12 +26,12 @@ export class TownInteriorScenery{
  }
  buildFloor(b,floor){
   const base=floor.level*FLOOR_SPACING,root=new T.Group();root.name=b.id+':floor:'+floor.level;
-  const boxes=floor.walls.map(interiorWallBox),material=this.wallMaterials[b.material]||this.wallMaterials.wood,full=this.batch(boxes,material),cut=this.batch(boxes.filter(b=>(b.z0??0)<base+.62).map(b=>({...b,height:base+.62})),material),outer=this.batch(floor.walls.filter(w=>w.exterior).map(interiorWallBox),material);
+  const boxes=floor.walls.map(interiorWallBox),material=b.appearance==='donnelly-yellow'?this.donnellyWall:this.wallMaterials[b.material]||this.wallMaterials.wood,full=this.batch(boxes,material),cut=this.batch(boxes.filter(b=>(b.z0??0)<base+.62).map(b=>({...b,height:base+.62})),material),outer=this.batch(floor.walls.filter(w=>w.exterior).map(interiorWallBox),material);
   const floorBoxes=[],floorRooms=[],plot=b.stairs?.[0];
   for(const r of floor.rooms)for(const [y,x0,x1]of r.runs){let start=null;for(let x=x0;x<=x1;x++){const hole=x===x1||floor.level>0&&plot&&stairCoreContains(plot,{x,y});if(hole){if(start!==null){floorBoxes.push({x0:start-.5,y0:y-.5,x1:x-.5,y1:y+.5,z0:base+.003,height:base+.018});floorRooms.push(r);start=null;}}else if(start===null)start=x;}}
   const floors=this.batch(floorBoxes,this.floorMaterial);floors.castShadow=false;floors.userData.noShadow=true;floors.userData.floorSurface=true;floors.userData.level=floor.level;floors.userData.building=b.id;
   const parts=(floor.windows||[]).flatMap(townWindowParts),frames=parts.filter(p=>p.role==='frame'),shutters=parts.filter(p=>p.role==='shutter');
-  const trim=this.batch(frames,this.frameMaterial),panels=this.batch(shutters,this.shutterMaterial);root.add(full,cut,outer,floors,trim,panels);const furniture=[];
+  const trim=this.batch(frames,b.appearance==='donnelly-yellow'?this.donnellyTrim:this.frameMaterial),panels=this.batch(shutters,this.shutterMaterial);root.add(full,cut,outer,floors,trim,panels);const furniture=[];
   for(const f of floor.furniture){const model=this.library.build(f.form,f.skin),o=model.root;o.position.set(f.x,base+.018,f.y);o.rotation.y=-f.rotation*Math.PI/2;root.add(o);furniture.push({root:o,room:f.room});}
   return {floor,root,full,cut,outer,floors,trim,panels,floorRooms,furniture,meshes:[full,cut,outer,floors,trim,panels],visibilityKey:null};
  }
@@ -38,9 +40,10 @@ export class TownInteriorScenery{
   for(const r of b.rooms)for(const [y,x0,x1]of r.runs)roofBoxes.push({x0:x0-.5,y0:y-.5,x1:x1-.5,y1:y+.5,z0:b.stories*FLOOR_SPACING-.12,height:b.stories*FLOOR_SPACING});
   const roofs=this.batch(roofBoxes,this.roofMaterial),stairs=[];root.add(roofs);for(const f of floors)root.add(f.root);
   for(const stair of b.stairs||[]){const group=new T.Group(),boxes=stairBoxes(stair),treads=this.batch(boxes.filter(b=>b.stairTread),this.wallMaterials.wood),rails=this.batch(boxes.filter(b=>!b.stairTread),this.railMaterial);treads.userData.stairId=stair.id;group.add(treads,rails);root.add(group);stairs.push({stair,root:group,treads,rails,clip:null});}
-  this.root.add(root);return {b,root,levels:floors,stairs,roofs,full:floors[0].full,cut:floors[0].cut,floors:floors[0].floors,floorRooms:floors[0].floorRooms,furniture:floors.flatMap(f=>f.furniture),meshes:[roofs,...floors.flatMap(f=>f.meshes),...stairs.flatMap(s=>[s.treads,s.rails])]};
+  const houseRoof=b.roof?createDonnellyRoof(T,b.roof):null;if(houseRoof)root.add(houseRoof.root);
+  this.root.add(root);return {b,root,levels:floors,stairs,roofs,houseRoof,full:floors[0].full,cut:floors[0].cut,floors:floors[0].floors,floorRooms:floors[0].floorRooms,furniture:floors.flatMap(f=>f.furniture),meshes:[roofs,...floors.flatMap(f=>f.meshes),...stairs.flatMap(s=>[s.treads,s.rails])]};
  }
- release(r){r.root.removeFromParent();for(const m of r.meshes)m.dispose();r.root.clear();}
+ release(r){r.root.removeFromParent();r.houseRoof?.dispose();for(const m of r.meshes)m.dispose();r.root.clear();}
  clipStair(record,top){
   if(record.clip!==null&&Math.abs(record.clip-top)<.025)return;record.clip=top;
   const matrix=new T.Matrix4(),position=new T.Vector3(),rotation=new T.Quaternion(),scale=new T.Vector3();
@@ -58,7 +61,7 @@ export class TownInteriorScenery{
   for(const [id,r]of this.resident){
    const inside=r.levels.some(f=>f.floor.rooms.some(room=>visible.has(floorKey(id,room.id,f.floor.level))));r.inside=inside;
    const displayLevel=focusLevels.get(id)??level;r.displayLevel=displayLevel;
-   const original=originals.get(id);let sourceRoof=false;original?.traverse(o=>{if(!o.isMesh)return;const roof=o.userData.occlusionRole==='roof';o.visible=roof&&!inside;sourceRoof||=roof;});r.roofs.visible=!inside&&!sourceRoof;
+   const original=originals.get(id);let sourceRoof=false;original?.traverse(o=>{if(!o.isMesh)return;const roof=o.userData.occlusionRole==='roof'&&!r.houseRoof;o.visible=roof&&!inside;sourceRoof||=roof;});r.roofs.visible=!inside&&!sourceRoof&&!r.houseRoof;if(r.houseRoof)r.houseRoof.root.visible=!inside;
    for(const f of r.levels){const active=inside&&f.floor.level===displayLevel,lower=inside&&f.floor.level<displayLevel;f.root.visible=!inside||f.floor.level<=displayLevel;f.full.visible=!inside;f.cut.visible=active;f.outer.visible=lower;f.trim.visible=f.panels.visible=!inside||lower||active;f.floors.visible=!inside||active;
     const seen=this.world.exploredFloors?.get(f.floor.level),flags=f.floor.rooms.map(room=>visible.has(floorKey(id,room.id,f.floor.level))?'v':seen?.has(room.runs[0][1]+','+room.runs[0][0])?'s':'?').join('');
     if(f.visibilityKey!==flags){f.visibilityKey=flags;const colour=new T.Color();f.floorRooms.forEach((room,i)=>{const known=visible.has(floorKey(id,room.id,f.floor.level)),remembered=seen?.has(room.runs[0][1]+','+room.runs[0][0]);colour.setHex(colourFor(room.name)).multiplyScalar(known?1:remembered?.5:.13);f.floors.setColorAt(i,colour);});if(f.floors.instanceColor)f.floors.instanceColor.needsUpdate=true;}
@@ -66,7 +69,7 @@ export class TownInteriorScenery{
    }
    for(const stair of r.stairs){stair.root.visible=inside&&(unit?.stairId?stair.stair.id===unit.stairId:stair.stair.level>=level-1&&stair.stair.level<=level);if(stair.root.visible)this.clipStair(stair,baseHeight(unit)+1.6);}
   }
-  for(const [id,root]of originals)if(!this.resident.has(id))root.traverse(o=>{if(o.isMesh)o.visible=o.userData.occlusionRole==='roof';});
+  for(const [id,root]of originals)if(!this.resident.has(id))root.traverse(o=>{if(o.isMesh)o.visible=o.userData.occlusionRole==='roof'&&!this.world.interiors.catalogue.get(id)?.layoutId;});
  }
  get surfacePicks(){const meshes=[];for(const r of this.resident.values()){for(const f of r.levels)if(f.root.visible&&f.floors.visible&&(r.inside||f.floor.level===0))meshes.push(f.floors);for(const s of r.stairs)if(s.root.visible)meshes.push(s.treads);}return meshes;}
  pickSurface(ray){const hit=ray.intersectObjects(this.surfacePicks,false)[0];if(!hit)return null;const stair=this.world.interiors.stairs.get(hit.object.userData.stairId);if(stair){const p={x:hit.point.x,y:hit.point.z},elevation=stairHeight(stair,p);return {...hit,level:Math.round(elevation/FLOOR_SPACING),elevation,stairId:stair.id};}return {...hit,level:hit.object.userData.level,elevation:hit.object.userData.level*FLOOR_SPACING};}

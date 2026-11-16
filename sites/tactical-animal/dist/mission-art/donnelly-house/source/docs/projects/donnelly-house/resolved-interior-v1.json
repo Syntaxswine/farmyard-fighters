@@ -1,0 +1,1124 @@
+{
+  "kind": "nautilus-donnelly-resolved-layout",
+  "version": 1,
+  "profile": "interior-v1",
+  "status": "implemented interpretation; architect acceptance and integration are separate",
+  "base": "41398076ae39915cf833ed31efc610a78ddd3ee8",
+  "evidence": "Private user exterior photo and NPS nomination75000560; no measured Donnelly floor drawing",
+  "coordinateSystem": "local nominal metres on wall axes; add origin once for engine x/y, h is metres",
+  "origin": [
+    386.5,
+    469.5
+  ],
+  "groundH": 0.848,
+  "upperH": 2.968,
+  "atticCeilingH": 5.088,
+  "storyM": 2.12,
+  "slabM": 0.12,
+  "wallM": 0.16,
+  "reviewBody": {
+    "radiusM": 0.23,
+    "heightM": 1.8
+  },
+  "rooms": [
+    {
+      "id": "G01",
+      "label": "Entry parlor",
+      "bounds": [
+        11,
+        6,
+        16,
+        12
+      ],
+      "level": 0
+    },
+    {
+      "id": "G02",
+      "label": "Family parlor",
+      "bounds": [
+        11,
+        0,
+        16,
+        6
+      ],
+      "level": 0
+    },
+    {
+      "id": "G03",
+      "label": "Dining room",
+      "bounds": [
+        6,
+        0,
+        11,
+        5
+      ],
+      "level": 0
+    },
+    {
+      "id": "G04",
+      "label": "Study",
+      "bounds": [
+        6,
+        9,
+        11,
+        12
+      ],
+      "level": 0
+    },
+    {
+      "id": "G05",
+      "label": "Main stair hall",
+      "bounds": [
+        6,
+        5,
+        11,
+        9
+      ],
+      "level": 0
+    },
+    {
+      "id": "G06",
+      "label": "Kitchen",
+      "bounds": [
+        0,
+        9,
+        4,
+        13
+      ],
+      "level": 0
+    },
+    {
+      "id": "G07",
+      "label": "Scullery",
+      "bounds": [
+        4,
+        11,
+        6,
+        13
+      ],
+      "level": 0
+    },
+    {
+      "id": "G08",
+      "label": "Pantry",
+      "bounds": [
+        4,
+        9,
+        6,
+        11
+      ],
+      "level": 0
+    },
+    {
+      "id": "G09",
+      "label": "Larder",
+      "bounds": [
+        0,
+        7,
+        2,
+        9
+      ],
+      "level": 0
+    },
+    {
+      "id": "G10",
+      "label": "Service passage",
+      "bounds": [
+        2,
+        7,
+        6,
+        9
+      ],
+      "level": 0
+    },
+    {
+      "id": "G11",
+      "label": "Back hall",
+      "bounds": [
+        4,
+        4,
+        6,
+        7
+      ],
+      "level": 0
+    },
+    {
+      "id": "G12",
+      "label": "Store",
+      "bounds": [
+        0,
+        4,
+        4,
+        7
+      ],
+      "level": 0
+    },
+    {
+      "id": "U01",
+      "label": "Principal chamber",
+      "bounds": [
+        11,
+        6,
+        16,
+        12
+      ],
+      "level": 1
+    },
+    {
+      "id": "U02",
+      "label": "Front chamber",
+      "bounds": [
+        11,
+        0,
+        16,
+        6
+      ],
+      "level": 1
+    },
+    {
+      "id": "U03",
+      "label": "Chamber C",
+      "bounds": [
+        6,
+        9,
+        11,
+        12
+      ],
+      "level": 1
+    },
+    {
+      "id": "U04",
+      "label": "Chamber D",
+      "bounds": [
+        6,
+        0,
+        11,
+        5
+      ],
+      "level": 1
+    },
+    {
+      "id": "U05",
+      "label": "Upper landing",
+      "bounds": [
+        6,
+        5,
+        11,
+        9
+      ],
+      "level": 1
+    },
+    {
+      "id": "U06",
+      "label": "Rear chamber",
+      "bounds": [
+        0,
+        8,
+        4,
+        13
+      ],
+      "level": 1
+    },
+    {
+      "id": "U07",
+      "label": "Shared bathroom",
+      "bounds": [
+        4,
+        10,
+        6,
+        13
+      ],
+      "level": 1
+    },
+    {
+      "id": "U08",
+      "label": "Linen room",
+      "bounds": [
+        0,
+        7,
+        4,
+        8
+      ],
+      "level": 1
+    },
+    {
+      "id": "U09",
+      "label": "Rear corridor",
+      "bounds": [
+        4,
+        4,
+        6,
+        10
+      ],
+      "level": 1
+    },
+    {
+      "id": "U10",
+      "label": "Upper store",
+      "bounds": [
+        0,
+        4,
+        4,
+        7
+      ],
+      "level": 1
+    }
+  ],
+  "doorAxes": [
+    {
+      "id": "front",
+      "from": "Outside",
+      "to": "G01",
+      "at": [
+        16,
+        7.4
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": false,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "parlors",
+      "from": "G01",
+      "to": "G02",
+      "at": [
+        13.5,
+        6
+      ],
+      "axis": "x",
+      "widthM": 1.8,
+      "open": true,
+      "swing": 0,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-parlor-hall",
+      "from": "G01",
+      "to": "G05",
+      "at": [
+        11,
+        6.65
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": -1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-family-dining",
+      "from": "G02",
+      "to": "G03",
+      "at": [
+        11,
+        2.5
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-dining-hall",
+      "from": "G03",
+      "to": "G05",
+      "at": [
+        6.68,
+        5
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-study-hall",
+      "from": "G04",
+      "to": "G05",
+      "at": [
+        6.68,
+        9
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-dining-back",
+      "from": "G03",
+      "to": "G11",
+      "at": [
+        6,
+        4.5
+      ],
+      "axis": "y",
+      "widthM": 0.8,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-hall-back",
+      "from": "G05",
+      "to": "G11",
+      "at": [
+        6,
+        6.5
+      ],
+      "axis": "y",
+      "widthM": 0.8,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-passage-back",
+      "from": "G10",
+      "to": "G11",
+      "at": [
+        5,
+        7
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-kitchen-passage",
+      "from": "G06",
+      "to": "G10",
+      "at": [
+        3,
+        9
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "rear",
+      "from": "Outside",
+      "to": "G06",
+      "at": [
+        0,
+        11
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": false,
+      "swing": -1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-scullery",
+      "from": "G06",
+      "to": "G07",
+      "at": [
+        4,
+        12
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": -1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-pantry",
+      "from": "G06",
+      "to": "G08",
+      "at": [
+        4,
+        10
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": -1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-larder",
+      "from": "G09",
+      "to": "G10",
+      "at": [
+        2,
+        8
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "g-store",
+      "from": "G10",
+      "to": "G12",
+      "at": [
+        3.1,
+        7
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": -1,
+      "hand": "start",
+      "level": 0
+    },
+    {
+      "id": "u-principal",
+      "from": "U01",
+      "to": "U05",
+      "at": [
+        11,
+        6.65
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": false,
+      "swing": -1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-front",
+      "from": "U02",
+      "to": "U05",
+      "at": [
+        11,
+        5.5
+      ],
+      "axis": "y",
+      "widthM": 0.8,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-chamber-c",
+      "from": "U03",
+      "to": "U05",
+      "at": [
+        6.68,
+        9
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-chamber-d",
+      "from": "U04",
+      "to": "U05",
+      "at": [
+        6.68,
+        5
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": -1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-rear-corridor",
+      "from": "U05",
+      "to": "U09",
+      "at": [
+        6,
+        6
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-rear-chamber",
+      "from": "U06",
+      "to": "U09",
+      "at": [
+        4,
+        9
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-bath",
+      "from": "U07",
+      "to": "U09",
+      "at": [
+        5,
+        10
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-linen",
+      "from": "U08",
+      "to": "U10",
+      "at": [
+        2,
+        7
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "open": true,
+      "swing": -1,
+      "hand": "start",
+      "level": 1
+    },
+    {
+      "id": "u-store",
+      "from": "U09",
+      "to": "U10",
+      "at": [
+        4,
+        5.5
+      ],
+      "axis": "y",
+      "widthM": 1,
+      "open": true,
+      "swing": 1,
+      "hand": "start",
+      "level": 1
+    }
+  ],
+  "windows": [
+    {
+      "id": "window-0",
+      "level": 0,
+      "room": "G01",
+      "at": [
+        16,
+        9.5
+      ],
+      "axis": "y",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-1",
+      "level": 0,
+      "room": "G02",
+      "at": [
+        16,
+        3.5
+      ],
+      "axis": "y",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-2",
+      "level": 0,
+      "room": "G02",
+      "at": [
+        13,
+        0
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-3",
+      "level": 0,
+      "room": "G03",
+      "at": [
+        8.5,
+        0
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-4",
+      "level": 0,
+      "room": "G04",
+      "at": [
+        8.5,
+        12
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-5",
+      "level": 0,
+      "room": "G06",
+      "at": [
+        2,
+        13
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-6",
+      "level": 0,
+      "room": "G07",
+      "at": [
+        5,
+        13
+      ],
+      "axis": "x",
+      "widthM": 1,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-7",
+      "level": 0,
+      "room": "G09",
+      "at": [
+        0,
+        8
+      ],
+      "axis": "y",
+      "widthM": 0.6,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-8",
+      "level": 1,
+      "room": "U01",
+      "at": [
+        16,
+        9.5
+      ],
+      "axis": "y",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-9",
+      "level": 1,
+      "room": "U02",
+      "at": [
+        18,
+        3.5
+      ],
+      "axis": "y",
+      "widthM": 1.8,
+      "bottomM": 0.28,
+      "heightM": 1.7
+    },
+    {
+      "id": "window-10",
+      "level": 1,
+      "room": "U02",
+      "at": [
+        13,
+        0
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-11",
+      "level": 1,
+      "room": "U03",
+      "at": [
+        8.5,
+        12
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-12",
+      "level": 1,
+      "room": "U04",
+      "at": [
+        8.5,
+        0
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-13",
+      "level": 1,
+      "room": "U06",
+      "at": [
+        2,
+        13
+      ],
+      "axis": "x",
+      "widthM": 1.2,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    },
+    {
+      "id": "window-14",
+      "level": 1,
+      "room": "U07",
+      "at": [
+        5,
+        13
+      ],
+      "axis": "x",
+      "widthM": 0.8,
+      "bottomM": 0.55,
+      "heightM": 1.18
+    }
+  ],
+  "stair": {
+    "id": "main-return-1p2-v1",
+    "x0": 7.28,
+    "turnX": 8.78,
+    "endX": 9.98,
+    "y0": 6.08,
+    "y1": 7.28,
+    "y2": 7.4,
+    "y3": 8.6,
+    "widthM": 1.2,
+    "landingM": 1.2,
+    "risers": 12,
+    "riseM": 0.17666666666666667,
+    "goingM": 0.3,
+    "hole": [
+      7.28,
+      6.08,
+      9.98,
+      8.6
+    ]
+  },
+  "turret": {
+    "centre": [
+      15.6,
+      11.4
+    ],
+    "radiusM": 1.5,
+    "sides": 6
+  },
+  "roof": [
+    {
+      "id": "house:roof:main",
+      "spec": {
+        "id": "donnelly-main",
+        "x": 8,
+        "y": 2,
+        "width": 10,
+        "depth": 12,
+        "z": 2,
+        "style": "hip",
+        "axis": "y",
+        "pitch": 42,
+        "overhang": 0.18,
+        "material": "metal",
+        "seed": 1401
+      },
+      "translation": [
+        384.5,
+        0.848,
+        467.5
+      ],
+      "collisionProfile": "closed-attic-eave-v1",
+      "minH": 4.968,
+      "topH": 9.752092949462812
+    },
+    {
+      "id": "house:roof:front-large",
+      "spec": {
+        "id": "donnelly-front-large",
+        "x": 14,
+        "y": 3,
+        "width": 6,
+        "depth": 5,
+        "z": 2,
+        "style": "gable",
+        "axis": "x",
+        "pitch": 53,
+        "overhang": 0.18,
+        "material": "metal",
+        "seed": 1401
+      },
+      "translation": [
+        384.5,
+        0.848,
+        467.5
+      ],
+      "collisionProfile": "closed-attic-eave-v1",
+      "minH": 4.968,
+      "topH": 8.6444801219427
+    },
+    {
+      "id": "house:roof:front-small",
+      "spec": {
+        "id": "donnelly-front-small",
+        "x": 14.5,
+        "y": 9.8,
+        "width": 3.8,
+        "depth": 2.4,
+        "z": 2,
+        "style": "gable",
+        "axis": "x",
+        "pitch": 50,
+        "overhang": 0.18,
+        "material": "metal",
+        "seed": 1401
+      },
+      "translation": [
+        384.5,
+        0.848,
+        467.5
+      ],
+      "collisionProfile": "closed-attic-eave-v1",
+      "minH": 4.968,
+      "topH": 6.73261995778001
+    },
+    {
+      "id": "house:roof:rear",
+      "spec": {
+        "id": "donnelly-rear",
+        "x": 2,
+        "y": 6,
+        "width": 6,
+        "depth": 9,
+        "z": 2,
+        "style": "hip",
+        "axis": "y",
+        "pitch": 36,
+        "overhang": 0.18,
+        "material": "metal",
+        "seed": 1401
+      },
+      "translation": [
+        384.5,
+        0.848,
+        467.5
+      ],
+      "collisionProfile": "closed-attic-eave-v1",
+      "minH": 4.968,
+      "topH": 7.398405239057047
+    }
+  ],
+  "attic": {
+    "playable": false,
+    "policy": "closed-attic-eave-v1",
+    "frontWindows": [
+      {
+        "id": "house:attic-window:0",
+        "centre": [
+          404.5,
+          5.848,
+          472.2
+        ],
+        "widthM": 0.55,
+        "heightM": 1.22
+      },
+      {
+        "id": "house:attic-window:1",
+        "centre": [
+          404.5,
+          5.848,
+          473.8
+        ],
+        "widthM": 0.55,
+        "heightM": 1.22
+      }
+    ],
+    "storage": [
+      {
+        "id": "furn-92",
+        "room": "A02",
+        "label": "Attic trunk",
+        "level": 2,
+        "material": "wood",
+        "bounds": {
+          "min": {
+            "x": 11.4,
+            "y": 5.7,
+            "h": 5.088
+          },
+          "max": {
+            "x": 12.3,
+            "y": 6.5,
+            "h": 5.788
+          }
+        }
+      },
+      {
+        "id": "furn-93",
+        "room": "A01",
+        "label": "Gable work bench",
+        "level": 2,
+        "material": "wood",
+        "bounds": {
+          "min": {
+            "x": 16.2,
+            "y": 3.5,
+            "h": 5.768
+          },
+          "max": {
+            "x": 17.3,
+            "y": 4.05,
+            "h": 5.848
+          }
+        }
+      },
+      {
+        "id": "furn-94",
+        "room": "A01",
+        "label": "Gable work bench leg",
+        "level": 2,
+        "material": "wood",
+        "bounds": {
+          "min": {
+            "x": 16.27,
+            "y": 3.57,
+            "h": 5.088
+          },
+          "max": {
+            "x": 16.34,
+            "y": 3.6399999999999997,
+            "h": 5.768
+          }
+        }
+      },
+      {
+        "id": "furn-95",
+        "room": "A01",
+        "label": "Gable work bench leg",
+        "level": 2,
+        "material": "wood",
+        "bounds": {
+          "min": {
+            "x": 17.16,
+            "y": 3.57,
+            "h": 5.088
+          },
+          "max": {
+            "x": 17.23,
+            "y": 3.6399999999999997,
+            "h": 5.768
+          }
+        }
+      },
+      {
+        "id": "furn-96",
+        "room": "A01",
+        "label": "Gable work bench leg",
+        "level": 2,
+        "material": "wood",
+        "bounds": {
+          "min": {
+            "x": 16.27,
+            "y": 3.91,
+            "h": 5.088
+          },
+          "max": {
+            "x": 16.34,
+            "y": 3.98,
+            "h": 5.768
+          }
+        }
+      },
+      {
+        "id": "furn-97",
+        "room": "A01",
+        "label": "Gable work bench leg",
+        "level": 2,
+        "material": "wood",
+        "bounds": {
+          "min": {
+            "x": 17.16,
+            "y": 3.91,
+            "h": 5.088
+          },
+          "max": {
+            "x": 17.23,
+            "y": 3.98,
+            "h": 5.768
+          }
+        }
+      }
+    ]
+  },
+  "rearEntrance": {
+    "landing": [
+      -1.2,
+      10.4,
+      0,
+      11.6
+    ],
+    "stepBounds": [
+      -2.7,
+      10.4,
+      -1.2,
+      11.6
+    ],
+    "risers": 5,
+    "riseM": 0.1696,
+    "goingM": 0.3
+  },
+  "native": {
+    "definitions": 6,
+    "parts": 229,
+    "doors": 23,
+    "furnitureSolids": 98,
+    "compiledSceneId": "scene:7df24fe5b66e616931060b95c0e96092ac850ee394dbf8d90e156940bc8195e6"
+  },
+  "provisional": "Dimensions and room uses are game-layout decisions, not surveyed history or building-code certification."
+}
