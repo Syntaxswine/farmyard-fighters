@@ -18,7 +18,9 @@ export async function windowFixture({level=1}={}){
    if(!world.pointClear(player))continue;
    for(const distance of [6.5,9.5,12.5,16.5,20.5,24.5]){
     const target={x:window.x+dx*distance,y:window.y+dy*distance,level:0,elevation:0};
-    if(world.interiors.roomAt(target.x,target.y)||!world.pointClear(target)||!world.lineClear({...player,h:level*2.12+1.1},{...target,h:1.1}))continue;
+    // This fixture verifies the live guard and the fallen body/ground below.
+    // Require both rays; a valid torso shot may still leave the feet behind a sill.
+    if(world.interiors.roomAt(target.x,target.y)||!world.pointClear(target)||!world.lineClear({...player,h:level*2.12+1.1},{...target,h:1.1})||!world.lineClear({...player,h:level*2.12+1.1},{...target,h:.12}))continue;
     const cover=[-1,1,-1.5,1.5,-2,2].map(n=>({...player,x:player.x+(window.axis==='s'?n:0),y:player.y+(window.axis==='e'?n:0)})).find(p=>world.pointClear(p)&&world.walkSegment(player,p)&&!world.lineClear({...p,h:level*2.12+1.1},{...target,h:1.1}));
     if(!cover)continue;
     Object.assign(unit,player);Object.assign(guard,target,{heading:Core.headingTo(target,player)});Core.refresh(state,{forceFog:true});

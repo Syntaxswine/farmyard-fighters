@@ -236,13 +236,13 @@ browser/server cleanup. `--check` on the overlay generator verifies reproducibil
 Overlay version 3 adds 18,547 fictional open windows across all 1,076 buildings,
 including the 190 upper floors. Geographic evidence and the Nautilus pin stay
 separate from these gameplay placements. The generator fits windows around the
-existing furniture, stair plots and door approaches. Folded shutters are omitted
+existing furniture, stair plots and door approaches. Painted shutter skins are omitted
 where they would intrude into another part of a building or its neighbour.
 
 `town-windows.js` supplies the shared aperture and frame dimensions: a one-metre
 span, a 0.65-metre sill, a 1.75-metre head and 55-mm timber members. Exterior wall
 packets contain the actual openings. Rendering and collision use the same frame
-and shutter boxes. These windows start open; they have no pane or interaction
+boxes. Shutters use the painted surface treatment described below. These windows start open; they have no pane or interaction
 menu. Their sills block movement and provide cover for a prone soldier. A steep
 shot down from a high floor can meet the sill, just as it meets the visible
 geometry. Standing positions support sight and bullets in both directions.
@@ -303,6 +303,31 @@ street approaches. The guards remain at their published posts with normal
 weapons and AI. Desktop and touch reviews verify spotting, cutaways, downward
 fire, selecting an upstairs opponent, return fire and casualty persistence.
 Temporary browser/server helpers have a ten-minute deadline and cleanup receipt.
+
+## Flat shutter skins and wall travel, updated 2026-11-16
+
+The user requested painted shutter skins rather than solid shutter models.
+`townWindowParts` now supplies only the four physical frame members. Their depth
+matches the 0.16-metre production wall thickness, keeping them flush on both
+faces. The sills and walls still prevent walking through a firing opening or
+dropping from an upper floor. Sight and projectiles retain the same physical
+frame/aperture implementation.
+
+`townWindowSkins` supplies drawing data only. Instanced planes apply the original
+SVG louver paint in `assets/environment/town-shutter-skin.svg` to the exterior
+piers. They have no volume, collision or cast shadow; their texture loads with
+the level artwork. They disappear with a cut-away wall rather than floating in
+the exposed room. The authoring tool uses their surface bounds to preserve the
+existing neighbour-clearance flags. All placement packets, house layouts,
+windows, guard posts and source pins remain unchanged.
+
+The existing production wall-slide path remains authoritative. Removing shutter
+solids and keeping frames within the wall envelope lets held input pass the
+trim without an extra obstacle or an invisible movement exception.
+`tests/town-shutter-skins.test.mjs` exercises 48 actual `Core.travel` traversals:
+both tangent directions, straight and wall-pressing input, every wall facing,
+inside/outside on ground and inside upstairs. Each sweep retains physical body
+clearance, floor height and accepted-distance accounting.
 
 ## Donnelly Victorian house, adopted 2026-11-16
 

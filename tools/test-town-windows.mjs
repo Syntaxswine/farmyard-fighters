@@ -2,6 +2,9 @@
 // the full town, guards, equipment, simulation and renderer stay enabled.
 import assert from 'node:assert/strict';
 import {windowFixture} from '../sites/tactical-animal/tests/helpers/town-window-fixture.mjs';
+import {loadTownTour} from '../sites/tactical-animal/dist/mount-dora-entry.js';
+import {getTourWorld} from '../sites/tactical-animal/dist/mount-dora-activity.js';
+import {DEFAULT_BUILD} from '../sites/tactical-animal/dist/solo-game.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -21,7 +24,7 @@ const close=()=>cleanup??=(async()=>{const errors=[];try{await cdp?.detach();}ca
 const deadline=setTimeout(()=>{report.failure='Ten-minute acceptance deadline reached';void close().finally(()=>process.exit(1));},600000);
 const mark=(name,data={})=>{report.checks.push({name,...data});write();console.log('PASS '+name);};
 async function bounded(promise,label,ms=15000){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label+' timed out')),ms);})]);}finally{clearTimeout(timer);}}
-const inspect=()=>bounded(page.evaluate(async()=>{const api=await import(document.querySelector('#game-entry').src);return {...api.inspectMountDora(),combat:api.inspectRealtime()};}),'production inspection');
+const inspect=()=>bounded(page.evaluate(async()=>{const api=await import(document.querySelector('#game-entry').src),skins={draws:0,flat:true,painted:true,castsShadow:false};window.__windowReview?.scene.traverse(o=>{if(o.name!=='Painted shutter skins'||!o.count)return;skins.draws++;skins.flat&&=o.geometry.type==='PlaneGeometry'&&Array.from(o.geometry.attributes.position.array).filter((v,i)=>i%3===2).every(v=>v===0);skins.painted&&=o.material.map?.image?.width>0;skins.castsShadow||=o.castShadow;});return {...api.inspectMountDora(),combat:api.inspectRealtime(),skins};}),'production inspection');
 async function until(check,label,timeout=45000){const end=Date.now()+timeout;let s;while(Date.now()<end){s=await inspect();if(check(s))return s;if(s.combat.status==='lost')throw Error('Lost during '+label);await page.waitForTimeout(80);}throw Error(label+': '+JSON.stringify({player:s.player,queue:s.queueLength,debug:s.debug}));}
 const ready=()=>until(s=>s.active&&s.touring&&s.ready&&s.combat.ready&&!s.paused,'town readiness',150000);
 async function shot(name){await bounded(page.screenshot({path:path.join(out,name+'.png')}),'capture '+name);}
@@ -33,7 +36,28 @@ async function moveTo(point,phone){
  if(phone)await page.touchscreen.tap(p.x,p.y);else await page.mouse.click(p.x,p.y);
  return until(s=>Math.hypot(s.player.x-point.x,s.player.y-point.y)<.12&&!s.queueLength,'walk behind the window pier',10000);
 }
-async function checkpoint(baseline,setup){await page.evaluate(({baseline,setup})=>{const p=JSON.parse(baseline);Object.assign(p.player,setup.player,{stance:'standing',sneaking:false,running:false});delete p.player.stairId;const g=p.runtime.guards.find(g=>g.id===setup.guard.id);Object.assign(g,setup.guard,{alert:false,lastKnown:null,isMoving:false});localStorage.setItem('farmyard-fighters:farmyard-mount-dora-tour-v1',JSON.stringify(p));},{baseline,setup});await page.locator('#resume').click();return ready();}
+async function hook(){await page.evaluate(async()=>{const entry=new URL(document.querySelector('#game-entry').src),{FieldView}=await import(new URL('field-view.js'+entry.search,entry)),set=FieldView.prototype.setGame;FieldView.prototype.setGame=function(...args){window.__windowReview=this;return set.apply(this,args);};});}
+async function checkpoint(baseline,setup){await page.evaluate(({baseline,setup})=>{const p=JSON.parse(baseline);Object.assign(p.player,setup.player,{stance:'standing',sneaking:false,running:false});delete p.player.stairId;if(setup.guard){const g=p.runtime.guards.find(g=>g.id===setup.guard.id);Object.assign(g,setup.guard,{alert:false,lastKnown:null,isMoving:false});}localStorage.setItem('farmyard-fighters:farmyard-mount-dora-tour-v1',JSON.stringify(p));},{baseline,setup});await hook();await page.locator('#resume').click();return ready();}
+async function shutterStarts(){
+ const projectURL=new URL('../maps/mount-dora/project.json',import.meta.url),state=await loadTownTour({build:DEFAULT_BUILD,projectURL,fetcher:async url=>new Response(fs.readFileSync(url))}),world=getTourWorld(state),idle=async()=>{while(world.inFlight.size||world.queue.length)await new Promise(r=>setTimeout(r,1));};
+ try{await idle();await world.readyAt({x:398,y:478});await idle();const b=world.interiors.buildings.get('osm-way-547799531');return [0,1].map(level=>{const side=level?-1:1,gap=.31002;for(const w of b.floors[level].windows){if(w.axis!=='s'||w.outward[1]!==-1||w.shutters===false)continue;const y=w.y-side*gap,point=x=>({x,y,level,elevation:level*2.12});if(world.walkSegment(point(w.x-1.7),point(w.x+1.7)))return {windowId:w.id,windowX:w.x,side,player:point(w.x-1.2)};}throw Error('No clear wall-hugging window on floor '+level);});}finally{world.dispose();}
+}
+const shutterSetups=await shutterStarts();
+async function hugWall(setup,phone,direction){
+ const keys=[setup.side>0?'s':'w',direction>0?'d':'a'];let s;
+ // Inspect only after releasing input. A slow software-renderer inspection
+ // must not leave the animal running beyond the reviewed wall segment.
+ for(let pulse=0;pulse<16;pulse++){
+  try{
+   if(phone){const r=await page.locator('#joystick').boundingBox();assert(r);cdp??=await page.context().newCDPSession(page);const x=r.x+r.width/2,y=r.y+r.height/2;await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+direction*r.width*.22,y:y+setup.side*r.width*.22}]});}
+   else for(const key of keys)await page.keyboard.down(key);
+   await page.waitForTimeout(100);
+  }finally{if(phone)await cdp?.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});else for(const key of [...keys].reverse())await page.keyboard.up(key);}
+  s=await inspect();assert.equal(s.player.level,setup.player.level);assert(Math.abs(s.player.y-setup.player.y)<.02,JSON.stringify({setup,player:s.player}));assert.equal(s.player.elevation,setup.player.elevation);assert(s.player.hp>0);
+  if(direction*(s.player.x-setup.windowX)>1.1)return s;
+ }
+ throw Error('Held input snagged beside '+setup.windowId);
+}
 try{
  if(!reviewURL){await new Promise(r=>server.listen(0,'127.0.0.1',r));port=server.address().port;}report.helpers.push({pid:process.pid,created:created(process.pid),executable:process.execPath,port,source:'tools/test-town-windows.mjs',cwd:root,purpose:report.purpose,expiry:'Ten minutes maximum; earlier at completion',stop:'finally closes browser and HTTP server'});write();
  browserServer=await chromium.launchServer({headless:true,host:'127.0.0.1',timeout:20000,...(process.env.FIGHTERS_REVIEW_BROWSER?{channel:process.env.FIGHTERS_REVIEW_BROWSER}:{}),args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});wsPort=Number(new URL(browserServer.wsEndpoint()).port);const child=browserServer.process();report.helpers.push({pid:child.pid,created:created(child.pid),executable:child.spawnfile,port:wsPort,purpose:report.purpose,expiry:'Current review only',stop:'browserServer.close()'});write();browser=await chromium.connect(browserServer.wsEndpoint());
@@ -51,7 +75,8 @@ try{
    await tap('#menu',phone);await page.reload();await page.waitForFunction(()=>document.body.dataset.gameReady==='true');await page.locator('#resume').click();s=await ready();assert.equal(s.player.level,setup.player.level);assert.equal(s.combat.guards.find(g=>g.id===gid).hp,0);assert(s.renderedActors.includes(gid));mark(label+' resumes upstairs with the outdoor casualty intact');
    if(!phone&&setup!==setups.at(-1)){await tap('#menu',phone);await page.reload();await page.waitForFunction(()=>document.body.dataset.gameReady==='true');}
   }
-  await page.close();page=null;
+  for(const setup of shutterSetups){await tap('#menu',phone);await page.reload();await page.waitForFunction(()=>document.body.dataset.gameReady==='true');let s=await checkpoint(baseline,setup);assert(s.skins.draws>0);assert(s.skins.flat&&s.skins.painted&&!s.skins.castsShadow);s=await hugWall(setup,phone,1);s=await hugWall(setup,phone,-1);await shot((phone?'phone':'desktop')+'-wall-slide-floor-'+setup.player.level);mark((phone?'Touch':'Desktop')+' slides both ways past shutter skins on floor '+setup.player.level,{setup,player:s.player,skins:s.skins});}
+  await cdp?.detach();cdp=null;await page.close();page=null;
  }
  assert.deepEqual(report.errors,[]);assert.deepEqual(report.bad,[]);mark('No browser errors, missing assets or shader failures');
-}catch(error){report.failure=error.stack;try{const s=await inspect();report.state={player:s.player,combat:s.combat,render:s.render,camera:s.camera};await shot('failure');}catch{}write();console.error(error);process.exitCode=1;}finally{await close();clearTimeout(deadline);}
+}catch(error){report.failure=error.stack;try{const s=await inspect();report.state={player:s.player,combat:s.combat,render:s.render,camera:s.camera,skins:s.skins};await shot('failure');}catch{}write();console.error(error);process.exitCode=1;}finally{await close();clearTimeout(deadline);}

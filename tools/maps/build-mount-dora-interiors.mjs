@@ -8,7 +8,7 @@ import * as T from '../../sites/tactical-animal/dist/aft/tactics/vendor/three.mo
 import {createFurnitureLibrary} from '../../sites/tactical-animal/dist/aft/tactics/painted-furniture.js';
 import {doorFootprint} from '../../sites/tactical-animal/dist/interactions.js';
 import {FLOOR_SPACING,stairPoint} from '../../sites/tactical-animal/dist/town-levels.js';
-import {TOWN_WINDOW,townWindowParts} from '../../sites/tactical-animal/dist/town-windows.js';
+import {TOWN_WINDOW,townWindowSkins} from '../../sites/tactical-animal/dist/town-windows.js';
 import {DONNELLY_ID,DONNELLY_LAYOUT,DONNELLY_REVISION,donnellyRooms,donnellyDoorOrder,donnellyRoof} from './donnelly-house-adapter.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url)),source=path.join(root,'maps/mount-dora');
@@ -54,7 +54,7 @@ function furnishing(rooms,cells,reserved,seed){
 }
 function shuttersClear(e){
  const w={x:e.c.x+e.dx*.5,y:e.c.y+e.dy*.5,axis:e.axis,outward:[e.dx,e.dy],level:0};
- for(const box of townWindowParts(w).filter(p=>p.role==='shutter'))for(let y=Math.floor(box.y0+.5);y<=Math.floor(box.y1+.5-1e-7);y++)for(let x=Math.floor(box.x0+.5);x<=Math.floor(box.x1+.5-1e-7);x++)if(occupancy.has(key(x,y)))return false;
+ for(const {bounds:[x0,y0,x1,y1]} of townWindowSkins(w))for(let y=Math.floor(y0+.5);y<=Math.floor(y1+.5-1e-7);y++)for(let x=Math.floor(x0+.5);x<=Math.floor(x1+.5-1e-7);x++)if(occupancy.has(key(x,y)))return false;
  return true;
 }
 function windowPlan(outer,doors,portalKeys,stair,furniture){

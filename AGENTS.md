@@ -31,8 +31,11 @@
   openings, physical elevation, floor slabs, doors, visibility, weapon effects
   and navigation in the production path; stairs must walk rather than teleport.
 - The user authorized fictional Mount Dora windows on 2026-11-14. Their open
-  frames, sills and folded shutters share the sight/projectile and movement
-  geometry. Windows provide firing positions without permitting a floor drop.
+  frames and sills share the sight/projectile and movement geometry. Windows
+  provide firing positions without permitting a floor drop. On 2026-11-16 the
+  user requested shutter skins instead of solid models: paint them flush on the
+  exterior, without volume or collision. Keep window trim within the wall's
+  movement envelope so slippery-wall travel cannot snag on decorative details.
 - Verify placed objects through the actual game path, including import/editor
   playtest where applicable. Test fixtures may supply declared synthetic data,
   but must exercise the same production implementation as the shipped game.

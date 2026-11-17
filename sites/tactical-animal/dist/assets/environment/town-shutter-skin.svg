@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="352" viewBox="0 0 64 176">
+  <defs>
+    <pattern id="louvers" x="10" y="12" width="44" height="10" patternUnits="userSpaceOnUse">
+      <path fill="#48624f" d="M0 0h44v10H0z"/>
+      <path fill="#769078" d="M0 1h44v2H0z"/>
+      <path fill="#344c3f" d="M0 8h44v2H0z"/>
+    </pattern>
+  </defs>
+  <path fill="#30483a" d="M0 0h64v176H0z"/>
+  <path fill="#526e60" d="M3 3h58v170H3z"/>
+  <path fill="url(#louvers)" d="M10 12h44v152H10z"/>
+  <path fill="#78917a" d="M4 4h56v3H7v162H4z"/>
+  <path fill="#3b5545" d="M57 7h3v163H7v-3h50z"/>
+  <path fill="#617e66" d="M7 85h50v7H7z"/>
+  <path fill="#8a9a7c" d="M10 86h44v1H10z"/>
+</svg>

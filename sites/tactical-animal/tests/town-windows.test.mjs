@@ -8,7 +8,7 @@ import {loadTownTour} from '../dist/mount-dora-entry.js';
 import {getTourWorld} from '../dist/mount-dora-activity.js';
 import {TownInteriorScenery} from '../dist/town-interior-view.js';
 import {FLOOR_SPACING} from '../dist/town-levels.js';
-import {townWindowParts} from '../dist/town-windows.js';
+import {townWindowParts,townWindowSkins} from '../dist/town-windows.js';
 import {blockWindow} from '../dist/world-grid.js';
 import {contactCameraFrame} from '../dist/render-residency.js';
 import {fieldCameraFor} from '../dist/grenade-controls.js';
@@ -40,7 +40,7 @@ test('the accelerated outdoor sight lookup exactly matches ordinary production s
 
 test('rendered open frames share the production collision and an upstairs checkpoint retains its view',async()=>{
  const {state:s,world:w,unit:u,window:p,building:b}=await windowFixture();let view,restored;
- try{view=new TownInteriorScenery(w,{loadAsync:async()=>new T.Texture()},new Map());await view.ready;view.update(blockWindow(s,u));view.focus();const r=view.resident.get(b.id).levels[1],parts=townWindowParts(p);assert.deepEqual(r.trim.userData.boxes.filter(v=>v.windowId===p.id),parts.filter(v=>v.role==='frame'));assert.deepEqual(r.panels.userData.boxes.filter(v=>v.windowId===p.id),parts.filter(v=>v.role==='shutter'));assert(r.trim.visible);assert.equal(r.trim.userData.boxes.filter(v=>v.windowId===p.id).length,4);assert(!parts.some(v=>v.role==='glass'));assert(w.geometryBoxes([p.x-.5,p.y-.5,p.x+.5,p.y+.5]).some(v=>v.windowId===p.id));
+ try{view=new TownInteriorScenery(w,{loadAsync:async()=>new T.Texture()},new Map());await view.ready;view.update(blockWindow(s,u));view.focus();const r=view.resident.get(b.id).levels[1],parts=townWindowParts(p);assert.deepEqual(r.trim.userData.boxes.filter(v=>v.windowId===p.id),parts.filter(v=>v.role==='frame'));assert.deepEqual(r.panels.userData.skins.filter(v=>v.windowId===p.id),townWindowSkins(p));assert.equal(r.panels.geometry.type,'PlaneGeometry');assert(!r.panels.castShadow);assert(!r.panels.visible,'Painted skins disappear with the cut-away wall');assert(r.trim.visible);assert.equal(r.trim.userData.boxes.filter(v=>v.windowId===p.id).length,4);assert(!parts.some(v=>v.role==='glass'));assert(w.geometryBoxes([p.x-.5,p.y-.5,p.x+.5,p.y+.5]).some(v=>v.windowId===p.id));
   const saved=readTourProgress(encodeSave(s));assert(!saved.runtime.objects.some(v=>v.id.startsWith('window:')),'Static open windows do not inflate saved state');restored=await loadTownTour({progress:saved,fetcher,projectURL:new URL('project.json',base)});const rw=getTourWorld(restored),ru=restored.units[0],g=restored.units.find(v=>v.id===7);assert.equal(ru.level,1);assert(Core.canSee(restored,ru,g));assert(restored.visible.has(Core.key(g.x,g.y)));
  }finally{view?.dispose();getTourWorld(restored)?.dispose();w.dispose();}
 });
