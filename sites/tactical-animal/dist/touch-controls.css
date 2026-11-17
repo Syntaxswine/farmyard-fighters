@@ -71,11 +71,12 @@
 #menu{font-size:22px;gap:3px}
 #menu span{font:7px var(--mono);letter-spacing:.5px}
 dialog .danger-note{color:#ee9b6d}
-.interaction-hand{position:absolute;z-index:3;transform:translate(-50%,-100%);min-width:72px;min-height:64px;padding:7px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;background:#202d23f2;border:1px solid #c1b07c;box-shadow:0 4px 14px #0005;touch-action:none;user-select:none;-webkit-touch-callout:none}
-.interaction-hand strong{font:11px var(--mono)}
-.interaction-hand>#interaction-icon{display:block;width:50px;height:25px}
-.interaction-hand small{font:9px var(--mono);color:#d5ca9f}
-.interaction-hand:after{content:'';position:absolute;top:100%;left:calc(50% - 5px);border:5px solid transparent;border-top-color:#c1b07c}
+.interaction-hand{position:absolute;z-index:3;left:50%;bottom:calc(100% + 12px);transform:translateX(-50%);width:clamp(170px,48vw,230px);min-height:80px;padding:12px;display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:'icon action cost' 'icon target target';align-items:center;gap:6px 8px;text-align:left;background:#202d23f2;border:2px solid #c1b07c;border-radius:6px;box-shadow:0 4px 14px #0005;touch-action:none;user-select:none;-webkit-touch-callout:none}
+.interaction-hand strong{grid-area:action;font:600 15px var(--mono)}
+.interaction-hand>#interaction-icon{grid-area:icon;display:block;width:36px;height:28px}
+.interaction-hand>#interaction-target{grid-area:target;font:11px/1.3 var(--mono);color:#ded8bf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.interaction-hand small{grid-area:cost;font:9px var(--mono);color:#d5ca9f}
+.interaction-hand:active{background:#4b5738;border-color:#eee2ad}
 .interaction-hand.unaffordable{border-color:#b67e60}
 .loot-note{font:11px/1.6 var(--mono);color:var(--muted)}
 

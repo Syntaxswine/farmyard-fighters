@@ -27,6 +27,9 @@
 - The user authorized fictional Mount Dora gameplay interiors and entrances on
   2026-11-13, including simpler houses within the same footprints. Keep that
   overlay explicitly fictional and separate from the reviewed geographic data.
+  On 2026-11-16 the user requested larger rooms, targeting half the previous
+  count per floor. Join adjoining spaces by removing partitions; retain the
+  footprint, stairs, entrances and firing windows.
 - Upper floors are playable to the source storey count. Keep their stair
   openings, physical elevation, floor slabs, doors, visibility, weapon effects
   and navigation in the production path; stairs must walk rather than teleport.

@@ -18,6 +18,10 @@ export function nextCameraFocus(contacts,focusedId){
 // pointer-up once; retain native mouse/keyboard clicks and suppress duplicates.
 export function bindPressHold(button,{tap,hold,canUse,press=()=>{},delay=450}){
   let pointer=null,origin=null,timer=null,suppressClick=false;
+  // Touch taps already commit on pointerup. If a hold opens a dialog and hides
+  // this button, Chrome can otherwise send its synthetic click to the newly
+  // exposed dialog action under the finger (including Return to operation).
+  button.addEventListener('touchend',event=>event.preventDefault(),{passive:false});
   const clear=()=>{clearTimeout(timer);timer=null;};
   const cancel=()=>{if(pointer===null)return;clear();pointer=null;suppressClick=true;};
   button.addEventListener('pointerdown',event=>{

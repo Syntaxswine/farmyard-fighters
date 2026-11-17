@@ -32,7 +32,7 @@ export class TownInteriors{
   const wanted=new Map();for(const p of this.world.cache.values())for(const b of p.interiors?.buildings||[])wanted.set(b.id,b);
   for(const [id,b]of this.buildings)if(!wanted.has(id)){for(const d of b.allDoors)this.capture(d);this.buildings.delete(id);}
   for(const [id,b]of wanted)if(!this.buildings.has(id)){
-   const canonical=d=>({...structuredClone(d),building:id,fictionalInterior:true,open:this.changes.get(d.id)===true});
+   const canonical=d=>({...structuredClone(d),building:id,fictionalInterior:true,...(this.changes.get(d.id)||{open:false})});
    const record={...b,doors:b.doors.map(canonical),upperFloors:(b.upperFloors||[]).map(f=>({...f,doors:f.doors.map(canonical)}))};
    record.floors=buildingFloors(record);record.allDoors=record.floors.flatMap(f=>f.doors);record.boxes=[];
    for(const floor of record.floors){const base=floor.level*FLOOR_SPACING;record.boxes.push(...floor.walls.map(interiorWallBox),...(floor.windows||[]).flatMap(townWindowParts),...floor.furniture.flatMap(f=>{const box={x0:f.bounds[0],y0:f.bounds[1],x1:f.bounds[2],y1:f.bounds[3],z0:base,height:base+f.height,cover:true,windowPart:true};return [{...box,kind:'prop',reservation:true},{...box,kind:'part'}];}));
@@ -46,7 +46,7 @@ export class TownInteriors{
   for(const b of this.buildings.values()){
    for(const floor of b.floors)for(const r of floor.rooms)for(const [y,x0,x1]of r.runs)for(let x=x0;x<x1;x++)this.cells.set(key(x,y)+':'+floor.level,{building:b.id,room:r.id,level:floor.level,id:floorKey(b.id,r.id,floor.level)});
    for(const box of b.boxes)this.index.add({box},boundsOf(box));
-   for(const door of b.allDoors){this.doors.set(door.id,door);const a=doorFootprint(door,false),c=doorFootprint(door,true);this.index.add({door},[Math.min(a.x0,c.x0),Math.min(a.y0,c.y0),Math.max(a.x1,c.x1),Math.max(a.y1,c.y1)]);}
+   for(const door of b.allDoors){this.doors.set(door.id,door);const boxes=[doorFootprint(door,false),doorFootprint({...door,swing:1},true),doorFootprint({...door,swing:-1},true)];this.index.add({door},[Math.min(...boxes.map(b=>b.x0)),Math.min(...boxes.map(b=>b.y0)),Math.max(...boxes.map(b=>b.x1)),Math.max(...boxes.map(b=>b.y1))]);}
    for(const stair of b.stairs||[]){this.stairs.set(stair.id,stair);if(stair.level===0){const a=stairPoint(stair,-.5,.5),c=stairPoint(stair,1.5,stairTurn(stair)+1);this.plotIndex.add(stair,[Math.min(a.x,c.x),Math.min(a.y,c.y),Math.max(a.x,c.x),Math.max(a.y,c.y)]);}}
   }
   this.dataVersion=(this.dataVersion||0)+1;this.sync();
@@ -90,7 +90,7 @@ export class TownInteriors{
  boxes(bounds){return this.index.query(bounds).map(v=>v.box||{...doorFootprint(v.door),interactionId:v.door.id,kind:'wall'}).filter(b=>intersects(bounds,boundsOf(b)));}
  pointClear(p,radius){const base=baseHeight(p),h=base+.8;return !this.boxes([p.x-radius,p.y-radius,p.x+radius,p.y+radius]).some(b=>!b.slab&&(b.z0??0)<h&&b.height>base+(b.stairTread?.8:.1)&&Math.hypot(Math.max(b.x0-p.x,0,p.x-b.x1),Math.max(b.y0-p.y,0,p.y-b.y1))<radius-1e-7);}
  lineClear(a,b){const area=[Math.min(a.x,b.x),Math.min(a.y,b.y),Math.max(a.x,b.x),Math.max(a.y,b.y)];return !this.boxes(area).some(box=>interiorRayHits(a,b,box));}
- capture(d){if(d.open)this.changes.set(d.id,true);else this.changes.delete(d.id);}
+ capture(d){if(d.open)this.changes.set(d.id,{open:true,swing:d.swing??1});else this.changes.delete(d.id);}
  sync(window=this.window){
   if(window)this.window=window;
   const state=this.world.state;if(!state)return;
@@ -108,15 +108,15 @@ export class TownInteriors{
  changed(){for(const d of this.doors.values())this.capture(d);this.world.emit();}
  savedObjects(state){
   for(const d of this.doors.values())this.capture(d);
-  return [...state.interactables.filter(o=>!o.fictionalInterior).map(({id,open,searched,inventory})=>({id,open,searched,inventory})),...[...this.changes].map(([id,open])=>({id,open}))];
+  return [...state.interactables.filter(o=>!o.fictionalInterior).map(({id,open,searched,inventory})=>({id,open,searched,inventory})),...[...this.changes].map(([id,change])=>({id,...change}))];
  }
  restore(objects=[]){
-  for(const o of objects){if(!o?.id?.startsWith('interior:'))continue;const match=/^interior:(.+?)(?::(donnelly-v1))?(?::L(\d+))?:d(\d+)$/.exec(o.id),b=match&&this.catalogue.get(match[1]);
-   // Old Donnelly door indices describe a different room graph. Retire only
-   // those deltas; do not apply an old kitchen door state to a new parlor.
-   if(b?.layoutId&&!match[2])continue;
-   const count=b&&(match[3]?b.upperDoorCounts?.[Number(match[3])-1]:b.doorCount);if(!b||b.layoutId!==match[2]||!Number.isInteger(count)||Number(match[4])>=count||typeof o.open!=='boolean')throw Error('Unsupported saved interior door.');if(o.open)this.changes.set(o.id,true);else this.changes.delete(o.id);}
-  for(const d of this.doors?.values()||[])d.open=this.changes.get(d.id)===true;
+  for(const o of objects){if(!o?.id?.startsWith('interior:'))continue;const match=/^interior:(.+?)(?::(donnelly-v1|open-plan-v1))?(?::L(\d+))?:d(\d+)$/.exec(o.id),b=match&&this.catalogue.get(match[1]);
+   // Retired door indices belong to a different room graph. Keep the checkpoint
+   // and resources, without applying an old door state to a newly joined room.
+   if(b?.layoutId!==match?.[2]&&b&&(!match[2]||match[2]==='donnelly-v1'))continue;
+   const count=b&&(match[3]?b.upperDoorCounts?.[Number(match[3])-1]:b.doorCount);if(!b||b.layoutId!==match[2]||!Number.isInteger(count)||Number(match[4])>=count||typeof o.open!=='boolean'||o.swing!==undefined&&![-1,1].includes(o.swing))throw Error('Unsupported saved interior door.');if(o.open)this.changes.set(o.id,{open:true,...(o.swing===undefined?{}:{swing:o.swing})});else this.changes.delete(o.id);}
+  for(const d of this.doors?.values()||[])Object.assign(d,this.changes.get(d.id)||{open:false});
   this.syncSignature=null;this.sync();
  }
  reveal(unit){

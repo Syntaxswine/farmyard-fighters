@@ -32,6 +32,27 @@ export function selectInteractionTarget(candidates,currentId=null){
 
 export function createInteractionSystem({hero,canControl,combatCosts,distance,geometry,heightOf=()=>0,traverse,blocksWalking=()=>true,pointBoxDistance,refresh,stop,log,clearGeometry,weapons,radius}){
   const epsilon=1e-7;
+  function opening(state,object,unit){
+    const swing=object.swing??1,horizontal=object.edge.startsWith('s:');
+    // Push/pull away from the interacting animal, including when its artwork
+    // overlaps the closed leaf. Never move the animal or remove the collider.
+    const inSwing=pointBoxDistance(unit,doorFootprint(object,true))<radius+epsilon;
+    const candidate=inSwing&&!object.barrier?{...object,swing:-swing}:object,leaf=doorFootprint(candidate,true);
+    if(state.units.some(other=>other.hp>0&&Math.abs(heightOf(other)-(object.z0??0))<1.75&&pointBoxDistance(other,leaf)<radius+epsilon))return {reason:'Someone is in the doorway.'};
+    if(candidate!==object){
+      // A reverse swing also has to fit the actual room, furniture and nearby
+      // leaves. The narrow hinge/jamb strip already belongs to the closed door.
+      const length=WALL_DIMENSIONS.length,t=WALL_DIMENSIONS.thickness/2,hinge={x:object.x-(horizontal?length/2:0),y:object.y-(horizontal?0:length/2)},dir=candidate.swing;
+      const obstacles=geometry(state,unit,object,length+.2).filter(b=>b.interactionId!==object.id&&blocksWalking(b)&&(b.z0??0)<(object.z0??0)+.8&&b.height>(object.z0??0)+.1);
+      for(const b of obstacles){
+        if((b.kind!=='wall'||b.interactionId)&&leaf.x0<b.x1-epsilon&&leaf.x1>b.x0+epsilon&&leaf.y0<b.y1-epsilon&&leaf.y1>b.y0+epsilon)return {reason:'The door swing is obstructed.'};
+        const q0=(horizontal?b.x0-hinge.x:b.y0-hinge.y),q1=(horizontal?b.x1-hinge.x:b.y1-hinge.y),v0=dir*(horizontal?b.y0-hinge.y:b.x0-hinge.x),v1=dir*(horizontal?b.y1-hinge.y:b.x1-hinge.x);
+        if(q1<=t*2||Math.max(v0,v1)<=t*2)continue;
+        if(Math.hypot(Math.max(q0,t*2),Math.max(Math.min(v0,v1),t*2))<length-t)return {reason:'The door swing is obstructed.'};
+      }
+    }
+    return {swing:candidate.swing??1};
+  }
   function registerBody(state,unit){
     if(unit.team!=='guard'||unit.hp>0||state.interactables.some(object=>object.id==='body:'+unit.id))return;
     const kinds=[...new Set([unit.weapon,...(unit.pack||[]).filter(i=>i.type==='weapon').map(i=>i.kind)])].filter(kind=>kind!=='hands'&&weapons[kind]&&!(unit.tanksExploded&&kind==='flamethrower'));
@@ -81,16 +102,17 @@ export function createInteractionSystem({hero,canControl,combatCosts,distance,ge
   function preview(state,id,actionId,itemId=null){
     const object=objects(state).find(object=>object.id===id),unit=hero(state);
     const available=object?actions(state,object):[];
-    let action=available.find(action=>action.id===actionId),reason='';
+    let action=available.find(action=>action.id===actionId),reason='',doorOpening;
     if(object&&['take','take-all'].includes(actionId)&&object.searched&&(object.kind==='body'||object.open))action={id:actionId,label:actionId==='take-all'?'Take all':'Take',cost:cost(state,1)};
     if(!object||!action)reason='That action is no longer available.';
     else if(!canControl(state,unit))reason='Wait for your turn.';
     else if(object.kind==='extract'&&!objectiveSecured(state))reason='Secure the '+missionForState(state).objective.name.toLowerCase()+' first.';
     else if(!accessible(state,object))reason='Move within clear reach of the object.';
     else if(['take','take-all'].includes(actionId)&&(!object.inventory.length||actionId==='take'&&!object.inventory.some(item=>item.id===itemId)))reason='There is nothing to take.';
-    else if(object.kind==='door'&&['open','close'].includes(actionId)&&state.units.some(other=>other.hp>0&&Math.abs(heightOf(other)-(object.z0??0))<1.75&&pointBoxDistance(other,doorFootprint(object,actionId==='open'))<radius+epsilon))reason='Someone is in the doorway.';
+    else if(object.kind==='door'&&actionId==='open'&&(doorOpening=opening(state,object,unit)).reason)reason=doorOpening.reason;
+    else if(object.kind==='door'&&actionId==='close'&&state.units.some(other=>other.hp>0&&Math.abs(heightOf(other)-(object.z0??0))<1.75&&pointBoxDistance(other,doorFootprint(object,false))<radius+epsilon))reason='Someone is in the doorway.';
     else if(unit.ap+epsilon<action.cost)reason='Not enough AP.';
-    return {ok:!reason,reason,cost:action?.cost||0,action,object};
+    return {ok:!reason,reason,cost:action?.cost||0,action,object,...(doorOpening?.swing?{swing:doorOpening.swing}:{})};
   }
   function nearby(state){
     return objects(state).flatMap(object=>{
@@ -120,6 +142,7 @@ export function createInteractionSystem({hero,canControl,combatCosts,distance,ge
     stop(state);unit.ap=Math.max(0,unit.ap-check.cost);
     let loot=false,message=null;
     if(object.kind==='door'){
+      if(actionId==='open')stored.swing=check.swing;
       stored.open=actionId==='open';state.edges[object.edge]=stored.open?'door':'closed-door';
       log(state,`${stored.open?'Opened':'Closed'} the ${object.name.toLowerCase()} (${check.cost} AP).`);
     }else if(actionId==='open'||actionId==='search'){

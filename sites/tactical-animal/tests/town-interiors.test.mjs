@@ -75,8 +75,8 @@ test('production flame and grenade previews stop at a closed leaf and pass benea
 
 test('door deltas survive streaming eviction, and a failed interior packet blocks coverage and retries',async()=>{
  let fail=true;const get=async url=>fail&&url.pathname.endsWith('/C03.json')?new Response('offline',{status:503}):fetcher(url),w=await new TownWorld(project,{baseURL:base,fetcher:get,art,interiors}).identify();
- try{await assert.rejects(w.readyAt({x:500,y:500}),/Interior HTTP 503/);fail=false;w.retry();await w.readyAt({x:500,y:500});await idle(w);const d=[...w.interiors.doors.values()][0];d.open=true;w.interiors.changed();const origin=point(d.inside),id=d.id;
-  await w.readyAt({x:1300,y:1500});await idle(w);assert(!w.interiors.doors.has(id));await w.readyAt(origin);assert(w.interiors.doors.get(id).open);
+ try{await assert.rejects(w.readyAt({x:500,y:500}),/Interior HTTP 503/);fail=false;w.retry();await w.readyAt({x:500,y:500});await idle(w);const d=[...w.interiors.doors.values()][0];d.open=true;d.swing=-d.swing;const swing=d.swing;w.interiors.changed();const origin=point(d.inside),id=d.id;
+  await w.readyAt({x:1300,y:1500});await idle(w);assert(!w.interiors.doors.has(id));await w.readyAt(origin);assert(w.interiors.doors.get(id).open);assert.equal(w.interiors.doors.get(id).swing,swing);
   assert.throws(()=>w.restoreObjectChanges([{id:'interior:made-up:d0',open:true}]),/Unsupported saved/);
  }finally{w.dispose();}
 });

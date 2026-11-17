@@ -49,3 +49,10 @@ test('keyboard activation remains available after a cancelled pointer and opens 
 test('a secondary touch tap works without a browser click and suppresses any later duplicate',()=>{
   const b=new Control();let taps=0;bindPressHold(b,{tap:()=>taps++,hold:()=>{},canUse:()=>true});fire(b,'pointerdown',{pointerId:2,pointerType:'touch',isPrimary:false});fire(b,'pointerup',{pointerId:2,pointerType:'touch',isPrimary:false});assert.equal(taps,1);fire(b,'click');assert.equal(taps,1);fire(b,'click',{detail:0});assert.equal(taps,2);
 });
+
+test('touch release suppresses the native click that could hit a newly opened dialog',t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const b=new Control();let taps=0,holds=0,prevented=false;
+ bindPressHold(b,{tap:()=>taps++,hold:()=>holds++,canUse:()=>true});
+ fire(b,'pointerdown',{pointerType:'touch'});t.mock.timers.tick(450);fire(b,'pointerup',{pointerType:'touch'});fire(b,'touchend',{preventDefault(){prevented=true;}});
+ assert.equal(holds,1);assert.equal(taps,0);assert(prevented);
+});

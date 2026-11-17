@@ -47,7 +47,6 @@
   </main>
   <section id="battle" hidden aria-label="Solo operation">
     <div id="viewport" role="application" aria-label="Tactical map. Tap ground to move. Drag to look around. Tap a visible guard to target."></div>
-    <button id="interaction-hand" class="interaction-hand" type="button" hidden aria-haspopup="dialog" aria-label="Interact with nearby object. Hold for choices."><span id="interaction-icon" aria-hidden="true"></span><strong id="interaction-label"></strong><small id="interaction-cost"></small></button>
     <div class="view-controls"><button id="zoom-out" class="industrial-switch" type="button" aria-label="Zoom out"><span class="switch-legend" aria-hidden="true"><span class="switch-icon"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#zoom-out"/></svg></span></span></button><span>ZOOM</span><button id="zoom-in" class="industrial-switch" type="button" aria-label="Zoom in"><span class="switch-legend" aria-hidden="true"><span class="switch-icon"><svg class="switch-glyph" viewBox="0 0 32 32"><use href="assets/ui/industrial-switches/symbols.svg#zoom-in"/></svg></span></span></button></div>
     <button id="minimap-button" class="map-metal-frame" aria-label="Open tactical map showing your current location"><canvas id="minimap" width="190" height="140" role="img" aria-label="Map. The bright arrow marks your current location and facing direction."></canvas><span>MAP ↗</span></button>
     <div id="tour-stream-status" class="tour-stream-status" role="status" hidden><span id="tour-stream-copy"></span><button id="tour-retry" type="button">Retry</button></div>
@@ -74,6 +73,7 @@
         <button id="stance-cycle" class="square-control cycle-control industrial-switch" data-lit="false" type="button" aria-label="Stance: standing. Tap to cycle; hold for choices." aria-haspopup="dialog" aria-controls="control-picker" aria-expanded="false"><span class="switch-legend"><span id="stance-icon" class="switch-icon control-icon" aria-hidden="true"></span><span id="stance-label" class="switch-label">STAND</span><span class="switch-cost">FREE</span></span></button>
       </div>
       <div class="stick-column">
+        <button id="interaction-hand" class="interaction-hand" type="button" hidden aria-haspopup="dialog" aria-label="Interact with nearby object. Hold for choices."><span id="interaction-icon" aria-hidden="true"></span><strong id="interaction-label"></strong><span id="interaction-target"></span><small id="interaction-cost"></small></button>
         <div id="realtime-tools" class="realtime-tools" hidden>
           <button id="realtime-aim" class="industrial-switch" type="button"><span class="switch-legend"><span id="realtime-aim-label" class="switch-label">HIP FIRE</span></span></button>
           <button id="weapons" class="industrial-switch" type="button" aria-label="Open weapons menu" aria-haspopup="dialog" aria-controls="overlay"><span class="switch-legend"><span class="switch-label">WEAPONS</span></span></button>

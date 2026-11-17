@@ -215,15 +215,15 @@ $('deploy').onclick=()=>selectedMissionId===TOUR_ID?launchTour():start(createSol
 function positionInteractionHand(){
   const button=$('interaction-hand');
   if(!handTarget||!active||paused||aiming()||!Core.canControl(state,hero(state))||!$('loading').hidden){button.hidden=true;return;}
-  const anchor=view.interactionAnchor(handTarget);button.hidden=!anchor.visible;
-  if(anchor.visible){button.style.left=anchor.x+'px';button.style.top=anchor.y+'px';}
+  button.hidden=false;
 }
 function renderInteractionHand(){
   if(!state)return;
   handTarget=selectInteractionTarget(Core.nearbyInteractions(state),interactionFocus);interactionFocus=handTarget?.id||null;
   if(handTarget){
     const action=handTarget.actions[0],button=$('interaction-hand');
-    $('interaction-label').textContent=action.label;$('interaction-cost').textContent=action.cost+' AP';
+    $('interaction-label').textContent=action.label+(handTarget.kind==='door'?' door':'');$('interaction-cost').textContent=action.cost? action.cost+' AP':'FREE';
+    $('interaction-target').textContent=handTarget.name.replace(/^Door · /,'');
     button.setAttribute('aria-label',`${action.label} ${handTarget.name} · ${action.cost} AP. Hold for choices.`);
     button.title=action.reason||handTarget.name+' · tap to '+action.label.toLowerCase()+', hold for choices';button.classList.toggle('unaffordable',!action.ok);
   }
