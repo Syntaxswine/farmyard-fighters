@@ -143,13 +143,14 @@ export class OriginalEnvironment {
       scale.set(1,box?box.height/prototype.bounds.getSize(new T.Vector3()).y:1,1);
       rotation.setFromAxisAngle(new T.Vector3(0,1,0),p.rotated?-Math.PI/2:0);translation.set(p.x,0,p.y);matrix.compose(translation,rotation,scale);
       prototype.root.traverse(part=>{
-        if(!part.isMesh)return;const id=part.geometry.uuid+':'+part.material.uuid;
-        if(!groups.has(id))groups.set(id,{geometry:part.geometry,material:part.material,records:[]});
+        if(!part.isMesh)return;const id=part.geometry.uuid+':'+part.material.uuid+':'+part.castShadow;
+        if(!groups.has(id))groups.set(id,{geometry:part.geometry,material:part.material,castShadow:part.castShadow,records:[]});
         groups.get(id).records.push({p,matrix:new T.Matrix4().multiplyMatrices(matrix,part.matrixWorld)});
       });
     }
-    for(const {geometry,material,records}of groups.values()){
-      const mesh=new T.InstancedMesh(geometry,material,records.length);mesh.setColorAt(0,new T.Color(1,1,1));mesh.count=0;chunk.group.add(mesh);chunk.cargo.push({mesh,records});
+    // A batch keeps its parts' shadow choice (labels cast none); the daylight pass reads userData.noShadow.
+    for(const {geometry,material,castShadow,records}of groups.values()){
+      const mesh=new T.InstancedMesh(geometry,material,records.length);mesh.setColorAt(0,new T.Color(1,1,1));mesh.count=0;mesh.castShadow=castShadow;mesh.userData.noShadow=!castShadow;chunk.group.add(mesh);chunk.cargo.push({mesh,records});
     }
   }
   releaseChunk(chunk){

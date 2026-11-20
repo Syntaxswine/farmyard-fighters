@@ -146,7 +146,8 @@ export function createShortMeasureKit({paperTexture=null}={}) {
       let item;
       if(p.kind==='bar')item=box(root,'paint',p.at[0],.026,p.at[1],p.size[0],.008,p.size[1]);
       else {item=new T.Mesh(geometry.arrow,materials.paint);item.rotation.set(-Math.PI/2,0,Math.PI+p.yaw);item.position.set(p.at[0],.032,p.at[1]);root.add(item);}
-      item.name=p.id;item.castShadow=false;
+      // Flat paint casts no shadow; the field's daylight pass reads userData.noShadow.
+      item.name=p.id;item.castShadow=false;item.userData.noShadow=true;
     }
     return root;
   }

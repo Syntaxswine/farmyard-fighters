@@ -9052,7 +9052,7 @@
       {
         "path": "art/windows/geometry.js",
         "encoding": "UTF-8 with LF",
-        "sha256": "ceca3bc128ae627308bf15f0fca043025874d767864bca84008d775e3b2f4065"
+        "sha256": "65c96d989fbbf9509f1efbf469e1bf48d5ac20ace80b165e58025f909b48fc03"
       },
       {
         "path": "art/windows/preview-renderer.js",

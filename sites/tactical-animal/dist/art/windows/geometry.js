@@ -48,7 +48,8 @@ export function createWindowLibrary(){
   }
   for(const pane of spec.panes){
    const group=new T.Group();group.name='pane:'+pane.id;group.userData={windowPaneId:pane.id};root.add(group);
-   const glass=box(group,'glass:'+pane.id,pane.bounds,glassPaint(),spec.borderless?sheet:cube);glass.castShadow=false;glass.userData={windowPaneId:pane.id};
+   // Glass lets the sun through. The field's daylight pass sets castShadow from userData.noShadow.
+   const glass=box(group,'glass:'+pane.id,pane.bounds,glassPaint(),spec.borderless?sheet:cube);glass.castShadow=false;glass.userData={windowPaneId:pane.id,noShadow:true};
    let shine=null;
    if(!spec.borderless){
    const points=[],[x0,y0]=pane.bounds.min,[x1,y1]=pane.bounds.max,w=x1-x0,h=y1-y0;
