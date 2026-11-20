@@ -386,7 +386,7 @@ export class FieldView {
       if(event.weapon==='flamethrower'||event.incendiary){
         if(event.flame){
           this.flameEffects ||= new SoloFlameEffects(this.scene);
-          this.flameEffects.enqueue(event,now+delay,{recordedMuzzle:!!this.state?.realtime});
+          this.flameEffects.enqueue(event,now+delay,{followSource:!!this.state?.realtime});
           this.weaponSound(event,delay/1000);
         }
         continue;

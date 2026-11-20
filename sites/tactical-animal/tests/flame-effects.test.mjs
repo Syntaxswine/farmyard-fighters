@@ -7,7 +7,7 @@ import {Core,encodeSave} from '../dist/solo-game.js';
 import {flameScenario} from './flame-scenarios.mjs';
 import {pointInFlame,flameMuzzleInReach} from '../dist/flame-event.js';
 const camera=new T.PerspectiveCamera();camera.position.set(14,16,34);
-function shot(){const fixture=flameScenario();Core.attack(fixture.state,fixture.unit,fixture.target);return {...fixture,event:fixture.state.effect.sequence[0]};}
+function shot({realtime=false}={}){const fixture=flameScenario();if(realtime){Core.enableRealtime(fixture.state);assert(Core.fireFlame(fixture.state,fixture.unit,0));}else Core.attack(fixture.state,fixture.unit,fixture.target);return {...fixture,event:fixture.state.effect.sequence[0]};}
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
 function capture(layer,unit){const fire=layer.poseFor(unit);assert.ok(fire);layer.captureMuzzle(fire,{origin:new T.Vector3(unit.x+.55,1.17,unit.y+.02)});}
 const frame=(layer,state,now)=>{layer.beginFrame(now,state);layer.draw(state,camera);};
@@ -25,22 +25,44 @@ test('the first shot waits for one lazy atlas load, then remains visible through
   assert.equal(requests,1);assert.equal(encodeSave(state),before);layer.dispose();assert.equal(scene.children.length,0);
 });
 
-test('a committed real-time cone still renders after the operator moves away',async()=>{
-  const {state,unit,event}=shot(),layer=new SoloFlameEffects(new T.Scene(),{loadTexture:async()=>new T.Texture()});
-  layer.enqueue(event,100,{recordedMuzzle:true});
+test('a real-time jet follows the fitted nozzle after movement and ignition without rewriting the committed shot',async()=>{
+  const {state,unit,event}=shot({realtime:true}),layer=new SoloFlameEffects(new T.Scene(),{loadTexture:async()=>new T.Texture()}),recorded=JSON.stringify(event);
+  layer.enqueue(event,100,{followSource:true});
   await layer.pending;
-  unit.x+=1;unit.isMoving=true;
+  assert(Core.travel(state,unit,1,0)>.99);
   frame(layer,state,0);assert.equal(layer.slots.length,0);
   frame(layer,state,100);frame(layer,state,660);
   assert.equal(layer.poseFor(unit),null);
   assert.equal(layer.poseFor(unit,{realtime:true})?.entry.event,event);
-  unit.isMoving=false;
-  const fire=layer.poseFor(unit,{realtime:true}),muzzle=fire.entry.muzzle;
-  assert.equal(fire.atSource,false);
-  layer.captureMuzzle(fire,{origin:new T.Vector3(unit.x+.45,1.17,unit.y)});
-  assert.equal(fire.entry.muzzle,muzzle);
-  assert.ok(layer.slots[0].group.visible&&layer.slots[0].sheets.some(mesh=>mesh.visible));
+  const fire=layer.poseFor(unit,{realtime:true}),muzzle=new T.Vector3(unit.x+.45,1.17,unit.y+.02),before=encodeSave(state);
+  layer.captureMuzzle(fire,{origin:muzzle});layer.draw(state,camera);
+  assert.deepEqual(fire.entry.muzzle,muzzle);assert.equal(fire.entry.shape.origin.x,unit.x);assert.equal(fire.entry.shape.origin.y,unit.y);
+  const slot=layer.slots[0],geometry=slot.sheets[0].geometry;
+  assert(slot.group.visible&&slot.sheets.some(mesh=>mesh.visible));assert(new T.Vector3().fromBufferAttribute(geometry.getAttribute('position'),0).distanceTo(muzzle)<1e-5);
+  assert.equal(encodeSave(state),before);assert.equal(JSON.stringify(event),recorded);
+  assert(Core.travel(state,unit,0,.5)>.49);frame(layer,state,780);
+  const moving=layer.poseFor(unit,{realtime:true}),next=new T.Vector3(unit.x+.45,1.13,unit.y+.02);assert.equal(moving.atSource,false);
+  layer.captureMuzzle(moving,{origin:next});layer.draw(state,camera);assert.deepEqual(moving.entry.muzzle,next);assert.equal(slot.sheets[0].geometry,geometry);
+  assert(new T.Vector3().fromBufferAttribute(geometry.getAttribute('position'),0).distanceTo(next)<1e-5);assert.equal(moving.entry.shape.source.heading,event.flame.source.heading);
   layer.dispose();
+});
+
+test('a moving real-time jet reclips against the current wall and hides when the nozzle passes it',async()=>{
+ const {state,unit,event}=shot({realtime:true}),layer=new SoloFlameEffects(new T.Scene(),{loadTexture:async()=>new T.Texture()});
+ layer.enqueue(event,0,{followSource:true});await layer.pending;frame(layer,state,0);frame(layer,state,560);assert(Core.travel(state,unit,1,0)>.99);
+ const walled={...state,revision:state.revision+1,obstacles:[{kind:'wall',x0:6.4,x1:6.6,y0:20,y1:28,height:2}]};Core.refresh(walled,{forceFog:true});
+ layer.beginFrame(640,walled);let fire=layer.poseFor(unit,{realtime:true});layer.captureMuzzle(fire,{origin:new T.Vector3(unit.x+.55,1.17,unit.y+.02)});layer.draw(walled,camera);
+ assert(fire.entry.shape.rays[18].distance<1.4);assert.equal(fire.entry.shape.rays[18].kind,'wall');assert(layer.slots[0].group.visible);
+ assert(Core.travel(walled,unit,1.1,0)>1.09);layer.beginFrame(780,walled);fire=layer.poseFor(unit,{realtime:true});layer.captureMuzzle(fire,{origin:new T.Vector3(unit.x+.55,1.17,unit.y+.02)});layer.draw(walled,camera);
+ assert(!layer.slots[0].group.visible);assert.equal(event.flame.origin.x,4);layer.dispose();
+});
+
+test('the live cone and fog mask follow movement even without a revision bump and never expose a hidden source',async()=>{
+ const {state,unit,event}=shot({realtime:true}),layer=new SoloFlameEffects(new T.Scene(),{loadTexture:async()=>new T.Texture()});layer.enqueue(event,0,{followSource:true});await layer.pending;frame(layer,state,0);frame(layer,state,560);
+ const slot=layer.slots[0],old=slot.maskShape;unit.x+=1;layer.beginFrame(650,state);layer.captureMuzzle(layer.poseFor(unit,{realtime:true}),{origin:new T.Vector3(unit.x+.55,1.17,unit.y+.02)});layer.draw(state,camera);
+ assert.notEqual(slot.maskShape,old);assert.equal(slot.maskShape.origin.x,unit.x);assert(slot.group.visible);
+ const hidden={...state,revision:state.revision+1,visible:new Set(state.visible)};hidden.visible.delete(Math.round(unit.x)+','+Math.round(unit.y));frame(layer,hidden,740);assert(!slot.group.visible);assert(state.visible.has('4,25'));
+ layer.dispose();
 });
 
 test('mask updates can hide ground during playback without finding victims or moving any actor',async()=>{
@@ -74,6 +96,11 @@ test('reduced motion uses a brief static painted sheet and no moving plume cards
   layer.enqueue(event,0);capture(layer,unit);await layer.pending;frame(layer,state,0);const slot=layer.slots[0];
   assert.ok(slot.sheets.every(mesh=>mesh.visible&&mesh.material.uniforms.clock.value===.5));assert.ok(slot.plumes.every(mesh=>!mesh.visible));
   frame(layer,state,190);assert.equal(layer.queue.length,0);assert.equal(slot.group.visible,false);layer.dispose();
+});
+
+test('reduced-motion real-time fire follows its moving nozzle without adding plume animation',async()=>{
+ const {state,unit,event}=shot({realtime:true}),layer=new SoloFlameEffects(new T.Scene(),{loadTexture:async()=>new T.Texture(),reducedMotion:()=>true});layer.enqueue(event,0,{followSource:true});await layer.pending;frame(layer,state,0);assert(Core.travel(state,unit,.4,0)>.39);
+ layer.beginFrame(100,state);const nozzle=new T.Vector3(unit.x+.55,1.17,unit.y+.02);layer.captureMuzzle(layer.poseFor(unit,{realtime:true}),{origin:nozzle});layer.draw(state,camera);const slot=layer.slots[0];assert(slot.group.visible);assert(slot.sheets.every(s=>s.visible&&s.material.uniforms.clock.value===.5));assert(slot.plumes.every(p=>!p.visible));assert(slot.muzzle.distanceTo(nozzle)<1e-8);frame(layer,state,190);assert.equal(layer.queue.length,0);layer.dispose();
 });
 
 test('bounded slots reuse geometry and atlas resources across bursts of flame and release them once',async()=>{

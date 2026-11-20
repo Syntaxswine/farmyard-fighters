@@ -1,8 +1,9 @@
 import * as T from './aft/tactics/vendor/three.module.js';
 import {FIRE_ASSETS,flameSheetData,paintedFireMaterial} from './aft/tactics/painted-fire-effects.js';
 import {FIRE_TIME,fireState,smooth} from './aft/tactics/painted-fire-state.js';
-import {advanceFlameClock,flameMuzzleInReach} from './flame-event.js';
+import {advanceFlameClock,flameMuzzleInReach,recordFlame} from './flame-event.js';
 import {createFlameMask,updateFlameMask} from './flame-mask-view.js';
+import {geometryNear} from './solo-game.js';
 const V=(x=0,y=0,z=0)=>new T.Vector3(x,y,z);
 export const FLAME_LIMITS=Object.freeze({active:2,queued:6,plumes:24});
 const atlas=new URL(FIRE_ASSETS.flame,new URL('./aft/tactics/',import.meta.url)).href;
@@ -41,7 +42,7 @@ function makeSlot(scene,texture){
     const mesh=new T.Mesh(plane,clippedMaterial(texture,shared,{seed:i*1.618}));mesh.frustumCulled=false;
     mesh.userData={birth:.32+Math.floor(i/2)*.06+(i%2)*.012,lane:(i%2?-.46:.46)+.10*Math.sin(i*2.399),width:.72+.4*Math.sin(i*1.73)**2,length:.78+.47*Math.sin(i*2.17+.6)**2};group.add(mesh);return mesh;
   });
-  return {group,sheets,plumes,...mask,shared,owner:null,revision:null,muzzle:null,geometryShape:null,dispose(){group.removeFromParent();for(const sheet of sheets){sheet.geometry.dispose();sheet.material.dispose();}for(const plume of plumes)plume.material.dispose();plane.dispose();this.fog.dispose();group.clear();}};
+  return {group,sheets,plumes,...mask,shared,owner:null,revision:null,maskShape:null,muzzle:null,geometryShape:null,dispose(){group.removeFromParent();for(const sheet of sheets){sheet.geometry.dispose();sheet.material.dispose();}for(const plume of plumes)plume.material.dispose();plane.dispose();this.fog.dispose();group.clear();}};
 }
 
 function matchesFiringPose(unit,source){
@@ -55,14 +56,14 @@ export class SoloFlameEffects {
   constructor(scene,{loadTexture=url=>new T.TextureLoader().loadAsync(url),reducedMotion=()=>typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches,onError=error=>console.warn('Flamethrower artwork unavailable; combat continues.',error)}={}){
     Object.assign(this,{scene,loadTexture,reducedMotion,onError,queue:[],slots:[],texture:null,status:'idle',generation:0,disposed:false,now:0});
   }
-  enqueue(event,now,{recordedMuzzle=false}={}){
+  enqueue(event,now,{followSource=false}={}){
     if(this.disposed||!event.flame?.sourceVisible||this.status==='failed'||this.queue.length>=FLAME_LIMITS.queued)return false;
     const shape=event.flame,{x,y,h}=shape.origin;
-    // A real-time operator may already be moving when the renderer receives
-    // the shot. Start at the recorded cone and prefer its fitted live muzzle.
+    // A real-time operator may move before the renderer receives the shot.
+    // Seed a nozzle, then keep fitting it to the actual lance every frame.
     const reach=Math.min(.42,shape.rays[18].distance*.5);
-    const muzzle=recordedMuzzle?V(x+Math.cos(shape.heading)*reach,h,y+Math.sin(shape.heading)*reach):null;
-    this.queue.push({event,shape,queuedAt:now,elapsed:0,last:null,shown:false,tailShown:false,muzzle,recordedMuzzle,slot:null});
+    const muzzle=followSource?V(x+Math.cos(shape.heading)*reach,h,y+Math.sin(shape.heading)*reach):null;
+    this.queue.push({event,shape,queuedAt:now,elapsed:0,last:null,shown:false,tailShown:false,muzzle,followSource,attached:false,sourceKey:null,slot:null});
     if(this.status==='idle'){this.loadAt=now;this.load();}return true;
   }
   load(){
@@ -73,9 +74,10 @@ export class SoloFlameEffects {
     },error=>{if(!this.disposed&&generation===this.generation){this.status='failed';this.pending=null;this.queue=[];this.onError(error);}});
   }
   beginFrame(now,state){
-    this.now=now;const reduced=!!this.reducedMotion();
+    this.now=now;this.state=state;const reduced=!!this.reducedMotion();
     if(this.status==='loading'&&now-this.loadAt>15000){this.generation++;this.pending=null;this.status='failed';this.queue=[];this.onError(new Error('Flame atlas load timed out.'));}
     for(const entry of [...this.queue]){
+      this.follow(entry,state);
       // A disappeared operator/model cannot retain an unstarted presentation
       // forever. Real texture failures are handled independently above.
       if(!entry.muzzle&&now-entry.queuedAt>5000){this.release(entry);continue;}
@@ -83,11 +85,23 @@ export class SoloFlameEffects {
       if(!entry.slot){
         let slot=this.slots.find(slot=>!slot.owner);
         if(!slot&&this.slots.length<FLAME_LIMITS.active){slot=makeSlot(this.scene,this.texture);this.slots.push(slot);}
-        if(!slot)continue;entry.slot=slot;slot.owner=entry;slot.revision=null;slot.geometryShape=null;slot.muzzle=null;
+        if(!slot)continue;entry.slot=slot;slot.owner=entry;slot.revision=null;slot.maskShape=null;slot.geometryShape=null;slot.muzzle=null;
       }
       if(entry.muzzle){advanceFlameClock(entry,now,reduced);if(entry.elapsed>=(reduced?.18:FIRE_TIME.recover))this.release(entry);}
     }
-    this.state=state;
+  }
+  follow(entry,state){
+    const unit=entry.followSource&&state.realtime&&state.units.find(unit=>unit.id===entry.event.shooter);
+    entry.attached=!!unit&&unit.hp>0&&unit.weapon==='flamethrower';if(!entry.attached)return;
+    // Retain the burst's firing direction, just as the operator's lance pose
+    // does. Only this presentation cone moves; committed hit/burn receipts stay
+    // at their actual impact positions and rendering cannot inflict damage.
+    const source={...unit,heading:entry.event.flame.source.heading},signature=[state.revision,source.x,source.y,source.stance,source.elevation??0,source.level??0,source.heading].join(':');
+    if(entry.sourceKey===signature)return;
+    const previous=entry.shape,shape=recordFlame(source,previous.range,geometryNear(state,source,source,previous.range,'flame'),state.visible);
+    if(source.team!=='squad'&&!state.detected.has(source.id))shape.sourceVisible=false;
+    if(entry.muzzle)entry.muzzle.add(V(shape.origin.x-previous.origin.x,shape.origin.h-previous.origin.h,shape.origin.y-previous.origin.y));
+    entry.shape=shape;entry.sourceKey=signature;
   }
   poseFor(unit,{realtime=false}={}){
     if(unit.hp<=0||unit.weapon!=='flamethrower'||unit.isMoving&&!realtime)return null;
@@ -99,10 +113,16 @@ export class SoloFlameEffects {
   }
   captureMuzzle(fire,result){
     if(!result?.origin||!result.origin.toArray().every(Number.isFinite))return;
-    if(fire.entry.recordedMuzzle&&!fire.atSource)return;
     const source=fire.entry.shape.source;if(!this.queue.includes(fire.entry))return;
+    if(fire.entry.attached){
+      // Keep accepting the live nozzle after ignition, including while running,
+      // changing posture or climbing. A nozzle beyond a wall is clipped in draw.
+      for(const entry of this.queue)if(entry.attached&&entry.shape.source.id===source.id&&entry.shape.source.heading===source.heading)entry.muzzle=result.origin.clone();
+      return;
+    }
+    if(fire.entry.followSource&&!fire.atSource)return;
     for(const entry of this.queue){const other=entry.shape.source;
-      if(other.id===source.id&&other.stance===source.stance&&other.heading===source.heading&&other.x===source.x&&other.y===source.y&&(!entry.muzzle||entry.elapsed<FIRE_TIME.ignite)&&(!entry.recordedMuzzle||flameMuzzleInReach(entry.shape,{x:result.origin.x,y:result.origin.z})))entry.muzzle=result.origin.clone();
+      if(other.id===source.id&&other.stance===source.stance&&other.heading===source.heading&&other.x===source.x&&other.y===source.y&&(!entry.muzzle||entry.elapsed<FIRE_TIME.ignite)&&(!entry.followSource||flameMuzzleInReach(entry.shape,{x:result.origin.x,y:result.origin.z})))entry.muzzle=result.origin.clone();
     }
   }
   release(entry){
@@ -115,7 +135,7 @@ export class SoloFlameEffects {
       const slot=entry.slot,muzzle=entry.muzzle,shape=entry.shape;if(!slot||!muzzle)continue;
       if(entry.last===null)advanceFlameClock(entry,this.now,reduced);
       slot.group.visible=flameMuzzleInReach(shape,{x:muzzle.x,y:muzzle.z});if(!slot.group.visible)continue;
-      if(slot.revision!==state.revision){updateFlameMask(slot,shape,state.visible);slot.shared.soloFog.value=slot.fog;slot.shared.fogOrigin.value.set(slot.rect.origin.x,slot.rect.origin.y);slot.shared.fogSize.value.set(slot.rect.width,slot.rect.height);slot.revision=state.revision;}
+      if(slot.maskShape!==shape||slot.revision!==state.revision){updateFlameMask(slot,shape,state.visible);slot.shared.soloFog.value=slot.fog;slot.shared.fogOrigin.value.set(slot.rect.origin.x,slot.rect.origin.y);slot.shared.fogSize.value.set(slot.rect.width,slot.rect.height);slot.revision=state.revision;slot.maskShape=shape;}
       const u=slot.shared;u.source.value.set(shape.origin.x,shape.origin.y);u.angle.value=shape.heading;u.spread.value=shape.halfAngle;u.nozzle.value=(muzzle.x-shape.origin.x)*Math.cos(shape.heading)+(muzzle.z-shape.origin.y)*Math.sin(shape.heading);
       shape.rays.forEach((ray,i)=>u.rays.value[i].set(ray.x-shape.origin.x,ray.y-shape.origin.y));
       for(let i=0;i<36;i++){const a=shape.rays[i],b=shape.rays[i+1];u.wedges.value[i]=a.kind!=='hidden'&&a.kind===b.kind&&Math.abs(a.distance-b.distance)<=1.05?1:0;}

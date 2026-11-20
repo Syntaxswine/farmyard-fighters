@@ -56,3 +56,18 @@ test('the actual field sync captures the model muzzle, never changes simulation,
   const after=actor.worker.bones.map(bone=>bone.quaternion.clone()),gunAfter=actor.gun.root.matrix.clone();actor.root.position.set(0,0,0);actor.locomotion.apply(view.samples.get(unit.id));actor.posture.apply(view.samples.get(unit.id));
   after.forEach((rotation,i)=>assert.ok(rotation.angleTo(actor.worker.bones[i].quaternion)<1e-6));assert.ok(actor.gun.root.matrix.equals(gunAfter));view.clearEffects();actor.dispose();
 });
+
+test('production field sync keeps a moving real-time jet on the native muzzle in all three stances',async()=>{
+ for(const stance of ['standing','kneeling','prone']){
+  const {state,unit,target}=flameScenario({stance}),actor=rig(unit.species),scene=new T.Scene(),camera=new T.OrthographicCamera();camera.position.set(16,18,36);scene.add(actor.root);Core.enableRealtime(state);
+  const view=Object.assign(Object.create(FieldView.prototype),{scene,camera,actors:new Map(),samples:new Map(),effects:[],failed:new Set(),pending:new Map(),generation:0,follow:false,focusedId:null,lastRevision:-1,daylight:{update(){}},art:{update(){}},interactionArt:{update(){}},objectivePin:{},extractionPin:{},marker:new T.Mesh(),renderer:{render(){}},actor(){}});
+  const record={...actor,equipment:actor.gun,weapon:'flamethrower',flameOperator:actor.operator,paint:{dispose(){}},pick:new T.Mesh(),ring:new T.Mesh(),shadow:new T.Mesh()};view.actors.set(unit.id,record);view.flameEffects=new SoloFlameEffects(scene,{loadTexture:async()=>new T.Texture()});view.burnEffects=new SoloBurnEffects(scene,{loadTexture:async()=>new T.Texture()});
+  try{
+   assert(Core.fireFlame(state,unit,0));const shot=JSON.stringify(state.effect),start=unit.x;view.sync(state,0);await view.flameEffects.pending;let shown=0;
+   for(let t=16;t<=1100;t+=40){assert(Core.travel(state,unit,.03,0)>.029);const before=encodeSave(state);view.sync(state,t);assert.equal(encodeSave(state),before);const entry=view.flameEffects.queue[0],muzzle=actor.gun.anchors.muzzle.getWorldPosition(V());assert(entry.attached);assert(entry.muzzle.distanceTo(muzzle)<1e-8,stance);assert.equal(entry.shape.origin.x,unit.x);
+    if(entry.slot?.group.visible&&entry.slot.sheets.some(s=>s.visible)){assert(new T.Vector3().fromBufferAttribute(entry.slot.sheets[0].geometry.getAttribute('position'),0).distanceTo(muzzle)<1e-5);shown++;}
+   }
+   assert(unit.x-start>.7);assert(shown>3,stance+' must show the attached moving jet');assert.equal(JSON.stringify(state.effect),shot);
+  }finally{view.clearEffects();actor.dispose();}
+ }
+});
